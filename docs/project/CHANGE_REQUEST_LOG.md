@@ -2,7 +2,7 @@
 ## SMART-QSO
 
 **Document Number:** SQSO-CRL-001
-**Revision:** F
+**Revision:** G
 **Date:** 2026-10-27
 **Reference:** `docs/project/CONFIGURATION_MANAGEMENT_PLAN.md` §4.3 to §4.4, §6.3
 
@@ -33,6 +33,7 @@ logged here; the Git history records them.
 | CR-2026-013 | 2026-10-27 | I | SQSO-ETP-001 Rev D §9 deviations 1–3 and 7; §3.3 shock, §3.4 TVAC definition, §3.11 reliability programme; SQSO-LVR-001 LVR-046, VI-LV-16, VI-LV-17 | Tailoring of GSFC-STD-7000B (hot non-operating plateau +60 °C, 8 + 4 cycles, about 24 h failure-free in vacuum) and of the UG v11 advised shock (EM test if VI-07 needs it, FM by similarity); FM deployment before vibration; reliability programme added | Proposed by the design review; PI decision required by 2027-01-12 (DA-01) | Implemented in ETP D and LVR E (amended) |
 | CR-2026-014 | 2026-10-27 | I | EPS-F002 (`docs/hardware/EPS_DESIGN.md`); V-EPS-1 (SQSO-EPS-BRD-001); V-PWR-3 and the MPPT factor (SQSO-PBA-001) | MPPT efficiency "≥ 90 % at every operating point ≥ 1 W per tracker over 3.5–6.4 V, ≥ 91 % power-weighted" (was ≥ 92 %, which the 90.9–92.3 % design does not meet at low power); V-EPS-1 and V-PWR-3 take the same values; the power analysis MPPT factor 0.92 → 0.91 | Proposed by the design review; PI decision required by 2027-01-12 (DA-01) | Proposed by the EPS designer; documents change after the decision |
 | CR-2026-015 | 2026-10-27 | I | BASELINE §3 launch-cost row and backup trigger; SQSO-AUD-005 Rev F | Program-side launch cost $57k–195k (was $30k–100k), all-in $142k–345k; the backup trigger read on the integrator's slot price | Proposed by the design review; PI decision required by 2027-01-12 (DA-01) | ROM F implemented; BASELINE §3 by the chair after the decision |
+| CR-2026-016 | 2026-10-27 | I | EPS-F012 (`docs/hardware/EPS_DESIGN.md`); BSA H3b count basis; ICD-001 1.6 | Hardware load shed covers the Jetson rail only (the PA is no longer shed); F0B a diverse fuse (MIL-PRF-23419/8, Littelfuse) | Proposed by the design review; PI decision required by 2027-01-12 | Implemented in the design (SQSO-EPS-BRD-001 E) |
 
 ## 3. Change Requests
 
@@ -943,6 +944,60 @@ Submitter: Design review, round 3 (CDR 2026, SQSO-REV-CDR-002), systems and prog
 
 ---
 
+### CR-2026-016: load shed scope and pack-fuse diversity
+
+```
+Change Request Number: CR-2026-016
+Date Submitted: 2026-10-27
+Submitter: Design review (round 3, board FMEA SQSO-FMEA-003)
+
+1. Configuration Item Affected:
+   CI ID: EPS-F012 (docs/hardware/EPS_DESIGN.md); SQSO-BSA-001 H3b;
+   SMART-QSO-ICD-001 §4.6 (LOAD_SHED)
+
+2. Description of Change:
+   - EPS-F012: the independent hardware low-voltage disconnect opens
+     the Jetson rail (SW1 and the eFuse U19) only; the PA switch is no
+     longer shed.
+   - Pack fusing: F0A and F0N MIL-PRF-23419/12 FM12A72V5.0A (AEM); F0B
+     MIL-PRF-23419/8 FM08A125V5A (Littelfuse), a different
+     manufacturer and slash sheet, so the two positive-leg fuses are
+     independent controls.
+
+3. Reason for Change:
+   SMA-B05: a spurious permanent shed would hold the transmitter off
+   with no override, while a stuck-keyed PA is energy-positive and has
+   its own controls. P3E-02 / EPSB-10 / SQSO-FMEA-003: two fuses of
+   one part type in one leg count as one control.
+
+4. Impact Assessment:
+   - Technical: BSA H3b 2-fault tolerant by design; F0B breaks at most
+     211 A against its 300 A rating (F0A and F0N stay in circuit).
+   - Schedule, cost: none material.
+   - Risk: F0B's 16.8 V DC and vacuum ratings to confirm (DA-18).
+
+5. Affected Documents:
+   docs/hardware/EPS_DESIGN.md, hardware/electrical/eps/EPS_BOARD_DESIGN.md,
+   hardware/eps/BATTERY_DESIGN.md, docs/environment/BATTERY_SAFETY_ASSESSMENT.md,
+   docs/interfaces/ICD_OBC_EPS.md.
+
+6. Verification Required:
+   Test: V-EPS load-shed test on the EM; fuse procurement data (DA-18).
+
+7. CCB Decision:
+   [ ] Pending: PI decision required by 2027-01-12.
+
+8. Implementation:
+   Assigned to: EPS
+   Completed: design 2026-10-27
+
+9. Verification:
+   Verified by: —
+   Date: —
+```
+
+---
+
 ## 4. Revision History
 
 | Rev | Date | Description | Author |
@@ -953,3 +1008,4 @@ Submitter: Design review, round 3 (CDR 2026, SQSO-REV-CDR-002), systems and prog
 | D | 2026-10-27 | CR-2026-007: CDR 2026 chair dispositions | SMART-QSO Team |
 | E | 2026-10-27 | CR-2026-008: CDR 2026 round-2 baseline amendments | SMART-QSO Team |
 | F | 2026-10-27 | CR-2026-009 to CR-2026-015 (CDR round 3: system requirements E/F/G, Jetson heat path, ICDs, safety-critical list, test tailoring, MPPT, launch cost), each proposed by the design review for a PI decision by 2027-01-12; CR-2026-007 and -008 recorded as proposed by the chair, PI ratification required (CM plan §2.2; RID PM-04) | Design review, round 3 |
+| G | 2026-10-27 | CR-2026-016: load shed scope and pack-fuse diversity | SMART-QSO Team |

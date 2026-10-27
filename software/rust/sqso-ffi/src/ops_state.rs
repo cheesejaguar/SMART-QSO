@@ -50,6 +50,9 @@ pub extern "C" fn ops_set_commissioning_hold(hold: bool) -> i32 {
             );
             rc::OK
         }
+        // In the degraded mode without the FRAM the RAM copy is the record
+        // (RID SMA-B10): applied is done
+        Some(Err(_)) if crate::fram_health::degraded() => rc::OK,
         Some(Err(_)) => rc::IO,
         None => rc::BUSY,
     }

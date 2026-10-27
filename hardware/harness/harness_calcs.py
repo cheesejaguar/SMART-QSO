@@ -109,6 +109,7 @@ ZONES = {
     "MXC": (-48.4, -45.4, 7.0, 19.5, -16.0, 18.0, "z", "-X wall gap between the Z rod and the 70 cm coax band"),
     "PXC_B": (45.4, 48.4, -20.0, 20.0, -26.0, -9.0, "y", "+X wall gap at |y| < 20 below the EPS"),
     "PXMY2": (45.4, 48.4, -45.5, -39.5, -12.0, 44.5, "z", "+X wall gap beside W4A, DS3 leads"),
+    "MXMY2": (-48.4, -45.4, -45.5, -39.5, -12.0, 44.5, "z", "-X wall gap at y -39.5 ... -45.5: DS2B fallback leads (not populated)"),
     "HS_PX": (45.4, 48.4, 34.5, 39.5, -42.0, -5.0, "z", "+X hinge-side strip"),
     "HS_MX": (-48.4, -45.4, 34.5, 39.5, -42.0, -5.0, "z", "-X hinge-side strip"),
     "LI_DS1": (45.4, 47.4, 39.5, 43.5, -44.5, -42.0, "y", "DS1 lead-in beside the hinge doubler"),
@@ -204,7 +205,7 @@ EPS_PLACE = {"J1": ("Z1", 8), "J2": ("Z1", 6), "J6": ("Z1", 5), "J20": ("Z1", 2)
              "J5": ("Z2", 5), "J7": ("Z2", 5), "J11": ("Z2", 6), "J16": ("Z2", 5), "J18": ("Z2", 4), "J19": ("Z2", 6),
              "J8": ("Z3", 8), "J10": ("Z3", 6), "J15": ("Z3", 3), "J21": ("Z3", 2),
              "J4": ("Z4", 5), "J14": ("Z4", 4), "J17": ("Z4", 3),
-             "J9": ("Z5", 8), "J12": ("Z5", 6), "J13": ("Z5", 6)}
+             "J9": ("Z5", 8), "J12": ("Z5", 8), "J13": ("Z5", 6)}
 
 
 def footprint(fam, pins):

@@ -1,7 +1,7 @@
 # Interface Control Document: OBC-EPS
 
 **Document Number**: SMART-QSO-ICD-001
-**Version**: 1.5
+**Version**: 1.6
 **Date**: 2026-10-27
 **Status**: Preliminary. Electrical values from the EPS board build-to design (`hardware/electrical/eps/EPS_BOARD_DESIGN.md`,
 SQSO-EPS-BRD-001) and pins from the master allocation (`hardware/electrical/INTERCONNECT.md`, SQSO-ICX-001);
@@ -87,7 +87,7 @@ The full 40-pin list, with the burn, passivation, lockout, sense and readback li
 | EPS controller (MSP430FR2355, register block of §4) | 0x48 |
 | Pack gauge (INA228-Q1 U28 on the high-side pack shunt: voltage, current, charge, energy) | 0x44 (was "battery monitor 0x55") |
 | Array output monitor (INA228-Q1 U29) | 0x40 (was "solar monitor 0x40") |
-| AntS (behind the TCA9517-Q1 buffer, powered only with DEPLOY_EN) | 0x31 |
+| AntS | **not on I2C2** from SQSO-EPS-BRD-001 E: on the OBC's I2C3 (J3-28 SCL, J3-40 SDA) through the EPS's TCA9517-Q1 U80, side A 0x31 and side B 0x32 (SQSO-ICX-001 E14/E15) |
 | OBC board temperature | none on I2C2: the OBC board uses an analog TMP235-Q1 on PB1 instead of the TMP117 that clashed with 0x48 (finding F10 of SQSO-HW-DIAG-001, closed; SQSO-OBC-BRD-001 §2.2) |
 
 The two INA228s are read directly by the OBC, independently of the EPS controller. The battery AFE (BQ76952, 0x08),
@@ -139,7 +139,7 @@ Pins per SQSO-ICX-001 §3.1; switches, limits and loads per SQSO-EPS-BRD-001 §8
 | Magnetorquer bridges (VBAT_MTQ) | ADCS_EN (PB6, 11) | SW11 TPS1H000-Q1 | 0.23 A at VBAT | 0.361 A (0.322–0.401 A) |
 | Heater | HEATER_EN (PD2, 12) | SW5 TPS1H000-Q1 | 0.079 A at VBAT | 0.148 A (0.126–0.170 A) |
 | Deployment (burn buck) | DEPLOY_EN (PF3, 13) | SW6 TPS1H100B-Q1 | 1.25 A at VBAT | 1.99 A (1.71–2.27 A) |
-| AntS 3.3 V | DEPLOY_EN (PF3, 13) | SW8 TPS2553-Q1 | 0.61 A at 3.3 V | 1.370 A (1.287–1.465 A) |
+| AntS 3.3 V | DEPLOY_EN (PF3, 13) OR the EPS controller's ANTS_PWR (0x8D) | SW8 TPS2553-Q1 | 0.61 A at 3.3 V | 1.370 A (1.287–1.465 A) |
 | GNSS | GNSS_EN (PE5, 15) | SW7 TPS2553-Q1 | 0.100 A at 3.3 V | 0.202 A (0.175–0.232 A) |
 
 The four burn lines (BURN_W1A PB10, BURN_W1B PE6, BURN_W2A PB9, BURN_W2B PE7; J1-18, 30, 17, 31) each start one
@@ -235,20 +235,24 @@ START | ADDR+W | REG | RESTART | ADDR+R | DATA[0] | ... | DATA[n] | STOP
 
 ---
 
-### 4.6 Extended Registers (added at CDR; the flight software reads CHG_INHIBIT, EOL_STATE and IMON_JET and writes LOCK_UNLOCK and EOL_KEY)
+### 4.6 Extended Registers (added at CDR; the flight software reads CHG_INHIBIT, EOL_STATE, IMON_JET and EPS_SUPV and writes LOCK_UNLOCK, EOL_KEY, OBC_HEARTBEAT, ANTS_PWR and TRK_DISABLE)
 
 | Register | Address | R/W | Size | Description |
 |----------|---------|-----|------|-------------|
 | VCELL1–4 | 0x70–0x77 | R | 4 × 2 | Cell voltages (mV) |
 | TBATT2 | 0x78 | R | 2 | Second pack temperature (0.1 °C) |
-| CHG_INHIBIT | 0x7A | R | 1 | Charge-inhibit cause: bit 0 cold, 1 hot, 2 cell OV, 3 BMS fault, 4 secondary protector blown, 5 recharge lockout latched |
-| LOAD_SHED | 0x7B | R | 1 | Hardware low-voltage load shed active (bit 0), SW1/SW3 fault flags (bits 1–2) |
+| CHG_INHIBIT | 0x7A | R | 1 | Charge-inhibit cause: bit 0 cold, 1 hot, 2 cell OV, 3 BMS fault, 4 secondary protector blown, 5 recharge lockout latched, 6 NTC1 implausible (window and 60 °C trip handed to the AFE on NTC2; SQSO-EPS-BRD-001 E §5.3) |
+| LOAD_SHED | 0x7B | R | 1 | Hardware low-voltage load shed active (bit 0: SW1 and the eFuse U19 shed; the PA is not shed from SQSO-EPS-BRD-001 E), SW1/SW3 fault flags (bits 1–2) |
 | EOL_STATE | 0x7C | R | 1 | Passivation: bit 0 armed, bit 1 fired (charge path open), bit 2 fuse F1 intact (F1_SNS; SQSO-EPS-BRD-001 §19), bit 3 EOL key active (EOL_KEY high, see 0x7E). Read every housekeeping frame and in the final passivation report (HK1 `PS`, HK2 `EOL`; SRS-F155) |
 | LOCK_UNLOCK | 0x7D | W | 1 | Recharge-lockout unlock: writing 0xC5 raises UNLOCK, the second of the two conditions for a lockout clear (with LOCK_CLR; EPS_CLEAR_LOCKOUT 0x14, SRS-F129); any other value lowers it |
 | EOL_KEY | 0x7E | W | 1 | Passivation arm key (SQSO-EPS-BRD-001 D §7, §12; RID P3E-11): writing **0x3C then 0xC3** within 1 s, accepted only while EOL_STATE bit 0 = 0 (not armed) and bit 2 = 1 (F1 intact), makes the EPS controller raise EOL_KEY for 10 s (EOL_STATE bit 3 = 1); the arm latch sets only while EOL_KEY and the OBC's EOL_ARM (PF4, J3-32) are both high. Any other value, a write out of order, or the 10 s timeout lowers EOL_KEY; a refused sequence leaves bit 3 = 0 |
 | PTRACK1–4 | 0x80–0x87 | R | 4 × 2 | Tracker input power (mW) |
 | IHEATER | 0x88 | R | 2 | Heater current (mA) |
 | IMON_JET | 0x8A | R | 2 | Jetson rail current from the eFuse U19 IMON (0.84 V/A at the controller's ADC), mA, little-endian like the other words: the flight software's JPC (SQSO-JET-BRD-001 §13 item F3, RID JETB-03) |
+| OBC_HEARTBEAT | 0x8C | W | 1 | OBC heartbeat (RID SMA-B09; SQSO-ICX-001 E14): the flight software writes **0x5A at least every 60 s**. After **600 s** without a valid write, and not within 600 s of the controller's start or of the last cycle, the controller power-cycles the OBC rail SW10 once (hardware one-shot U82: SW10 off 1.95 s, back after 0.28 s). At most **3 cycles in 24 h**, then supervision stops (EPS_SUPV bit 7); 10 consecutive valid heartbeats reset the count. Any other value is ignored (not a heartbeat). No command disables it |
+| ANTS_PWR | 0x8D | W | 1 | AntS supply by the EPS controller (RID SMA-B06): **0xA6** raises ANTS_EN (SW8 on, in OR with DEPLOY_EN) for at most 30 min; any other value lowers it. SW8 is downstream of DS1–DS3 |
+| TRK_DISABLE | 0x8E | W | 2 | Per-tracker disable (RID SMA-B17): byte 0 key **0x96**, byte 1 mask (bits 0–3 = T1–T4 off; 0 = all enabled), in one write; a write without the key is ignored; the mask is held in FRAM and reported in EPS_SUPV |
+| EPS_SUPV | 0x8F | R | 1 | Supervisor status: bits 0–3 trackers disabled (T1–T4), bit 4 ANTS_EN from the controller, bits 5–6 OBC power cycles in the last 24 h (0–3), bit 7 heartbeat supervision stopped (limit reached) |
 
 **Passivation sequence (OBC, SQSO-EPS-BRD-001 D §7).** On PASSIVATE_ARM (authenticated): (1) read EOL_STATE and
 require bit 0 = 0 and bit 2 = 1; (2) write 0x3C then 0xC3 to EOL_KEY (0x7E) within 1 s; (3) read EOL_STATE bit 3 = 1;
@@ -471,3 +475,4 @@ When Alert GPIO is asserted:
 | 1.3 | 2026-10-27 | CDR flight software round 2 | §4.6: CHG_INHIBIT bit 5 (recharge lockout latched), LOCK_UNLOCK 0x7D (key 0xC5) for EPS_CLEAR_LOCKOUT; the flight software reads CHG_INHIBIT and EOL_STATE |
 | 1.4 | 2026-10-27 | CDR flight software round 3 | §4.6: EOL_STATE bit 2 fuse F1 intact; IMON_JET 0x8A (Jetson rail current, the JPC sensor) |
 | 1.5 | 2026-10-27 | CDR design (EPS board) | §3 payload row: JETSON_PWR on PA8 (PA2 is the spreader thermistor), both Jetson switches shed-gated; §4.6 (amended): EOL_KEY register 0x7E (key 0x3C, 0xC3), EOL_STATE bit 3, the OBC passivation sequence (RID P3E-11) |
+| 1.6 | 2026-10-27 | CDR design (EPS board) | SQSO-EPS-BRD-001 E: §4.6 OBC_HEARTBEAT 0x8C (every ≤ 60 s, 600 s timeout, ≤ 3 cycles per 24 h), ANTS_PWR 0x8D, TRK_DISABLE 0x8E, EPS_SUPV 0x8F; CHG_INHIBIT bit 6 (NTC1 implausible); LOAD_SHED without the PA; §2 AntS moved to the OBC's I2C3 (0x31, 0x32); AntS supply also by the controller |

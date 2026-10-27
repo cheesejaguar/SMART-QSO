@@ -50,6 +50,8 @@ jobs:
           pip install ./software/rust/sqso-py
           pip install -e software/payload
           pip install -r software/simulation/orbit_lifetime/requirements.txt
+          # Ground orbit determination and TLE fitting (SQSO-GND-002)
+          pip install "numpy>=1.26" "sgp4>=2.20"
 
       - name: Payload tests
         run: python -m pytest -q software/payload/tests

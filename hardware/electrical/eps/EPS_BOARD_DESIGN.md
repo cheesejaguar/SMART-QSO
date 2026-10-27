@@ -26,9 +26,9 @@ v2.0), `docs/environment/THERMAL_ANALYSIS.md` (SQSO-THA-001 v2.0), `docs/environ
 
 | Item | Value |
 |------|-------|
-| Board | PC/104 (90.17 × 95.89 mm), 6 layers, in the OBC/EPS stack; battery on flying leads (no stack connector) |
-| Placements / BOM lines / nets | 753 / 155 / 438 (generated counts) |
-| ICs | 80 plus the oscillator (TI unless noted): BQ76952 AFE, BQ771806 secondary protector, 4 × TPS55340-Q1 trackers, 8 × LM74700-Q1 ideal diodes, 3 × LMR43620-Q1 bucks, TPS16630 eFuse, 2 × TPS1H100B-Q1, 2 × TPS1H000-Q1, 7 × TPS2553-Q1, 2 × INA228-Q1, 4 × INA3221-Q1, 3 × INA186-Q1, ADS7138-Q1, MSP430FR2355 EPS controller, ISO1540-Q1, TCA9517-Q1, 2 × REF3425-Q1, TPS70933-Q1, 6 × TPL5111, TLV9002/OPA2991/TLV7042 analog, LVC logic, Epson SG-8018CA oscillator |
+| Board | PC/104 (90.17 × 95.89 mm), **2.0 mm** (D-14), 6 layers, in the OBC/EPS stack; battery on flying leads (no stack connector) |
+| Placements / BOM lines / nets | 759 / 157 / 445 (generated counts) |
+| ICs | 81 plus the oscillator (TI unless noted): BQ76952 AFE, BQ771806 secondary protector, 4 × TPS55340-Q1 trackers, 8 × LM74700-Q1 ideal diodes, 3 × LMR43620-Q1 bucks, TPS16630 eFuse, 2 × TPS1H100B-Q1, 2 × TPS1H000-Q1, 7 × TPS2553-Q1, 2 × INA228-Q1, 4 × INA3221-Q1, 3 × INA186-Q1, ADS7138-Q1, MSP430FR2355 EPS controller, ISO1540-Q1, TCA9517-Q1, 2 × REF3425-Q1, TPS70933-Q1, 6 × TPL5111, TLV9002/OPA2991/TLV7042 analog, LVC logic, Epson SG-8018CA oscillator |
 | Worst-case board dissipation | **1.33 W** sunlit ACTIVE at maximum array power with Jetson, PA and magnetorquers on; 0.37 W in eclipse; **3.77 W for ≤ 12 s** during a burn; orbit average ≈ 0.49 W (§16) |
 | Hottest parts | burn-driver FET Q24–Q27 (3.0 W for 12 s, Tj 92 °C); burn buck U17 (0.95 W, 12 s, Tj 93 °C); tracker U4 (0.21 W, Tj 66 °C); D9–D12 (0.12 W); SW1 U20 (0.17 W); 5V_PA buck U16 (0.15 W); all with the board at +60 °C |
 | Worst stresses | DS2 FET Vgs 73 % (7.3 V / 10 V); BQ771806 VDD 70 % (17.4 V / 25 V); PTC at 73 % of its 60 °C hold; INA3221 heater channel 65 % (16.8 V / 26 V); all within the §2.3 limits (§15) |
@@ -312,7 +312,10 @@ and DS3 (Q5) in VTRK → F1 → PACK_P → VBAT, and DS2's second pole holding T
 diode: ≤ 6.16 V (Voc 6.31 V at −45 °C BOL less 0.15 V), below the lowest converter start (U15 9.9 V at the EN
 threshold minimum; U16/U17 11.4 V; the eFuse U19 12 V), and every load switch needs an enable from 3V3_AO or the OBC,
 both unpowered: no rail, no RF, no deployment with any two of DS1–DS3 failed closed (`eps_calcs.py` §5a; V-EPS-3).
-DS2 becomes a two-pole (DPDT) switch: W12B carries five wires (for the harness and the frame RFQ); W12C carries two
+DS2 becomes a two-pole (DPDT) switch: W12B carries five wires (for the harness and the frame RFQ). **Fallback if no
+DPDT fits the ≤ Ø4.5 mm body:** a second SPDT switch DS2B in a +Z standoff on the same rail as DS2, wired to J16-4
+(C, VCTL feed) and J16-5 (NO, clamp gate), its NC unused; J16 and the board are unchanged, and the array then has
+three separate switches (DS1, DS3, DS2B) on its path (the switch RFQ asks for both); W12C carries two
 (DS3's NO wire is dropped in Version E).
 
 A contact closure must last 11.7 ms before a DS1/DS3 FET begins to conduct at the 11.2 V minimum, so contact chatter in
@@ -499,12 +502,13 @@ Four identical drivers, one per burn resistor (W1A, W1B on J10; W2A, W2B on J11)
 | 6.0 | 6.83 / 7.25 | 1.62 / 2.04 | 1.32 / 1.67 |
 | 7.0 | 6.83 / 7.25 | 0.80 / 1.22 | 0.65 / 1.00 |
 
-Energy into a 5 Ω resistor in the 8 s burn: 25.6 J. Peak pack current: one resistor 0.51 A for the burn, **0.67 A**
+Energy into a 5 Ω resistor in the **10 s** burn (chair decision C-17, was 8 s): 32 J; 94 J (26 mWh) at the pack per resistor. The 12.0 s ± 0.6 s hardware one-shot leaves ≥ 1.4 s over the software's 10 s, and the thermal case of §16 already uses 12 s (U17 Tj 93 °C, FETs 92 °C); the pack fuses see 0.75 A for 10 s, far below their 5 A rating. Peak pack current: one resistor 0.51 A for the burn, **0.67 A**
 with housekeeping and heater, 0.75 A with the magnetorquers at 1.16 W as well (0.90 A with the coil bridges at their
 0.23 A hardware limit); two at once (an A/B-pair line arrangement, §13) 1.25 A; four at once 2.0 A (U17's limit).
 Hinge sense: both wings' switches in series (J10-5/6, J11-5/6), 10 k pull-up, 1 k + 100 nF to SOLAR_SENSE (PB12): low =
-both deployed. **AntS** (RID EPS-07): 3V3_ANTS from SW8 (DEPLOY_EN OR the EPS controller's ANTS_EN, Version E: a stuck-low DEPLOY_EN pin cannot prevent the antenna deployment; RID SMA-B06), downstream of DS1–DS3; I2C2 through the TCA9517-Q1
-U80, whose ports are high-impedance while the AntS is unpowered; the AntS's ARM command and thermal knives complete its
+both deployed. **AntS** (RID EPS-07): 3V3_ANTS from SW8 (DEPLOY_EN OR the EPS controller's ANTS_EN, Version E: a stuck-low DEPLOY_EN pin cannot prevent the antenna deployment; RID SMA-B06), downstream of DS1–DS3; the OBC's own I2C3 (J3-28 SCL, J3-40 SDA; Version E, SQSO-ICX-001 E14, no EPS pull-ups on that
+side) through the TCA9517-Q1 U80 to both AntS controllers (side A 0x31; side B 0x32 on J12-7/8 through two 0 Ω jumpers
+if the variant brings it out separately, E15: the ISIS ICD to confirm; otherwise the jumpers stay open), whose ports are high-impedance while the AntS is unpowered; the AntS's ARM command and thermal knives complete its
 chain (DS2, DS1, DS3, SW8, AntS ARM). Which AntS internal switches are physical devices between its supply and its knives
 is still to be read from the AntS ICD delivered with the unit (open, RFQ item).
 
@@ -536,7 +540,7 @@ limits on a fault: the switch's current limit, the fuse (switch failed short), t
 | PERMIT, WIN_OK, SHED_N, EOL armed, NTC1_BAD (P4.3), all switch faults (incl. FLT_SW11 on P4.5), AFE ALERT | MSP430 GPIO (100 k series) | — | EPS controller |
 | EPS_ALERT_N (PB7) | open drain, INA228s and controller | 4.7 k pull-up | OBC |
 
-I2C2 (OBC bus) carries 0x31 (AntS, behind U80), 0x40 and 0x44 (INA228), 0x48 (EPS controller); the OBC has no device of its own on this bus (its board temperature is an analog TMP235-Q1,
+I2C2 (OBC bus) carries 0x40 and 0x44 (INA228) and 0x48 (EPS controller, incl. the OBC heartbeat register); the AntS is on the OBC's I2C3 through U80 (Version E); the OBC has no device of its own on this bus (its board temperature is an analog TMP235-Q1,
 ICD-001 §2.3). The AFE (0x08), INA3221s and ADS7138 are on the controller's local bus. The ICD's
 "battery monitor 0x55" and "solar monitor 0x40" become the INA228s at 0x44 and 0x40 (ICD change, §13).
 
@@ -548,10 +552,11 @@ and the §4.6 extended registers), the MPPT perturb-and-observe on the four SAC 
 SET backup and the UNLOCK step, the **EOL key** (Version D: on the two-write sequence to the EOL_KEY register, first
 0x3C then 0xC3 within 1 s, accepted only while EOL_STATE shows not armed and F1 intact, it raises EOL_KEY (P4.2) for
 10 s and reports it in EOL_STATE bit 3; any other write or a timeout drops it), **OBC heartbeat supervision**
-(Version E, RID SMA-B09: the OBC writes 0x5A to OBC_HEARTBEAT 0x8C at least every 10 s; after 120 s without one, and
-at least 300 s after the controller's own start or the last cycle, the controller pulls SW10's EN low for 1 s through
-Q42, power-cycling the OBC; at most 3 cycles in 24 h, then it stops and reports it, and 10 consecutive heartbeats
-reset the count), the **AntS power line** ANTS_EN (P6.0, ANTS_PWR 0x8D), the **per-tracker disables** TDIS_T1–T4
+(Version E, RID SMA-B09, SQSO-ICX-001 E14: the OBC writes 0x5A to OBC_HEARTBEAT 0x8C at least every 60 s; after
+600 s without one, and at least 600 s after the controller's own start or the last cycle, the controller raises
+OBC_CYCLE, whose TPL5111 one-shot U82 (powered by the line, tIP 2.0 s) pulls SW10's EN low through Q42 for 1.95 s
+once per rising edge, so a controller stuck with the line high cannot hold the OBC off; at most 3 cycles in 24 h, then
+it stops and reports it, and 10 consecutive heartbeats reset the count), the **AntS power line** ANTS_EN (P6.0, ANTS_PWR 0x8D), the **per-tracker disables** TDIS_T1–T4
 (P6.2–P6.5, TRK_DISABLE 0x8E, RID SMA-B17: a tracker with a shorted output diode is switched off; its string's
 ideal diode blocks the back-feed), the supervisor status (EPS_SUPV 0x8F) and the fault and status flags.
 **Passivation depends on it** (Version D on, SQSO-FMEA-003): arming F1 needs its EOL_KEY, so a failed controller
@@ -565,7 +570,7 @@ clear, no EOL arm, trackers enabled, no OBC power cycle, AntS on DEPLOY_EN alone
 ### 13.1 Connectors
 
 Every harness connector is on the **bottom side** of the board, in the zones of SQSO-HAR-001 2.0 §10.1 (bottom-side
-envelope 9.0 mm, z −3 … −12; the top side has 5 mm under the OBC); all headers are gold (EEE_PARTS_LIST §2A.3 item 5:
+envelope 9.0 mm, z −3.4 … −12.4 with the 2.0 mm board; the top side has 5 mm under the OBC); all headers are gold (EEE_PARTS_LIST §2A.3 item 5:
 no tin contacts). Pico-Clasp headers are Molex **203556** (0.38 µm Au mating, mates the 501330 housings with gold
 501334 terminals, 28 AWG); Micro-Fit headers are **43045 right-angle** (0.76 µm Au mating) so the mated plug and its
 wire bend stay within 9.0 mm.
@@ -578,7 +583,7 @@ wire bend stay within 9.0 mm.
 | J4–J7 | Pico-Clasp 5, 2035560507 | body strings PX, MX, PY, MY (2 + 2 contacts, TEMP) | W2PX, W2MX, W2PY, W2MY (28 AWG, two wires per pole) | J4 Z4, J5 Z2, J6 Z1, J7 Z2 |
 | J8, J9 | Pico-Clasp 8, 2035560807 | wings W1, W2 (front ×2, back ×2, return ×3, TEMP) | W2W1, W2W2 | J8 Z3, J9 Z5 |
 | J10, J11 | Micro-Fit 3.0 2×3 R/A, 0430450602 | burn resistors A and B, hinge switch | W7A, W7B | J10 Z3 (plug toward +X), J11 Z2 |
-| J12 | Pico-Clasp 6, 2035560607 | 1, 2 3V3_ANTS; 3, 4 GND; 5 SDA; 6 SCL (two contacts per supply pole) | W7C | Z5 |
+| J12 | Pico-Clasp 8, 2035560807 (Version E) | 1, 2 3V3_ANTS; 3, 4 GND; 5 SDA (side A); 6 SCL (side A); 7 SDA_B, 8 SCL_B (AntS side B 0x32, through 0 Ω jumpers to the same buffered bus, fitted only if the variant brings side B out separately) | W7C (+2 wires if side B is separate: for the harness designer) | Z5 |
 | J13 | Micro-Fit 3.0 2×3 R/A, 0430450602 | umbilical: charge ×2, return ×2, pack monitor, AFE shutdown | W11 (to the access-port board A3) | Z5 |
 | J14 | Pico-Clasp 4, 2035560407 | RBF (two poles) | W12D | Z4, −Y edge |
 | J15–J17 | Pico-Clasp 3, 2035560307 | DS1, DS2, DS3 (C, NC, NO) | W12A, W12B, W12C (one per switch, each on its own rail) | J15 Z3, J16 Z2, J17 Z4 |
@@ -596,7 +601,8 @@ GND. OBC pins as allocated in SQSO-ICX-001 §3.1 and §4 (Version B; where they 
 | J3 pin | Signal | Direction (OBC) | Level / default | OBC pin | Function |
 |--------|--------|-----------------|-----------------|---------|----------|
 | 1, 2 | 3V3_OBC | power in | 3.3 V, 0.15 A trip | — | OBC supply through SW10 (latch-up retry) |
-| 5, 6 | I2C2_SCL, I2C2_SDA | bidir | open drain, pull-ups on the OBC | PF1, PF0 | EPS controller 0x48, INA228 0x40/0x44, AntS 0x31 |
+| 5, 6 | I2C2_SCL, I2C2_SDA | bidir | open drain, pull-ups on the OBC | PF1, PF0 | EPS controller 0x48 (incl. OBC_HEARTBEAT 0x8C, written every ≤ 60 s), INA228 0x40/0x44 |
+| 28, 40 | I2C3_SCL, I2C3_SDA | bidir | open drain, two 4.7 kΩ in parallel on the OBC, none on the EPS; 100 kHz | PG7, PB4 | U80 A side → AntS sides A 0x31 and B 0x32 (Version E, SQSO-ICX-001 E14) |
 | 8 | EPS_ALERT_N | in | open drain, active low, 4.7 k on the EPS | PB7 | INA228 alerts, controller interrupt |
 | 9 | PAYLOAD_EN | out | high = on, low at reset | **PB2** (PB4 has a JTAG pull-up at reset) | SW1 (Jetson), shed-gated |
 | 10 | RADIO_EN | out | high = on, low at reset | PB5 | SW2 receiver/TNC/exciter (the flight software raises it at boot, 97.207(b)) |
@@ -620,7 +626,7 @@ GND. OBC pins as allocated in SQSO-ICX-001 §3.1 and §4 (Version B; where they 
 | 36, 39 | VBAT_MTQ | power out (EPS) | VBAT 11.2–16.4 V, ≤ 0.23 A, limit 0.32–0.40 A | OBC DRV8876 VM | SW11 on ADCS_EN |
 | 37 | VSW1_RB | analog in | VBAT_SW1 / 6 | **PA1** (ADC1_IN6) | SW1 output readback (RID AV-06) |
 | 38 | 3V3_RTC | power out (EPS) | 3V3_AO through 1.0 kΩ, ≤ 2 µA, always on | OBC RV-3028-C7 VDD | mission clock supply (RID AV-10) |
-| 3, 4, 7, 28, 35, 40; 21, 27 | GND; AGND (analog return of pins 19, 22–26, 37) | — | | | AGND joins GND at the board's analog star point (§17); PB11 (ANTENNA_SENSE) is no longer used |
+| 3, 4, 7, 35; 21, 27 | GND; AGND (analog return of pins 19, 22–26, 37) | — | | | AGND joins GND at the board's analog star point (§17); PB11 (ANTENNA_SENSE) is no longer used |
 
 **Burn-line mapping (for the chair).** The avionics reviewer assigned driver A to PB10 and driver B to PE6, with driver
 A burning the first resistor of both wings together (`sqso-sil/src/hw/deploy.rs`). This board has four independent
@@ -725,8 +731,9 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | Item | Requirement |
 |------|-------------|
 | Outline and mounting | PC/104 90.17 × 95.89 mm, four Ø3.18 mm holes at (±40, ±43) with Ø6.4 mm copper-free rings, and the **two centre supports at (0, ±21) mm** (chair decision C-12, MECHANICAL_DESIGN D-7 and §11 item 5) with Ø7 mm copper-free rings and Ø7 mm kept free of parts on both sides; all isolated from GND except the GND-bonded mounting hole H1 (the single frame bond of the stack, star with AGND at U37); the **Z-rod notch** at x < −35.5 mm, \|y\| < 6.5 mm (the Z rod at (−41.5, 0) passes the board; MECHANICAL_DESIGN §3), cut out of the outline with a 1 mm copper and part keep-out around its edge; the frame vendor's stack drawing governs (BUILD_VS_BUY §2.2) |
-| Connector zones (SQSO-HAR-001 2.0 §10.1) | all harness connectors on the **bottom side** in zones Z1–Z5 and the +X edge per §13.1; bottom-side envelope 9.0 mm (z −3 … −12) in the zones; footprints within the harness design's allocations (≤ 80 % of each zone's area: Z1 69 %, Z2 73 %, Z3 67 %, Z4 27 %, Z5 58 %); J3 at the +X edge within \|y\| < 15.5 mm; J21 on the +X edge, +Y side (W9B, (+X, +Y) bundle); J20 on the −X edge, +Y side; J10's plug toward +X |
-| Stack-up | 6 layers, 1.6 mm, FR-4 Tg ≥ 170 °C (polyimide preferred for TVAC): L1 parts/power (2 oz), L2 GND, L3 power (PACK_P, VBAT, VTRK islands), L4 signals, L5 GND, L6 parts/power (2 oz); IPC-6012 Class 3/A |
+| Bottom side over the X rod | bottom-side parts **≤ 0.6 mm** high over the X rod's footprint (x −24.5 … +24.5, y +29.75 … +42.25; 1.0 mm clearance, D-14): 0402/0603 passives only, no ICs or connectors |
+| Connector zones (SQSO-HAR-001 2.0 §10.1, moved 0.4 mm down with the 2.0 mm board) | all harness connectors on the **bottom side** in zones Z1–Z5 and the +X edge per §13.1; bottom-side envelope 9.0 mm (z −3.4 … −12.4 with the 2.0 mm board) in the zones; footprints within the harness design's allocations (≤ 80 % of each zone's area: Z1 69 %, Z2 73 %, Z3 67 %, Z4 27 %, Z5 58 %); J3 at the +X edge within \|y\| < 15.5 mm; J21 on the +X edge, +Y side (W9B, (+X, +Y) bundle); J20 on the −X edge, +Y side; J10's plug toward +X |
+| Stack-up | 6 layers, **2.0 mm** (D-14, MECHANICAL_DESIGN: Steinberg margin of the coupled stack; bottom face at z −3.4, top unchanged), no controlled impedance (no RF on the board; SYNC, I2C and the SBW lines are short and not impedance-controlled), copper 2 / 1 / 1 / 1 / 1 / 2 oz with ≈ 0.33 mm dielectrics, FR-4 Tg ≥ 170 °C (polyimide preferred for TVAC): L1 parts/power (2 oz), L2 GND, L3 power (PACK_P, VBAT, VTRK islands), L4 signals, L5 GND, L6 parts/power (2 oz); IPC-6012 Class 3/A |
 | Domains | PACK domain (U1, U2, Q1–Q3, Q6/Q7, F2/RT1/F3, RS6/RS7, J1/J2 area) in the **(−X, +Y) corner, zone Z1** (the W1 route), on its own BAT_BOT copper, joined to GND only through Q6/Q7; U50 straddles the boundary; ≥ 1.0 mm gap between BAT_BOT and GND copper |
 | Power paths | pack line (J1 → F2 → RT1 → F3 → RS6 → Q1/Q2 → PACK_P → Q4 → Q5 → RS8): ≥ 3 mm/A on 2 oz outer layers, ≥ 2 A design current (5 A fuse); Kelvin sense to RS5–RS8 and RS20–RS23 |
 | Converters | each tracker and buck as a tight loop (input cap, switch, diode, output cap) on L1 over solid L2; inductors and switch nodes on the side away from the antennas (rule E2); SYNC traces short, series 100 Ω at the source; no converter within 10 mm of U37's ADC pins or U53/U54; where the layout allows, keep the tracker inductors and switch nodes out of the board area over the bottom-side zones Z1–Z3, which carry the unshielded W6D sun-sensor branches (SQSO-HAR-001 E-9) |
@@ -850,4 +857,5 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | D | 2026-10-27 | CDR design (EPS board) | Round-3 panel: array path given its third inhibit (DS2 two-pole, pole 2 holds TRK_EN; pass-through ≤ 6.16 V below every start; V-EPS-3 with two of three switches failed closed; P3E-01); sense-board fuses F0A, F0B (BAT_TOP) and F0N (BAT_BOT), tap resistor chains moved to the sense board (10 Ω left at the AFE), H3/H3b counts restated (P3E-02); EOL arm needs the EPS controller's keyed EOL_KEY AND the OBC's EOL_ARM (U64), software-fault claim corrected (P3E-11); load shed also gates the Jetson eFuse (U65; P3E-06); JETSON_PWR on PA8 (P3E-05); string wire 28 AWG (§4.1, §15); centre supports and Z-rod notch in §17 (P3S-03). Netlist: 706 placements, 153 BOM lines, 413 nets; ERC clean |
 | D (amended) | 2026-10-27 | CDR design (EPS board) | §6.1, §18: H3b 2-fault tolerant on the chair's decision (F0A, F0B from two lots counted as independent), NRCSD concurrence a decision point; EOL_KEY register 0x7E in ICD-001 1.5 §4.6 |
 | E | 2026-10-27 | CDR design (EPS board) | Board FMEA SQSO-FMEA-003 A findings: DS2 drive from BAT_F OR PACK_P (SMA-B01); 1 MΩ open-tap ladder (SMA-B03); NTC1 plausibility with hand-over to NTC2 (SMA-B04); PA out of the load shed (SMA-B05); AntS supply on DEPLOY_EN OR the EPS controller (SMA-B06); OBC heartbeat supervision and SW10 power cycle (SMA-B09); series-redundant lockout coil drivers (SMA-B12); active-high tracker clamps Q40/Q41, DS3 NO dropped (SMA-B13); series-pair capacitors on the pack lines before the AFE FETs, 50 V (SMA-B15; the AFE BAT capacitor was 25 V at 67 %); per-tracker disables (SMA-B17); F0B diverse (FM08A125V5A, Littelfuse); transponder 2.42 W DC at 1 W RF; storage drain 11.9 µA worst. Netlist 753 / 155 / 438, ERC clean |
+| E (amended) | 2026-10-27 | CDR design (EPS board) | SQSO-ICX-001 E14/E15: AntS on the OBC's I2C3 through U80 (J3-28/40, no EPS pull-ups), J12 Pico-Clasp 8 with AntS side B jumpers; OBC heartbeat every ≤ 60 s, 600 s timeout, hardware one-shot U82 for the SW10 cycle; 2.0 mm board and stack-up, X-rod height rule (D-14); burn 10 s (C-17); DS2 fallback (second SPDT, DS2B). Netlist 759 / 157 / 445, ERC clean |
 | B, note | 2026-10-27 | CDR consistency | Citations to BASELINE Rev E, RADIATION Rev D, ICD-001 v1.2; no OBC device on I2C2 (TMP235 analog); §21 item 9 rendered |

@@ -150,9 +150,13 @@ struct Flash {
     allocated: bool,
     initialized: bool,
     data: [u8; FLASH_TOTAL],
+    /// The second FRAM (U36): every write goes to both
+    mirror: [u8; FLASH_TOTAL],
     fail_writes: bool,
-    /// Every read fails (a dead FRAM, RID SMA-B10)
+    /// Every read of the first FRAM fails (a dead FRAM, RID SMA-B10)
     fail_reads: bool,
+    /// Every read of the second FRAM fails
+    fail_mirror_reads: bool,
     /// Writes left before writes fail (-1 = off)
     writes_before_fail: i32,
 }
@@ -160,10 +164,21 @@ struct Flash {
 impl Flash {
     /// The bytes of region `region`
     fn region(&mut self, region: u32) -> Option<&mut [u8]> {
+        let r = Self::range(region)?;
+        self.data.get_mut(r)
+    }
+
+    /// The bytes of region `region` in the second FRAM
+    fn mirror_region(&mut self, region: u32) -> Option<&mut [u8]> {
+        let r = Self::range(region)?;
+        self.mirror.get_mut(r)
+    }
+
+    fn range(region: u32) -> Option<core::ops::Range<usize>> {
         let index = usize::try_from(region).ok()?;
         let size = *FLASH_SIZES.get(index)?;
         let start: usize = FLASH_SIZES.get(..index)?.iter().sum();
-        self.data.get_mut(start..start + size)
+        Some(start..start + size)
     }
 }
 
@@ -317,8 +332,10 @@ static SIM: Global<Sim> = Global::new(Sim {
         allocated: false,
         initialized: false,
         data: [0; FLASH_TOTAL],
+        mirror: [0; FLASH_TOTAL],
         fail_writes: false,
         fail_reads: false,
+        fail_mirror_reads: false,
         writes_before_fail: -1,
     },
     radio: Radio::EMPTY,
@@ -1235,6 +1252,7 @@ pub extern "C" fn hal_flash_init() -> i32 {
     sim(rc::BUSY, |s| {
         if !s.flash.allocated {
             s.flash.data.fill(0);
+            s.flash.mirror.fill(0);
             s.flash.allocated = true;
         }
         s.flash.initialized = true;
@@ -1245,6 +1263,14 @@ pub extern "C" fn hal_flash_init() -> i32 {
 /// The range `offset..offset+len` of `region`, if it is inside
 fn span(flash: &mut Flash, region: u32, offset: u32, len: usize) -> Result<&mut [u8], i32> {
     let bytes = flash.region(region).ok_or(rc::INVALID)?;
+    let start = usize::try_from(offset).map_err(|_| rc::INVALID)?;
+    let end = start.checked_add(len).ok_or(rc::INVALID)?;
+    bytes.get_mut(start..end).ok_or(rc::INVALID)
+}
+
+/// The range `offset..offset+len` of `region` in the second FRAM
+fn mirror_span(flash: &mut Flash, region: u32, offset: u32, len: usize) -> Result<&mut [u8], i32> {
+    let bytes = flash.mirror_region(region).ok_or(rc::INVALID)?;
     let start = usize::try_from(offset).map_err(|_| rc::INVALID)?;
     let end = start.checked_add(len).ok_or(rc::INVALID)?;
     bytes.get_mut(start..end).ok_or(rc::INVALID)
@@ -1290,6 +1316,9 @@ pub unsafe extern "C" fn hal_flash_write(region: u32, offset: u32, data: *const 
             flash.writes_before_fail -= 1;
         }
         let Some(data) = data else { return rc::NULL_PTR };
+        if let Ok(copy) = mirror_span(flash, region, offset, data.len()) {
+            copy.copy_from_slice(data);
+        }
         match span(flash, region, offset, data.len()) {
             Ok(stored) => {
                 stored.copy_from_slice(data);
@@ -1300,12 +1329,51 @@ pub unsafe extern "C" fn hal_flash_write(region: u32, offset: u32, data: *const 
     })
 }
 
+/// Read stored bytes from the second FRAM (U36, the mirror)
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn hal_flash_read_mirror(region: u32, offset: u32, data: *mut u8, len: usize) -> i32 {
+    // SAFETY: the C contract: data points to len writable bytes
+    let data = unsafe { ptr::bytes_mut(data, len) };
+    sim(rc::BUSY, |s| {
+        if !s.flash.initialized {
+            return rc::ERROR;
+        }
+        let Some(data) = data else { return rc::NULL_PTR };
+        if s.flash.fail_mirror_reads {
+            return rc::IO;
+        }
+        match mirror_span(&mut s.flash, region, offset, data.len()) {
+            Ok(stored) => {
+                data.copy_from_slice(stored);
+                rc::OK
+            }
+            Err(e) => e,
+        }
+    })
+}
+
+/// Corrupt one byte of the first FRAM only (a bit upset the mirror does
+/// not share)
+#[unsafe(no_mangle)]
+pub extern "C" fn hal_sim_flash_corrupt_primary(region: u32, offset: u32) {
+    sim((), |s| {
+        if let Ok(b) = span(&mut s.flash, region, offset, 1) {
+            for x in b.iter_mut() {
+                *x ^= 0x5A;
+            }
+        }
+    });
+}
+
 /// Erase a region to 0xFF
 #[unsafe(no_mangle)]
 pub extern "C" fn hal_flash_erase(region: u32) -> i32 {
     sim(rc::BUSY, |s| {
         if !s.flash.initialized {
             return rc::ERROR;
+        }
+        if let Some(bytes) = s.flash.mirror_region(region) {
+            bytes.fill(0xFF);
         }
         match s.flash.region(region) {
             Some(bytes) => {
@@ -1514,10 +1582,16 @@ pub extern "C" fn hal_sim_flash_fail_writes(fail: bool) {
     sim((), |s| s.flash.fail_writes = fail);
 }
 
-/// Make every flash read fail (true) or work again (false)
+/// Make every read of the first FRAM fail (true) or work again (false)
 #[unsafe(no_mangle)]
 pub extern "C" fn hal_sim_flash_fail_reads(fail: bool) {
     sim((), |s| s.flash.fail_reads = fail);
+}
+
+/// Make every read of the second FRAM (the mirror) fail, or work again
+#[unsafe(no_mangle)]
+pub extern "C" fn hal_sim_flash_fail_mirror_reads(fail: bool) {
+    sim((), |s| s.flash.fail_mirror_reads = fail);
 }
 
 /// Flash writes fail after `writes` more succeed (-1: never)

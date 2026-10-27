@@ -76,7 +76,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-INT-006 | Test Data Management Plan | `docs/integration/TEST_DATA_MANAGEMENT.md` | B | Draft |
 | SMART-QSO-ICD-006 | Interface Control Document: Beacon Format | `docs/interfaces/ICD_BEACON_FORMAT.md` | 1.0 | Draft |
 | SQSO-ICD-004 | Interface Control Document: OBC to ADCS Subsystem | `docs/interfaces/ICD_OBC_ADCS.md` | 1.3 | Draft |
-| SMART-QSO-ICD-001 | Interface Control Document: OBC-EPS | `docs/interfaces/ICD_OBC_EPS.md` | 1.5 | Draft |
+| SMART-QSO-ICD-001 | Interface Control Document: OBC-EPS | `docs/interfaces/ICD_OBC_EPS.md` | 1.6 | Draft |
 | SMART-QSO-ICD-002 | Interface Control Document: OBC-Jetson | `docs/interfaces/ICD_OBC_JETSON.md` | 1.4 | Draft |
 | SQSO-ICD-003 | Interface Control Document: OBC to RF Subsystem | `docs/interfaces/ICD_OBC_RF.md` | 2.3 | Draft |
 | SQSO-ICD-005 | Interface Control Document: Space-to-Ground | `docs/interfaces/ICD_SPACE_GROUND.md` | 2.4 | Draft |
@@ -113,7 +113,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-AUD-004 | Launch and Rideshare Trade Study | `docs/funding_audit/LAUNCH_RIDESHARE_TRADE_STUDY.md` | B | Audit record; superseded for the launch path by SQSO-OAP-001 |
 | SQSO-AUD-005 | Lifecycle Cost — Rough Order of Magnitude (ROM) | `docs/funding_audit/LIFECYCLE_COST_ROM.md` | F | Live cost estimate (ROM, no quotes); registered 2026-10-27 (RID P3P-09) |
 | SMART-QSO-CMP-001 | Configuration Management Plan (CMP) | `docs/project/CONFIGURATION_MANAGEMENT_PLAN.md` | 1.2 | Draft |
-| SQSO-CRL-001 | SMART-QSO Change Request Log | `docs/project/CHANGE_REQUEST_LOG.md` | F | Living document |
+| SQSO-CRL-001 | SMART-QSO Change Request Log | `docs/project/CHANGE_REQUEST_LOG.md` | G | Living document |
 | SQSO-HRT-001 | SMART-QSO Hardware Readiness Tracker | `docs/project/HARDWARE_READINESS_TRACKER.md` | 2.1 | Draft |
 | SQSO-TRA-001 | Technology Readiness Assessment and Technology Development Plan | `docs/project/TECHNOLOGY_READINESS_ASSESSMENT.md` | A | Draft; assessment for the PDR (RID SE-09) |
 | SQSO-HA-001 | SMART-QSO Heritage Assessment | `docs/project/HERITAGE_ASSESSMENT.md` | 2.0 | Draft |
@@ -236,7 +236,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-HW-DIAG-001 | System Diagrams: Block, Wiring and Schematic | `hardware/diagrams/README.md` | C | Draft; preliminary, parts not selected |
 | SQSO-EPS-BAT-001 | Battery Design Document | `hardware/eps/BATTERY_DESIGN.md` | 2.8 | Draft |
 | SQSO-EPS-003 | EPS Electrical Design Specification | `hardware/eps/EPS_ELECTRICAL_DESIGN.md` | 1.4 | Draft |
-| SQSO-EPS-PDU-001 | Power Distribution Unit (PDU) Design Document | `hardware/eps/PDU_DESIGN.md` | 1.4 | Draft |
+| SQSO-EPS-PDU-001 | Power Distribution Unit (PDU) Design Document | `hardware/eps/PDU_DESIGN.md` | 1.5 | Draft |
 | SQSO-EPS-SA-001 | Solar Array Design Document | `hardware/eps/SOLAR_ARRAY_DESIGN.md` | 2.2 | Draft |
 | SQSO-HAR-001 | Harness Design (wire list, routing, fill, derating, mass) | `hardware/harness/HARNESS_DESIGN.md` | 2.0 | Draft; CDR build-to harness design, not yet built |
 | SQSO-CDH-OBC-001 | On-Board Computer (OBC) Design Document | `hardware/obc/OBC_DESIGN.md` | 1.7 | Draft |

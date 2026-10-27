@@ -91,11 +91,11 @@ L-2 M licences and ephemeris demonstration).
 
 | Time | Event | Evidence |
 |------|-------|----------|
-| L-47 d to L | Unpowered in the Nova, three deployment switches held open; drain 7.7 µA worst (limit 20 µA); SOC 60 % → ≥ 59.7 % before cell self-discharge (≥ 57.7 % even at the 20 µA limit) | LVR-071; EPS_BOARD_DESIGN §6.6 |
+| L-47 d to L | Unpowered in the Nova, three deployment switches held open; drain 11.9 µA worst with the tap ladder and supervision (limit 20 µA); SOC ≥ 54.6 % at separation from the 55 % minimum final charge | LVR-071; EPS_BOARD_DESIGN E §6.6 |
 | S (separation) | Switches close; the OBC boots; EXOpod ejection 1.10–1.48 m/s, tip-off < 10°/s per axis | LV analysis |
 | S + 0–120 s | No actuation (UG v11 §3.3.4); timers running | SRS-F086; SIL first coil command at 121 s |
 | S + 120 s | B-dot detumble starts (magnetometer sampled 50 ms after a 900 ms coil burst) | ADCS_DESIGN 1.5 |
-| S + 30 min | Wings deployed (one resistor at a time on four independent 0.8 A lines, 8 s each; the second resistor of a wing only if the first fails), then the AntS over I²C; 33 % of cases burn in eclipse | SIL: wings 30.2 min, antennas 30.6 min |
+| S + 30 min | Wings deployed (one resistor at a time on four independent 0.8 A lines, 10 s each (C-17); the second resistor of a wing only if the first fails), then the AntS over I²C; 33 % of cases burn in eclipse | SIL: wings 30.2 min, antennas 30.6 min |
 | S + 45 min | RF silence ends and is latched; receiver on; first beacon in IDLE (template, 120 s) | SIL 45.0 min |
 | S + ≈ 1 h | Detumbled; spin-stabilized sun pointing of +Y at 8°/s | SIL 0.2 h, first Sun acquisition 22–36 min; Monte Carlo ≤ 2.1 h |
 | S + 0.7–13.7 h | First pass over the Bay Area (median 5.3 h, at most 12.1 h); first commanding pass median 6.4 h (at most 13.7 h) | MISSION_TIMELINE 2.3 |
@@ -117,8 +117,8 @@ L-2 M licences and ephemeris demonstration).
 | Strength | MS ≥ 0 (NASA-STD-5001B protoflight factors at MPE + 3 dB) | Lowest +0.96 (+0.85 at MEV masses) | Positive | STRUCTURAL_ANALYSIS B |
 | PCB fatigue (Steinberg) | MS ≥ 0 | +0.42 to +0.71 at CBE, +0.14 to +0.50 at MEV (2.0 mm EPS and carrier) | Positive | STRUCTURAL_ANALYSIS B |
 | Wing deployment torque | NASA-STD-5017B torque margin ≥ 0 at end of travel, at −55 °C | +0.08 (one spring out +0.07); release-energy ratio 1.90 with the 10 s burn (C-17) | Positive; resistive torque below −40 °C verified at −55 °C (VI-MECH-01..03) | MECHANISMS_ANALYSIS E |
-| Power, EOL, sun-pointed | ≥ 20 % | 3.92 W against the bottom-up ACTIVE load 2.50 W with the heater (2.26 W allocation) | +54 % (+73 % on the allocation; about +51 % with RF board E's transponder draw) | POWER_BUDGET_ANALYSIS 2.2 §6; BASELINE §5 |
-| Power, EOL, tumbling | ≥ 20 % | 2.48 W against the bottom-up ACTIVE load 1.82 W with the heater (1.86 W allocation) | +34 % (+33 % on the allocation; about +29 % with RF board E's transponder draw) | POWER_BUDGET_ANALYSIS 2.2 §6; BASELINE §5 |
+| Power, EOL, sun-pointed | ≥ 20 % | 3.92 W against the bottom-up ACTIVE load 2.60 W with the heater and RF board E's transponder (2.26 W allocation) | +48 % (+73 % on the allocation) | POWER_BUDGET_ANALYSIS 2.4; BASELINE §5 |
+| Power, EOL, tumbling | ≥ 20 % | 2.48 W against the bottom-up ACTIVE load 1.91 W with the heater and RF board E's transponder (1.86 W allocation) | +27 % (+33 % on the allocation) | POWER_BUDGET_ANALYSIS 2.4; BASELINE §5 |
 | Depth of discharge | ≤ 10 % per eclipse | ≤ 3.7 % as flown (SIL D, 475 km); 2.8 % worst contingency (PBA 2.2) | × 2.7 | SIL_MISSION_SIMULATION D §7; POWER_BUDGET_ANALYSIS 2.2 |
 | Battery temperature | 0 to +45 °C charging | ≥ +4.4 °C at 14.0 V; +3.7 °C at the 12.0 V floor; +1.2 °C with a 0.10 W/K mount; −1.1 °C with the wings stowed (charging then inhibited in hardware) | Met in operation; stowed-wing case THM-03 | THERMAL_ANALYSIS |
 | Beacon link, 5° | ≥ 6 dB (median gain) | +7.9 dB | +1.9 dB | LINK_BUDGET 3.2 |
@@ -150,7 +150,7 @@ L-2 M licences and ephemeris demonstration).
 | C-13 | 2 × 10 g non-ferromagnetic ballast on the Z axis at the end frames, so the deployed inertia ratio keeps margin with all four AntS elements | MCAD-09, RFB-11 |
 | C-14 | Telecommand stations radiate ≥ 64 dBm EIRP above 10° elevation: ≥ 100 W PEP into ≥ 15.5 dBic outside the 47 CFR 2.106 US270 areas (variant A), ≤ 50 W PEP at the transmitter output into a ≥ 17.8 dBic stacked pair inside them (variant B); commands only above 10° | RF-23 |
 | C-15 | Harness wire under the EPS tied to the deck straps and shear panels; only connector strain-relief ties on the EPS board (EPS Steinberg +0.23, −0.52 otherwise) | MCAD-11 |
-| C-16 | Battery-lead shorts: the two positive-leg fuses are made diverse (different part type and manufacturer, each able to clear the 314 A fault alone) so they are independent controls, with F0N in the negative leg the third: BSA H3b 2-fault tolerant. (Originally counted two same-part fuses from different lots; revised after the board FMEA counted them as one.) NRCSD safety-engineer concurrence for the ISS backup path | EPSB-10, P3E-02 |
+| C-16 | Battery-lead shorts: the two positive-leg fuses are diverse by design (F0A MIL-PRF-23419/12 from AEM, F0B MIL-PRF-23419/8 from Littelfuse), with F0N in the negative leg the third, so BSA H3b is 2-fault tolerant without counting two same-part fuses as independent (an earlier wording did; revised after the board FMEA). NRCSD safety-engineer concurrence for the ISS backup path | EPSB-10, P3E-02 |
 | C-17 | Burn 10 s per resistor (was 8 s): at the bounding −55 °C the 8 s burn gives a release-energy ratio of only 1.52 against 1.5; 10 s gives 1.90 inside the 12 s hardware one-shot | P3S-01 |
 
 ## 5. Design completion (round 2)
@@ -183,15 +183,15 @@ ratings, outgassing data).
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
-| Closed by design change | 100 | 218 |
+| Closed by design change | 100 | 228 |
 | Closed by chair decision | 42 | 34 |
 | Verification item | 46 | 28 |
 | Decision point (dated) | 15 | 32 |
-| Implementation | 147 | 38 |
+| Implementation | 147 | 28 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 69 new findings; 40 of the reopened and 48 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 69 new findings; 40 of the reopened and 58 of the new are since closed.
 
-Open implementation RIDs: LV-04, SE-21, GND-04, SMA-15, STR-27, THM-03, THM-04, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B01, SMA-B02, SMA-B03, SMA-B04, SMA-B05, SMA-B06, SMA-B09, SMA-B10, SMA-B11, SMA-B12, SMA-B13, SMA-B15, SMA-B17, SMA-B19.
+Open implementation RIDs: LV-04, SE-21, GND-04, SMA-15, STR-27, THM-03, THM-04, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B02, SMA-B10, SMA-B11, SMA-B19.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -385,23 +385,23 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SMA-14 | 2 | Success criteria stale | CD | Closed by design change | SQSO-MSC-001 2.0 |
 | SMA-15 | 3 | Telemetry needed by the success criteria missing | IMP | Implementation | With LV-27 (MSC v2.0 §7 field list) |
 | SMA-16 | 2 | Risk register not 5×5 | CD | Closed by design change | SQSO-RISK-001 Rev B |
-| SMA-B01 | 3 | DS2 gate drive only from BAT_F: an open in the pack path leaves the spacecraft dark in sunlight | IMP | Implementation | Two-diode OR from PACK_P (EPS) |
+| SMA-B01 | 3 | DS2 gate drive only from BAT_F: an open in the pack path leaves the spacecraft dark in sunlight | IMP | Closed by design change | DS2 gate drive from BAT_F or PACK_P through a dual diode (EPS_BOARD_DESIGN E); V-EPS-15 |
 | SMA-B02 | 1 | Flight software reads the separation sense with the wrong polarity: in flight the RF silence and the deployment wait restart for ever | IMP | Implementation | Correct polarity and pull; test every sense input against the netlists (flight software, interconnect) |
-| SMA-B03 | 2 | Battery monitor and backup over-voltage protector share the tap wires: one open tap can blow F3 or latch the lockout | IMP | Implementation | ≥ 1 MΩ ladder across the tap inputs (EPS) |
-| SMA-B04 | 2 | A failed NTC1 stops charging for good or isolates the pack | IMP | Implementation | Plausibility comparators hand over to the second thermistor (EPS) |
-| SMA-B05 | 2 | A spurious permanent load shed holds the transmitter off with no override | IMP | Implementation | PA switch out of the shed or an override (EPS) |
-| SMA-B06 | 2 | Antenna deployment depends on one DEPLOY_EN line and the shared EPS I2C bus | IMP | Implementation | AntS powered by DEPLOY_EN OR an EPS-controller line; own I2C port; both AntS controllers (EPS, OBC) |
+| SMA-B03 | 2 | Battery monitor and backup over-voltage protector share the tap wires: one open tap can blow F3 or latch the lockout | IMP | Closed by design change | 1 MΩ ladder across the cells holds an open tap between its neighbours (4.2 µA) |
+| SMA-B04 | 2 | A failed NTC1 stops charging for good or isolates the pack | IMP | Closed by design change | NTC1 plausibility comparators; charging follows NTC2 on an NTC1 fault (CHG_INHIBIT bit 6); V-EPS-14 |
+| SMA-B05 | 2 | A spurious permanent load shed holds the transmitter off with no override | IMP | Closed by design change | PA out of the hardware load shed (CR-2026-016) |
+| SMA-B06 | 2 | Antenna deployment depends on one DEPLOY_EN line and the shared EPS I2C bus | IMP | Closed by design change | AntS supply DEPLOY_EN OR the EPS controller's ANTS_PWR (0x8D); AntS on its own OBC I2C3 with both controllers (0x31, 0x32) (EPS E, OBC D) |
 | SMA-B07 | 3 | Single pull-up resistors on the OBC's I2C buses | IMP | Closed by design change | I2C2 and I2C3 with two 4.7 kΩ pull-ups in parallel per line, each able to work alone; 100 kHz (OBC_BOARD_DESIGN D §23.1) |
 | SMA-B08 | 2 | A failed watchdog timing capacitor can hold the OBC in a reset loop | IMP | Closed by design change | TPS3850 timing capacitor as two parallel strings of two 470 nF C0G in series: one short or open keeps the 10 s kick inside the window; V-OBC-1 tests both |
-| SMA-B09 | 2 | An OBC fault below the 130 mA trip is detected by nothing | IMP | Implementation | EPS-controller watchdog of an OBC heartbeat power-cycles the OBC (EPS, OBC, flight software) |
+| SMA-B09 | 2 | An OBC fault below the 130 mA trip is detected by nothing | IMP | Closed by design change | EPS controller supervises an OBC heartbeat (OBC_HEARTBEAT 0x8C): 600 s timeout power-cycles SW10 through a hardware one-shot, ≤ 3 per 24 h (ICD-001 1.6); V-EPS-16; flight software side in round 3 |
 | SMA-B10 | 2 | A dead FRAM forces TX-OFF every 60 s: permanent silence | IMP | Implementation | Commanded degraded mode or a second FRAM (flight software, OBC) |
 | SMA-B11 | 2 | Receiver health line misses a deaf front end and an open TNC wire; RX_CD stuck high blocks recovery | IMP | Implementation | TNC noise-floor check, OBC-TNC loop query, carrier not proof of health, RX_FAULT self-test (RF, flight software) |
-| SMA-B12 | 2 | A shorted lockout coil-driver FET locks out charging permanently | IMP | Implementation | Coils driven from reservoir capacitors (EPS) |
-| SMA-B13 | 3 | DS2's second-pole wire disables all four trackers if it chafes to the frame | IMP | Implementation | Active-high tracker-enable clamps (EPS, harness) |
+| SMA-B12 | 2 | A shorted lockout coil-driver FET locks out charging permanently | IMP | Closed by design change | Series-redundant FET drivers on each lockout coil: one shorted FET leaves the coil off; V-EPS-18 |
+| SMA-B13 | 3 | DS2's second-pole wire disables all four trackers if it chafes to the frame | IMP | Closed by design change | Active-high tracker clamps: a chafed switch wire removes a clamp rather than disabling the trackers; TRK_EN never leaves the board |
 | SMA-B14 | 2 | A short on the access port's reset line holds the OBC in reset | IMP | Closed by design change | NRST no longer leaves the OBC: J9/A3 pin 6 is RST_REQ (active high) through a 2N7002BK; a short cannot hold reset (OBC_BOARD_DESIGN D) |
-| SMA-B15 | 3 | Ceramic capacitors on the unfused battery lines can short | IMP | Implementation | Fail-safe capacitors (EPS) |
+| SMA-B15 | 3 | Ceramic capacitors on the unfused battery lines can short | IMP | Closed by design change | Pack-line capacitors ahead of the monitor FETs as 50 V series pairs |
 | SMA-B16 | 3 | Synthesizer shares the PA rail regulator | IMP | Closed by design change | LMX2571 on its own TPS7A2033 3.3 V regulator from the PA rail (3.25 V min, 100 mV margin); TX-OFF still removes it; keyed DC 1.84 W at 0.5 W RF, allocation raised to 1.85 W DC (BASELINE §5, SYS-100 2.23 W) (RF_BOARD_DESIGN E §5) |
-| SMA-B17 | 3 | A shorted tracker output diode cannot be isolated | IMP | Implementation | Per-tracker disable by the controller (EPS) |
+| SMA-B17 | 3 | A shorted tracker output diode cannot be isolated | IMP | Closed by design change | Per-tracker disable by the controller (TRK_DISABLE 0x8E); V-EPS-17 |
 | SMA-B18 | 3 | Magnetometer shares a switch and bus segment | IMP | Closed by design change | Magnetometer on its own switch U35 (MAG_EN PF14, MAG_RB PF15) and I2C4 repeater U34 |
 | SMA-B19 | 2 | One failed PA-temperature reading silences the downlink | IMP | Implementation | Plausibility check and a pull-down (flight software, OBC) |
 

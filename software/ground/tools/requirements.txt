@@ -1,7 +1,8 @@
 # SMART-QSO Ground Tools Requirements
 # Install: pip install -r requirements.txt
 
-# Optional dependencies for pass predictor
+# Orbit determination and ephemeris (ephemeris_tool.py, SQSO-GND-002): numpy required,
+# sgp4 for the TLE (and the pass predictor)
 numpy>=1.21.0
 sgp4>=2.20
 

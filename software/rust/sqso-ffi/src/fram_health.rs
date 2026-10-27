@@ -27,7 +27,7 @@ pub extern "C" fn fram_health_init() {
 /// the TX-OFF latch, the operations record and the passivation record
 #[unsafe(no_mangle)]
 pub extern "C" fn fram_health_check() {
-    let degraded = HEALTH.with(|h| h.degraded).unwrap_or(false);
+    let degraded = degraded();
     let rf_ok = rf_control::check(degraded);
     let ops_ok = ops_state::check(degraded);
     passivation::passivation_verify();
@@ -89,6 +89,11 @@ pub unsafe extern "C" fn fram_health_status(state: *mut u8, failures: *mut u32) 
         }
     }
     rc::OK
+}
+
+/// Whether the degraded mode is in force
+pub(crate) fn degraded() -> bool {
+    HEALTH.with(|h| h.degraded).unwrap_or(false)
 }
 
 /// The state and the failed checks (housekeeping)

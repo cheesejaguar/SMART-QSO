@@ -37,6 +37,30 @@ pub trait Flash {
     fn write(&mut self, region: u32, offset: u32, data: &[u8]) -> Result<(), FlashError>;
     /// Erase a whole region
     fn erase(&mut self, region: u32) -> Result<(), FlashError>;
+    /// Read `buf.len()` bytes from the second FRAM, the mirror every write
+    /// also reaches (SQSO-ICX-001 D §6 row 32, RID SMA-B10); none by default
+    fn read_mirror(&mut self, region: u32, offset: u32, buf: &mut [u8]) -> Result<(), FlashError> {
+        let _ = (region, offset, buf);
+        Err(FlashError(-1))
+    }
+}
+
+/// The mirror seen as a flash of its own (reads only: [`load`] and
+/// [`save`] read through it when the first FRAM fails)
+struct Mirror<'a, F: Flash>(&'a mut F);
+
+impl<F: Flash> Flash for Mirror<'_, F> {
+    fn read(&mut self, region: u32, offset: u32, buf: &mut [u8]) -> Result<(), FlashError> {
+        self.0.read_mirror(region, offset, buf)
+    }
+
+    fn write(&mut self, _region: u32, _offset: u32, _data: &[u8]) -> Result<(), FlashError> {
+        Err(FlashError(-1))
+    }
+
+    fn erase(&mut self, _region: u32) -> Result<(), FlashError> {
+        Err(FlashError(-1))
+    }
 }
 
 /// What a load found
@@ -136,8 +160,26 @@ fn read_both<F: Flash>(
     Ok([read_slot(flash, region, base, 0, magic, len, a)?, read_slot(flash, region, base, 1, magic, len, b)?])
 }
 
-/// Load the newest valid copy into `payload` (written only when `Valid`)
+/// Load the newest valid copy into `payload` (written only when `Valid`);
+/// from the mirror when the first FRAM gives no valid copy (it fails or
+/// fails its CRC) and the mirror does
 pub fn load<F: Flash>(
+    flash: &mut F,
+    region: u32,
+    base: u32,
+    magic: u32,
+    payload: &mut [u8],
+) -> Result<RecordStatus, NvmError> {
+    match load_one(flash, region, base, magic, payload) {
+        Ok(RecordStatus::Valid) => Ok(RecordStatus::Valid),
+        first => match load_one(&mut Mirror(flash), region, base, magic, payload) {
+            Ok(RecordStatus::Valid) => Ok(RecordStatus::Valid),
+            _ => first,
+        },
+    }
+}
+
+fn load_one<F: Flash>(
     flash: &mut F,
     region: u32,
     base: u32,
@@ -163,9 +205,15 @@ pub fn load<F: Flash>(
 }
 
 /// Save into the slot not holding the newest valid copy, then read it back
+/// (the slots as the first FRAM holds them, or the mirror if that cannot be
+/// read; the write reaches both, the read-back either)
 pub fn save<F: Flash>(flash: &mut F, region: u32, base: u32, magic: u32, payload: &[u8]) -> Result<(), NvmError> {
     let mut bufs = [[0u8; SLOT_SIZE]; 2];
-    let info = read_both(flash, region, base, magic, payload.len(), &mut bufs)?;
+    let info = match read_both(flash, region, base, magic, payload.len(), &mut bufs) {
+        Ok(info) => info,
+        Err(NvmError::Invalid) => return Err(NvmError::Invalid),
+        Err(e) => read_both(&mut Mirror(flash), region, base, magic, payload.len(), &mut bufs).map_err(|_| e)?,
+    };
     zeroize::Zeroize::zeroize(&mut bufs);
     let newest = newest(&info);
     let target = if newest == Some(0) { 1 } else { 0 };
@@ -189,8 +237,8 @@ pub fn save<F: Flash>(flash: &mut F, region: u32, base: u32, magic: u32, payload
 
     let mut readback = [0u8; SLOT_SIZE];
     let readback = readback.get_mut(..record_len).ok_or(NvmError::Invalid)?;
-    flash.read(region, offset, readback)?;
-    let ok = readback == record;
+    let ok = (flash.read(region, offset, readback).is_ok() && readback == record)
+        || (flash.read_mirror(region, offset, readback).is_ok() && readback == record);
     zeroize::Zeroize::zeroize(readback);
     if ok { Ok(()) } else { Err(NvmError::Verify) }
 }

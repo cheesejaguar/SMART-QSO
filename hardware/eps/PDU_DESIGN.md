@@ -2,10 +2,10 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-PDU-001
-**Version:** 1.4
+**Version:** 1.5
 **Date:** 2026-10-27
 **Status:** CDR Baseline — parts selected in the EPS board design `hardware/electrical/eps/EPS_BOARD_DESIGN.md`
-(SQSO-EPS-BRD-001 C), which governs part-level values; `docs/hardware/EPS_DESIGN.md` v2.3 §4–§6 governs the architecture
+(SQSO-EPS-BRD-001 E), which governs part-level values; `docs/hardware/EPS_DESIGN.md` v2.5 §4–§6 governs the architecture
 
 ---
 
@@ -59,7 +59,7 @@ Version 1.0 defined a 2S bus (6.0–8.4 V), a 3.3 V LDO from 5 V and an optional
 | SW5 | Battery heater (207 Ω) | VBAT | 0.07 A | 0.08 A | 0.148 A, plus F4 0.25 A and a +40 °C cutout in series | auto-retry | OFF |
 | SW6 | Burn buck → four drivers | VBAT | 0 | 0.5 A per burn at the pack | 2.0 A; 0.8 A per resistor; 12 s one-shot | thermal | OFF |
 | SW7 | GNSS receiver | 3V3_AO | 0.04 A | 0.1 A | 0.20 A (0.18–0.23) | 1.3 s, auto | OFF |
-| SW8 | ISIS AntS | 3V3_AO | 0 | 0.61 A | 1.37 A | 0.28 s, auto | OFF (DEPLOY_EN) |
+| SW8 | ISIS AntS | 3V3_AO | 0 | 0.61 A | 1.37 A | 0.28 s, auto | OFF (DEPLOY_EN OR the EPS controller's ANTS_PWR) |
 | SW9 | EPS controller | 3V3_AO | 0.012 A | — | 75 mA | 0.28 s, auto | ON |
 | SW10 | OBC | 3V3_AO | 0.04 A | — | 0.15 A (0.13–0.18) | 0.28 s, auto | ON (RID AV-08) |
 | SW11 | OBC magnetorquer H-bridges (VBAT_MTQ) | VBAT | 0.083 A | 0.23 A (bridges' limit) | 0.36 A (0.32–0.40) | auto-retry 40 ms / 1 s | OFF (ADCS_EN) |
@@ -71,7 +71,7 @@ Version 1.0 defined a 2S bus (6.0–8.4 V), a 3.3 V LDO from 5 V and an optional
 | IC | TI TPS2553-Q1 (2.5–6.5 V, adjustable 75 mA–1.3 A, FAULT tied to EN for auto-retry) | TPS1H100B-Q1 (SW1, SW6; 40 V, 100 mΩ, current sense), TPS1H000-Q1 (SW5, SW11; 40 V, 1 Ω, 0.05–1 A); eFuse TPS16630 (60 V) |
 | Latch-up behaviour | current limited in 2 µs, rail removed after 8 ms, back after R_FAULT × C_RETRY | current limit, thermal cycling; eFuse latch-off |
 | Fault output | to the EPS controller (register LOAD_SHED/fault bits) | same |
-| Control | OBC GPIO with 100 kΩ pull-down; SW1 and SW3 also gated by the hardware load shed | same |
+| Control | OBC GPIO with 100 kΩ pull-down; SW1 and the Jetson eFuse also gated by the hardware load shed (the PA's SW3 is not shed from SQSO-EPS-BRD-001 E) | same |
 
 ### 4.3 Load Switch Features
 
@@ -105,7 +105,7 @@ Version 1.0 defined a 2S bus (6.0–8.4 V), a 3.3 V LDO from 5 V and an optional
 | Battery | 2.5 A | BMS over-current 4 A for 0.5 s (below the 5 A fuse); short-circuit trip ≤ 200 µs | Discharge FET opens |
 | Jetson (VBAT) | 8 W for 2 s (`payload_guard.rs`) | eFuse 1.2 A; guard 12 W | Rail off, latched |
 | 5V_PA | — | SW3 1.0 A | Rail off |
-| Low-voltage load shed | — | VBAT < 13.6 V for 5 s | SW1 and SW3 off (EPS_DESIGN §6) |
+| Low-voltage load shed | — | VBAT < 13.6 V for 5 s | SW1 and the Jetson eFuse off; the PA is not shed (EPS_DESIGN §6) |
 
 ### 6.2 Protection Implementation
 
@@ -310,3 +310,4 @@ Version 1.0 defined a 2S bus (6.0–8.4 V), a 3.3 V LDO from 5 V and an optional
 | 1.2 | 2026-10-27 | CDR design (EPS board) | Regulators, switches, sensing and fuses selected and sized in SQSO-EPS-BRD-001 A (§2–§6, §10): LMR43620-Q1 bucks incl. the 7.0 V burn buck, TPS2553/TPS1H100/TPS1H000/TPS16630 switches with latch-up trips (radio 0.12 A, OBC rail SW10), INA228/INA3221/INA186 sensing; 3V3_AO ± 2 % |
 | 1.3 | 2026-10-27 | CDR design (EPS board) | SQSO-ICX-001 interconnect (SQSO-EPS-BRD-001 B): SW11 magnetorquer supply (TPS1H000-Q1, 0.36 A), SW4 sensors only (§4.1, §4.2) |
 | 1.4 | 2026-10-27 | CDR design (EPS board): battery-output fuse F2 changed to FM12A72V5.0A for breaking capacity (§6) |
+| 1.5 | 2026-10-27 | CDR design (EPS board): load shed on the Jetson's two switches only, the PA not shed; AntS supply also by the EPS controller (SQSO-EPS-BRD-001 E) |

@@ -102,7 +102,12 @@ pub extern "C" fn rf_control_tx_off() -> i32 {
 /// Clear the inhibit and permit transmission
 #[unsafe(no_mangle)]
 pub extern "C" fn rf_control_tx_on() -> i32 {
-    RF.with(|rf| code(rf.tx_on(&mut HalFlash))).unwrap_or(rc::BUSY)
+    match RF.with(|rf| code(rf.tx_on(&mut HalFlash))).unwrap_or(rc::BUSY) {
+        // In the degraded mode without the FRAM the RAM copy is the record
+        // (RID SMA-B10): applied is done
+        rc::IO if crate::fram_health::degraded() => rc::OK,
+        other => other,
+    }
 }
 
 /// Whether any transmitter may radiate now

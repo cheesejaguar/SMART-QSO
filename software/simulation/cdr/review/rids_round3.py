@@ -129,6 +129,17 @@ NEW: list[tuple[str, int, str, str, str]] = [
 ]
 
 FINAL3: dict[str, tuple[str, str]] = {
+    "SMA-B01": ("CD", "DS2 gate drive from BAT_F or PACK_P through a dual diode (EPS_BOARD_DESIGN E); V-EPS-15"),
+    "SMA-B03": ("CD", "1 MΩ ladder across the cells holds an open tap between its neighbours (4.2 µA)"),
+    "SMA-B04": ("CD", "NTC1 plausibility comparators; charging follows NTC2 on an NTC1 fault (CHG_INHIBIT bit 6); V-EPS-14"),
+    "SMA-B05": ("CD", "PA out of the hardware load shed (CR-2026-016)"),
+    "SMA-B06": ("CD", "AntS supply DEPLOY_EN OR the EPS controller's ANTS_PWR (0x8D); AntS on its own OBC I2C3 with both controllers (0x31, 0x32) (EPS E, OBC D)"),
+    "SMA-B09": ("CD", "EPS controller supervises an OBC heartbeat (OBC_HEARTBEAT 0x8C): 600 s timeout power-cycles SW10 through a hardware one-shot, ≤ 3 per 24 h (ICD-001 1.6); V-EPS-16; flight software side in round 3"),
+    "SMA-B12": ("CD", "Series-redundant FET drivers on each lockout coil: one shorted FET leaves the coil off; V-EPS-18"),
+    "SMA-B13": ("CD", "Active-high tracker clamps: a chafed switch wire removes a clamp rather than disabling the trackers; TRK_EN never leaves the board"),
+    "SMA-B15": ("CD", "Pack-line capacitors ahead of the monitor FETs as 50 V series pairs"),
+    "SMA-B17": ("CD", "Per-tracker disable by the controller (TRK_DISABLE 0x8E); V-EPS-17"),
+    "EPSB-10": ("CD", "Positive-leg fuses diverse: F0A FM12A72V5.0A (AEM, /12) and F0B FM08A125V5A (Littelfuse, /8), F0N FM12 in the negative leg: H3b 2-fault tolerant by design (BSA E; CR-2026-016); F0B 16.8 V and vacuum ratings in DA-18; NRCSD concurrence for the ISS path"),
     "P3E-10": ("CD", "Harness and EPS documents at HAR-001 2.0 gauges (pack 22 AWG, strings and taps 28 AWG) and the FM12 fuses; tap shorts limited to 82 mA; zones under the 2.0 mm EPS lowered; harness_calcs --cad --wireviz clean"),
     "SE-22": ("CD", "All HAR-001 2.0 §15 items done including the round-3 follow-ups (W12B five wires, W3 pins 28/40 I2C3, W8 RST_REQ, zones under the 2.0 mm EPS); gold finishes; checks clean"),
     "STR-04": ("CD", "One accuracy in VI-LV-02, VI-STR-01, VI-MCAD-03 and ETP §3.7: spin-balance, MOI ±0.5 %, products ±1×10⁻⁵ kg·m², CG ±0.1 mm; pass deployed ratio − 0.010 ≥ 1.03, measured tilt ≤ 2.4°"),
