@@ -88,7 +88,7 @@ include it. **Jetson thermal interface (SQSO-JET-BRD-001 §14, item M1):** the s
 the 64.8 g plate, 66.6 g against the 65.0 g CBE of row 23. It is carried inside row 23's growth allowance (MEV 74.8 g)
 and not added to the MEL here: the MEL lives in `software/simulation/cdr/structures/mass_properties.py`, outside this
 document's scope. Raising row 23 to 66.6 g CBE (for the chair) gives MEV 1,727.7 g and a margin of +15.8 % (from +15.9 %).
-The gap pads (about 5.5 g) sit in row 22's 10 g interface allocation and the two steel module standoffs (0.8 g) in row
+The gap pads (about 5 g) sit in row 22's 10 g interface allocation and the two steel module standoffs (0.8 g) in row
 21.
 
 ## 2. Mass Requirements

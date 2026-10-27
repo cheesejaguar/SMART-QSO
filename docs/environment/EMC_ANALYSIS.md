@@ -1,7 +1,7 @@
 # SMART-QSO Electromagnetic Compatibility Assessment
 
 **Document ID**: SQSO-EMC-001
-**Version**: B
+**Version**: C
 **Date**: 2026-10-27
 **Status**: CDR assessment (analysis and design rules). No unit exists; the emission levels of the Jetson carrier,
 the converters and the PA are not yet measured. The tests that close it are in §6 and in
@@ -51,25 +51,40 @@ frequency away from 3 × f_downlink and ≥ 60 dBc suppression.
 Pack model of the mission simulation (R0 = 40 mΩ/cell at 25 °C, Arrhenius 28 kJ/mol, ×1.6 at empty; R1 = 15 mΩ;
 30 mΩ harness), `software/simulation/cdr/power_thermal/bus_transients.py`:
 
-| Pack | SOC | OCV (V) | Jetson on, 8 W | Latch-up, 12 W | PA keyed, 1 W RF | Burn, 0.75 A (one resistor) | Burn, 1.7 A (two at once: bound) |
-|------|-----|---------|----------------|----------------|------------------|-----------------------------|----------------------------------|
-| +25 °C | 90 % | 16.28 | 16.12 | 16.10 | 16.24 | 16.09 | 15.86 |
-| +25 °C | 15 % | 14.00 | 13.82 | 13.78 | 13.95 | 13.78 | 13.49 |
-| 0 °C | 55 % | 15.04 | 14.64 | 14.59 | 14.94 | 14.55 | 13.94 |
-| −10 °C | 55 % | 15.04 | 14.41 | 14.34 | 14.88 | 14.28 | 13.31 |
-| −10 °C | 15 % | 14.00 | 13.23 | 13.10 | 13.80 | 13.07 | **11.90** (below the 12.0 V low-battery level) |
-| −20 °C | 55 % | 15.04 | 14.01 | 13.90 | 14.78 | 13.79 | 12.20 |
-| −20 °C | 15 % | 14.00 | 12.74 | 12.53 | 13.67 | 12.48 | **10.56** (below the 11.2 V BMS cut) |
+| Pack | SOC | OCV (V) | Jetson on, 8 W | Latch-up, 12 W | PA keyed, 1 W RF | Burn, 0.67 A (one resistor, nominal) | Burn, 0.75 A (one resistor, worst case) | Burn at the 1.0 A limit | Four drivers (fault), 2.0 A |
+|------|-----|---------|----------------|----------------|------------------|--------------------------------------|-----------------------------------------|-------------------------|-----------------------------|
+| +25 °C | 90 % | 16.28 | 16.12 | 16.10 | 16.24 | 16.11 | 16.09 | 16.03 | 15.78 |
+| +25 °C | 15 % | 14.00 | 13.82 | 13.78 | 13.95 | 13.80 | 13.78 | 13.70 | 13.40 |
+| 0 °C | 55 % | 15.04 | 14.64 | 14.59 | 14.94 | 14.61 | 14.55 | 14.39 | 13.74 |
+| 0 °C | 25 % | 14.32 | 13.89 | 13.83 | 14.21 | 13.86 | 13.80 | 13.63 | 12.93 |
+| −10 °C | 55 % | 15.04 | 14.41 | 14.34 | 14.88 | 14.36 | 14.28 | 14.02 | 13.00 |
+| −10 °C | 15 % | 14.00 | 13.23 | 13.10 | 13.80 | 13.17 | 13.07 | 12.77 | **11.53** (below the 12.0 V low-battery level) |
+| −20 °C | 55 % | 15.04 | 14.01 | 13.90 | 14.78 | 13.92 | 13.79 | 13.37 | **11.70** (below 12.0 V) |
+| −20 °C | 15 % | 14.00 | 12.74 | 12.53 | 13.67 | 12.64 | 12.48 | **11.97** (below 12.0 V) | **9.95** (below the 11.2 V BMS cut) |
 
-The 0.75 A column is the one-resistor burn of the EPS board (SQSO-EPS-BRD-001 §9: 0.51 A for the driver, housekeeping
-and heater, the magnetorquers at 1.16 W), computed with the same pack model; the script still prints only the
-two-resistor 1.7 A step, which is kept here as a bound (a four-driver software fault is held to 2.0 A by the burn
-buck's limit).
+The burn columns are the deployment of the EPS board (SQSO-EPS-BRD-001 §9; BASELINE §4): two resistors per wing on four
+independent burn lines (PB10 → W1A, PE6 → W1B, PB9 → W2A, PE7 → W2B), **one resistor at a time**, 8 s on a 0.8 A
+current-limited driver fed from the 7.0 V burn buck (12 s hardware on-time limit). At the pack that is 0.67 A with
+housekeeping and heater, 0.75 A with the magnetorquers at 1.16 W as well, and the chair's 1.0 A limit (which also
+covers 0.90 A with the coil bridges at their hardware limit). The 2.0 A column is a software fault that turns on all
+four drivers, held there by the burn buck's current limit. The RC pair of the pack is counted fully for the burn,
+which is conservative for an 8–12 s step. The two-resistor 1.7 A burn of revision B is no longer a design case.
+
+Lowest state of charge at which the burn keeps the bus at or above 12.0 V / 11.2 V (same script):
+
+| Pack | 0.67 A | 0.75 A | 1.0 A | 2.0 A (fault) |
+|------|--------|--------|-------|---------------|
+| +25 °C | 2 % / 0 % | 3 % / 0 % | 3 % / 0 % | 4 % / 1 % |
+| 0 °C | 4 % / 1 % | 4 % / 1 % | 5 % / 2 % | 10 % / 5 % |
+| −10 °C | 5 % / 2 % | 5 % / 3 % | 7 % / 4 % | 23 % / 12 % |
+| −16 °C | 6 % / 3 % | 7 % / 4 % | 11 % / 5 % | 44 % / 22 % |
+| −20 °C | 8 % / 4 % | 10 % / 5 % | 16 % / 8 % | 65 % / 35 % |
 
 The PA keying step is 40 mV at 25 °C and 110 mV in the cold, low-SOC corner: within the ETP's 200 mV bus criterion.
-The deployment burn after a cold soak (pack ≈ −10 … −16 °C at ≈ 58 % SOC; THERMAL_ANALYSIS §4) leaves 14.1–14.4 V
-with one resistor at a time (12.8–13.4 V in the two-resistor bound); in the bound it would trip the BMS only below
-≈ 25 % SOC at −20 °C, and one resistor stays above the 12.0 V low-battery level even at 15 % SOC and −20 °C. This sets the launch state of charge (SQSO-BSA-001 §6:
+The deployment burn after a cold soak (pack ≈ −10 … −16 °C at ≈ 58 % SOC; THERMAL_ANALYSIS §4) leaves 14.1–14.4 V at
+0.75 A and 13.8–14.1 V at the 1.0 A limit; one resistor stays above the 12.0 V low-battery level down to 10 % SOC at
+−20 °C even in the worst case. Only the four-driver fault comes near the BMS cut: at −16 °C it needs ≥ 22 % SOC to stay
+above 11.2 V (12.4 V at 58 % SOC). This sets the launch state of charge (SQSO-BSA-001 §6:
 ≥ 40 % at deployment) and the converters' under-voltage lock-out (rule E8).
 
 ## 5. Design rules (EPS and harness)
@@ -130,3 +145,4 @@ pass criteria in numbers:
 |---------|------|--------|-------------|
 | A | 2026-10-27 | CDR review, EPS/thermal | Initial issue: victims, sources, bus transients, design rules, verification |
 | B | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: deviations E6 (amended) and E8 recorded as SQSO-EPS-BRD-001 states them (§5.1); S1, S2, S5 sources and the burn current per the EPS board (synchronised 1.000 MHz plan, separate PA buck, 0.75 A one-resistor burn); §4 bus table with the 0.75 A burn; V-EMC-6; EMC-02 and EMC-03 closed by design |
+| C | 2026-10-27 | CDR S&MA analysis (RID SE-16) | §4 re-run with `bus_transients.py` modelling the one-resistor-at-a-time burn (0.67 A nominal, 0.75 A worst case, 1.0 A limit, 2.0 A four-driver fault) in place of the 1.7 A two-resistor burn; lowest-SOC table; cold-soak burn 14.1–14.4 V (was 12.8–13.4 V in the two-resistor bound) |

@@ -48,6 +48,12 @@ def test_same_id_in_two_files(tmp_path):
     assert "docs/a.md" in problems[0] and "docs/b.md" in problems[0]
 
 
+def test_row_listed_twice(tmp_path):
+    doc(tmp_path, "docs/a.md", "SQSO-AAA-001")
+    register(tmp_path, [("SQSO-AAA-001", "docs/a.md"), ("SQSO-AAA-001", "docs/a.md")])
+    assert check(tmp_path) == ["docs/DOCUMENT_REGISTER.md: row SQSO-AAA-001 `docs/a.md` is listed 2 times"]
+
+
 def test_unregistered_document(tmp_path):
     doc(tmp_path, "docs/a.md", "SQSO-AAA-001")
     doc(tmp_path, "docs/b.md", "SQSO-BBB-001")

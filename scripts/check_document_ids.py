@@ -141,6 +141,13 @@ def check(root: Path = REPO) -> List[str]:
             items.add((header, rel))
         items |= {(ident, rel) for ident in headings if ident != _procedure(header)}
     listed = registered(root)
+    register_text = (root / REGISTER).read_text(encoding="utf-8") if (root / REGISTER).exists() else ""
+    counts: Dict[Tuple[str, str], int] = {}
+    for pair in REGISTER_ROW.findall(register_text):
+        counts[pair] = counts.get(pair, 0) + 1
+    for (ident, rel), n in sorted(counts.items()):
+        if n > 1:
+            problems.append(f"{REGISTER}: row {ident} `{rel}` is listed {n} times")
 
     for ident, rel in sorted(items - listed):
         problems.append(f"{ident} ({rel}) is not in {REGISTER}")
