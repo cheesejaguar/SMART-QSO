@@ -1,12 +1,17 @@
 # TP-GS-001: Ground Station Validation Test Procedure
 
 **Document ID**: SQSO-TP-GS-001
-**Version**: 1.2
-**Date**: 2026-01-02
+**Version**: 1.3
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** MRD-070, MRD-071 (ground segment)
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ## 1. Purpose
 
@@ -438,3 +443,4 @@ QA: _____________ Date: _______
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 1.1 | 2026-10-16 | SMART-QSO Team | Space-to-Ground ICD cited by its own number, SQSO-ICD-005 (finding PI-17) |
 | 1.2 | 2026-10-16 | SMART-QSO Team | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
+| 1.3 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): station criteria from VI-GND-01, -07, -08 (C-14), 4S telemetry value, 3.0 kHz deviation, SQSO-GND-001; status and banner |

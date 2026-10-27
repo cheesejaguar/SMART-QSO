@@ -2,9 +2,9 @@
 ## TP-ENV-004
 
 **Document Number:** SQSO-TP-ENV-004
-**Version:** 1.2
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.3
+**Date:** 2026-10-27
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** MRD-080 (launch provider EMC), SYS-200, SYS-203, SYS-713
 
@@ -15,6 +15,11 @@
 > it runs after the protoflight vibration and thermal vacuum (ETP §4 step 8), and a deployment after protoflight testing
 > needs the integrator's written approval (CDS Rev 14.1 §3.5.2; ETP §3.8). Radiated checks with deployed antennas are
 > made on the engineering model.
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -266,3 +271,4 @@ Anomalies: ___________
 | 1.0 | 2026-01-02 | Initial release for CDR |
 | 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
 | 1.2 | 2026-10-16 | §8.3 step 4 and exceptions: beacon at the IARU-coordinated frequency (SYS-200, TBD-SYS-001; was 145.825 MHz); harmonic exception restated as SYS-203 plus the 25 µW of 47 CFR 97.307(e) (was -43 dBc, "IARU") (finding VV-06) |
+| 1.3 | 2026-10-27 | Documentation audit (post-CDR 2026): ETP §3.6 tests added as governing (SYS-713); MIL-STD-461 scans optional EM pre-scans; no antenna deployment on the FM after protoflight tests (CDS §3.5.2); harmonics per SYS-203 Rev G; status and banner |

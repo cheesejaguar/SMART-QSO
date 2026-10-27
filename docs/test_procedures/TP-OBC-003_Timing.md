@@ -2,11 +2,16 @@
 ## TP-OBC-003
 
 **Document Number:** SQSO-TP-OBC-003
-**Version:** 1.1
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.2
+**Date:** 2026-10-27
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** SYS-301 (steps 1–3), SYS-211 (step 4, the 60 s ACTIVE beacon period)
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -54,3 +59,4 @@ Verify OBC real-time clock accuracy and task timing.
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
 | 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
+| 1.2 | 2026-10-27 | Documentation audit (post-CDR 2026): status "CDR Baseline" (no CDR held, no test run) replaced; not-yet-run banner |

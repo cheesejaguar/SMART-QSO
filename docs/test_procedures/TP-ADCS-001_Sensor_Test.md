@@ -2,10 +2,15 @@
 ## TP-ADCS-001
 
 **Document Number:** TP-ADCS-001
-**Revision:** B
-**Date:** 2026-01-02
+**Revision:** C
+**Date:** 2026-10-27
 
 **Requirements verified:** SYS-323, SYS-400, SYS-401, SYS-402, SYS-403
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -66,3 +71,4 @@ read through the ADS7138 (`docs/BASELINE_PARAMETERS.md` §8; `hardware/electrica
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) | SMART-QSO Team |
+| C | 2026-10-27 | Documentation audit (post-CDR 2026): pass criteria from SYS-401 and SYS-403 (were 2 % full scale and "functional"); RM3100 and ADS7138 named; not-yet-run banner | Documentation audit |

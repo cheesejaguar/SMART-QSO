@@ -1,10 +1,10 @@
 # SMART-QSO Anomaly Report Template
 
 **Document ID**: SQSO-AR-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Template. No anomaly report has been raised: nothing has flown
 
 ## 1. Purpose
 
@@ -303,3 +303,4 @@ ANOMALY PROCESS FLOW
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial template |
+| 1.1 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): status a template (was "CDR Baseline") |

@@ -3,10 +3,16 @@
 
 **Document Number:** TP-RF-006
 **Revision:** Draft
-**Date:** 2026-10-15
+**Date:** 2026-10-27
 **Classification:** Development/Qualification Test (hardware-in-the-loop)
 **Status:** Written; not yet run. Needs EM or FM hardware, the target receiver driver and the FRAM driver (SQSO-ICD-013 §10).
 **Verification items:** VI-RF-12 (TX-OFF at the antenna port), VI-RF-13 and VI-LV-07 (RF silence, §8.8) (`docs/verification/VI_REGISTER.md`)
+
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -209,3 +215,4 @@ Monitor the downlink frequency and its harmonics, and the receiver's local-oscil
 | Draft | 2026-10-15 | Initial procedure for SYS-204 / SYS-325 hardware verification | Funding audit |
 | Draft | 2026-10-16 | OBC-to-RF ICD cited by its own number, SQSO-ICD-003 (was SQSO-ICD-005, the Space-to-Ground ICD) (finding PI-17) | SMART-QSO Team |
 | Draft | 2026-10-24 | Flight-software item names `rf_control.rs`, the Rust file that replaced `rf_control.c` | SMART-QSO Team |
+| Draft | 2026-10-27 | Documentation audit (post-CDR 2026): VI-RF-12 criteria at step 3 (RF < −60 dBm, PA supply < 0.1 V); §8.8 the VI-RF-13 power-on reset at 20 min, GNSS_EN low before 45:00, the C-19 AntS hold and the latched silence (SYS-224 Rev G); not-yet-run banner | Documentation audit |

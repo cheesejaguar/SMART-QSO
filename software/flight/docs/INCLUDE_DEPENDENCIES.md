@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-008
-**Revision:** B
-**Date:** 2026-10-24
+**Revision:** C
+**Date:** 2026-10-27
 **Reference:** NPR 7150.2, NASA Ames SmallSat Heritage
 
 ---
@@ -38,6 +38,7 @@ are replaced by the structure as built.
 ┌──────────────────────────────────────────────────────────────────┐
 │ Programs: sqso-sim (host simulation)  firmware (STM32L4R5 image)  │
 │           sqso-clib (static library for the C test suites)        │
+│           sqso-sil (mission simulation, software in the loop)     │
 ├──────────────────────────────────────────────────────────────────┤
 │ sqso-ffi: the flight software behind the C headers                │
 │   executive, module state, C ABI exports, store, hal_sim (host)   │
@@ -81,8 +82,9 @@ software/flight/
 │   ├── smart_qso.h          # Result codes, constants, mission clock, assertions
 │   ├── <module>.h           # One per module: adcs_control.h, ax25.h, beacon.h, ..., watchdog_mgr.h
 │   ├── rust_contract.h      # What the Rust library assumes (checked by test_rust_contract.c)
-│   └── hal/                 # hal.h, hal_adc.h, hal_flash.h, hal_gpio.h, hal_i2c.h, hal_radio.h,
-│                            # hal_reset.h, hal_sim.h, hal_spi.h, hal_timer.h, hal_uart.h, hal_wdt.h
+│   └── hal/                 # hal.h, hal_adc.h, hal_capture.h, hal_flash.h, hal_gpio.h, hal_i2c.h,
+│                            # hal_mtq.h, hal_radio.h, hal_reset.h, hal_sim.h, hal_spi.h, hal_timer.h,
+│                            # hal_uart.h, hal_wdt.h
 ├── src/
 │   └── flight_log_fmt.c     # The printf-style shim of the flight log (the only C left)
 └── tests/                   # The C test suites (CMocka), the specification of the Rust
@@ -91,7 +93,7 @@ software/rust/
 ├── sqso-protocol/src/       # Wire formats
 ├── sqso-fsw/src/            # Flight logic, one module per flight module
 ├── sqso-ffi/src/            # One module per C header, the executive, hal_sim.rs, store.rs
-├── sqso-clib/, sqso-sim/, sqso-py/, fuzz/
+├── sqso-clib/, sqso-sim/, sqso-sil/, sqso-py/, fuzz/
 └── firmware/src/            # The HAL on the STM32L4R5 and the Embassy main task
 ```
 
@@ -366,3 +368,4 @@ echo "Include hierarchy OK"
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-24 | The flight software is Rust: §3 to §5 replaced by the structure as built (crate layers and their enforcement, the header and crate directories, crate and header dependencies); FreeRTOS removed from the include order; §11 updated. §6 to §10 kept for the C headers, the shim and the tests | SMART-QSO Team |
+| C | 2026-10-27 | Documentation audit (post-CDR 2026): `sqso-sil` in §3.1 and §4.1; `hal_capture.h` and `hal_mtq.h` in §4.1 | SMART-QSO Team |

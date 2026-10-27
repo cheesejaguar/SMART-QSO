@@ -2,14 +2,16 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-OPS-003
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B
+**Date:** 2026-10-27
 
-> **Funding audit notice (2026-10-15): command sections superseded.** The command IDs, arguments and
-> authentication below do not match the flight software. The uplink command dictionary is generated from
-> `software/flight/command_dictionary.json` and documented in SQSO-ICD-013
-> (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md` §7); that governs. Telemetry sections are unchanged
-> pending review (finding SW-04).
+> **Superseded in full (documentation audit, 2026-10-27).** Neither the commands nor the telemetry below are what the
+> flight software uses: the 0xEB90/0x1ACF binary packets, the command IDs and the packet telemetry do not exist. The
+> uplink command set is generated from `software/flight/command_dictionary.json` and documented in SQSO-ICD-013
+> (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md` §7; summary in `docs/operations/COMMAND_DICTIONARY.md` §1.1). The
+> telemetry is the beacon tail, the HK1 and HK2 housekeeping frames, the GNSS frame and the stored records of
+> `docs/operations/TELEMETRY_DICTIONARY.md` (SQSO-TLM-001) §4 and `docs/interfaces/ICD_SPACE_GROUND.md` §5. The body
+> is kept only as the 2026-01 record (finding SW-04).
 
 ---
 
@@ -316,3 +318,4 @@ CRC                4       CRC32 checksum
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-27 | Documentation audit (post-CDR 2026): the notice extended to the telemetry sections, which do not match the flight telemetry either; the governing documents named | Documentation audit |

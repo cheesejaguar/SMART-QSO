@@ -2,11 +2,16 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** TP-EPS-002
-**Revision:** C
-**Date:** 2026-01-02
+**Revision:** D
+**Date:** 2026-10-27
 **Reference:** GSFC-STD-7000, NASA Ames SmallSat Heritage
 
 **Requirements verified:** MRD-050, SYS-111, SYS-112, SYS-114, SYS-121, SYS-211, SYS-304, SRS-F010
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -226,3 +231,4 @@ This procedure verifies the Electrical Power Subsystem (EPS) performance under m
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; it had cited only standards (finding VV-06) | SMART-QSO Team |
 | C | 2026-10-16 | Steps 8.2.4 and 8.3.4 corrected to the SYS-211 beacon intervals (180 s in SAFE, 120 s in IDLE; were 60 s and 30 s) and cited (finding VV-06) | SMART-QSO Team |
+| D | 2026-10-27 | Documentation audit (post-CDR 2026): mode loads from BASELINE §5 (0.79/1.18/2.60 W; were 0.5/1.5/3.0 W), Jetson ≤ 8 W for one ≤ 10 min burst, 94.1 min orbit with 36 min eclipse, DoD ≤ 10 %; document numbers corrected; banner | Documentation audit |

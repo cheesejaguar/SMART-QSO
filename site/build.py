@@ -366,6 +366,8 @@ def render_table(head: list[str], rows: list[list[str]], doc: str, caption: str 
         r = (r + [""] * len(head))[: len(head)]
         cells = [f'<th scope="row">{inline(r[0], doc)}</th>'] + [f"<td>{inline(c, doc)}</td>" for c in r[1:]]
         body.append("<tr>" + "".join(cells) + "</tr>")
+    if len(head) >= 4:
+        cls = (cls + " wide").strip()
     cap = f"<caption>{caption}</caption>" if caption else ""
     label = html.escape(re.sub(r"<[^>]+>", "", caption or "Table"), quote=True)
     return (f'<div class="table-wrap" role="region" aria-label="{label}" tabindex="0">'
@@ -630,7 +632,7 @@ def illustration() -> tuple[str, str]:
         (2, (54.1 + 60, yw, 30), (55, -80), "Solar wing (one of two)"),
         (3, (49 + el2 * 0.9, 0, zt), (0, 46), "2 m element (≈ 0.5 m, shortened here)"),
         (4, (0, 49 + el7, zt), (-45, -85), "70 cm element (≈ 0.17 m)"),
-        (5, (0, 0, -hz), (95, 75), "ISIS AntS on the −Z face"),
+        (5, (-25, 0, -hz), (-105, 62), "ISIS AntS on the −Z face"),
     ]
     marks = []
     for n, pt, (du, dv), _ in callouts:
@@ -694,6 +696,7 @@ class Site:
             cur = ' aria-current="page"' if path == page else ""
             nav.append(f'<li><a href="{r(path)}"{cur}>{label}</a></li>')
         canonical = self.url + page.replace("index.html", "")
+        canonical_tag = "" if page == "404.html" else f'<link rel="canonical" href="{canonical}">\n'
         full_title = "SMART-QSO" if page == "index.html" else f"{title} · SMART-QSO"
         short = self.commit[:10]
         return f"""<!doctype html>
@@ -704,8 +707,7 @@ class Site:
 <title>{esc(full_title)}</title>
 <meta name="description" content="{html.escape(description)}">
 <meta name="color-scheme" content="light dark">
-<link rel="canonical" href="{canonical}">
-<link rel="icon" href="{r('favicon.svg')}" type="image/svg+xml">
+{canonical_tag}<link rel="icon" href="{r('favicon.svg')}" type="image/svg+xml">
 <link rel="stylesheet" href="{r('assets/site.css')}">
 </head>
 <body>
@@ -1006,7 +1008,7 @@ def page_spacecraft(site: Site, d: dict, illus: tuple[str, str]) -> str:
          "within 24 hours of first contact.",
          [cite(BASELINE, "SkyFox piNAV-NG/FM", "within 24 h of first contact", where="§6")]),
         ("Thermal",
-         "Passive, with a ≈ 207 Ω battery heater that switches on below +5 °C and off above +9 °C, and a heat spreader "
+         "No fan or active cooling: a ≈ 207 Ω battery heater that switches on below +5 °C and off above +9 °C, and a heat spreader "
          "from the Jetson to the frame.",
          [cite(BASELINE, "Battery heater ≈ 207 Ω", where="§8")]),
     ]

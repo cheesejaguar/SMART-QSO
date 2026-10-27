@@ -4,7 +4,7 @@
 **Document Number:** SQSO-RF-003
 **Version:** 1.4
 **Date:** 2026-10-27
-**Status:** Layout and fabrication guidelines for the RF board. Electrical requirements are in `docs/hardware/RF_DESIGN.md` v2.0 §2, which governs where this document differs (corrected in Version 1.1). Version 1.2: the schematic, parts and layout rules of record are `hardware/electrical/rf/RF_BOARD_DESIGN.md` (SQSO-RF-BRD-001), which supersedes §3–§10 of this document where they differ; the tables below are corrected to it.
+**Status:** Layout and fabrication guidelines for the RF board. Electrical requirements are in `docs/hardware/RF_DESIGN.md` (v2.5) §2, which governs where this document differs (corrected in Version 1.1). Version 1.2: the schematic, parts and layout rules of record are `hardware/electrical/rf/RF_BOARD_DESIGN.md` (SQSO-RF-BRD-001), which supersedes §3–§10 of this document where they differ; the tables below are corrected to it.
 
 ---
 

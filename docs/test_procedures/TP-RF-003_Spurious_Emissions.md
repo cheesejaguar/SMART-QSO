@@ -2,12 +2,17 @@
 ## TP-RF-003
 
 **Document Number:** SQSO-TP-RF-003
-**Version:** 1.2
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.3
+**Date:** 2026-10-27
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** SYS-200, SYS-201, SYS-203
 **Verification item:** VI-RF-04 (`docs/verification/VI_REGISTER.md`): spectrum at the antenna port, and radiated with the antennas deployed, at 1 W
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -58,3 +63,4 @@ Verify RF transmitter spurious and harmonic emissions comply with specifications
 | 1.0 | 2026-01-02 | Initial release |
 | 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
 | 1.2 | 2026-10-16 | 2nd-harmonic limit < -40 dBc (SYS-203; was -30 dBc), with the 25 µW of 47 CFR 97.307(e) and the -60 dBc 3rd-harmonic target of BASELINE §7; carrier at the IARU-coordinated frequency (SYS-200, TBD-SYS-001; was 145.825 MHz), harmonics as multiples of it; maximum power ≤ 1 W (SYS-201) (finding VV-06) |
+| 1.3 | 2026-10-27 | Documentation audit (post-CDR 2026): criteria from SYS-203 Rev G and VI-RF-04: 2nd/4th ≤ −46 dBc and ≤ 25 µW, 3rd ≤ −70 dBc (was −40 dBc and a −60 dBc target), radiated EM step; status and banner |

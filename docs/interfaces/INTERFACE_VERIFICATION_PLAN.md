@@ -54,7 +54,7 @@ Internal Interfaces
 
 | Parameter | Specification | Verification |
 |-----------|---------------|--------------|
-| Protocol | I2C2, 100 kHz (designed for 400 kHz), 7-bit | Test |
+| Protocol | I2C2, 100 kHz (SQSO-ICX-001 §3.1), 7-bit | Test |
 | Voltage | 3.3 V logic | Analysis |
 | Addresses | EPS controller 0x48; INA228 pack gauge 0x44, array monitor 0x40 | Test |
 | Discretes | 15 load enables, 4 burn lines, EOL_ARM/EOL_FIRE, LOCK_CLR, DEPLOY_SENSE, SOLAR_SENSE, EPS_ALERT_N; 7 analog lines | Test |

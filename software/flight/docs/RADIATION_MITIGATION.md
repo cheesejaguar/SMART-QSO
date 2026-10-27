@@ -2,7 +2,7 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-RAD-001
-**Revision:** C
+**Revision:** D
 **Date:** 2026-10-27
 **Reference:** NASA-HDBK-4002A
 
@@ -10,7 +10,7 @@
 
 > **Revision B status note.** Sections 2 to 10 are the January 2026 design intent for a C flight software and the ISS
 > orbit. They are **not** the as-built design. The environment, the rates and the as-built mitigation status are in
-> `docs/environment/RADIATION_ANALYSIS.md` Revision C (§4 to §7) and summarised in §11 below. Where the two disagree,
+> `docs/environment/RADIATION_ANALYSIS.md` (Revision F; §4 to §7; the baseline orbit is a 475 km SSO for 2 years, BASELINE §3, §6) and summarised in §11 below. Where the two disagree,
 > §11 and the radiation analysis govern.
 
 ## 1. Purpose
@@ -352,7 +352,7 @@ typedef struct __attribute__((packed)) {
 
 | Rev A mitigation | Section | As built in the Rust flight software | Status |
 |------------------|---------|--------------------------------------|--------|
-| SRAM EDAC / parity on critical data | 3.1 | Every static (the live state) linked in SRAM2, the parity RAM; SRAM2 erased before use; a parity error raises the NMI, which records the cause and resets at once; the cause is logged at the next boot (`software/rust/firmware/src/parity.rs`, SRS-F132; MEMORY_POLICY §10.3). Parity itself is enabled by the option bit `SRAM2_PE`, set when the board is programmed (logged at every boot if off). The stack in SRAM3 has no parity | Implemented (AV-07); not run on hardware (RAD-V6) |
+| SRAM EDAC / parity on critical data | 3.1 | Every static (the live state) linked in SRAM2, the parity RAM; SRAM2 erased before use; a parity error raises the NMI, which records the cause and resets at once; the cause is logged at the next boot (`software/rust/firmware/src/parity.rs`, SRS-F132; MEMORY_POLICY §10.3). Parity itself is enabled by the option bit `SRAM2_PE`, set when the board is programmed (logged at every boot if off). The stack is in SRAM2 too since flight software round 3 (initial SP 0x20040000, RID AV-13; MEMORY_POLICY §10.5) | Implemented (AV-07); not run on hardware (RAD-V6) |
 | TMR of critical variables | 3.2 | Not implemented. The critical states (TX-OFF, RF silence, deployment, commissioning hold, passivation) are persisted in FRAM records with CRC and two slots, re-read at every boot, and the TX-OFF latch, the operations record and the passivation record are checked against their RAM copy every 60 s, settling toward the safe side (SRS-F133, MEMORY_POLICY §10.4) | Tailored: persistence, parity and the periodic check instead of TMR (AV-07) |
 | Memory scrubbing | 3.3 | Not implemented: parity detects an upset when the byte is read (MEMORY_POLICY §10.2, §10.5) | Not needed for FRAM; for SRAM, tailored (AV-07) |
 | Flash ECC, image CRC | 4.1–4.3 | Flash ECC corrects single-bit errors in hardware; a double-bit error raises the NMI, which records the address and resets at once (as for parity); no periodic image CRC check | Implemented for ECC (AV-07); image CRC open |
@@ -373,3 +373,4 @@ typedef struct __attribute__((packed)) {
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-27 | Status note: §2–§10 are Rev A design intent, not as built; §11 as-built status of each mitigation against the Rust flight software and `docs/environment/RADIATION_ANALYSIS.md` Rev C (RIDs AV-02, AV-03, AV-04, AV-07, AV-08, FSW-09) | SMART-QSO Team (CDR avionics review) |
 | C | 2026-10-27 | §11: SRAM2 parity and the NMI handler, flash ECC handling, the periodic check of the persisted state (AV-07) and the receiver recovery (FSW-09) as implemented in the flight software round 2 | SMART-QSO Team (CDR flight software, round 2) |
+| D | 2026-10-27 | Documentation audit (post-CDR 2026): status note cites RADIATION_ANALYSIS Rev F and the baseline orbit; §11 the stack in SRAM2 (was SRAM3) | SMART-QSO Team |

@@ -2,11 +2,16 @@
 ## TP-EPS-003
 
 **Document Number:** SQSO-TP-EPS-003
-**Version:** 1.0
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.1
+**Date:** 2026-10-27
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** SYS-110, SYS-111, SYS-114
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -72,3 +77,4 @@ screening and acceptance are V-BSA-1 (`docs/environment/BATTERY_SAFETY_ASSESSMEN
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
+| 1.1 | 2026-10-27 | Documentation audit (post-CDR 2026): charge to 4.10 V/cell (decision D8; was 4.2 V), 4S pack equipment, charge window; status and banner |

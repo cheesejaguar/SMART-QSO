@@ -1,7 +1,7 @@
 # SMART-QSO Software Safety Data Package
 
 **Document ID**: SQSO-SDP-001
-**Version**: 1.2
+**Version**: 1.3
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Draft. Software hazards only; every hazard is open
@@ -10,7 +10,7 @@
 > safety case and it is not a launch-provider deliverable on its own. The launch provider reviews a **system** safety
 > data package covering the whole spacecraft, its batteries, inhibits, structure, materials, ground equipment and
 > launch-site operations; that is [SYSTEM_SAFETY_DATA_PACKAGE.md](SYSTEM_SAFETY_DATA_PACKAGE.md) (SQSO-SDP-002
-> v1.0, the CDR system hazard analysis). This document feeds its §11 (HR-11); software is not counted as a launch inhibit.
+> v1.2, the CDR system hazard analysis). This document feeds its §11 (HR-11); software is not counted as a launch inhibit.
 
 ## 1. Purpose
 
@@ -57,7 +57,10 @@ This table is the **hazard log** (FINDINGS_REGISTER PI-07). Software hazards (SW
 `SOFTWARE_HAZARD_ANALYSIS.md` and roll up here. A hazard closes only when every control has cited verification
 evidence: test log, analysis or inspection. Software unit tests already cover some controls. HZ-001: TX-OFF,
 RF-silence and loss-of-contact tests, and the downlink's (`test_downlink`, `Downlink_TNC_silent`). HZ-004: the supervised watchdog test. HZ-006: telecommand-authentication
-tests. No hardware verification has been run, so every hazard is open.
+tests. No hardware verification has been run, so every hazard is open. The hazard analysis (SQSO-SHA-001 Rev I) carries
+SW-HAZ-001 to SW-HAZ-017; the six HZ entries below are the Revision A roll-up and do not yet map SW-HAZ-009 to -017
+(transponder, RF inhibits, commissioning hold, selector, passivation, TNC and EPS-controller firmware), which are
+listed in SQSO-SHA-001 §9.7, all open.
 
 | ID | Hazard | Severity | Likelihood | Risk | Status |
 |----|--------|----------|------------|------|--------|
@@ -108,7 +111,7 @@ tests. No hardware verification has been run, so every hazard is open.
 
 **Verification**:
 - [ ] TX disabled at boot (TP-001)
-- [ ] TX only enabled in ACTIVE mode (TP-002)
+- [ ] TX only after the 45-min RF silence, with no TX-OFF latched and no inhibit active (TP-002); the transponder only in ACTIVE
 - [ ] TX disabled on fault (TP-005)
 - [ ] Code review of TX control logic
 
@@ -130,7 +133,7 @@ tests. No hardware verification has been run, so every hazard is open.
 | ACTIVE → IDLE | Software | SOC below 40 % (BASELINE §5) |
 | Auto-SAFE Mode | Software | SOC below 25 % |
 | EMERGENCY (beacon shed) | Software | SOC below 15 % |
-| Cell protection | Hardware | EPS cell over-voltage ≤ 4.25 V/cell; under-voltage threshold TBD |
+| Cell protection | Hardware | BMS AFE cell over-voltage ≤ 4.25 V/cell, under-voltage 2.8 V/cell; latched recharge lockout below 2.0 V/cell; hardware load shed at 13.6 V (SQSO-BSA-001 H1, H2) |
 
 **Verification**:
 - [ ] SOC monitoring accurate (TP-003)
@@ -282,8 +285,9 @@ tests. No hardware verification has been run, so every hazard is open.
 
 ### 8.1 Software FMEA Results
 
-From `SOFTWARE_FMEA.md` §12: 43 failure modes analysed; 14 with RPN above 50; none above 100. (Version 1.0 of this
-package gave 45, a figure the FMEA does not contain.)
+From `SOFTWARE_FMEA.md`: 43 failure modes analysed. §12 counted 14 with RPN above 50 on inverted rating scales; on the
+corrected RPN′ of §14.1 (RID FSW-08) no mode reaches 50, and §14.2 maps the as-built detection and response for each
+group. (Version 1.0 of this package gave 45, a figure the FMEA does not contain.)
 
 ### 8.2 Fault Tree Analysis Results
 
@@ -291,10 +295,10 @@ No fault tree analysis exists yet. The software safety plan and hazard analysis 
 
 ### 8.3 Software Hazard Analysis Results
 
-Hazards identified: 6
-Hazards with designed controls: 6
-Hazards with verified controls: 0
-Open hazards: 6 (see §4.1)
+Hazards identified: 6 in this log (SQSO-SHA-001 Rev I: 17, SW-HAZ-001 to -017)
+Hazards with designed controls: 6 (SHA: 17; the board-firmware hazards SW-HAZ-014 to -017 at requirements level)
+Hazards with verified controls: 0 (SW-HAZ-011 verified on the host only)
+Open hazards: 6 (see §4.1); SHA: 17
 
 ## 9. Safety Verification Status
 
@@ -302,8 +306,8 @@ Open hazards: 6 (see §4.1)
 
 | Item | Status | Evidence |
 |------|--------|----------|
-| Software Hazard Analysis drafted (v1.0; not independently reviewed) | [x] | SQSO-SHA-001 |
-| Software FMEA drafted (v1.0; not independently reviewed) | [x] | SQSO-FMEA-001 |
+| Software Hazard Analysis drafted (Rev I; not independently reviewed) | [x] | SQSO-SHA-001 |
+| Software FMEA drafted (Rev D; not independently reviewed) | [x] | SQSO-FMEA-001 |
 | Safety requirements verified | [ ] | Test reports |
 | Safety controls verified | [ ] | Test reports |
 | Residual risks accepted | [ ] | Risk register |
@@ -324,13 +328,13 @@ Open hazards: 6 (see §4.1)
 
 | Document | Version | Status |
 |----------|---------|--------|
-| Software Safety Plan | 1.0 | Draft |
-| Software Hazard Analysis | 1.0 | Draft |
-| Software FMEA | 1.0 | Draft |
-| Software Safety Data Package (this document) | 1.1 | Draft |
+| Software Safety Plan (SQSO-SSP-001) | F | Draft |
+| Software Hazard Analysis (SQSO-SHA-001) | J | Draft |
+| Software FMEA (SQSO-FMEA-001) | D | Draft |
+| Software Safety Data Package (this document) | 1.3 | Draft |
 | Safety Test Procedures | 1.0 | Draft; not executed |
 | Safety Test Reports | - | None; no tests run |
-| System Safety Data Package | 0.1 | Skeleton only (SQSO-SDP-002) |
+| System Safety Data Package (SQSO-SDP-002) | 1.2 | CDR draft: 16 hazard reports, none closed |
 
 ### 10.2 Archive Location
 
@@ -388,3 +392,4 @@ Member: _________________ Date: _____
 | 1.1, note | 2026-10-25 | SMART-QSO Team | §3.1 software class: Class C (SDP §3.1). Watchdog-failure controls: stack checking and stage monitoring as built, with no RTOS (BASELINE §6, CR-2026-002) |
 | 1.1, note | 2026-10-25 | SMART-QSO Team | §3.2: the downlink gate added (CR-2026-005); HZ-001 evidence includes its tests |
 | 1.2 | 2026-10-27 | CDR S&MA review | Scope note: the system package is now SQSO-SDP-002 v1.0 (hazard analysis), which this document feeds at §11 |
+| 1.3 | 2026-10-27 | Documentation audit (post-CDR 2026) | Scope note and §10.1 at the current revisions (SSP F, SHA J, FMEA D, SDP-002 1.2); §4.1 and §8.3 state that the HZ log does not yet map SW-HAZ-009 to -017; HZ-001 verification: the beacon transmits in IDLE and SAFE (was "TX only in ACTIVE"); HZ-002 hardware cell protection values from SQSO-BSA-001 (the under-voltage TBD replaced by 2.8 V/cell); §8.1 the corrected RPN′ |

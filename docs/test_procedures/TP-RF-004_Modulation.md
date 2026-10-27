@@ -2,12 +2,17 @@
 ## TP-RF-004
 
 **Document Number:** SQSO-TP-RF-004
-**Version:** 1.0
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.1
+**Date:** 2026-10-27
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** SYS-202, SYS-212
 **Verification item:** VI-RF-03 (`docs/verification/VI_REGISTER.md`): packet error rate against input level, uplink and downlink, at 0 and 3.5 kHz offset
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -58,3 +63,4 @@ Verify AFSK modulation parameters and AX.25 frame encoding.
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
+| 1.1 | 2026-10-27 | Documentation audit (post-CDR 2026): VI-RF-03 packet-error-rate steps added; callsign KK6GDB-11; deviation tied to 10K4F2D; status and banner |

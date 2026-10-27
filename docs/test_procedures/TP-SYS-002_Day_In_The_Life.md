@@ -2,10 +2,15 @@
 ## TP-SYS-002
 
 **Document Number:** TP-SYS-002
-**Revision:** D
-**Date:** 2026-01-02
+**Revision:** E
+**Date:** 2026-10-27
 
 **Requirements verified:** MRD-002, SYS-111, SYS-200, SYS-215, SYS-220, SYS-221, SYS-224, SYS-300, SYS-303, SYS-325, SYS-421, SYS-422, SYS-512, SRS-F013, SRS-F052, SRS-Q002
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -231,3 +236,4 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 | B | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) | SMART-QSO Team |
 | C | 2026-10-16 | Conflicting steps corrected and cited: first beacon not before T+0:45, with a no-emission check from separation (SYS-224; was T+0:32), received at the IARU-coordinated frequency (SYS-200, TBD-SYS-001; was 145.825 MHz); §4.1 step 3 conditional on a completed bench RF silence; SAFE at SOC < 25 % (SRS-F013; was 30 %); simulated orbit SSO ≈ 97.4° (BASELINE §3; was 51.6°, ISS) (finding VV-06) | SMART-QSO Team |
 | D | 2026-10-27 | CDR 2026 consistency pass: simulated orbit at the 475 km baseline target, period 94.1 min (BASELINE Rev E §3) | CDR documentation review |
+| E | 2026-10-27 | Documentation audit (post-CDR 2026): LEOP order (detumble from 120 s, wings at 30 min, then the AntS), inclination 97.31°, sun pointing by C-23, SOC floor 15 %; banner | Documentation audit |

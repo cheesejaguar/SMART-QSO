@@ -48,7 +48,7 @@ This document covers:
 
 | Parameter | OBC Side | Jetson Side |
 |-----------|----------|-------------|
-| Connector | JST-GH 4-pin | JST-GH 4-pin |
+| Connector | W5B: OBC J3 Pico-Clasp 6; W5A power from EPS J18 (the 2026-01 JST-GH 4-pin is withdrawn) | J2 Molex Pico-Clasp 6, 2035560607; J1 Molex Micro-Fit 3.0 2×2, 0430450402 (§10.1; SQSO-JET-BRD-001) |
 | Pin 1 | GND | GND |
 | Pin 2 | UART TX (3.3V) | UART RX (3.3V) |
 | Pin 3 | UART RX (3.3V) | UART TX (3.3V) |
@@ -400,4 +400,4 @@ JETSON_PWR PA2; corrected in place, panel item P3E-05); this table governs: the 
 | 1.2 | 2026-10-27 | SMART-QSO Team (CDR avionics review) | §9 new: interface as built (power through SW1 and U3 from VBAT, 8 W limit, connector pin 4, switch-on/off, fallback); back-powering through the idle TX line (RID AV-09) |
 | 1.3 | 2026-10-27 | Payload carrier design (CDR design completion) | §10 new: carrier connectors (W5B 6 pins with the spreader thermistor, change E10), 5 V-only module input, 1.8 V UART translated on the carrier, OBC transmits 8N2, JET_3V3 as power-good, timing, commanded switch-off with SHUTDOWN and JET_3V3 (supersedes the §9 switch-off row) |
 | 1.4 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §10.5 new: the flight-software side as built: 8N2, PAYLOAD_EN PB2 and JETSON_PWR PA8, JET_PG, the commanded switch-off with SHUTDOWN, power-good faults, switch readbacks, JPC from IMON_JET, the spreader thermistor, the burst energy gate, magnetometer gating, the module's platform configuration (RIDs JETB-01 to JETB-04, AV-06) (amended: §9 power row pins corrected to PAYLOAD_EN PB2, JETSON_PWR PA8, eFuse U19, panel item P3E-05; §10.1 carrier connectors 0430450402 and 2035560607, gold, per SQSO-MFG-003) |
-| 1.5 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): status names the superseded sections; §1.3 diagram STM32L4R5ZI and the Orin Nano 8 GB module in the 7 W mode (was STM32L4/Apollo4, Orin Nano Super; BASELINE §6); §10.5 the energy gate per accepted line of decision C-20 (was 360 J per line of a full batch); §9 back-powering: the isolating buffers are now in the design |
+| 1.5 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): status names the superseded sections; §2.1 connectors per the carrier design (was JST-GH 4-pin); §1.3 diagram STM32L4R5ZI and the Orin Nano 8 GB module in the 7 W mode (was STM32L4/Apollo4, Orin Nano Super; BASELINE §6); §10.5 the energy gate per accepted line of decision C-20 (was 360 J per line of a full batch); §9 back-powering: the isolating buffers are now in the design |

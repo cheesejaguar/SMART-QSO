@@ -69,7 +69,7 @@ The full 40-pin list, with the burn, passivation, lockout, sense and readback li
 
 | Parameter | Min | Typ | Max | Unit |
 |-----------|-----|-----|-----|------|
-| I2C SCL frequency | - | 100 | 400 | kHz |
+| I2C SCL frequency | - | 100 | 100 | kHz |
 | I2C Logic High | 2.1 | 3.3 | 3.6 | V |
 | I2C Logic Low | 0 | 0 | 0.6 | V |
 | I2C Pull-up (on the OBC: two 4.7 kΩ in parallel, each works alone; SQSO-ICX-001 §3.1) | - | 2.35 | - | kΩ |
@@ -82,7 +82,7 @@ The full 40-pin list, with the burn, passivation, lockout, sense and readback li
 |-----------|-------|
 | Bus | I2C2 (`hal_i2c` bus 0), PF1 SCL / PF0 SDA |
 | Mode | Standard/Fast |
-| Clock Speed | 100 kHz (default); the bus is designed for 400 kHz |
+| Clock Speed | 100 kHz (SQSO-ICX-001 §3.1: two 4.7 kΩ pull-ups in parallel, 100 kHz recommended) |
 | Address Mode | 7-bit |
 | EPS controller (MSP430FR2355, register block of §4) | 0x48 |
 | Pack gauge (INA228-Q1 U28 on the high-side pack shunt: voltage, current, charge, energy) | 0x44 (was "battery monitor 0x55") |
@@ -449,4 +449,4 @@ When Alert GPIO is asserted:
 | 1.5 | 2026-10-27 | CDR design (EPS board) | §3 payload row: JETSON_PWR on PA8 (PA2 is the spreader thermistor), both Jetson switches shed-gated; §4.6 (amended): EOL_KEY register 0x7E (key 0x3C, 0xC3), EOL_STATE bit 3, the OBC passivation sequence (RID P3E-11) |
 | 1.6 | 2026-10-27 | CDR design (EPS board) | SQSO-EPS-BRD-001 E: §4.6 OBC_HEARTBEAT 0x8C (every ≤ 60 s, 600 s timeout, ≤ 3 cycles per 24 h), ANTS_PWR 0x8D, TRK_DISABLE 0x8E, EPS_SUPV 0x8F; CHG_INHIBIT bit 6 (NTC1 implausible); LOAD_SHED without the PA; §2 AntS moved to the OBC's I2C3 (0x31, 0x32); AntS supply also by the controller; amended: passivation fire only with the EPS board ≥ 0 °C |
 | 1.7 | 2026-10-27 | CDR design (EPS board) | From SQSO-SRS-EPSC-001 §9: LOCK_UNLOCK self-clears after 1.0 s with the clear sequence stated; MODE (0x01) and LOAD_EN (0x02) retired (§4.2–§4.5, §6.1–§6.2); registers 0x90–0x9E and IMAGE_CRC 0xF2 adopted; TRK_DISABLE refuses an all-four mask; §3 load shed without the PA; amended: the passivation fire's temperature rule as SRS-F111 (6 h wait, then fire) |
-| 1.8 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): §1.3, §2.1 connector and harness per SQSO-ICX-001 D §2 (TFM-120 with an SFSDT 30 AWG assembly, 0.065 m; was FTSH with an FFSD ribbon), J1-28 and J1-40 are I2C3 for the AntS, not GND; §2.2 pull-up two 4.7 kΩ in parallel (was 2.2 kΩ); §7.3 beacon tail per BEACON_SPEC (was the Version 1.0 string) |
+| 1.8 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): §1.3, §2.1 connector and harness per SQSO-ICX-001 D §2 (TFM-120 with an SFSDT 30 AWG assembly, 0.065 m; was FTSH with an FFSD ribbon), J1-28 and J1-40 are I2C3 for the AntS, not GND; §2.2, §2.3 pull-up two 4.7 kΩ in parallel (was 2.2 kΩ) and I2C2 at 100 kHz per SQSO-ICX-001 (was "designed for 400 kHz"); §7.3 beacon tail per BEACON_SPEC (was the Version 1.0 string) |

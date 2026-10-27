@@ -2,11 +2,16 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** TP-ENV-001
-**Revision:** C
-**Date:** 2026-01-02
+**Revision:** D
+**Date:** 2026-10-27
 **Reference:** GSFC-STD-7000 (GEVS), NASA Ames SmallSat Heritage
 
 **Requirements verified:** SYS-001, SYS-002, SYS-003, SYS-200, SYS-201, SYS-203, SYS-206, SYS-210
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -295,3 +300,4 @@ This matrix shall be completed after environmental testing by comparing pre- and
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; it had cited only standards (finding VV-06) | SMART-QSO Team |
 | C | 2026-10-16 | Steps 8.6.3 and 8.6.4 and their record rows corrected and cited: the IARU-coordinated downlink frequency ±5 kHz (SYS-200, SYS-206, TBD-SYS-001; was 145.825 MHz) and 0.5 W nominal, never above 1 W (SYS-201; was up to 2 W) (finding VV-06) | SMART-QSO Team |
+| D | 2026-10-27 | Documentation audit (post-CDR 2026): 4S battery voltage (was 7.2–8.4 V), mode powers from BASELINE §5, mass and inertia against BASELINE §4, deviation and spurious per SYS-203; banner | Documentation audit |

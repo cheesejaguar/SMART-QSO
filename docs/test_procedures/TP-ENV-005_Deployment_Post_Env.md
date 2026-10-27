@@ -2,7 +2,7 @@
 ## TP-ENV-005
 
 **Document Number:** SQSO-TP-ENV-005
-**Version:** 1.1
+**Version:** 1.2
 **Date:** 2026-10-27
 **Status:** Draft; no test article exists
 
@@ -17,6 +17,11 @@
 > stowed-state telemetry are checked unless the integrator approves a deployment in writing. On the engineering
 > model the procedure runs at least five times per mechanism, including after the EM vibration. Where §5 below says
 > "Environmental testing complete", read "Pre-environmental baseline complete" for the flight model.
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -219,3 +224,4 @@ This procedure defines the deployment test to be performed after completion of e
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
 | 1.1 | 2026-10-27 | CDR review (PM/SE/V&V): run before the protoflight vibration on the flight model, hot and cold at the minimum battery voltage (SYS-709); post-environment deployment only with the integrator's written approval (CDS Rev 14.1 §3.5.2) |
+| 1.2 | 2026-10-27 | Documentation audit (post-CDR 2026): wings first then the AntS (was antenna first); cold −55 °C (ETP Rev E §3.8; was −30 °C); 10 s burns, C-18 gate, VI-STR-05 and VI-LV-17 criteria; banner |

@@ -2,11 +2,16 @@
 ## TP-FLATSAT-001
 
 **Document Number:** SQSO-TP-FLATSAT-001
-**Version:** 1.1
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.2
+**Date:** 2026-10-27
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** SRS-F001, SRS-F011, SRS-F012, SRS-F013, SRS-F020, SRS-F023, SRS-F030, SRS-F031, SRS-F040, SRS-F042, SRS-F052, SRS-F062, SRS-I010, SRS-I021, SRS-Q011, SYS-304, SYS-323, SYS-324, SYS-523
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -167,3 +172,4 @@ This procedure defines the software development and verification testing on the 
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
 | 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
+| 1.2 | 2026-10-27 | Documentation audit (post-CDR 2026): EM flatsat on the STM32L4R5 with the Rust/Embassy toolchain (was STM32CubeIDE and development boards); 4S pack simulator 11.2–16.4 V (was 0–12 V); flight modes BOOT/DETUMBLE/IDLE/ACTIVE/EMERGENCY (no AI_BURST mode); template beacon baseline (D5); broken references fixed; status and banner |

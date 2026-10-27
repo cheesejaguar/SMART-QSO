@@ -2,11 +2,16 @@
 ## TP-ADCS-003
 
 **Document Number:** SQSO-TP-ADCS-003
-**Version:** 1.3
+**Version:** 1.4
 **Date:** 2026-10-27
-**Status:** CDR Baseline
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** MRD-061, SYS-421, SYS-422
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -90,3 +95,4 @@ assumes (ADCS_DESIGN §11.6). A result worse than the model takes the recorded o
 | 1.1 | 2026-10-16 | Proposed pass values for §3.2 and §4, for the PI to ratify, beneath §3.2; tracked as TBR-TPADCS003-001 in §5 (finding VV-16) |
 | 1.2 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
 | 1.3 | 2026-10-27 | §3.1 and §4: the TRIAD attitude test replaced by sun-vector and rate knowledge (MRD-061 Rev G, decisions C-22 and C-23: the pass values are the Monte Carlo model's, not a knowledge requirement; ADCS_DESIGN 1.9 §4.3, §11.6), with the photodiode response, the wings' shadow and the gyro at the spin rate (finding P3F-G-07) |
+| 1.4 | 2026-10-27 | Documentation audit (post-CDR 2026): §3.3 and §4 sun pointing judged by ADCS-P002 in the Monte Carlo (C-23; was < 10°); rod dipole > 0.2 A·m²; status and banner |

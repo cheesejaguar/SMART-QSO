@@ -2,11 +2,16 @@
 ## TP-SYS-001
 
 **Document Number:** TP-SYS-001
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B
+**Date:** 2026-10-27
 **Classification:** System Integration Test
 
 **Requirements exercised:** SYS-211, SYS-221, SYS-224, SYS-304, SYS-503, SYS-521, SYS-800, SYS-801; the comprehensive performance test of the protoflight campaign (`docs/environment/ENVIRONMENTAL_TEST_PLAN.md` §4) and the reference limits of VI-12
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -274,3 +279,4 @@ Any anomaly during testing:
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-27 | Documentation audit (post-CDR 2026): SOC thresholds and beacon intervals from BASELINE §5/§8 (were 60/80/70 % and 120/60/30 s), first beacon after the 45-min silence (was 30 min), 4S voltages, Jetson ≤ 8 W, EOL passivation never fired on the FM; banner | Documentation audit |

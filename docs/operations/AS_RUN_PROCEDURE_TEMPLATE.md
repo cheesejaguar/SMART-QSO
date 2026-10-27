@@ -1,10 +1,10 @@
 # SMART-QSO As-Run Procedure Template
 
 **Document ID**: SQSO-ARP-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Template. No as-run record exists: nothing has flown and no procedure has been run on hardware
 
 ## 1. Purpose
 
@@ -221,11 +221,13 @@ Reviewed by: _______________ Date: _______ Time: _____
 
 ### 3.1 Nominal Pass Example
 
+Illustrative only: invented times, names and values showing how a completed form reads. It records no real pass.
+
 ```
 AS-RUN: NOMINAL PASS OPERATIONS
 Procedure: OP-PASS-001 Rev 1.0
-Date: 2026-01-15
-Pass: #0147
+Date: [YYYY-MM-DD] (illustrative)
+Pass: #[nnnn]
 
 STEP  TIME     EXEC  ACTION                    RESULT
 ────  ──────── ──── ───────────────────────── ─────────
@@ -234,8 +236,8 @@ STEP  TIME     EXEC  ACTION                    RESULT
 1.3   14:33:05 [X]  Signal acquired            -95 dBm
 1.4   14:33:20 [X]  First beacon decoded       OK
 1.5   14:33:45 [X]  Verify health telemetry    NOMINAL
-1.6   14:34:00 [X]  Send REQUEST_TLM           ACK
-1.7   14:34:10 [X]  Receive full telemetry     OK
+1.6   14:34:00 [X]  Send GET_HOUSEKEEPING 0x09 ack R=0
+1.7   14:34:10 [X]  Receive HK1 and HK2        OK
 1.8   14:42:00 [X]  LOS                        14:42:15
 1.9   14:42:30 [X]  Archive data               Complete
 
@@ -245,8 +247,8 @@ Beacons received: 10
 Commands sent: 1
 Result: SUCCESS
 
-Executor: J. Smith    14:45:00
-Verifier: A. Jones    14:46:00
+Executor: [name]      [time]
+Verifier: [name]      [time]
 ```
 
 ## 4. Revision History
@@ -254,3 +256,4 @@ Verifier: A. Jones    14:46:00
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial template |
+| 1.1 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): status a template; §3.1 example marked illustrative, its date, pass number and names made placeholders, GET_HOUSEKEEPING (0x09) and HK1/HK2 in place of REQUEST_TLM (no such command) |

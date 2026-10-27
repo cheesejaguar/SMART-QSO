@@ -2,11 +2,16 @@
 ## TP-INT-003
 
 **Document Number:** SQSO-TP-INT-003
-**Version:** 1.2
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.3
+**Date:** 2026-10-27
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** SYS-200, SYS-201, SYS-203, SYS-206, SYS-210, SYS-211, SYS-212, SYS-322
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -104,3 +109,4 @@ This procedure defines the integration test for the RF communication subsystem.
 | 1.0 | 2026-01-02 | Initial release |
 | 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
 | 1.2 | 2026-10-16 | Conflicting steps corrected and cited: RF power 27 dBm ±1 dB, never above 30 dBm (SYS-201; was 30 dBm ±1 dB); frequency the IARU-coordinated downlink frequency (SYS-200, TBD-SYS-001; was 145.825 MHz); beacon timing 60/120/180 s (SYS-211; was 30 s); spurious limit restated as SYS-203 plus the 25 µW of 47 CFR 97.307(e) (finding VV-06) |
+| 1.3 | 2026-10-27 | Documentation audit (post-CDR 2026): MMCX ports, RF board build-to design, spurious per SYS-203 Rev G; status and banner |

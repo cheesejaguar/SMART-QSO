@@ -2,11 +2,16 @@
 ## TP-FAT-002
 
 **Document Number:** SQSO-TP-FAT-002
-**Version:** 1.2
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.3
+**Date:** 2026-10-27
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** SYS-001, SYS-004, SYS-005, SYS-200, SYS-201, SYS-211, SYS-212, SYS-221, SYS-224, SYS-225, SRS-F013, SRS-F014, SRS-F015
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -247,3 +252,4 @@ Bench power-ups can complete the 45-minute silence and the deployment sequence, 
 | 1.0 | 2026-01-02 | Initial release |
 | 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
 | 1.2 | 2026-10-16 | §6.2.1 to §6.2.3 corrected and cited: callsign KK6GDB-11; TX frequency the IARU-coordinated frequency (SYS-200, TBD-SYS-001; was 145.825 MHz); 0.5 W nominal and ≤ 1 W maximum (SYS-201; was a 2.0 W high mode); beacon 60/120/180 s in ACTIVE/IDLE/SAFE (SYS-211; SAFE was missing); SOC thresholds 25 % SAFE, 40 % IDLE, 15 % emergency, 55 % Jetson enable (SRS-F013 to SRS-F015, BASELINE §5; were 10 % and 50 %) (finding VV-06) |
+| 1.3 | 2026-10-27 | Documentation audit (post-CDR 2026): spin 8°/s (was 6°/s), wings first with 10 s burns (was antenna first, 3 s), SOC per BASELINE §4 (was 30–50 %), contact timeout and keys, ballast; status and banner |

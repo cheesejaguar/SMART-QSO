@@ -2,12 +2,17 @@
 ## TP-ENV-003
 
 **Document Number:** TP-ENV-003
-**Revision:** E
+**Revision:** F
 **Date:** 2026-10-27
 **Reference:** GSFC-STD-7000B (GEVS) §2.6.3 and Appendix B §2.6; `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev D (amended) §3.4-§3.5
 and §9 deviation 8 (levels); `hardware/structure/THERMAL_DESIGN.md` 1.5 §1.1 (allowable flight temperatures, AFT); SpaceX Rideshare Payload User's Guide v11 Table 6-2; LSP-REQ-317.01 Rev B Table 1 (bake-out)
 
 **Requirements verified:** SYS-600, SYS-601 (cold survival limit open, TBR-TPENV003-001), SYS-602, SYS-702, SYS-706, SYS-707
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -218,3 +223,4 @@ plateaus; a limited functional test at the others.
 | C | 2026-10-16 | Cold survival limit marked open between -40 °C (SYS-601) and -30 °C (Rev B), tracked as TBR-TPENV003-001 in the new §9 for the PI; §3.1 cites SYS-601 (findings VV-06, VV-17) | SMART-QSO Team |
 | D | 2026-10-27 | CDR review (PM/SE/V&V): levels from `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C: operational plateaus +60/-30 °C (10 °C margin, GSFC-STD-7000B), non-operating +60 °C (battery cap) and -40 °C at the structure, bake-out +60 °C for 6 h at ≤ 1 × 10⁻⁴ Torr, 8 cycles, hot and cold starts, thermal balance, ≤ 1 °C/min; battery monitoring limits corrected (the +45 °C limit is a charge limit); post-test deployment replaced by continuity; SYS-602, SYS-706, SYS-707 added. Was GSFC-STD-7000A, ± 5 °C, 4 cycles | CDR review, PM/SE/V&V |
 | E | 2026-10-27 | CDR round 3, thermal (RID THM-04, CR-2026-017): levels from ETP Rev D (amended) §3.4: cold operational plateau and cold start at -40 °C (AFT -30 °C - 10 °C; the cold start tests the first-orbit extension of the AFT to -40 °C at its AFT without the 10 °C margin, ETP §9 deviation 8), V-THM-8 cited; operational AFT row from THERMAL_DESIGN 1.5 §1.1; Jetson and RF PA cold monitoring limits -40 °C | CDR thermal analyst |
+| F | 2026-10-27 | Documentation audit (post-CDR 2026): Jetson burst is one power-on ≤ 10 min (C-20; was 120 s); not-yet-run banner | Documentation audit |

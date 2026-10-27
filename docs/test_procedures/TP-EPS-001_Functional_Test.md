@@ -2,11 +2,16 @@
 ## TP-EPS-001
 
 **Document Number:** TP-EPS-001
-**Revision:** C
-**Date:** 2026-01-02
+**Revision:** D
+**Date:** 2026-10-27
 **Classification:** Development/Qualification Test
 
 **Requirements verified:** SYS-102, SYS-113, SYS-120, SYS-121, SYS-122, SYS-123, SYS-124, SRS-F011, SRS-I011, SRS-I012
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -220,3 +225,4 @@ All test data shall be recorded in the EPS Test Data Log with:
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | OBC-EPS ICD cited by its own number, SMART-QSO-ICD-001 (finding PI-17) | SMART-QSO Team |
 | C | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) | SMART-QSO Team |
+| D | 2026-10-27 | Documentation audit (post-CDR 2026): rails from EPS_DESIGN (no 12 V rail), charge limit 16.4 V (D8; was 16.8 V), OV 4.25 V/cell, charge window 0–45 °C, 13.6 V Jetson shed, tracker range and V-EPS-1; document numbers corrected; banner | Documentation audit |

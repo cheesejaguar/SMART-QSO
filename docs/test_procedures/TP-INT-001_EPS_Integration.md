@@ -2,11 +2,16 @@
 ## TP-INT-001
 
 **Document Number:** SQSO-TP-INT-001
-**Version:** 1.1
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.2
+**Date:** 2026-10-27
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** SYS-120, SYS-121, SYS-122, SYS-124, SYS-320
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -166,3 +171,4 @@ This procedure defines the integration test for the Electrical Power Subsystem (
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release for CDR |
 | 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
+| 1.2 | 2026-10-27 | Documentation audit (post-CDR 2026): 4S bus 11.2–16.4 V (was 7.2 V), rails 3V3_AO and 5V_PA ± 2 % from EPS_DESIGN; status and banner |

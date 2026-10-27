@@ -1,10 +1,10 @@
 # SMART-QSO Contingency Procedures
 
 **Document ID**: SQSO-CP-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Draft. Procedures for the flight; not yet rehearsed. No independent CDR has been held (BASELINE Rev E §1). Commands are those of `software/flight/command_dictionary.json` (SQSO-ICD-013 §7); the commissioning-phase responses are in `docs/operations/COMMISSIONING_PLAN.md` §4 and `docs/operations/MISSION_TIMELINE.md` §8
 
 ## 1. Purpose
 
@@ -89,6 +89,7 @@ This document defines contingency procedures for responding to off-nominal space
    [ ] Orbit decay (check TLE age)
    [ ] Tumbling (doppler signature)
    [ ] Safe mode (reduced TX power)
+   [ ] TX-OFF latched (HK1 TX=0 on the last frame), the loss-of-contact inhibit (no authenticated command for N days), or, after separation, the AntS hold (decision C-19): the receiver stays on in all three; send GET_HOUSEKEEPING blind
    [ ] Hardware failure
 
 6. IF no contact after 3 passes:
@@ -110,9 +111,8 @@ This document defines contingency procedures for responding to off-nominal space
 
 **Symptoms**:
 - Telemetry shows STATE = SAFE
-- Reduced beacon content
-- Lower TX power
-- No AI-generated content
+- Beacon every 180 s, template text
+- Transponder and Jetson off
 
 **Immediate Actions**:
 ```
@@ -163,8 +163,8 @@ This document defines contingency procedures for responding to off-nominal space
 
 8. COMMAND safe mode release:
    [ ] Two operators on console
-   [ ] Send RELEASE_SAFE command
-   [ ] Monitor transition
+   [ ] Send SET_MODE (0x02) 1 (IDLE); SAFE to ACTIVE directly is refused
+   [ ] Monitor transition (acknowledgement R=0, HK1 MODE)
    [ ] Verify IDLE state achieved
 
 9. MONITOR for 24 hours:
@@ -180,9 +180,9 @@ This document defines contingency procedures for responding to off-nominal space
 **Response Level**: YELLOW → ORANGE (if critical)
 
 **Symptoms**:
-- Battery voltage < 3.3V
-- SOC < 30%
-- Possible safe mode entry
+- SOC below 40 % (ACTIVE to IDLE) or 25 % (SAFE); below 15 % EMERGENCY, beacon shed (BASELINE §5)
+- A cell below 2.0 V latches the EPS recharge lockout (HK2 `CI`)
+- Bus below 13.6 V: the hardware sheds the Jetson rail
 
 **Immediate Actions**:
 ```
@@ -192,7 +192,8 @@ This document defines contingency procedures for responding to off-nominal space
 
 2. IF confirmed undervoltage:
    [ ] Stop all non-essential commanding
-   [ ] Spacecraft should auto-enter SAFE mode at SOC < 25%
+   [ ] Spacecraft enters SAFE by itself below 25 % SOC and EMERGENCY below 15 %
+   [ ] EPS_CLEAR_LOCKOUT (0x14) only after the cell history is reviewed
 
 3. CALCULATE power budget:
    [ ] Current SOC
@@ -246,9 +247,9 @@ This document defines contingency procedures for responding to off-nominal space
 ```
 1. IDENTIFY affected component:
    [ ] OBC (limit: +85°C)
-   [ ] Jetson (limit: +70°C)
-   [ ] Battery (limit: +45°C)
-   [ ] RF PA (limit: +60°C)
+   [ ] Jetson heat spreader (≤ +40 °C in a batch; +70 °C stuck-on limit; SYS-603 Rev G)
+   [ ] Battery (charging only 0 to +45 °C)
+   [ ] RF PA (transponder stops at 70 °C, resumes at 60 °C; SQSO-ICD-003 §5.5)
 
 2. VERIFY spacecraft response:
    [ ] Auto-throttling activated?
@@ -333,7 +334,7 @@ This document defines contingency procedures for responding to off-nominal space
    [ ] Maintain SAFE mode
    [ ] Request additional telemetry
    [ ] Consider software issue
-   [ ] Prepare for possible software upload
+   [ ] No software upload exists in the command set: record and analyse on the ground (SIL replay)
 ```
 
 ---
@@ -393,7 +394,7 @@ This document defines contingency procedures for responding to off-nominal space
 
 **Symptoms**:
 - Command sent but no response
-- NACK received
+- Acknowledgement with R ≠ 0, or none (SQSO-ICD-005 §5.5)
 - State unchanged
 
 **Immediate Actions**:
@@ -404,7 +405,7 @@ This document defines contingency procedures for responding to off-nominal space
    [ ] Checksum valid
 
 2. CHECK uplink conditions:
-   [ ] Elevation adequate (>20°)?
+   [ ] Elevation adequate (≥ 10°; ≥ 12° in the degraded station mode; decision C-14)?
    [ ] No interference?
    [ ] TX power sufficient?
 
@@ -416,7 +417,7 @@ This document defines contingency procedures for responding to off-nominal space
 4. ANALYZE rejection:
    [ ] Link budget marginal?
    [ ] Command during wrong mode?
-   [ ] Sequence number issue?
+   [ ] Counter issue (a stale or reused counter is refused without an acknowledgement)?
 
 5. IF persistent rejection:
    [ ] Wait for better pass geometry
@@ -427,7 +428,7 @@ This document defines contingency procedures for responding to off-nominal space
 ```
 6. RETRY on subsequent pass:
    [ ] Verify higher elevation available
-   [ ] Increase TX power if available
+   [ ] Check the uplink Doppler and receiver-offset correction (±1 kHz)
    [ ] Confirm command syntax
 
 7. DOCUMENT all attempts
@@ -435,48 +436,53 @@ This document defines contingency procedures for responding to off-nominal space
 
 ---
 
-### CP-008: Collision Avoidance Maneuver
+### CP-008: Conjunction Warning (no manoeuvre capability)
 
 **Response Level**: ORANGE
 
+SMART-QSO has **no propulsion and cannot manoeuvre** (BASELINE §3). Its response to a conjunction is screening,
+assessment and coordination with the 18th Space Defense Squadron (Space-Track), TraCSS and the other operator, as
+`docs/regulatory/filings/SPACE_SAFETY_REGISTRATION_AND_CONJUNCTION_PLAN.md` (SQSO-REG-015) §4 sets out; this procedure
+is that plan's steps at the console. Attitude or operations changes have no useful effect on conjunction timescales.
+
 **Symptoms**:
-- Conjunction warning received from SSA
-- Probability of collision above threshold
+- Conjunction Data Message (CDM) from Space-Track or TraCSS at the 24 h operator contact
+- Probability of collision (Pc) or miss distance flagged by the screening
 
-**Immediate Actions**:
+**Immediate Actions** (≤ 4 h of receipt):
 ```
-1. RECEIVE warning data:
+1. RECEIVE and log the CDM:
    [ ] Time of closest approach (TCA)
-   [ ] Probability of collision (Pc)
-   [ ] Miss distance estimate
+   [ ] Pc, miss distance and covariance quality
+   [ ] The other object: active and manoeuvrable, crewed, or debris
 
-2. IF Pc > 1e-4:
-   [ ] Notify Mission Director immediately
-   [ ] Convene operations team
+2. CHECK SMART-QSO's own ephemeris:
+   [ ] Latest operator OEM from the GNSS fixes (SQSO-GND-002), or the TLE if no recent fix
+   [ ] Request a GNSS session (GNSS_REQUEST 0x60) on the next commanding pass if the fix is old
 ```
 
-**Analysis Actions**:
+**Coordination** (≤ 12 h, or before TCA):
 ```
-3. ASSESS options:
-   [ ] SMART-QSO has no propulsion
-   [ ] Options: Accept risk or coordinate
+3. IF the other object is an active, manoeuvrable spacecraft:
+   [ ] Contact its operator (contact data via Space-Track)
+   [ ] Share the latest SMART-QSO ephemeris with covariance
+   [ ] State that SMART-QSO cannot manoeuvre
 
-4. COORDINATE with 18 SDS / Space-Track:
-   [ ] Confirm conjunction data
-   [ ] Request updated TLE
-   [ ] Monitor for updates
+4. IF Pc >= 1e-4 and the counterpart is crewed (ISS, CSS) or manoeuvrable:
+   [ ] Notify the Mission Director
+   [ ] Ask the counterpart to manoeuvre; provide any data requested
+   [ ] For the ISS: NASA trajectory operations (SQSO-REG-015 R5)
+
+5. IF the other object is debris or cannot manoeuvre:
+   [ ] No mitigation is available; keep publishing ephemeris and monitor CDM updates to TCA
 ```
 
-**Response**:
+**After TCA**:
 ```
-5. IF collision risk accepted:
-   [ ] Document decision rationale
-   [ ] Prepare for possible impact
-   [ ] Alert backup tracking
-
-6. IF collision occurs:
-   [ ] Execute LOS procedures
-   [ ] Report to authorities
+6. RECORD the outcome in the operations log
+7. CONFIRM contact on the next pass; if no beacon, CP-001
+8. IF a fragmentation is suspected, report through Space-Track and update the in-space notification
+   if any disclosed parameter changed (SQSO-REG-014)
 ```
 
 ---
@@ -535,3 +541,4 @@ This document defines contingency procedures for responding to off-nominal space
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): CP-008 rewritten as a conjunction response with no manoeuvre capability (screening and coordination through Space-Track, SQSO-REG-015 §4; was "Collision Avoidance Maneuver"); CP-002 SET_MODE 1 (RELEASE_SAFE does not exist); CP-003 4S SOC thresholds and lockout (was 3.3 V); CP-004 limits from BASELINE and SQSO-ICD-003; CP-005 no software upload; CP-007 commanding from 10°, acknowledgement codes; CP-001 the inhibits that leave the receiver on; status |

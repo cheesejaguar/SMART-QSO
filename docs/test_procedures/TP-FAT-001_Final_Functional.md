@@ -2,11 +2,16 @@
 ## TP-FAT-001
 
 **Document Number:** SQSO-TP-FAT-001
-**Version:** 1.3
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.4
+**Date:** 2026-10-27
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** SYS-002, SYS-003, SYS-021, SYS-102, SYS-110, SYS-120, SYS-121, SYS-122, SYS-124, SYS-200, SYS-201, SYS-202, SYS-203, SYS-206, SYS-210, SYS-212, SYS-215, SYS-221, SYS-223, SYS-300, SYS-304, SYS-322, SYS-323, SYS-324, SYS-400, SYS-402, SYS-410, SYS-503, SYS-512
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -248,3 +253,4 @@ This procedure defines the final acceptance functional test performed on the fli
 | 1.1 | 2026-10-16 | Mass limit 2.00 kg (SYS-002, CDS Rev 14.1) replaces 1.33 kg, the CDS Rev 13 value (TB-06) |
 | 1.2 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
 | 1.3 | 2026-10-16 | Conflicting steps corrected and cited: TX frequency the IARU-coordinated downlink frequency (SYS-200, TBD-SYS-001), not 145.825 MHz; TX power 0.5 W nominal and ≤ 1 W maximum (SYS-201), replacing the 2.0 W high mode; harmonics < -40 dBc (SYS-203) and ≤ 25 µW (47 CFR 97.307(e)), replacing -30 dBc; callsign KK6GDB-11 (BASELINE §1), replacing N0CALL. The note on §6.6 was stale (2.00 kg since 1.1) (finding VV-06) |
+| 1.4 | 2026-10-27 | Documentation audit (post-CDR 2026): 4S GSE, charge 4.10 V/cell, storage SOC (final 60 % ± 5 % at the integrator), no post-environment antenna deployment, harmonics per SYS-203, inertia measurement, template beacon baseline; status and banner |

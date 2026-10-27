@@ -2,11 +2,16 @@
 ## TP-JETSON-003
 
 **Document Number:** SQSO-TP-JETSON-003
-**Version:** 1.1
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.2
+**Date:** 2026-10-27
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** SYS-510, SYS-512, SYS-513, SYS-514
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -62,3 +67,4 @@ of decision D5; the flight-baseline beacon text comes from the OBC selector's pr
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
 | 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
+| 1.2 | 2026-10-27 | Documentation audit (post-CDR 2026): burst (SYS-512, C-20), content filter (SYS-513), boot ≤ 45 s (V-JET-3), VBAT carrier supply; Jetson text marked the gated experiment (D5); status and banner |

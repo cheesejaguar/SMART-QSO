@@ -2,11 +2,16 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** TP-JETSON-001
-**Revision:** D
-**Date:** 2026-01-02
+**Revision:** E
+**Date:** 2026-10-27
 **Reference:** NVIDIA Jetson Orin Nano Datasheet, NASA Ames SmallSat Heritage
 
 **Requirements verified:** SYS-501, SYS-502, SYS-503, SYS-514
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -284,3 +289,4 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 | B | 2026-10-16 | OBC-Jetson ICD cited by its own number, SMART-QSO-ICD-002 (finding PI-17) | SMART-QSO Team |
 | C | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; it had cited only standards (finding VV-06) | SMART-QSO Team |
 | D | 2026-10-16 | §8.4 no longer characterizes a 15 W mode (8–15 W, above the 10 W peak of SYS-501): steps 8.4.6–8.4.7 and the record check that no mode above 7 W can be selected and that the carrier input stays ≤ 8 W in the 7 W mode (BASELINE §6); §8.4 cites SYS-501 (finding VV-06) | SMART-QSO Team |
+| E | 2026-10-27 | Documentation audit (post-CDR 2026): carrier input from VBAT (was 5 V), ≤ 8 W (SYS-501, V-JET-4; was 10 W peak), boot ≤ 45 s (V-JET-3), junction ≤ 95 °C; document numbers corrected; banner | Documentation audit |

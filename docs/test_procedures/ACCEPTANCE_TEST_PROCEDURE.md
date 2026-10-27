@@ -1,10 +1,15 @@
 # SMART-QSO Acceptance Test Procedure
 
 **Document ID**: SQSO-ATP-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status:** Draft; not yet run (no hardware exists)
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ## 1. Purpose
 
@@ -572,3 +577,4 @@ Project Manager: _____________ Date: _______
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
+| 1.1 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): values brought to BASELINE Rev E (4S bus, mode powers, ≤ 1 W RF, beacon intervals, Jetson ≤ 8 W, three switches, OV 4.25 V/cell); overlap with TP-SYS-001/TP-FAT-001/-002 noted; nonexistent document numbers replaced; status and banner |

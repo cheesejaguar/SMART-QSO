@@ -2,7 +2,7 @@
 ## TP-ENV-002
 
 **Document Number:** TP-ENV-002
-**Revision:** F (interim levels)
+**Revision:** G (interim levels)
 **Date:** 2026-10-27
 **Reference:** SpaceX Rideshare Payload User's Guide, Version 11, August 2026 ("UG v11",
 <https://storage.googleapis.com/rideshare-static/Rideshare_Payload_Users_Guide.pdf>): §4.1.6, Table 4-6, §6.1.2, §6.6,
@@ -15,6 +15,11 @@ which set the protoflight level (`docs/environment/ENVIRONMENTAL_TEST_PLAN.md` R
 > profile tied to no provider (finding LA-05). No test has been run.
 
 **Requirements verified:** SYS-700, SYS-703, SYS-704, SYS-705
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -259,3 +264,4 @@ original burn wire did not fail in the test. Any other rework needs the integrat
 | D (interim) | 2026-10-16 | §1: SYS-700 now names the launch provider's levels (SQSO-REQ-002 Rev D, PI to ratify), so the note that its GEVS wording needed updating is replaced (finding LA-05) | SMART-QSO Team |
 | E (interim) | 2026-10-27 | CDR review (PM/SE/V&V): protoflight level raised from the MPE (5.57 Grms) to the GEVS-B Appendix B envelope of MPE + 3 dB and workmanship (8.18 Grms), 1 min/axis on the flight unit and 2 min/axis on the EM (`docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C §3.1); SYS-703 to SYS-705 added; post-test deployment replaced by continuity checks | CDR review, PM/SE/V&V |
 | F (interim) | 2026-10-27 | CDR 2026 consistency pass: mass check values from BASELINE Rev E §4 (CBE 1.49 kg, MEV 1.73 kg) | CDR documentation review |
+| G | 2026-10-27 | Documentation audit (post-CDR 2026): mass check CBE 1.52 kg / MEV 1.75 kg and the Nova 2.5 kg limit (BASELINE Rev E amended; was 1.49/1.73 kg); not-yet-run banner | Documentation audit |

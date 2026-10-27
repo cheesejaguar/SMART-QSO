@@ -2,11 +2,16 @@
 ## TP-INT-006
 
 **Document Number:** SQSO-TP-INT-006
-**Version:** 1.3
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.4
+**Date:** 2026-10-27
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** SYS-001, SYS-002, SYS-003, SYS-004, SYS-005
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -265,3 +270,4 @@ Any non-conformance shall be:
 | 1.1 | 2026-10-16 | Mass limit 2.00 kg (SYS-002, CDS Rev 14.1) replaces 1.33 kg, the CDS Rev 13 value (TB-06) |
 | 1.2 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
 | 1.3 | 2026-10-16 | Stale note removed: the §8.6 table and §9 already give 2.00 kg (SYS-002) since 1.1 (finding VV-06) |
+| 1.4 | 2026-10-27 | Documentation audit (post-CDR 2026): prerequisites no longer marked PASS; AntS stowage, solar wings, ballast, inertia measurement, three switches; status and banner |

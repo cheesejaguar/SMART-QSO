@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REQ-001
-**Revision:** G
+**Revision:** H
 **Date:** 2026-10-27
 **Reference:** NPR 7123.1D (tailored, `docs/project/CDR_CRITERIA_MATRIX.md` §2); `docs/BASELINE_PARAMETERS.md` Rev E (amended)
 
@@ -24,7 +24,7 @@ This document covers:
 
 | Document | Title |
 |----------|-------|
-| SQSO-BL-001 Rev D | Baseline Parameters (governs every value; where this document disagrees, the baseline wins) |
+| SQSO-BL-001 Rev E (amended) | Baseline Parameters (governs every value; where this document disagrees, the baseline wins) |
 | NPR 7123.1D | NASA Systems Engineering Processes and Requirements (reference framework, tailored; the project is not NASA-funded) |
 | NPR 7120.8A | NASA Research and Technology Program and Project Management (reference for a NASA partnership; `docs/project/CDR_CRITERIA_MATRIX.md` §1) |
 | SQSO-CONOPS | SMART-QSO Concept of Operations |
@@ -75,11 +75,11 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 | ID | Requirement | Verification | Priority |
 |----|-------------|--------------|----------|
 | MRD-010 | The mission shall operate in Low Earth Orbit (LEO) | A | Critical |
-| MRD-011 | The nominal orbit altitude at deployment shall be 465-485 km (target 475 km), circular and sun-synchronous (inclination about 97.4°), so that the nominal orbital lifetime with the wings deployed (4.9 years at 475 km, 1.6 kg, `docs/BASELINE_PARAMETERS.md` §3) exceeds the 2-year design life *(was 400-500 km until Rev C: at 400 km the lifetime is shorter than the design life, finding TB-03; 450-500 km until Rev E, CR-2026-007)* | A | Critical |
+| MRD-011 | The nominal orbit altitude at deployment shall be 465-485 km (target 475 km), circular and sun-synchronous (inclination about 97.31°), so that the nominal orbital lifetime with the wings deployed (4.8 years at 475 km, 1.6 kg, `docs/BASELINE_PARAMETERS.md` §3, ODAR Draft D) exceeds the 2-year design life *(was 400-500 km until Rev C: at 400 km the lifetime is shorter than the design life, finding TB-03; 450-500 km until Rev E, CR-2026-007)* | A | Critical |
 | MRD-012 | The orbit inclination shall support global amateur radio coverage | A | High |
 | MRD-013 | The deployment altitude shall not exceed 485 km, so that MRD-003 is met with P ≥ 0.9 under the conservative solar projection (ODAR Draft D §6.4–§6.5); the cap applies to the 3σ-high mean altitude of the drop-off orbit, injection dispersion included. *(Added by the funding audit, 2026-10-14, as 500 km with a 525 km cap; 485 km from Rev E, CR-2026-007; the 3σ-high definition in Rev F, CR-2026-009, RID P3A-09; 460 km if the FCC counts an early failure as the end of the mission, BASELINE §3.)* | A | Critical |
 
-**Proposed (PI to ratify), MRD-012, TBR-MRD-002:** "The orbit shall give every point on the Earth's surface at least two passes a day with a maximum elevation of at least 5°." Verification: Analysis. Propagate the baseline orbit (circular, sun-synchronous, ≈ 97.4°; `docs/BASELINE_PARAMETERS.md` §3) at 450 km and at the 525 km cap for 30 days and count, on a 5° latitude-longitude grid, the passes that reach 5° elevation, where the baseline beacon link closes (baseline §7). The ISS backup orbit (51.6°) reaches only about ±67° latitude and would not meet this wording.
+**Proposed (PI to ratify), MRD-012, TBR-MRD-002:** "The orbit shall give every point on the Earth's surface at least two passes a day with a maximum elevation of at least 5°." Verification: Analysis. Propagate the baseline orbit (circular, sun-synchronous, ≈ 97.31°; `docs/BASELINE_PARAMETERS.md` §3) at 465 km and at the 485 km cap for 30 days and count, on a 5° latitude-longitude grid, the passes that reach 5° elevation, where the baseline beacon link closes (baseline §7). The ISS backup orbit (51.6°) reaches only about ±67° latitude and would not meet this wording.
 
 ### 5.3 Communication Requirements
 
@@ -115,7 +115,7 @@ SMART-QSO is a 1U CubeSat mission demonstrating onboard agentic AI to manage an 
 
 **Proposed (PI to ratify), MRD-043, TBR-MRD-003:** "Over any 60 days of primary operations, the Gini coefficient across regions of the minutes the transponder is available while each region is in view shall be no more than 0.35, and no higher than that of a fixed transponder schedule using the same energy." Regions are those of the demand model of MRD-042. Verification: Analysis (in place of Demonstration). Before launch, a 60-day simulation of the scheduler with the baseline orbit and power model; after commissioning, the same calculation from the transponder on/off telemetry and the orbit. The 0.35 limit is mission objective 3 of `docs/pdr/SMART-QSO_PDR.md` §2.1. The transponder is a single-channel FM transponder (`docs/BASELINE_PARAMETERS.md` §2), so the spacecraft cannot choose between individual QSOs; what it controls is when the transponder is on.
 
-**Proposed (PI to ratify), MRD-045, TBR-MRD-004:** "No AI output shall be able to exceed a hard limit. The OBC shall enforce the hard limits independently of the AI, including while the AI is hung, faulted or off: Jetson bursts only in sunlight, at SOC ≥ 55 % and for no more than 120 s including boot; the per-rail current and temperature limits; the SOC mode thresholds; and TX-OFF (`docs/BASELINE_PARAMETERS.md` §5–§7)." Verification: Test (in place of Analysis). Fault injection on the flatsat: for each hard limit, AI requests that would exceed it; malformed and out-of-range AI outputs; and a hung or unpowered AI. Pass if no limit is exceeded and every beacon is sent on its interval.
+**Proposed (PI to ratify), MRD-045, TBR-MRD-004:** "No AI output shall be able to exceed a hard limit. The OBC shall enforce the hard limits independently of the AI, including while the AI is hung, faulted or off: Jetson bursts only in sunlight, at SOC ≥ 55 % and for no more than 10 minutes including boot, then at least 100 minutes off; the per-rail current and temperature limits; the SOC mode thresholds; and TX-OFF (`docs/BASELINE_PARAMETERS.md` §5–§7)." Verification: Test (in place of Analysis). Fault injection on the flatsat: for each hard limit, AI requests that would exceed it; malformed and out-of-range AI outputs; and a hung or unpowered AI. Pass if no limit is exceeded and every beacon is sent on its interval.
 
 ### 5.6 Power Requirements
 
@@ -210,16 +210,18 @@ SpaceX Rideshare Payload User's Guide v11 is the interim provider document.
 
 | Mission Req | System Requirements |
 |-------------|---------------------|
-| MRD-001 | SYS-001, SYS-010-020 |
-| MRD-020-025 | SYS-100-120 |
-| MRD-030-034 | SYS-130-150 |
-| MRD-040-045 | SYS-200-230 |
-| MRD-050-053 | SYS-300-330 |
-| MRD-060-062 | SYS-400-420 |
-| MRD-080, MRD-098 | SYS-001-005, SYS-080-089, SYS-221-225, SYS-700-713, SYS-900-912, SYS-915-918 |
-| MRD-084, MRD-085 | SYS-803, SYS-913, SYS-919 |
+| MRD-001 | SYS-010-013, SYS-020, SYS-302, SYS-310, SYS-320, SYS-504, SYS-600, SYS-601, SYS-603, SYS-710 |
+| MRD-002 | SYS-021-023, SYS-300, SYS-301, SYS-305, SYS-311-313, SYS-711 |
+| MRD-003, MRD-013 | SYS-803, SYS-907 |
+| MRD-020-025 | SYS-124, SYS-200-206, SYS-210-213, SYS-222, SYS-223, SYS-303, SYS-322, SYS-325, SYS-326, SYS-713 |
+| MRD-030-034 | SYS-215, SYS-520-523 (MRD-030 to MRD-033 have no system requirement yet) |
+| MRD-040-045 | SYS-214, SYS-321, SYS-500, SYS-510-512, SYS-514 |
+| MRD-050-053 | SYS-100-103, SYS-110-114, SYS-120-123, SYS-304, SYS-501-503, SYS-602 |
+| MRD-060-062 | SYS-323, SYS-324, SYS-400-404, SYS-410-412, SYS-420-422, SYS-912 |
+| MRD-080, MRD-082, MRD-098 | SYS-001-005, SYS-080-089, SYS-220-225, SYS-700-709, SYS-712, SYS-800, SYS-801, SYS-900-905, SYS-908-911, SYS-915-918 |
+| MRD-084, MRD-085 | SYS-913, SYS-919 |
 | MRD-094-097 | SYS-204, SYS-205, SYS-325, SYS-326, SYS-513, SYS-914 |
-| MRD-099 | `mission/SCHEDULE.md` (programmatic) |
+| MRD-099 | SYS-906; `mission/SCHEDULE.md` (programmatic) |
 
 ---
 
@@ -248,3 +250,4 @@ SpaceX Rideshare Payload User's Guide v11 is the interim provider document.
 | E | 2026-10-27 | CDR 2026 consistency pass: MRD-011 465-485 km (target 475 km) and MRD-013 cap 485 km from `docs/BASELINE_PARAMETERS.md` Rev E §3 (CR-2026-007) | CDR documentation review |
 | F | 2026-10-27 | CDR round 3 (proposed; PI decision by 2027-01-12, CR-2026-009): MRD-013 cap on the 3σ-high mean altitude of the drop-off orbit, injection dispersion included, with ODAR Draft D and the 460 km alternative (RID P3A-09) | CDR round 3, systems and programmatics |
 | G | 2026-10-27 | CDR round 3 closure (decisions C-22, C-23, finding P3F-G-07): MRD-061 restated as the sun direction and body rate the sun-pointing law needs, no onboard attitude estimate and no sun-vector accuracy (decisions C-22, C-23), method A,T (ADCS Monte Carlo with the photodiodes and albedo, and TP-ADCS-003 §3.1) | CDR round 3, GN&C |
+| H | 2026-10-27 | Documentation audit (post-CDR 2026): applicable baseline Rev E (amended) (was Rev D); MRD-011 inclination 97.31° and lifetime 4.8 years (BASELINE §3); proposed MRD-012 wording at 465 km and the 485 km cap (was 450/525 km); proposed MRD-045 burst limit 10 min with 100 min off (BASELINE §6; was 120 s); §7.2 flow-down rebuilt from the parent column of SQSO-REQ-002 (it named ranges such as SYS-130-150 that do not exist and mapped communication to power) | Documentation audit |

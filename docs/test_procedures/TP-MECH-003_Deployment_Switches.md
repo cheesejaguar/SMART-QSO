@@ -2,11 +2,16 @@
 ## TP-MECH-003
 
 **Document Number:** SQSO-TP-MECH-003
-**Version:** 1.0
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.1
+**Date:** 2026-10-27
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** SYS-221, SYS-224, SYS-225
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -60,3 +65,4 @@ that also holds the trackers' enables low, each through a ≥ 10 ms RC filter (`
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
+| 1.1 | 2026-10-27 | Documentation audit (post-CDR 2026): rewritten for the three deployment switches DS1–DS3 (was two, in series), with the timer restart and RF-silence latch; status and banner |
