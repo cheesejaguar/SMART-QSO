@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-RF-TX-001
-**Version:** 1.3
+**Version:** 1.4
 **Date:** 2026-10-27
 **Status:** CDR Baseline
 
@@ -10,7 +10,7 @@
 
 ## 1. Overview
 
-This document defines the 2 m transmitter of the SMART-QSO 1U CubeSat. It carries the AX.25 beacon (through the KISS TNC) and the FM transponder downlink (through the repeat path), time-shared (`docs/hardware/RF_DESIGN.md` v2.0 §3). Values follow BASELINE §7; the link budget is SQSO-LBA-001 v3.0. Version 1.3 (CDR) removes the 2 W level, sets the deviation, stability and harmonic requirements, and records the filter analysis.
+This document defines the 2 m transmitter of the SMART-QSO 1U CubeSat. It carries the AX.25 beacon (through the KISS TNC) and the FM transponder downlink (through the repeat path), time-shared (`docs/hardware/RF_DESIGN.md` v2.0 §3). Values follow BASELINE §7; the link budget is SQSO-LBA-001 v3.0. Version 1.3 (CDR) removes the 2 W level, sets the deviation, stability and harmonic requirements, and records the filter analysis. Version 1.4 records the selected design: the build-to schematic, parts and calculations are in `hardware/electrical/rf/RF_BOARD_DESIGN.md` (SQSO-RF-BRD-001), which governs where the two differ.
 
 ### 1.1 Design Requirements
 
@@ -31,47 +31,39 @@ This document defines the 2 m transmitter of the SMART-QSO 1U CubeSat. It carrie
 ### 2.1 Block Diagram
 
 ```
-Audio In → Modulator → VCO/PLL → Driver → PA → LPF → Antenna
-                         ↑
-                    Reference
-                    Oscillator
+Audio (TNC AFSK or repeat) → PCM1808 ADC → I2S → LMX2571 (PLL + VCO, FSK word = deviation) → 3 dB pad
+   → RD01MUS3 2-stage PA (5 V, APC on gate bias) → 2-section match → elliptic LPF → sense line → balun → 2 m pair
+                                     ↑
+                      TCXO 40 MHz ±0.5 ppm (shared with the receiver)
 ```
 
 ### 2.2 Architecture Selection
 
 | Approach | Selected | Rationale |
 |----------|----------|-----------|
-| Single-chip transceiver | Yes | Integration, reliability |
-| Discrete stages | No | Complexity, space |
+| Single-chip transceiver or module (DRA818V/SA818-V class) | No (1.4) | Consumer modules; phase noise and harmonics not specified; no AX5043-class part remains in production |
+| Synthesizer + audio ADC + discrete PA | **Yes (1.4)** | LMX2571 phase noise keeps full-duplex desense below 0.01 dB; deviation set digitally (exact, hard-limited); PA efficiency and harmonics under the design's control |
 | SDR approach | No | Power consumption |
 
 ---
 
-## 3. Transceiver Module Selection
+## 3. Exciter and PA Selection (1.4)
 
-### 3.1 Selected Module
+### 3.1 Selected parts
 
-| Parameter | Value |
-|-----------|-------|
-| Type | VHF FM Transceiver Module |
-| Examples | Radiometrix TX2M, DRA818V, or equivalent |
-| Frequency Range | 134-174 MHz |
-| Channel Spacing | 12.5/25 kHz |
-| Power Output | 0.5 W / 1 W (TX_PWR_SEL) |
-| Supply Voltage | 3.3V - 5.0V |
-| Current (TX) | 450 mA @ 1W |
+| Function | Part | Key data |
+|----------|------|----------|
+| Synthesizer | TI LMX2571NJKR | 10–1344 MHz, −145 dBc/Hz at 1 MHz at 480 MHz (≈ −152 at 146 MHz), FSK I2S mode for analog FM, 0 dBm output, 39–51 mA, −40…+85 °C; supply switched by the TX permit, CE = PTT_EXCITER |
+| Audio ADC | TI PCM1808PWR | Master 512 fs from 40 MHz (fs 78.125 kHz), I2S; full scale 3.0 Vpp = ±6.3 kHz |
+| PA | Mitsubishi RD01MUS3-T614 | 2-stage Si MOSFET; 175 MHz: 1.0 W / 60 % at 7.2 V, 0.60 W / 58 % at 3.6 V, 0 dBm drive; here 5.0 V, 7.5 Ω load line |
+| Power detector | Analog Devices AD8361ARMZ (×2) | 7.5 V/Vrms; TI LMH2121 alternate |
+| Reference | Epson TG2016SMN 40 MHz | ±0.5 ppm, −40…+85 °C |
 
-### 3.2 Alternate: Discrete Design
+### 3.2 Earlier candidates
 
-Flight option (preferred over modules for stability, harmonics and radiation; selection against RF_DESIGN RF-P003–P005, P008, P015):
-
-| Parameter | Value |
-|-----------|-------|
-| VCO/Synthesizer | ADF7021 or Si4463 |
-| PA Stage | A 1–2 W-class VHF PA device run at ≤ 1 W (derated) |
-| LPF | Custom 7-pole Chebyshev |
-
----
+The module options of Version 1.3 (Radiometrix TX2M, DRA818V) and the ADF7021/Si4463 synthesizers are not used: the
+modules are consumer parts without phase-noise or harmonic data, and the desense analysis (SQSO-LBA-001 §7.3) needs a
+synthesizer at least as quiet as its assumption; the LMX2571 is 17 dB quieter at 1 MHz.
 
 ## 4. Frequency Synthesizer
 
@@ -79,8 +71,8 @@ Flight option (preferred over modules for stability, harmonics and radiation; se
 
 | Parameter | Value |
 |-----------|-------|
-| Type | TCXO |
-| Frequency | 12.8 MHz or 26 MHz |
+| Type | TCXO, clipped sine (Epson TG2016SMN) |
+| Frequency | **40 MHz** (1.4: the CC1200 receiver needs 38.4–40 MHz; 40 MHz puts no PCM1808 clock harmonic inside 435.050–437.300 MHz) |
 | Stability | **±1.0 ppm** (−20 to +60 °C), shared by the 2 m exciter and the 70 cm receiver (RF-P005; ±2.5 ppm would give ±1.1 kHz at 435 MHz alone) |
 | Phase Noise | < -110 dBc/Hz @ 10kHz |
 | Aging | ±1 ppm/year |
@@ -89,10 +81,10 @@ Flight option (preferred over modules for stability, harmonics and radiation; se
 
 | Parameter | Value |
 |-----------|-------|
-| Loop Bandwidth | 5 kHz |
-| Phase Detector Freq | 12.5 kHz |
-| Lock Time | < 1 ms |
-| Frequency Resolution | 12.5 kHz steps |
+| Loop Bandwidth | 40 kHz (1.4: the FSK word is applied at the N divider, so the loop must pass the audio flat) |
+| Phase Detector Freq | 40 MHz (fractional-N, DEN 13,002,778) |
+| Lock Time | ≈ 0.1 ms after CE; the PA is enabled only with lock detect |
+| Frequency Resolution | 0.19 Hz |
 
 ### 4.3 Frequency Accuracy
 
@@ -124,12 +116,13 @@ Flight option (preferred over modules for stability, harmonics and radiation; se
 | Nominal deviation, transponder | ±5.0 kHz peak, hard-limited (16K0F3E) |
 | Deviation tolerance | ±0.5 kHz |
 
-### 5.3 Modulator Implementation
+### 5.3 Modulator Implementation (1.4)
 
-- Direct modulation of VCO varactor
-- Pre-emphasis filter (optional, +6 dB/octave)
-- Level control via potentiometer or DAC
-- Audio input: 0-3.3V from MCU DAC or PWM
+- The PCM1808's samples are written into the LMX2571's FSK deviation word over I2S: 0.1923 Hz per LSB, ±6.3 kHz at
+  full scale. The ADC's clipping is a hard deviation limit.
+- Beacon: the TNC's DAC sine (1.43 Vpp) gives ±3.0 kHz (2.86–3.14 kHz over supply and resistor tolerances).
+- Repeat: the CMX138A's maximum output gives ±4.68 kHz (4.47–4.90 kHz); no pre-emphasis is added (the uplink's is
+  repeated). Audio selection by the 2:1 switch, SEL = TNC_PTT.
 
 ---
 
@@ -142,7 +135,7 @@ Flight option (preferred over modules for stability, harmonics and radiation; se
 | Output Power | 0.5 W nominal (27 dBm) |
 | Power Range | 0.5 W / 1 W selectable; no 2 W level (BASELINE §7) |
 | Gain | 15-20 dB |
-| Efficiency | ≥ 33 % overall at 0.5 W RF including the exciter (≤ 1.5 W DC, BASELINE §5) |
+| Efficiency | Requirement ≥ 33 % overall at 0.5 W RF including the exciter (≤ 1.5 W DC, BASELINE §5). **Design: 28.4 % (1.76 W DC)**, 41 % at the 1 W setting (2.34 W); finding for the chair (SQSO-RF-BRD-001 §7.3) |
 | Supply | Through the RF_TX_EN load switch (SQSO-ICD-003 §4.4) |
 | Current | Set by the selected PA |
 
@@ -150,15 +143,17 @@ Flight option (preferred over modules for stability, harmonics and radiation; se
 
 | Setting | Power | Current |
 |---------|-------|---------|
-| Low (TX_PWR_SEL low) | 0.5 W (27 dBm) | ≈ 1.5 W DC |
-| High (TX_PWR_SEL high) | 1.0 W (30 dBm) | ≈ 2.7 W DC |
+| Low (TX_PWR_SEL low) | 0.5 W (27 dBm) | 1.76 W DC (0.35 A at 5 V) |
+| High (TX_PWR_SEL high) | 1.0 W (30 dBm); 29.5–30.1 dBm over the 5 V ± 3 % rail | 2.34 W DC (0.47 A) |
+
+Power is held by a closed loop: an integrator compares TX_FWD with 2.500 V (1 W) or 1.767 V (0.5 W) from a ±0.05 %
+reference and drives the common gate bias; it ramps the PA in ≈ 1 ms.
 
 ### 6.3 PA Protection
 
-- Thermal shutdown at 85°C junction
-- VSWR protection (foldback)
-- Supply voltage monitoring
-- Enable control from OBC
+- Junction 88 °C at a 60 °C board (limit 120 °C); the software holds the downlink above 70 °C on TX_TEMP
+- VSWR protection: software fold-back (3:1) on TX_REV; the APC regulates forward power
+- PA enable = PTT_EXCITER · synthesizer lock; PA supply only through SW3 (RF_TX_EN)
 
 ---
 
@@ -172,34 +167,33 @@ Flight option (preferred over modules for stability, harmonics and radiation; se
 | Return Loss | > 15 dB |
 | Bandwidth | 144-148 MHz |
 
-### 7.2 Low-Pass Filter Design
+### 7.2 Low-Pass Filter Design (1.4)
+
+Version 1.3's 7-element ladder (L 47, 82, 82, 47 nH; C 33, 47, 33 pF) is replaced by an elliptic filter with traps at
+the harmonics (SQSO-RF-BRD-001 §7.4; `hardware/electrical/rf/rf_calcs.py`):
 
 | Parameter | Value |
 |-----------|-------|
-| Type | 7-pole Chebyshev |
-| Cutoff (−3 dB, analysed) | 164 MHz |
-| Insertion loss at 145.9 MHz | 0.66 dB with inductor Q 80 (0.06 dB ideal); return loss 18 dB |
-| 2nd harmonic rejection (analysed) | 50.5 dB |
-| 3rd harmonic rejection (analysed) | 77.5 dB ideal; **expect 50–60 dB realized** on a PCB (coupling around the filter, inductor self-resonance): the requirement is on the measured antenna-port level (VI-RF-04) |
+| Type | 7th-order elliptic: C – (L ∥ C trap at 3f) – C – (L ∥ C trap at 2f) – C – (L ∥ C trap at 3f) – C |
+| Cutoff (−3 dB) | 171 MHz |
+| Insertion loss at 145.8–146.0 MHz | 0.36 dB nominal, 0.60 dB worst |
+| 2nd harmonic rejection | ≥ 65.5 dB (worst of 3,000 Monte Carlo trials) |
+| 3rd harmonic rejection | ≥ 88.2 dB (worst of 3,000); with the PA match ≥ 117 dB computed |
+| Realization | A −90 dBc coupling floor around the filter is held by shield and layout rules; measured at the port with the antennas deployed (VI-RF-04, VI-RFB-06) |
 
 ### 7.3 Filter Component Values
 
-Analysed as written by `software/simulation/cdr/rf/desense_emc.py` (ABCD matrices; SQSO-LBA-001 §7.2). The values are
-not a textbook 0.5 dB Chebyshev at 160 MHz but give the response in §7.2; a 0.1 dB Chebyshev at 165 MHz gives a similar
-result (−48.9 dB at 2f, −76.8 dB at 3f) and is an alternative. Air-core inductors self-resonate above 1 GHz at these
-values; check the capacitors' series resonance against 437 MHz.
-
 | Element | Value | Type |
 |---------|-------|------|
-| L1 | 47 nH | Air core |
-| C1 | 33 pF | NP0/C0G |
-| L2 | 82 nH | Air core |
-| C2 | 47 pF | NP0/C0G |
-| L3 | 82 nH | Air core |
-| C3 | 33 pF | NP0/C0G |
-| L4 | 47 nH | Air core |
+| C614 | 20 pF | C0G 100 V, ±2 % |
+| L607 ∥ C615 | 56 nH ∥ 2.4 pF | Coilcraft 1812SMS air core ±2 % ∥ C0G ±0.1 pF |
+| C616 | 27 pF | C0G |
+| L608 ∥ C617 | 27 nH ∥ 11 pF | air core ∥ C0G |
+| C618 | 27 pF | C0G |
+| L609 ∥ C619 | 56 nH ∥ 2.4 pF | air core ∥ C0G |
+| C620 | 24 pF | C0G |
 
----
+Monte Carlo model: L ±2 %, C ±2 % or ±0.1 pF, inductor Q 80–150 at 146 MHz, SRF 1.0–2.0 GHz, capacitor ESL 0.6 nH.
 
 ## 8. RF Power Detection
 
@@ -207,11 +201,11 @@ values; check the capacitors' series resonance against 437 MHz.
 
 | Parameter | Value |
 |-----------|-------|
-| Method | Directional coupler + detector |
-| Coupling | -20 dB |
-| Detector | AD8361 or equivalent |
-| Output | 0-3V analog |
-| Accuracy | ±0.5 dB |
+| Method | Printed sense line after the LPF (45 mm, 0.15 mm gap) + RMS detector (1.4) |
+| Coupling | −25 dB (estimate), select-at-test pad 0–4 dB |
+| Detector | AD8361 (TI LMH2121 alternate) |
+| Output | 2.5 V at 1 W, P = 0.16 V² W (firmware `adc.rs`) |
+| Accuracy | ±0.5 dB after calibration (VI-RFB-09) |
 
 ### 8.2 Reflected Power Monitor
 
@@ -250,10 +244,11 @@ values; check the capacitors' series resonance against 437 MHz.
 | TX_EN | GPIO | Enable transmitter (PA power; `GPIO_PIN_RF_TX_EN`, driven by TX-OFF and the inhibits, `rf_control.h`) |
 | TX_DATA | UART | AX.25 packet data: KISS frames to a TNC on USART2, which adds the FCS, modulates and keys (CR-2026-005) |
 | TX_PWR | GPIO×1 | Power level select: low 0.5 W, high 1 W (`GPIO_PIN_TX_PWR_SEL`); the 2 W level of §6.2 is not used (BASELINE §7) |
-| TX_TEMP | ADC | Temperature monitor (`ADC_CHANNEL_TX_TEMP`) |
+| TX_TEMP | ADC | Temperature monitor (`ADC_CHANNEL_TX_TEMP`): TMP235 on the PA pad, 10 mV/°C, 0.5 V at 0 °C |
+| TONE_OK, XPDR_KEY, PTT_EXCITER | Readbacks to OBC inputs | W4 J1-8/9/10, 3.1 V CMOS through 1 kΩ, active high; STM32 pins allocated by the OBC designer (RID RF-21) |
 | TX_FWD | ADC | Forward power (`ADC_CHANNEL_TX_FWD`) |
 | TX_REV | ADC | Reflected power (`ADC_CHANNEL_TX_REV`) |
-| XPDR_EN | GPIO | FM transponder enable: while high, the repeat path keys the PA on a CTCSS-valid uplink carrier (`GPIO_PIN_XPDR_EN`; the TNC's frames take the transmitter first). Driven by `sqso_fsw::transponder` |
+| XPDR_EN | GPIO (timer-driven) | FM transponder enable: a 100 Hz heartbeat (not a level) on PE4; while the edges run, the repeat path keys the PA on a CTCSS-valid uplink carrier (`GPIO_PIN_XPDR_EN`; the TNC's frames take the transmitter first). Driven by `sqso_fsw::transponder` through `hal_gpio_heartbeat()` |
 
 As built (2026-10-25, CR-2026-005): the OBC software is `software/flight/include/downlink.h`. It hands a frame to the
 TNC only while transmission is permitted, one frame at a time, at most 5 s on the air and 25 % of the time; selects
@@ -263,10 +258,18 @@ transmitter and TNC are selected.
 
 XPDR_EN (2026-10-26, from the mission simulation, `docs/test/SIL_MISSION_SIMULATION.md`): the interface had no
 way for the OBC to gate the transponder, so the power closure's transponder line (BASELINE §5: sunlit, SOC ≥ 55 %,
-duty ≤ 25 %) could not be enforced. The OBC now holds XPDR_EN high only while transmission is permitted, the mode is
+duty ≤ 25 %) could not be enforced. The OBC now runs the heartbeat only while transmission is permitted, the mode is
 ACTIVE, the array is sunlit, the SOC is at least 55 %, the PA is below 70 °C (resuming at 60 °C) and the keyed time,
-measured on TX_FWD, is under 25 % of the last 100 minutes. The line is a placeholder until the transponder's
-repeat-path hardware is selected.
+measured on TX_FWD, is under 25 % of the last 100 minutes.
+
+**XPDR_EN as implemented (1.4).** In the flight software XPDR_EN is not a level: it is a **100 Hz square wave on PE4**,
+toggled by the **TIM7 interrupt** while a **60 ms software lease** lasts; the main loop renews the lease on each pass
+while `sqso_fsw::transponder` permits, and the pin is driven low when the lease runs out
+(`software/rust/firmware/src/heartbeat.rs`). On the radio board the line has a **100 kΩ pull-down** and drives a
+**retriggerable monostable of about 50 ms** (SN74LVC1G123, 226 kΩ × 0.22 µF = 49.7 ms, 46.8–58.0 ms) triggered on rising
+edges. **A level held high, like a level held low or an open pin, has no edges and counts as disabled.** The
+transponder unkeys within 58 ms of the last edge, and within 118 ms (lease plus monostable) of a stalled main loop. The
+monostable output EN_OK is one input of the hardware key gate XPDR_KEY = EN_OK · TONE_OK · NOT_TOT (SQSO-RF-BRD-001 §8).
 
 ### 10.2 Timing
 
@@ -282,9 +285,9 @@ repeat-path hardware is selected.
 
 ### 11.1 Shielding
 
-- RF section in shielded enclosure
-- Feedthrough capacitors on DC lines
-- EMI gasket on cover
+- Three soldered shield cavities: receive, transmit, digital/audio (SQSO-RF-BRD-001 §10)
+- Nickel-silver or copper-alloy shields (no tin plating, no steel near the magnetometer)
+- Board isolation ≥ 85 dB at 146 MHz from the PA output to the LNA input
 
 ### 11.2 Grounding
 
@@ -321,7 +324,7 @@ transmitters below 30 MHz and does not apply.)
 
 ### 12.2 Mitigation
 
-- 7-pole LPF provides > 50 dB rejection
+- Match + elliptic LPF: 2nd −89 dBc, 3rd −90 dBc at the port with the −90 dBc board-leakage floor (SQSO-RF-BRD-001 §7.4)
 - Shielded enclosure
 - Careful power supply filtering
 - Proper grounding
@@ -334,7 +337,7 @@ transmitters below 30 MHz and does not apply.)
 
 | Parameter | Value |
 |-----------|-------|
-| Type | SMA female (board) |
+| Type | SMA female end launch, gold plated, two (J3, J4: balun outputs A/B) |
 | Impedance | 50Ω |
 | Frequency Range | DC - 6 GHz |
 | Power Rating | 10W |
@@ -343,9 +346,9 @@ transmitters below 30 MHz and does not apply.)
 
 | Parameter | Value |
 |-----------|-------|
-| Type | RG-316 or equivalent |
-| Length | < 150 mm |
-| Loss | < 0.5 dB |
+| Type | RG-316, two cables (antiphase pair through the board's lattice balun), matched within 2 mm (W10 v2) |
+| Length | 0.22 m (layout B: RF board at +Z, AntS at −Z) |
+| Loss | 0.11 dB at 146 MHz |
 
 ---
 
@@ -380,3 +383,4 @@ transmitters below 30 MHz and does not apply.)
 | 1.1 | 2026-10-25 | §10.1 as built (CR-2026-005): KISS TNC on USART2, one power-select line, the monitors' channels and the software's actions; §1.1 frequency and power marked superseded by BASELINE §7 |
 | 1.2 | 2026-10-26 | §10.1: XPDR_EN, the transponder enable, and the gates the OBC applies to it (found by the mission simulation) |
 | 1.3 | 2026-10-27 | CDR review (communications panel): requirements to BASELINE §7 (no 2 W level), deviation ±3.0 kHz (the filed 10K4F2D), stability ±1.0 ppm, spurious per 97.307(e) (≥ 46 dBc at 1 W, not −43 dBc), 3rd harmonic ≤ −70 dBc and phase-noise targets from the desense analysis, LPF analysed as written; tests tied to the verification items of SQSO-LBA-001 §8 and RF_DESIGN §6 |
+| 1.4 | 2026-10-27 | CDR design completion, RF board | Selected design (SQSO-RF-BRD-001): LMX2571 + PCM1808 exciter, RD01MUS3 PA with APC, 40 MHz reference, elliptic LPF with harmonic traps (replaces the §7.3 ladder), sense-line detectors; §10.1 XPDR_EN as implemented (100 Hz square wave on PE4 from TIM7 with a 60 ms lease; board monostable ≈ 50 ms with pull-down; a held level is disabled); DC power 1.76 W at 0.5 W RF recorded against the 1.5 W allocation |

@@ -39,12 +39,13 @@ FS_Y, FS_U = 1.5, 1.65                          # 5017B Table 4 (springs), as SQ
 TOL, RELAX = 0.10, 0.05
 TEMP_E = {"cold": +0.018, "hot": -0.012}        # modulus change at -40 / +60 C (SQSO-MECH-001)
 OD_MAX = 4.0e-3                                 # envelope (radius 2.0 mm about the hinge axis)
-L_PRIMARY, L_SECOND = 7.7e-3, 3.6e-3            # free spring-body lengths on the axis (-Z, +Z)
-PIN_R, LEG_ARM = 0.75e-3, 3.0e-3                # pin radius, spring-leg arm to its anchor
-MU = {"cold": 0.25, "hot": 0.20}                # sputtered MoS2 on the pin, worst (vacuum, after vibration)
+L_PRIMARY, L_SECOND = 7.5e-3, 3.6e-3            # free spring-body lengths on the axis (-Z, +Z)
+PIN_R, LEG_ARM = 0.75e-3, 5.0e-3                # pin radius, spring-leg arm to its anchor (legs 5 mm long)
+MU = {"cold": 0.15, "hot": 0.12}                # sputtered MoS2 on a 440C pin in a Ti-6Al-4V bushing: design values
+                                                # 3-7 x the vacuum typical (0.02-0.05); VI-STR-04 measures them
 # resistive torques independent of the spring (per wing, N m): (stowed cold, stowed hot, deployed cold, deployed hot)
 FLEX = (0.50e-3, 0.35e-3, 0.50e-3, 0.35e-3)     # clock-spring flex, 2 layers, heat-set (allocation; elastic 0.1)
-SNUB = (0.50e-3, 0.50e-3, 0.0, 0.0)             # snubber adhesion at breakaway
+SNUB = (0.20e-3, 0.20e-3, 0.0, 0.0)             # PTFE-faced snubber breakaway (silicone face: 0.5 mN m)
 LINE = (0.20e-3, 0.20e-3, 0.20e-3, 0.20e-3)     # cut hold-down line drag
 OTHER_PIN = 0.05e-3                             # +Z knuckle bearing, unloaded in orbit
 T_F = 0.10e-3                                   # tumbling 50 deg/s inertial torque (fixed)
@@ -98,20 +99,22 @@ def margins(springs, stage="analysis", latch_drag=0.0):
 
 
 def design_search():
+    """Two springs (DDMR 53, failure tolerance): maximise the smallest of the analysis-factor torque margin, the
+    one-spring-out margin and the spring stress margins, over the wire diameters and the common preload."""
     best = None
-    for d in [x / 1000 for x in range(300, 701, 10)]:
-        for th0 in [x / 20 for x in range(0, 161)]:
-            for d2 in (None,) + tuple(x / 1000 for x in range(250, 551, 25)):
-                sp = [Spring(d, L_PRIMARY, th0)]
-                if d2 is not None:
-                    sp.append(Spring(d2, L_SECOND, th0))
+    for d in [x / 1e6 for x in range(350, 651, 10)]:
+        for d2 in [x / 1e6 for x in range(250, 501, 10)]:
+            for th0 in [x / 20 for x in range(0, 141)]:
+                sp = [Spring(d, L_PRIMARY, th0), Spring(d2, L_SECOND, th0)]
                 if any(s.id_wound < 2 * PIN_R + 0.2e-3 for s in sp):
                     continue
                 ms = min(min(FTY / (FS_Y * s.stress()), FTU / (FS_U * s.stress())) - 1 for s in sp)
-                tm = min(r["TM"] for r in margins(sp))
-                score = min(tm, ms)
+                rows = margins(sp)
+                tm = min(r["TM"] for r in rows)
+                one = min(r["one_spring_out"] for r in rows)
+                score = min(tm, ms, one)
                 if best is None or score > best[0]:
-                    best = (score, d, th0, d2, tm, ms)
+                    best = (score, d, th0, d2, tm, ms, one)
     return best
 
 
@@ -130,7 +133,7 @@ def dynamics(springs, k_stop=2.0, zeta=0.3, resist=1.5e-3):
     MECH.WING_SPAN = 0.0816
     MECH.I_W_CG = MECH.WING_M * MECH.WING_SPAN ** 2 / 12
     MECH.RHO0 = MECH.np.array([0.0, -MECH.WING_SPAN / 2])
-    MECH.R_H = MECH.np.array([0.0541 - 0.0008, 0.03875 - 0.0018])   # hinge axis from the deployed-CG frame
+    MECH.R_H = MECH.np.array([0.0541, 0.0388])                     # hinge axis from the body CG (W1), m
     MECH.spring_torque = lambda th, temp="hot", n=2, worst=True: sum(s.torque(min(th, math.pi / 2), "nom", temp)
                                                                      for s in springs)
     out = {}
@@ -186,14 +189,14 @@ def main():
     R = {}
     # reference: SQSO-MECH-001 A springs (do not fit) for comparison
     best = design_search()
-    score, d, th0, d2, tm, ms = best
-    R["search_best"] = dict(score=score, d_mm=d * 1e3, theta0_deg=math.degrees(th0),
-                            d2_mm=None if d2 is None else d2 * 1e3, TM=tm, MS_spring=ms)
+    score, d, th0, d2, tm, ms, one = best
+    R["search_best"] = dict(score=score, d_mm=d * 1e3, theta0_deg=math.degrees(th0), d2_mm=d2 * 1e3, TM=tm,
+                            MS_spring=ms, one_spring_out=one)
     print("search best (max of min(TM, spring MS)):", R["search_best"])
     # chosen design (rounded to stock wire and a checkable preload)
-    prim = Spring(0.50e-3, L_PRIMARY, math.radians(100.0))
-    sec = Spring(0.35e-3, L_SECOND, math.radians(100.0))
-    designs = {"primary only": [prim], "primary + secondary": [prim, sec]}
+    prim = Spring(0.470e-3, L_PRIMARY, math.radians(55.0))
+    sec = Spring(0.343e-3, L_SECOND, math.radians(55.0))
+    designs = {"primary only (not failure tolerant)": [prim], "primary + secondary": [prim, sec]}
     for name, sp in designs.items():
         R[name] = dict(springs=[spring_report(s) for s in sp],
                        TM_analysis=margins(sp, "analysis"), TM_qual=margins(sp, "qual_test"),

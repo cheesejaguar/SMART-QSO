@@ -154,18 +154,18 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-235 RIDs: severity 1: 28, severity 2: 134, severity 3: 73.
+241 RIDs: severity 1: 28, severity 2: 136, severity 3: 77.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
-| Closed by design change | 94 | 106 |
-| Closed by chair decision | 29 | 28 |
+| Closed by design change | 94 | 109 |
+| Closed by chair decision | 32 | 31 |
 | Verification item | 29 | 29 |
 | Decision point (dated) | 11 | 11 |
-| Implementation | 47 | 36 |
+| Implementation | 50 | 36 |
 
-Open implementation RIDs: SE-01, SE-11, RF-04, RF-12, RF-21, RF-22, GND-03, REG-01, DB-01, SMA-13, SMA-15, REL-04, EPS-06, EPS-07, EPS-10, EPS-14, THM-02, THM-08, THM-15, EMC-05, AV-01, AV-02, AV-03, AV-05, AV-06, AV-07, AV-08, AV-09, AV-10, FSW-05, FSW-07, FSW-09, RAD-02, GNC-04, MCAD-01, MCAD-02.
+Open implementation RIDs: SE-01, RF-04, RF-21, RF-22, GND-03, REG-01, DB-01, SMA-13, SMA-15, REL-04, EPS-06, EPS-07, EPS-10, EPS-14, THM-02, THM-08, THM-15, AV-01, AV-02, AV-03, AV-05, AV-06, AV-07, AV-08, AV-09, AV-10, FSW-05, FSW-07, FSW-09, RAD-02, GNC-04, MCAD-01, MCAD-02, RFB-03, RFB-04, RFB-06.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -234,7 +234,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SE-08 | 2 | No hardware FMEA, single-point-failure list, system hazard analysis | CD | Closed by design change | SQSO-FMEA-002; SQSO-SDP-002 1.0 |
 | SE-09 | 2 | No technology readiness assessment for the Jetson in 1U and the custom transponder | VI | Verification item | VI-01, VI-02 exit criteria (EM) |
 | SE-10 | 2 | NPR 7150.2D mapping missing; SRS-F081 cited but undefined | IMP | Closed by design change | SRS 1.6 requirements defined; SQSO-FSW-012 Appendix C mapping; traceability 0 undefined |
-| SE-11 | 3 | No system security plan | IMP | Implementation | Round 2 |
+| SE-11 | 3 | No system security plan | IMP | Closed by design change | SQSO-SEC-001 Space System Protection and Security Plan (NASA-STD-1006A as practice) |
 | SE-12 | 2 | No structural model; materials list incomplete | CA | Closed by analysis | SQSO-SA-001; SQSO-MAT-001 Rev B |
 | SE-13 | 3 | SYS-112 stated without the nominal 10 % | CD | Closed by design change | SYS-112 |
 | SE-14 | 2 | NASA DAS not run | VI | Verification item | ODA-02: DAS 3.2.6 run 2027-02 |
@@ -268,7 +268,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | RF-09 | 3 | Spurious limits inconsistent | CH | Closed by chair decision | SYS-203 to 47 CFR 97.307(e) |
 | RF-10 | 3 | Deviation ±3.5 kHz against the filed emission | CD | Closed by design change | TRANSMITTER_DESIGN 1.3 §5.2; VI-RF-15 |
 | RF-11 | 2 | TCXO ±2.5 ppm too wide for telecommand | CD | Closed by design change | RF-P005 ±1.0 ppm; VI-RF-14 |
-| RF-12 | 1 | RF hardware not selected or designed | IMP | Implementation | Round 2 design completion (RF board schematic with parts) |
+| RF-12 | 1 | RF hardware not selected or designed | IMP | Closed by design change | RF board build-to design: SQSO-RF-BRD-001 (316 parts, ERC 0 errors, BOM with stresses); EM tests VI-RFB-01..09 |
 | RF-13 | 2 | TX-OFF independence over-claimed in filings | CD | Closed by design change | IARU v40 A.2; FCC pre-space A.1; VI-RF-12 |
 | RF-14 | 2 | RF inhibits not shown to be physical | CD | Closed by design change | EPS_DESIGN 2.0 §8.1 |
 | RF-15 | 2 | Stale RF documents | CD | Closed by design change | RF_DESIGN 2.0; ICD-003 2.0; ICD-005 2.0; ANTENNA 2.0 |
@@ -454,7 +454,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | EMC-02 | 2 | Jetson and PA share one buck | CD | Closed by design change | With EPS-15 |
 | EMC-03 | 2 | Converter harmonics near 435 MHz unplanned | CD | Closed by design change | Synchronised converter frequency plan (PDU 1.1) |
 | EMC-04 | 3 | Jetson clock harmonic in the GNSS L1 band | VI | Verification item | V-EMC-1, V-EMC-2 |
-| EMC-05 | 3 | Test plan lacks unit-level EMC tests | IMP | Implementation | ETP: V-EMC-1, -3, -6 |
+| EMC-05 | 3 | Test plan lacks unit-level EMC tests | IMP | Closed by design change | ETP Rev C.1 §3.6: V-EMC-1, V-EMC-3, V-EMC-6 |
 
 #### Avionics (AV)
 

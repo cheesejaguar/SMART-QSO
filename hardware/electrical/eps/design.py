@@ -438,7 +438,7 @@ def solar_and_trackers():
         C("10n", f"{t}_CZ", "GND")
         C("100p", f"{t}_COMP", "GND", size="0603")
         D("PMEG40T30ER-Q", "VTRK_RAW", f"{t}_SW", ref=f"D{9 + k}", note=f"{t} boost diode: 17.2 V reverse / 40 V = 43 %, 0.35 A / 3 A")
-        R(125e3, "VTRK_RAW", f"{t}_FB", tol=0.1, note="FB backstop 16.59 V (4.15 V/cell)")
+        R(129e3, "VTRK_RAW", f"{t}_FB", tol=0.1, note="FB output clamp 17.08 V nominal (16.70-17.46 V): above the CV loop; not an overcharge control")
         R(10e3, f"{t}_FB", "GND", tol=0.1)
         C("4.7u", "VTRK_RAW", "GND", 50, "1210", vop=16.8)
         C("4.7u", "VTRK_RAW", "GND", 50, "1210", vop=16.8)
@@ -524,7 +524,7 @@ def pack_and_protection():
     Q("PMV250EPEA", "Q3", "PCHG_G", "FET_CD", "PCHG_D", stress="Vgs 9.7 V/20 V = 49 %", note="precharge below 3.0 V/cell")
     R(1e3, "AFE_PCHG", "PCHG_G")
     R(1e6, "PCHG_G", "FET_CD")
-    R(100, "PCHG_D", "BAT_F", size="2512", note="precharge 0.1 A max", stress="worst (16.7-8.0 V)^2/100 = 0.76 W of 1 W for minutes: 76 %, above the 50 % rule (short duty); 2 x 2512 in series if the EM shows it runs long")
+    R(200, "PCHG_D", "BAT_F", size="2512", note="precharge <= 45 mA", stress="(16.7-8.0 V)^2/200 = 0.38 W of 1 W: 38 %")
     D("SMBJ20A", "PACK_P", "BAT_BOT", ref="D14", note="pack TVS (PACK_P to pack negative)")
     C("4.7u", "PACK_P", "BAT_BOT", 50, "1210", vop=16.8)
     # low side: cell 1 negative - AFE sense resistor - PACK_N
@@ -625,10 +625,10 @@ def inhibits():
     C("47n", "G3", "VB1")
     R(1e6, "G3", "S3N")
     # DS2: back-to-back N-FETs PACK_N - CS2 - GND; gate from BAT_F through 10 k, DS2 NC, RBF pole A, 1.2 M
-    Q("BUK9Y4R4-40E", "Q6", "G2", "CS2", "PACK_N", stress="Vgs 7.6 V/10 V = 76 %", note="DS2 inhibit FET A")
-    Q("BUK9Y4R4-40E", "Q7", "G2", "CS2", "GND", stress="Vgs 7.6 V/10 V = 76 %", note="DS2 inhibit FET B (back to back)")
+    Q("BUK9Y4R4-40E", "Q6", "G2", "CS2", "PACK_N", stress="Vgs 7.3 V/10 V = 73 %", note="DS2 inhibit FET A")
+    Q("BUK9Y4R4-40E", "Q7", "G2", "CS2", "GND", stress="Vgs 7.3 V/10 V = 73 %", note="DS2 inhibit FET B (back to back)")
     R(10e3, "BAT_F", "DS2_C", note="harness short protection")
-    R(1.2e6, "S2R", "G2")
+    R(1.3e6, "S2R", "G2")
     R(1.0e6, "G2", "CS2")
     C("47n", "G2", "CS2")
     # DEPLOY_SENSE (OBC PE2): DS2 released, 1 M series and clamp

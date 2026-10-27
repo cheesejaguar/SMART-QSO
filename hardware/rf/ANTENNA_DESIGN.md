@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-RF-ANT-001
-**Version:** 2.0
+**Version:** 2.1
 **Date:** 2026-10-27
 **Status:** CDR. Antenna bought (ISIS AntS 1U–3U, `docs/hardware/BUILD_VS_BUY.md` §2.6); configuration recommended here, to be confirmed by RFQ and a PI decision. Not measured.
 
@@ -53,7 +53,11 @@ evaluated three options along 60 days of passes:
 | **B** | One, along **+Y** (the spin axis) | No spin modulation; null toward the Sun and away from it: 0.19 fades per pass, about 80 s each | 100 % | 56 % | Yes at low elevation (−5.5 dBi); −11.9 dBi at 30–45° (marginal) |
 | **C** | Two, along ±X and ±Y, quadrature through a 90° hybrid | Never below −6 dBi | 100 % | 70 % | **Yes** (−3.6 dBi 10th percentile) |
 
-**Recommendation:** option C if the AntS can carry two 2 m elements and the 70 cm element(s) on one frame with a
+**Baseline (BASELINE Rev D §4, §7, chair decision with STR-01):** two 2 m elements along +X and −X (across the spin
+axis, keeping +Y the major axis of inertia) and two 70 cm elements along +Y and −Y, each pair fed in antiphase as a
+dipole (§4.1). The options below are the review's pattern analysis, kept for the record.
+
+**Recommendation (review, superseded by the baseline):** option C if the AntS can carry two 2 m elements and the 70 cm element(s) on one frame with a
 phasing network for the 2 m pair (RFQ question 1 below); otherwise option B. The 70 cm element follows the same rule.
 Option A, the arrangement the mission simulation assumes (−Z axis, equivalent to ±X), is the worst of the three.
 
@@ -71,6 +75,18 @@ the losses for handheld stations (SQSO-LBA-001 §5.3, finding 2).
 | Polarization | Linear per element; option C elliptical to circular toward ±Z | |
 | Matching | Per ISIS; measured VSWR on the flight body (ANT-3) | |
 
+### 4.1 Feed interface to the RF board (2.1)
+
+| Item | Design (SQSO-RF-BRD-001 §9; W10 v2) |
+|------|-------------------------------------|
+| 2 m pair (+X, −X) | Fed in antiphase from a lumped lattice balun on the RF board (68 nH, 18 pF; 50 Ω to 72 Ω balanced, 0.25 dB), through two RG-316 cables of 0.22 m matched within 2 mm (0.5°) |
+| 70 cm pair (+Y, −Y) | Same, 22 nH, 6.0 pF, 0.30 dB; cables matched within 2 mm (1.5°) |
+| If ISIS supplies the phasing on the AntS | One cable per band; the board's baluns are depopulated (0 Ω links fitted). RFQ question 1 |
+| Static bleed | 100 kΩ to ground at each RF connector on the board |
+| Isolation (ANT-5) | ≥ 25 dB at 146 MHz and ≥ 15 dB at 437 MHz between the 2 m and 70 cm ports; the orthogonal pairs help. With these values the board's receive filter holds the 2 m signal at ≤ −55 dBm at the LNA and the desense is ≤ 0.01 dB at 1 W (SQSO-RF-BRD-001 §6.3, §7.5) |
+| Power | 1 W continuous at 2 m, split 0.5 W per element (ANT-4) |
+| Contacts | Gold-plated connectors at the board; feed contacts on the AntS to be free of ferromagnetic material (ANT-8) |
+
 ## 5. Mechanical and Operational
 
 | Item | Value |
@@ -82,7 +98,9 @@ the losses for handheld stations (SQSO-LBA-001 §5.3, finding 2).
 
 ## 6. RFQ Questions to ISISPACE
 
-1. Can one AntS frame carry two 2 m elements (on adjacent sides, for a quadrature pair) and one or two 70 cm elements,
+1. (2.1) Baseline: 2 m elements on opposite sides (±X) and 70 cm elements on the other two (±Y). Does ISIS supply the
+   antiphase feed (balun) for each pair on the AntS, and with what connectors? Earlier form of the question: can one
+   AntS frame carry two 2 m elements (on adjacent sides, for a quadrature pair) and one or two 70 cm elements,
    with a 90° hybrid for the 2 m pair and a separate 70 cm feed? Isolation between the 2 m and 70 cm ports at 146 and
    437 MHz?
 2. Element directions selectable (+Y for the 2 m element)?
@@ -107,3 +125,4 @@ the losses for handheld stations (SQSO-LBA-001 §5.3, finding 2).
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial (custom 2 m monopole, 145.825 MHz) |
 | 2.0 | 2026-10-27 | CDR review (communications panel): ISIS AntS 1U–3U as bought (BUILD_VS_BUY §2.6); 70 cm element added; configuration options against the 6°/s spin with their fading and frame statistics (SQSO-LBA-001 §5), option C recommended, B as fall-back; requirements ANT-1 to ANT-8; RFQ questions; verification items. The custom design and 145.825 MHz are removed |
+| 2.1 | 2026-10-27 | CDR design completion, RF board | Baseline configuration recorded (2 m pair ±X, 70 cm pair ±Y, antiphase); §4.1 feed interface to the RF board (lattice baluns, matched coax, static bleed, isolation); RFQ question 1 restated |

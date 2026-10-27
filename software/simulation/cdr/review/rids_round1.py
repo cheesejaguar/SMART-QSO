@@ -260,4 +260,11 @@ RIDS = [
     ("MCAD-01", 2, "Wing torsion springs do not fit the hinge envelope; flex bend radius 1.25 mm", "IMP", "Hinge redesign (round 2, mechanical designer)"),
     ("MCAD-02", 3, "Torquer deck 23 g against 6 g in the MEL", "IMP", "Lighten or grow the MEL row (round 2)"),
     ("MCAD-03", 3, "Sweep clearance 0.35 mm needs the body cells offset 1 mm", "DP", "Panel vendor RFQ"),
+    # ---- Raised by the round-2 designs (RFB: RF board) ----
+    ("RFB-01", 2, "Transponder draws 1.76 W DC at 0.5 W RF, not the baseline's ≈ 1.5 W", "CH", "BASELINE §5 allocation 1.8 W DC / 0.44 W orbit average; margins +32 %/+75 % (allocation), +53 %/+29 % (bottom-up)"),
+    ("RFB-02", 3, "Receive SAW drift and clock harmonics at 435.000 MHz constrain the uplink", "CH", "BASELINE §7 Uplink: request 435.050-436.500 MHz"),
+    ("RFB-03", 2, "Analog FM receivers discontinued: repeat audio passes through the TNC firmware", "IMP", "TNC firmware as a Class C item in the SDP and the NPR 7150.2D matrix"),
+    ("RFB-04", 3, "Unkey ≤ 118 ms after a stalled main loop against VI-RF-11's 100 ms", "IMP", "Shorten the heartbeat lease to ≤ 40 ms, or define VI-RF-11 from the last edge"),
+    ("RFB-05", 3, "TCXO two-year ageing up to 2.1 ppm", "CH", "Ground corrects the uplink from the measured downlink offset (same reference); no new command"),
+    ("RFB-06", 3, "Radio rail trip 0.25 A cannot see a 38 mA latch-up; LMX2571 margin at ±3 % rail", "IMP", "EPS board: SW2 trip ≈ 0.12 A; 3V3_AO ±2 %"),
 ]

@@ -106,7 +106,7 @@ HF-13), so the wings-deployed columns govern the P ≥ 0.9 test.
 
 **Power closure (SQSO-PBA-001 v2.0 §6):** ACTIVE at the duty limits 2.50 W sun-pointed (**+54 %**), 1.82 W tumbling
 (**+31 %**); IDLE 1.18 W; SAFE 0.79 W; EMERGENCY 0.72 W, heater included. Margin ≥ 20 % in every mode at end of life
-and at LTAN 22:30 ± 1 h; SYS-100 (2.16 W) met with 12.5 % to spare. As flown by the flight software in the mission
+and at LTAN 22:30 ± 1 h; SYS-100 (2.16 W) met with 12.5 % to spare. With the RF board's designed transponder draw (1.76 W DC at 0.5 W RF, ≈ 0.065 W more on the orbit average) the ACTIVE margins are +53 % sun-pointed and +29 % tumbling. As flown by the flight software in the mission
 simulation: depth of discharge ≤ 2.1 %, deepest in any contingency 4.5 %. Wings stowed: SAFE and IDLE only (ACTIVE
 would be −42 %). A Jetson rail stuck on is shed in hardware below 13.6 V (EPS_DESIGN §6). The allocations behind the
 original closure:
@@ -117,11 +117,11 @@ original closure:
 | GNSS receiver, duty-cycled (3–6 sessions a day; every orbit during launch and early operations) | 0.05 W | 0.05 W | Jetson and PA off; SOC above contingency floor **[D6]** |
 | 435 MHz receiver, always on | 0.15 W | 0.15 W | Required by 97.207(b) |
 | Telemetry beacon (≤ 1 W RF, ~2 s per 60 s) | 0.10 W | 0.10 W | — |
-| FM transponder (0.5 W RF ≈ 1.5 W DC), duty ≤ 25 % | 0.40 W | 0.40 W | Sunlit, SOC ≥ 55 %, AI/OBC scheduled |
+| FM transponder (0.5 W RF ≈ 1.8 W DC: 1.76 W designed, SQSO-RF-BRD-001), duty ≤ 25 % | 0.44 W | 0.44 W | Sunlit, SOC ≥ 55 %, AI/OBC scheduled |
 | Jetson (≤ 8 W input), duty ≤ 5 % tumbling / ≤ 10 % sun-pointed | 0.40 W | 0.80 W | Sunlit, SOC ≥ 55 %, temperature limits |
-| **Total load** | **1.80 W** | **2.20 W** | |
+| **Total load** | **1.84 W** | **2.24 W** | |
 | Generation (simulated, EOL) | 2.43 W | 3.93 W | |
-| **Margin** | **+35 %** | **+79 %** | Requirement ≥ 20 % |
+| **Margin** | **+32 %** | **+75 %** | Requirement ≥ 20 % |
 
 The GNSS line is a flat allocation; the expected steady-state draw is 1–7 mW. Continuous operation (up to 0.32 W) would
 break the tumbling-case margin, so the receiver is always duty-cycled.
@@ -153,7 +153,7 @@ CR-2026-002, `docs/project/CHANGE_REQUEST_LOG.md`).
 | Parameter | Baseline |
 |-----------|----------|
 | Downlink | One IARU-coordinated frequency in 145.800–146.000 MHz; **not 145.825 MHz** |
-| Uplink | One IARU-coordinated frequency in **435.000–437.300 MHz**, at least 2 MHz below 3 × f_downlink (437.4–438.0 MHz) unless the measured 3rd-harmonic suppression meets SQSO-LBA-001 §7.3 for the actual offset |
+| Uplink | One IARU-coordinated frequency, requested in **435.050–436.500 MHz** (the receive SAW's drift with temperature, and board clock harmonics at 435.000 MHz; SQSO-RF-BRD-001), at least 2 MHz below 3 × f_downlink (437.4–438.0 MHz). Receiver: CC1200 in analog-FM receive with a BFP640F LNA, a 7th-order trapped high-pass and a SAW; TNC on its own STM32L431 (a Class C firmware item) |
 | Transmitter power | **Maximum 1 W**, nominal 0.5 W (file the hardware maximum) |
 | Emissions | 16K0F3E (transponder), 10K4F2D (telemetry and telecommand); confirm by measurement |
 | Spurious / harmonics | Meet 47 CFR 97.307(e) (≤ 25 µW and ≥ 40 dB below carrier; at 1 W that means ≥ 46 dBc). **≥ 70 dB 3rd-harmonic suppression** measured at the antenna port with the antennas deployed (≤ 0.5 dB desense of the uplink at 1 W; 60 dB costs 3.2 dB; SQSO-LBA-001 §7.3). Receive filter ≥ 60 dB rejection at 144–146 MHz |

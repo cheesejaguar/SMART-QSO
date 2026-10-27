@@ -1,0 +1,428 @@
+{
+ "search_best": {
+  "score": 0.06778319782703268,
+  "d_mm": 0.47,
+  "theta0_deg": 54.4309905374282,
+  "d2_mm": 0.34,
+  "TM": 0.1048014912912203,
+  "MS_spring": 0.069140637231079,
+  "one_spring_out": 0.06778319782703268
+ },
+ "primary only (not failure tolerant)": {
+  "springs": [
+   {
+    "wire_mm": 0.47,
+    "od_mm": 4.0,
+    "mean_d_mm": 3.5300000000000002,
+    "index": 7.510638297872341,
+    "coils": 15.382978723404257,
+    "body_length_mm": 7.7,
+    "rate_mNm_per_rad": 2.8081888373318593,
+    "preload_deg": 55.0,
+    "torque_stowed_nom_mNm": 7.106760478232897,
+    "torque_deployed_nom_mNm": 2.695667767605581,
+    "stress_max_MPa": 866.7110283821874,
+    "MS_yield": 0.15378709541357893,
+    "MS_ult": 0.3985298126225201,
+    "id_wound_mm": 2.969931110653513
+   }
+  ],
+  "TM_analysis": [
+   {
+    "position": "start (stowed)",
+    "temp": "cold",
+    "T_avail_mNm": 6.185653252649131,
+    "Tv_mNm": 1.308116767258634,
+    "friction_mNm": 0.40811676725863394,
+    "TM": 0.5114497234143272,
+    "one_spring_out": -1.0
+   },
+   {
+    "position": "start (stowed)",
+    "temp": "hot",
+    "T_avail_mNm": 6.003364846382457,
+    "Tv_mNm": 1.0864934138069071,
+    "friction_mNm": 0.3364934138069071,
+    "TM": 0.7514470657333927,
+    "one_spring_out": -1.0
+   },
+   {
+    "position": "end of travel",
+    "temp": "cold",
+    "T_avail_mNm": 2.346282268246222,
+    "Tv_mNm": 0.8858373944774128,
+    "friction_mNm": 0.18583739447741285,
+    "TM": -0.16966094938442677,
+    "one_spring_out": -1.0
+   },
+   {
+    "position": "end of travel",
+    "temp": "hot",
+    "T_avail_mNm": 2.2771383900071385,
+    "Tv_mNm": 0.7086699155819303,
+    "friction_mNm": 0.15866991558193028,
+    "TM": -0.007432254512705461,
+    "one_spring_out": -1.0
+   }
+  ],
+  "TM_qual": [
+   {
+    "position": "start (stowed)",
+    "temp": "cold",
+    "T_avail_mNm": 6.185653252649131,
+    "Tv_mNm": 1.308116767258634,
+    "friction_mNm": 0.40811676725863394,
+    "TM": 0.8076043778352879,
+    "one_spring_out": -1.0
+   },
+   {
+    "position": "start (stowed)",
+    "temp": "hot",
+    "T_avail_mNm": 6.003364846382457,
+    "Tv_mNm": 1.0864934138069071,
+    "friction_mNm": 0.3364934138069071,
+    "TM": 1.0932535133458194,
+    "one_spring_out": -1.0
+   },
+   {
+    "position": "end of travel",
+    "temp": "cold",
+    "T_avail_mNm": 2.346282268246222,
+    "Tv_mNm": 0.8858373944774128,
+    "friction_mNm": 0.18583739447741285,
+    "TM": -0.008467366947806032,
+    "one_spring_out": -1.0
+   },
+   {
+    "position": "end of travel",
+    "temp": "hot",
+    "T_avail_mNm": 2.2771383900071385,
+    "Tv_mNm": 0.7086699155819303,
+    "friction_mNm": 0.15866991558193028,
+    "TM": 0.1839130283275221,
+    "one_spring_out": -1.0
+   }
+  ],
+  "TM_analysis_with_latch": [
+   {
+    "position": "start (stowed)",
+    "temp": "cold",
+    "T_avail_mNm": 6.185653252649131,
+    "Tv_mNm": 1.378116767258634,
+    "friction_mNm": 0.40811676725863394,
+    "TM": 0.4376781411097741,
+    "one_spring_out": -1.0
+   },
+   {
+    "position": "start (stowed)",
+    "temp": "hot",
+    "T_avail_mNm": 6.003364846382457,
+    "Tv_mNm": 1.1564934138069072,
+    "friction_mNm": 0.3364934138069071,
+    "TM": 0.6503370401894562,
+    "one_spring_out": -1.0
+   },
+   {
+    "position": "end of travel",
+    "temp": "cold",
+    "T_avail_mNm": 2.346282268246222,
+    "Tv_mNm": 0.9558373944774128,
+    "friction_mNm": 0.18583739447741285,
+    "TM": -0.22710129926710942,
+    "one_spring_out": -1.0
+   },
+   {
+    "position": "end of travel",
+    "temp": "hot",
+    "T_avail_mNm": 2.2771383900071385,
+    "Tv_mNm": 0.7786699155819302,
+    "friction_mNm": 0.15866991558193028,
+    "TM": -0.09066846157854624,
+    "one_spring_out": -1.0
+   }
+  ]
+ },
+ "primary + secondary": {
+  "springs": [
+   {
+    "wire_mm": 0.47,
+    "od_mm": 4.0,
+    "mean_d_mm": 3.5300000000000002,
+    "index": 7.510638297872341,
+    "coils": 15.382978723404257,
+    "body_length_mm": 7.7,
+    "rate_mNm_per_rad": 2.8081888373318593,
+    "preload_deg": 55.0,
+    "torque_stowed_nom_mNm": 7.106760478232897,
+    "torque_deployed_nom_mNm": 2.695667767605581,
+    "stress_max_MPa": 866.7110283821874,
+    "MS_yield": 0.15378709541357893,
+    "MS_ult": 0.3985298126225201,
+    "id_wound_mm": 2.969931110653513
+   },
+   {
+    "wire_mm": 0.34299999999999997,
+    "od_mm": 4.0,
+    "mean_d_mm": 3.657,
+    "index": 10.661807580174928,
+    "coils": 9.495626822157435,
+    "body_length_mm": 3.6000000000000005,
+    "rate_mNm_per_rad": 1.2455980021719586,
+    "preload_deg": 55.0,
+    "torque_stowed_nom_mNm": 3.1522690126538024,
+    "torque_deployed_nom_mNm": 1.1956882461790284,
+    "stress_max_MPa": 958.0100468175654,
+    "MS_yield": 0.04383038917172333,
+    "MS_ult": 0.26524895657178593,
+    "id_wound_mm": 3.1651923493869933
+   }
+  ],
+  "TM_analysis": [
+   {
+    "position": "start (stowed)",
+    "temp": "cold",
+    "T_avail_mNm": 8.929356678572875,
+    "Tv_mNm": 1.466962755075272,
+    "friction_mNm": 0.5669627550752717,
+    "TM": 0.9543059675421803,
+    "one_spring_out": 1.242706000780775
+   },
+   {
+    "position": "start (stowed)",
+    "temp": "hot",
+    "T_avail_mNm": 8.666212572131629,
+    "Tv_mNm": 1.2135702040602174,
+    "friction_mNm": 0.4635702040602174,
+    "TM": 1.2752591942016656,
+    "one_spring_out": 1.5564471076158926
+   },
+   {
+    "position": "end of travel",
+    "temp": "cold",
+    "T_avail_mNm": 3.386997360837986,
+    "Tv_mNm": 0.9460893208906203,
+    "friction_mNm": 0.2460893208906203,
+    "TM": 0.12657787708708512,
+    "one_spring_out": 0.12534601908701481
+   },
+   {
+    "position": "end of travel",
+    "temp": "hot",
+    "T_avail_mNm": 3.287184079084411,
+    "Tv_mNm": 0.7568714567124961,
+    "friction_mNm": 0.2068714567124962,
+    "TM": 0.3478727853913042,
+    "one_spring_out": 0.32422415225404166
+   }
+  ],
+  "TM_qual": [
+   {
+    "position": "start (stowed)",
+    "temp": "cold",
+    "T_avail_mNm": 8.929356678572875,
+    "Tv_mNm": 1.466962755075272,
+    "friction_mNm": 0.5669627550752717,
+    "TM": 1.3380590948094309,
+    "one_spring_out": 1.242706000780775
+   },
+   {
+    "position": "start (stowed)",
+    "temp": "hot",
+    "T_avail_mNm": 8.666212572131629,
+    "Tv_mNm": 1.2135702040602174,
+    "friction_mNm": 0.4635702040602174,
+    "TM": 1.7203900134398542,
+    "one_spring_out": 1.5564471076158926
+   },
+   {
+    "position": "end of travel",
+    "temp": "cold",
+    "T_avail_mNm": 3.386997360837986,
+    "Tv_mNm": 0.9460893208906203,
+    "friction_mNm": 0.2460893208906203,
+    "TM": 0.3456760286956764,
+    "one_spring_out": 0.12534601908701481
+   },
+   {
+    "position": "end of travel",
+    "temp": "hot",
+    "T_avail_mNm": 3.287184079084411,
+    "Tv_mNm": 0.7568714567124961,
+    "friction_mNm": 0.2068714567124962,
+    "TM": 0.6082869933687718,
+    "one_spring_out": 0.32422415225404166
+   }
+  ],
+  "TM_analysis_with_latch": [
+   {
+    "position": "start (stowed)",
+    "temp": "cold",
+    "T_avail_mNm": 8.929356678572875,
+    "Tv_mNm": 1.5369627550752718,
+    "friction_mNm": 0.5669627550752717,
+    "TM": 0.8684305916131472,
+    "one_spring_out": 1.1213277187252304
+   },
+   {
+    "position": "start (stowed)",
+    "temp": "hot",
+    "T_avail_mNm": 8.666212572131629,
+    "Tv_mNm": 1.2835702040602175,
+    "friction_mNm": 0.4635702040602174,
+    "TM": 1.1563695504246043,
+    "one_spring_out": 1.3954647428411144
+   },
+   {
+    "position": "end of travel",
+    "temp": "cold",
+    "T_avail_mNm": 3.386997360837986,
+    "Tv_mNm": 1.0160893208906203,
+    "friction_mNm": 0.2460893208906203,
+    "TM": 0.053024260422269265,
+    "one_spring_out": 0.046159683599615864
+   },
+   {
+    "position": "end of travel",
+    "temp": "hot",
+    "T_avail_mNm": 3.287184079084411,
+    "Tv_mNm": 0.8268714567124962,
+    "friction_mNm": 0.2068714567124962,
+    "TM": 0.2410115936338828,
+    "one_spring_out": 0.21291077031819983
+   }
+  ]
+ },
+ "dynamics_soft_damped": {
+  "w0=+0": {
+   "t_reach": 0.20843999999998458,
+   "w_reach": 13.517494213000408,
+   "T_stop_max": 0.15456634728382185,
+   "body_rate_max_dps": 47.42717359319125,
+   "theta_max_deg": 93.53976007488119,
+   "rebound_deg": 13.200835348562208,
+   "t_settle": null,
+   "final_body_rate_dps": -0.0007291131829002171,
+   "root_stress_MPa": 3.937661700504972,
+   "root_strain_ue": 211.7022419626329
+  },
+  "w0=+15": {
+   "t_reach": 0.20833999999998462,
+   "w_reach": 13.526507856932959,
+   "T_stop_max": 0.1547779936710822,
+   "body_rate_max_dps": 34.02727416219226,
+   "theta_max_deg": 93.54460470444826,
+   "rebound_deg": 13.225512226642536,
+   "t_settle": null,
+   "final_body_rate_dps": 13.432842979042894,
+   "root_stress_MPa": 3.9430535072456396,
+   "root_strain_ue": 211.9921240454645
+  },
+  "w0=-15": {
+   "t_reach": 0.20833999999998462,
+   "w_reach": 13.52650785691281,
+   "T_stop_max": 0.15477799367050815,
+   "body_rate_max_dps": 60.893399570143686,
+   "theta_max_deg": 93.54460470443516,
+   "rebound_deg": 13.225512226542094,
+   "t_settle": null,
+   "final_body_rate_dps": -13.430905226503636,
+   "root_stress_MPa": 3.9430535072310158,
+   "root_strain_ue": 211.99212404467826
+  },
+  "w0=+50": {
+   "t_reach": 0.20725999999998504,
+   "w_reach": 13.614710223569164,
+   "T_stop_max": 0.15578795630461512,
+   "body_rate_max_dps": 64.64938760721907,
+   "theta_max_deg": 93.56785015061631,
+   "rebound_deg": 13.278894680889096,
+   "t_settle": null,
+   "final_body_rate_dps": 44.773093058095746,
+   "root_stress_MPa": 3.968782854227627,
+   "root_strain_ue": 213.37542227030252
+  }
+ },
+ "dynamics_metal_stop": {
+  "w0=+0": {
+   "t_reach": 0.20843999999998458,
+   "w_reach": 13.517494213000408,
+   "T_stop_max": 0.615240876547654,
+   "body_rate_max_dps": 47.42717359319125,
+   "theta_max_deg": 91.40106412216889,
+   "rebound_deg": 49.829994902008586,
+   "t_settle": null,
+   "final_body_rate_dps": -0.00048005644753500664,
+   "root_stress_MPa": 15.673595700093086,
+   "root_strain_ue": 842.6664354888755
+  },
+  "w0=+15": {
+   "t_reach": 0.20833999999998462,
+   "w_reach": 13.526507856932959,
+   "T_stop_max": 0.6158970986843787,
+   "body_rate_max_dps": 53.53228703599729,
+   "theta_max_deg": 91.4025442964217,
+   "rebound_deg": 49.87829060339576,
+   "t_settle": null,
+   "final_body_rate_dps": 13.432927366658527,
+   "root_stress_MPa": 15.690313315668613,
+   "root_strain_ue": 843.5652320251942
+  },
+  "w0=-15": {
+   "t_reach": 0.20833999999998462,
+   "w_reach": 13.52650785691281,
+   "T_stop_max": 0.6158970986826929,
+   "body_rate_max_dps": 60.893399570143686,
+   "theta_max_deg": 91.4025442964177,
+   "rebound_deg": 49.87829060317432,
+   "t_settle": null,
+   "final_body_rate_dps": -13.43316443269249,
+   "root_stress_MPa": 15.690313315625668,
+   "root_strain_ue": 843.5652320228854
+  },
+  "w0=+50": {
+   "t_reach": 0.20725999999998504,
+   "w_reach": 13.614710223569164,
+   "T_stop_max": 0.6199094008167333,
+   "body_rate_max_dps": 85.13368959650117,
+   "theta_max_deg": 91.4116775091751,
+   "rebound_deg": 50.031081010367764,
+   "t_settle": null,
+   "final_body_rate_dps": 44.77773013189671,
+   "root_stress_MPa": 15.792528893089331,
+   "root_strain_ue": 849.0606931768458
+  }
+ },
+ "flex": {
+  "EI_Nm2": 3.712135466666667e-06,
+  "length_mm": 49.00884539600077,
+  "elastic_torque_mNm": 0.059489350427350436,
+  "allocation_cold_mNm": 0.5,
+  "allocation_hot_mNm": 0.35,
+  "bend_radius_mm": [
+   1.0,
+   1.6
+  ],
+  "copper_strain_formed": 0.034,
+  "copper_strain_amplitude": 0.0005448717948717948,
+  "ipc2223_flex_to_install_min_radius_mm": 0.816
+ },
+ "latch_trade": {
+  "stop_peak_Nm": 0.15578795630461512,
+  "restitution_energy": 0.13862672840980345,
+  "latch_impact_torque_Nm": 0.5800392296537059,
+  "latch_pin_shear_MPa": 961.6261519437749,
+  "A286_shear_allow_MPa": 661.8,
+  "latch_drag_mNm": 0.07,
+  "hold_by_preload_min_mNm": 3.287184079084411,
+  "tumbling_torque_mNm": 0.06,
+  "holding_margin": 17.26213377269117,
+  "wing_inertia_about_hinge": 0.000111641856
+ },
+ "mech001A_spring_envelope": {
+  "od_mm": 4.55,
+  "length_mm": 12.65,
+  "radius_mm": 2.275,
+  "x_from_rail_mm": 6.375,
+  "y_max_mm": 41.025
+ }
+}

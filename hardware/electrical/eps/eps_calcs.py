@@ -97,11 +97,11 @@ def boost_loss(pin, vin, vout):
 
 
 def trackers():
-    # FB backstop (internal reference) at 16.70 V; precision CV loop (external) at 16.40 V
+    # FB output clamp (internal reference, +/-2 %) above the precision CV loop (external, 16.40 V +/-0.44 %)
     rbot = 10.0e3
-    rtop = rbot * (16.70 / TRK["vref"] - 1.0)
-    rtop_e96 = 125e3
+    rtop_e96 = 129e3
     vfb = TRK["vref"] * (1 + rtop_e96 / rbot)
+    vfb_min = 1.204 * (1 + rtop_e96 * 0.999 / (rbot * 1.001))
     vfb_max = 1.254 * (1 + rtop_e96 * 1.001 / (rbot * 0.999))
     r_freq = 46.0e3                                                  # f ~ 46,000/R(kOhm) kHz (datasheet table 6.5)
     cases = [("T1 wing fronts, cold sunrise BOL (worst power)", ARRAY_P_MAX * 4 / 6, 5.0),
@@ -117,11 +117,13 @@ def trackers():
                      f"{b['p_tot'] * 1e3:.0f} mW ({b['p_ic'] * 1e3:.0f} IC, {b['p_diode'] * 1e3:.0f} diode, {b['p_l'] * 1e3:.0f} L)",
                      f"{b['eff']:.1%}"))
     table("2. Trackers (TPS55340-Q1, 1.000 MHz, 6.8 uH)", ["Case", "Input", "Iin avg / peak", "Duty", "Loss", "Efficiency"], rows)
-    print(f"\nFB backstop: R_top {rtop / 1e3:.1f} k -> {rtop_e96 / 1e3:.0f} k (0.1 %), R_bot 10.0 k: {vfb:.2f} V nominal, "
-          f"{vfb_max:.2f} V worst high (= {vfb_max / 4:.3f} V/cell, below the 4.25 V AFE threshold). "
+    print(f"\nFB output clamp: R_top {rtop_e96 / 1e3:.0f} k / R_bot 10.0 k (0.1 %): {vfb:.2f} V nominal, {vfb_min:.2f}-{vfb_max:.2f} V "
+          f"with the +/-2 % internal reference. Its minimum stays above the CV loop's maximum (16.47 V), so the precision loop "
+          f"always governs; the clamp ({vfb_max / 4:.3f} V/cell worst) only limits VTRK if the CV loop fails, and the AFE's "
+          f"4.25 V COV then opens the CHG FET: the clamp is not counted as an overcharge control. "
           f"Switch current limit 5.25 A min against {max(b['ipk'] for _, b in out):.2f} A peak "
           f"({max(b['ipk'] for _, b in out) / 5.25:.0%}). Free-running R_FREQ {r_freq / 1e3:.1f} k ~ 1.0 MHz if SYNC is lost.")
-    R["trackers"] = dict(rtop=rtop_e96, rbot=rbot, vfb=vfb, vfb_max=vfb_max, cases={n: b for n, b in out})
+    R["trackers"] = dict(rtop=rtop_e96, rbot=rbot, vfb=vfb, vfb_min=vfb_min, vfb_max=vfb_max, cases={n: b for n, b in out})
 
 
 # ================================================================ 3 charge control loops (VCTL domain)
@@ -145,7 +147,7 @@ def charge_loops():
             ("Worst cell at end of charge", "set point error + 50 mV balance window", f"{v_cell_eoc:.3f} V", "below 4.20 V cell max and 4.25 V AFE threshold"),
             ("CC limit", f"INA186A3 x100 on 10 mOhm = 1.0 V/A; divider {rs_top / 1e3:.1f} k / {rs_bot / 1e3:.2f} k", f"{icc:.3f} A", f"+/-{icc_err:.1f} %"),
             ("Charge inhibited (cold, hot, lockout)", "CC set point forced to 0 V (Q18 and relay K1 pole B in parallel)", f"<= {i_resid * 1e3:.0f} mA residual", "INA186 offset 50 uV max; AFE CHG FET also open"),
-            ("Trackers' FB backstop if VCTL loops are dead", "internal 1.229 V reference", f"{R['trackers']['vfb']:.2f} V", f"{R['trackers']['vfb_max'] / 4:.3f} V/cell worst")]
+            ("Trackers' FB output clamp (if the VCTL loops are dead)", "internal 1.229 V +/-2 % reference", f"{R['trackers']['vfb']:.2f} V", f"{R['trackers']['vfb_min']:.2f}-{R['trackers']['vfb_max']:.2f} V; the AFE COV 4.25 V acts above 17.0 V")]
     table("3. Charge regulation (hardware, VCTL domain)", ["Loop", "Implementation", "Value", "Accuracy / note"], rows)
     R["charge"] = dict(cv_ra=ra, cv_err_pct=tot, v_cell_eoc=v_cell_eoc, icc=icc, icc_err_pct=icc_err)
 
@@ -191,7 +193,7 @@ def inhibits():
     # DS1/DS3: P-FET IPD50P04P4L-11, Vgs from the 1M/1M divider; DS2: back-to-back BUK9Y4R4-40E, 1.2M/1.0M
     rows = []
     for name, rt, rb, c, vmin, vmax, lim in (("DS1 / DS3 high-side P-FET gate", 1.0e6, 1.0e6, 47e-9, VBAT_MIN, VBAT_MAX, 16.0),
-                                            ("DS2 back-to-back N-FET gate", 1.2e6, 1.0e6, 47e-9, VBAT_MIN, VBAT_MAX, 10.0)):
+                                            ("DS2 back-to-back N-FET gate", 1.3e6, 1.0e6, 47e-9, VBAT_MIN, VBAT_MAX, 10.0)):
         k = rb / (rt + rb)
         tau_on = par(rt, rb) * c
         tau_off = (rb if "DS2" in name else rt) * c

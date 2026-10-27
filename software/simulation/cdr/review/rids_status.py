@@ -19,5 +19,6 @@ CLOSURE: dict[str, tuple[str, str]] = {
     "STR-27": ("CD", "ADCS_SET_GEOMETRY 0x24, presets 0-3, persisted; one-wing Monte Carlo (BUILD_VS_BUY §6.4)"),
     "SE-11": ("CD", "SQSO-SEC-001 Space System Protection and Security Plan (NASA-STD-1006A as practice)"),
     "EMC-05": ("CD", "ETP Rev C.1 §3.6: V-EMC-1, V-EMC-3, V-EMC-6"),
+    "RF-12": ("CD", "RF board build-to design: SQSO-RF-BRD-001 (316 parts, ERC 0 errors, BOM with stresses); EM tests VI-RFB-01..09"),
     "SE-10": ("CD", "SRS 1.6 requirements defined; SQSO-FSW-012 Appendix C mapping; traceability 0 undefined"),
 }

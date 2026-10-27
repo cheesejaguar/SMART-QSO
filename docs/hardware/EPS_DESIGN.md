@@ -1,9 +1,10 @@
 # Electrical Power Subsystem (EPS) Design Document
 
 **Document Number**: SMART-QSO-EPS-001
-**Version**: 2.0
+**Version**: 2.1
 **Date**: 2026-10-27
-**Status**: CDR design description (build decision, parts not yet selected where stated)
+**Status**: CDR design description; the build-to board design with selected parts, netlist, BOM and ERC is
+`hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001 A), which governs part-level detail
 
 **Governing documents**: `docs/BASELINE_PARAMETERS.md` Rev D (§4 inhibits and timers, §5 power, §7 TX-OFF);
 `docs/hardware/BUILD_VS_BUY.md` §2.4 (build the EPS; ISIS ICEPS2 Type B alternate), §3.2, §4; CDS Rev 14.1 §2.3;
@@ -31,9 +32,9 @@ the end-of-life charge disconnect, and reports its telemetry to the OBC (SMART-Q
 | ID | Requirement | Verification | Status at CDR |
 |----|-------------|--------------|---------------|
 | EPS-F001 | Deliver to the bus ≥ 2.16 W EOL orbit average tumbling (SYS-100) and ≥ 3.0 W sun-pointed | A, T | Analysis: 2.43 W and 3.93 W (SQSO-PBA-001 §4) |
-| EPS-F002 | Track the maximum power point of each string group of §3.2 with ≥ 92 % conversion efficiency over 3.5–6.4 V input | T | Part not yet selected |
-| EPS-F003 | Store ≈ 50 Wh (4S1P INR18650-35E); charge CC ≤ 0.40 A, CV 4.10 V/cell (D8), only between 0 and +45 °C on the pack temperature, in hardware | T | Design |
-| EPS-F004 | Supply the loads from the array while charging is inhibited (power-path regulation of the battery bus) | T | Design requirement added at CDR (§3.3) |
+| EPS-F002 | Track the maximum power point of each string group of §3.2 with ≥ 92 % conversion efficiency over 3.5–6.4 V input | T | TPS55340-Q1 ×4: 90.9–92.3 % by analysis, marginal (SQSO-EPS-BRD-001 §4.3; V-EPS-1) |
+| EPS-F003 | Store ≈ 50 Wh (4S1P INR18650-35E); charge CC ≤ 0.40 A, CV 4.10 V/cell (D8), only between 0 and +45 °C on the pack temperature, in hardware | T | Designed: CV 16.40 V ± 0.44 %, CC 0.394 A, window +1.1…+44.0 °C (BRD-001 §5) |
+| EPS-F004 | Supply the loads from the array while charging is inhibited (power-path regulation of the battery bus) | T | Designed: charge-current set point to 0 A (BRD-001 §5.2) |
 | EPS-F005 | Battery bus 11.2–16.4 V (16.8 V absolute maximum) to all VBAT loads; every converter rated ≥ 25 V input | T | §4 |
 | EPS-F006 | 3V3_AO rail, always on (OBC, FRAM, receiver path, ADCS sensors) | T | §4 |
 | EPS-F007 | Switched rails with the current limits of §5, every switch off at reset (pull-down) | T | §5 |
@@ -41,7 +42,7 @@ the end-of-life charge disconnect, and reports its telemetry to the OBC (SMART-Q
 | EPS-F009 | At least three independent physical inhibits each for RF and for every deployable (CDS 2.3.7, 2.3.8); timers and the RBF do not count | I, T | §8: DS1, DS2 and DS3 (DS3 added at CDR) |
 | EPS-F010 | Non-resettable end-of-life charge-path disconnect (47 CFR 97.207(g)(1)(iii)), fired only by two independent signals | T | §7 |
 | EPS-F011 | Battery protection with the fault tolerance of SQSO-BSA-001 §3 | A, T | §6 |
-| EPS-F012 | Independent hardware low-voltage disconnect of the payload and PA rails | T | Added at CDR (§6, RID EPS-09) |
+| EPS-F012 | Independent hardware low-voltage disconnect of the payload and PA rails | T | Designed (§6; BRD-001 §8.4) |
 | EPS-F013 | Telemetry: pack voltage and current, each cell voltage, two pack temperatures, array voltage and current per tracker, rail currents, charge-inhibit cause, switch states and fault flags, passivation state | D | §9 |
 
 ## 3. Solar array input
@@ -93,10 +94,12 @@ RID EPS-13). The regulator must:
    bus up from the array in sunlight, so the OBC and receiver can take that command with the pack locked out;
 4. report input voltage and current per tracker.
 
-Candidates (not yet selected; each to be checked against the radiation, temperature and derating rules): a
-multi-input buck-boost charger of the TI BQ25798 class (3.6–24 V input, 1–4S, MPPT, TS input, power path) per tracker
-group; or discrete boost MPPT stages into one 4S CC/CV regulator. The BQ25570/SPV1040 class of EPS_ELECTRICAL_DESIGN
-1.0 cannot charge a 4S pack.
+**Selected (SQSO-EPS-BRD-001 §4–§5):** four TPS55340-Q1 non-synchronous boost trackers on a common output, each
+with an analog MPPT loop trimmed by the EPS controller, and shared hardware CV (16.40 V) and CC (0.394 A) loops that pull
+every tracker's COMP pin down; charging is inhibited by setting the charge-current set point to 0 A (the trackers then
+supply the bus only) and opening the AFE's CHG FET. The BQ25798 class was not used: it cannot be synchronised to the
+frequency plan (rule E1) and four NVDC chargers cannot share one pack. The lockout memory is a 2-coil latching relay K1
+set by the BQ76952's SUV permanent-fail output and cleared only by two independent lines (BRD-001 §5.4).
 
 ## 4. Battery bus and rails
 
@@ -105,7 +108,9 @@ group; or discrete boost MPPT stages into one 4S CC/CV regulator. The BQ25570/SP
 | VBAT (unregulated) | Pack through F2, RT1, RBF, DS1, inhibit chain | 11.2 (BMS cut) … 16.4 V; 16.8 V abs max; 17.0 V at the 4.25 V OV threshold | Heater, burn wires, Jetson carrier (recommended), bucks | 1.0 A / 1.8 A (burn + housekeeping + heater) | — |
 | 3V3_AO | Buck U1 from VBAT, always on | 3.3 V ± 3 % | OBC, FRAM, receiver/TNC/exciter (through SW2 and its own LDO, EMC rule E4), ADCS (SW4), GNSS (SW7) | 0.26 A / 0.30 A | ≥ 0.6 A, 25 V |
 | 5V_PA | Buck U2 from VBAT | 5.0 V ± 3 % | PA through SW3 | 0.54 A at 1 W RF | ≥ 1.2 A, 25 V |
-| VBAT_JET | eFuse U3 from VBAT (S7), carrier converter to the module's 5 V | VBAT | Jetson carrier | 0.62 A at 8 W; 0.93 A at the 12 W guard trip | eFuse ≥ 23 V operating |
+| VBAT_JET | eFuse U19 TPS16630 (60 V) behind SW1, carrier converter to the module's 5 V | VBAT | Jetson carrier | 0.62 A at 8 W; 0.93 A at the 12 W guard trip | 1.20 A latch-off |
+| V_BURN | Buck U17 from VBAT_DEP (SW6, DEPLOY_EN) | 7.04 V | Four burn drivers | 0.88 A per resistor, one at a time | 2 A part; its 2.8 A limit caps a four-driver fault at 2.0 A at the pack |
+| 3V3_OBC, 3V3_MCU | SW10, SW9 (TPS2553) from 3V3_AO | 3.3 V | OBC; EPS controller | 0.04 A; 0.012 A | 0.15 A; 75 mA, latch-up retry (RID AV-08) |
 
 **Change from the drawings (RID EMC-02):** S2 puts the PA and the Jetson on one 5 V buck (≥ 4 A). The Jetson's load
 steps would then modulate the PA's supply. Feed the Jetson carrier from VBAT through the eFuse (its own converter on
@@ -117,15 +122,18 @@ converter's under-voltage lock-out is set at 10.8 V falling (rule E8) so the BMS
 
 ## 5. Load switches, current limits and protection
 
-| Switch | Rail in | Enable (firmware pin) | Load | Nominal | Peak | Limit / trip (≈ 1.5–2 × peak) | Part class | Notes |
-|--------|---------|-----------------------|------|---------|------|-------------------------------|------------|-------|
-| SW1 + U3 | VBAT | PAYLOAD_EN (PB4) on SW1; JETSON_PWR (PA2) on U3 | Jetson carrier | 0.62 A | 0.93 A (guard) | U3 eFuse 1.2 A, latch-off, ≤ 1 ms; flight-software guard 8 W for 2 s and 12 W latch-up (`payload_guard.rs`) | SW1: high-side switch rated ≥ 25 V (TPS1H100 class); U3: TPS25947 class (23 V) | Two different parts on two different lines (BUILD_VS_BUY §7.3); EPS-F012 shed acts on SW1 |
-| SW2 | 3V3_AO | RADIO_EN (PB5) | Receiver, TNC, exciter | 0.05 A | 0.1 A | 0.25 A | TPS22918 | Never off in normal modes (97.207(b)); off only in the RF-silence window |
-| SW3 | 5V_PA | RF_TX_EN (PA3) | PA | 0.30 A | 0.54 A | 1.0 A | TPS22918 | Hardware TX-OFF; pull-down mandatory; RF inhibit 3 (§8.1) |
-| SW4 | 3V3_AO | ADCS_EN (PB6) | Sensors, gyro, magnetorquer drivers | 0.04 A | 0.13 A | 0.3 A | TPS22918 | |
-| SW5 | VBAT | HEATER_EN (PD2) | Battery heater ≈ 200 Ω, two elements | 0.07 A | 0.08 A (16.4 V) | **0.15 A** (was 0.5 A on S2) plus a series fuse 0.25 A and the +40 °C cutout | High-side ≥ 25 V | 1 W at 14.4 V; 0.95 W at 14.0 V (THERMAL_ANALYSIS §2.3) |
-| SW6 | VBAT | DEPLOY_EN (PA1) | Burn-wire drivers | 0 | 0.88 A per resistor, one resistor at a time; 3.4 A worst fault | 3.6 A (above the worst software-fault burn load of 3.36 A, below the BMS 4 A and F2), plus 0.8 A per-resistor limit and a 12 s hardware on-time limit (§5.1) | High-side ≥ 25 V | Deployable inhibit (§8.2) |
-| SW7 | 3V3_AO | GNSS_EN (pin open: PE4 is XPDR_EN in the firmware, RID EPS-14) | GNSS receiver | 0.04 A | 0.1 A | 0.15 A with latch-up trip | TPS22918 | |
+| Switch | Rail in | Enable (firmware pin) | Load | Nominal | Peak | Limit / trip | Part (SQSO-EPS-BRD-001) | Notes |
+|--------|---------|-----------------------|------|---------|------|--------------|-------------------------|-------|
+| SW1 + U19 | VBAT | PAYLOAD_EN (PB4) on SW1 (AND load shed); JETSON_PWR (PA2) on U19 | Jetson carrier | 0.62 A | 0.93 A (guard) | SW1 2.0 A; U19 eFuse 1.20 A (1.10–1.30) latch-off; flight-software guard 8 W for 2 s and 12 W (`payload_guard.rs`) first | TPS1H100B-Q1 (U20); TPS16630 (U19) | Two different parts on two lines; EPS-F012 shed acts on SW1 |
+| SW2 | 3V3_AO | RADIO_EN (PB5) | Receiver, TNC, exciter | 0.05 A | 0.1 A | 0.30 A, retry 1.3 s | TPS2553-Q1 (U22) | Off only in the RF-silence window (97.207(b)) |
+| SW3 | 5V_PA | RF_TX_EN (PA3) AND load shed | PA | 0.30 A | 0.54 A | 0.99 A, retry 0.28 s | TPS2553-Q1 (U23) | Hardware TX-OFF; pull-down mandatory |
+| SW4 | 3V3_AO | ADCS_EN (PB6) | Sensors, gyro, magnetorquer drivers | 0.04 A | 0.13 A | 0.30 A, retry 0.28 s | TPS2553-Q1 (U24) | A sensor latch-up is masked by the coils (AV-03) |
+| SW5 | VBAT | HEATER_EN (PD2) | Battery heater 207 Ω | 0.07 A | 0.08 A (16.4 V) | 0.148 A, F4 0.25 A, 40 °C cutout Q22 in series | TPS1H000-Q1 (U21) | 0.70–1.30 W across the bus |
+| SW6 | VBAT | DEPLOY_EN (PA1) | Burn buck U17 → four drivers | 0 | 0.5 A at the pack per burn | 2.0 A; 0.8 A per resistor; 12 s one-shot per driver (§5.1) | TPS1H100B-Q1 (U18) | Deployable control (not counted as an inhibit) |
+| SW7 | 3V3_AO | GNSS_EN (PE5) | GNSS receiver | 0.04 A | 0.1 A | 0.20 A, retry 1.3 s | TPS2553-Q1 (U25) | RID EPS-14 closed by the firmware's PE5 |
+| SW8 | 3V3_AO | DEPLOY_EN (PA1) | ISIS AntS | 0 | 0.61 A | 1.37 A, retry 0.28 s | TPS2553-Q1 (U26) | Downstream of DS1–DS3 (§8.3) |
+| SW9 | 3V3_AO | always | EPS controller | 0.012 A | — | 75 mA, retry 0.28 s | TPS2553-Q1 (U27) | |
+| SW10 | 3V3_AO | always | OBC | 0.04 A | — | 0.15 A, retry 0.28 s | TPS2553-Q1 (U38) | The OBC cannot switch its own rail (RID AV-08) |
 
 TPS22918-class switches are rated 5.5 V: they may switch only the 3.3 V and 5 V rails. Every VBAT switch needs a part
 rated ≥ 25 V (derating 16.8 V to ≤ 70 % of the rating, EEE-INST-002).
@@ -136,28 +144,29 @@ The burn resistors are ≈ 5 Ω. Driven straight from VBAT, each draws 2.9–3.3
 (S5) about 5.8 A, above the 5 A pack fuse: the first wing deployment would open F2 and end the mission (RID SMA-05).
 The CDR design:
 
-- **One current-limited driver per burn resistor**, 0.8 A ± 10 % (a linear limit or a constant-current sink; finding
-  F7), the value the mission simulation uses (`sqso-sil/src/hw/deploy.rs`: `BURN_OHMS` 5.0, `BURN_LIMIT_A` 0.8; peak
-  battery current in its runs 1.63 A with one line burning).
-- **One driver per wing** (W1, W2) instead of one for both (RID REL-03: the shared driver's common cause gives
-  P(both wings stowed) ≈ 1.6 %, separate drivers ≈ 0.1 %). This needs a second wing burn line in the pin map (for the
-  chair; PB10 serves one today). The antenna knives are the AntS's own (§8.3).
-- **Hardware on-time limit**: a monostable on each driver's enable, 12 s (the simulated burns release in ≤ 4 s;
-  thermal-knife practice is ≤ 10 s), re-armed only by a falling edge of DEPLOY_EN. A stuck OBC line then cannot burn
-  for more than 12 s per cycle.
-- The flight software burns the lines one at a time (antennas, then W1, then W2).
+- **One current-limited driver per burn resistor, four in all** (two resistors per wing; chair decision, RID REL-03):
+  OPA2991-Q1 + BUK9M14-40E + 0.25 Ω regulating 0.800 A ± 2.2 % (requirement ± 10 %) for resistors of 4–6.9 Ω
+  (SQSO-EPS-BRD-001 §9). The mission simulation's values agree (`sqso-sil/src/hw/deploy.rs`: `BURN_OHMS` 5.0,
+  `BURN_LIMIT_A` 0.8).
+- **Supply from a 7.0 V burn buck** (U17, behind SW6): the linear drivers dissipate ≤ 3.0 W instead of ≈ 10 W from
+  VBAT, the pack sees 0.51 A per burn instead of 0.88 A, and the buck's own limit caps a four-driver software fault
+  at 2.0 A at the pack.
+- **Hardware on-time limit**: a TPL5111 one-shot per driver, powered by the burn line itself, enables the driver for
+  12.0 s ± 0.6 s after the line's rising edge; a stuck-high line burns once, and only a falling edge re-arms it.
+- Four burn lines from the OBC: BURN_W1A (PB10), BURN_W1B (PE6), BURN_W2A (PB9, freed by the AntS), BURN_W2B (to be
+  allocated). The flight software burns one resistor at a time for 8 s, the second of a wing only if it has not released.
 
 | Deployment case | Burn current | Plus housekeeping and heater | Peak at the pack | Against BMS 4 A / fuse 5 A |
 |-----------------|--------------|------------------------------|------------------|----------------------------|
-| One wing (W1 or W2), normal sequence | 0.8 A (0.88 A at +10 %) | 0.13 A | **1.0 A** | 4.0× / 5.0× |
-| AntS antennas (its own controller; to be confirmed from the AntS ICD) | ≤ 1.6 A allocation | 0.13 A | ≤ 1.7 A | 2.3× / 2.9× |
-| Both wings together (software fault) | 1.76 A | 0.13 A | 1.9 A | 2.1× / 2.6× |
-| Everything at once (software fault: both wings and AntS) | 3.36 A | 0.13 A | **3.5 A** | 1.14× / 1.4×: the BMS trips before the fuse would |
-| One current limiter failed short, one wing | 3.3 A (16.4 V / 5 Ω) | 0.13 A | 3.4 A | Below both; the on-time limit ends it in 12 s |
-| Two limiters failed short (two failures) | 6.6 A | — | 6.7 A | BMS trips (resettable); the fuse is the backup |
+| One resistor, normal sequence (0.88 A at +10 %, from the 7.0 V buck) | 0.51 A at the pack | 0.16 A | **0.67 A** | 6.0× / 7.5× |
+| AntS antennas (its own controller, 3.3 V on SW8) | ≤ 0.2 A at the pack | 0.16 A | ≤ 0.4 A | 10× |
+| Two resistors at once (an A/B line pairing or a software fault) | 1.05 A | 0.2 A | 1.25 A | 3.2× / 4.0× |
+| All four drivers on (software fault) | burn buck in current limit | — | **2.0 A** | 2.0× / 2.5× |
+| One driver failed short (its resistor straight across V_BURN) | ≤ 1.6 A at 7 V | — | ≤ 1.1 A | the one-shot still ends it in 12 s |
 
-The simulation's 1.63 A (one line of two resistors at 0.8 A) and this table agree. Bus voltage during a single-wing
-burn at a cold pack (−20 °C, 55 % SOC) is ≈ 13.4 V (15.04 V less 1.0 A through the cold pack's 1.67 Ω; EMC_ANALYSIS §4).
+The simulation's 1.63 A (one line of two resistors at 0.8 A) is the A/B pairing drawn from VBAT; with the burn buck it
+becomes 1.25 A. Bus voltage during a single-resistor burn at a cold pack (−20 °C, 55 % SOC) is ≈ 13.9 V (15.04 V less
+0.67 A through the cold pack's 1.67 Ω; EMC_ANALYSIS §4).
 
 **Pack protection** (details SQSO-BSA-001 §3): F2, non-resettable 5 A, breaking capacity ≥ 100 A at 32 VDC; RT1 PTC
 hold 2.5 A, trip ≤ 5 A (PDU_DESIGN 1.0's 8 A trip equalled the cell's continuous limit); BMS AFE (BQ76920 class)

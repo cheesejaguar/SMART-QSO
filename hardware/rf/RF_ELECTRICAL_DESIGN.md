@@ -2,9 +2,9 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-RF-003
-**Version:** 1.1
+**Version:** 1.2
 **Date:** 2026-10-27
-**Status:** Layout and fabrication guidelines for the RF board. Electrical requirements are in `docs/hardware/RF_DESIGN.md` v2.0 §2, which governs where this document differs (corrected in Version 1.1). The schematic and parts are not yet drawn or selected (RF_DESIGN §9).
+**Status:** Layout and fabrication guidelines for the RF board. Electrical requirements are in `docs/hardware/RF_DESIGN.md` v2.0 §2, which governs where this document differs (corrected in Version 1.1). Version 1.2: the schematic, parts and layout rules of record are `hardware/electrical/rf/RF_BOARD_DESIGN.md` (SQSO-RF-BRD-001), which supersedes §3–§10 of this document where they differ; the tables below are corrected to it.
 
 ---
 
@@ -45,37 +45,36 @@ This document specifies the electrical design requirements for the SMART-QSO RF 
 
 | Block | Component | Notes |
 |-------|-----------|-------|
-| Reference oscillator | TCXO 16.368 MHz | ±1 ppm |
-| PLL synthesizer | ADF4351 or equiv | Fractional-N |
-| Loop filter | 2nd order | Per calculation |
-| VCO | Internal to IC | |
+| Reference oscillator | TCXO 40 MHz (Epson TG2016SMN) | ±0.5 ppm, −40…+85 °C, shared with the receiver |
+| PLL synthesizer | TI LMX2571 | Fractional-N, FSK I2S mode for analog FM |
+| Loop filter | 2nd order, 40 kHz bandwidth | 3.9 nF, 430 Ω + 39 nF |
+| VCO | Internal to IC (4668.8 MHz / 32) | |
 
 ### 3.2 Modulator
 
 | Block | Component | Notes |
 |-------|-----------|-------|
-| Audio input | Op-amp buffer | From MCU DAC |
-| Deviation control | Resistor divider | ±3 kHz deviation |
-| FM modulator | VCO modulation input | |
-| Pre-emphasis | RC network | Optional |
+| Audio input | 2:1 switch (TMUX1219): TNC AFSK or repeat audio | |
+| Deviation control | PCM1808 ADC full scale = ±6.3 kHz (digital) | ±3.0 kHz beacon, ±4.7 kHz repeat limit |
+| FM modulator | LMX2571 FSK deviation word over I2S | |
+| Pre-emphasis | None added (the uplink's is repeated) | |
 
 ### 3.3 Power Amplifier
 
 | Block | Component | Notes |
 |-------|-----------|-------|
-| Driver stage | RF transistor | +10 dBm |
-| Final stage | RF transistor | +30 dBm (1 W) maximum |
-| Bias network | Temperature compensated | |
-| Matching network | L-match | 50Ω |
+| Driver and final | Mitsubishi RD01MUS3 (2-stage) at 5.0 V | 0 dBm in, +30 dBm (1 W) maximum |
+| Bias network | Closed-loop APC on the common gate bias | 27.0 / 30.0 dBm |
+| Matching network | Two low-pass L sections, 7.5 → 19.4 → 50 Ω | Tuned by load-pull on the EM |
 
 ### 3.4 Output Filter
 
 | Block | Component | Notes |
 |-------|-----------|-------|
-| Low-pass filter | 7-element ladder of `TRANSMITTER_DESIGN.md` §7.3 | −3 dB at 164 MHz (analysed) |
-| Harmonic attenuation | > 40 dB @ 2nd harmonic | |
-| Insertion loss | < 0.5 dB | |
-| Return loss | > 15 dB | |
+| Low-pass filter | 7th-order elliptic with traps at 2f and 3f (`TRANSMITTER_DESIGN.md` 1.4 §7.3) | −3 dB at 171 MHz |
+| Harmonic attenuation | ≥ 65.5 dB at 2f, ≥ 88.2 dB at 3f (worst of 3,000) | |
+| Insertion loss | 0.36 dB nominal, 0.60 dB worst | |
+| Return loss | 18 dB nominal | |
 
 ### 3.5 Antenna Ports (no T/R switch)
 
@@ -111,12 +110,13 @@ separate shield cans.
 
 | Component | Primary | Alternate | Qty |
 |-----------|---------|-----------|-----|
-| Synthesizer | ADF4351-class fractional-N (check DC power against RF-P015) | Si5351 | 1 |
-| TCXO | ASTX-13 | ASVTX-13 | 1 |
-| PA transistor | RD01MUS1 | MRF101AN | 2 |
+| Receiver | TI CC1200 (receive only, analog-FM mode) | — | 1 |
+| Synthesizer | TI LMX2571 | — | 1 |
+| TCXO | Epson TG2016SMN 40 MHz | — | 1 |
+| PA transistor | Mitsubishi RD01MUS3 (2-stage) | — | 1 |
 | RF switch | Not used (§3.5) | — | 0 |
-| LNA | BGA725 | SPF5189Z | 1 |
-| Power detector | AD8318 | LTC5507 | 1 |
+| LNA | Infineon BFP640F (6 mA) | — | 1 |
+| Power detector | AD8361 | TI LMH2121 | 2 |
 
 ### 4.3 RF Passives
 
@@ -135,11 +135,11 @@ separate shield cans.
 
 | Parameter | Value |
 |-----------|-------|
-| Dimensions | 70mm × 50mm (max) |
-| Layers | 4 (signal-GND-GND-signal) |
-| Thickness | 1.0mm |
-| Material | Rogers RO4003C or FR4 |
-| Dielectric constant | 3.55 (Rogers) |
+| Dimensions | PC/104 90.17 × 95.89 mm (stack board; 1.2: was 70 × 50 mm) |
+| Layers | 6 (RF – GND – signal – power – GND – components) |
+| Thickness | 1.6 mm |
+| Material | High-Tg FR-4 (IS410 or 370HR class); RF losses at 146/436 MHz do not need Rogers |
+| Dielectric constant | ≈ 4.2 |
 | Copper weight | 1 oz (35µm) |
 | Surface finish | ENIG |
 
@@ -147,8 +147,7 @@ separate shield cans.
 
 | Parameter | Value | Notes |
 |-----------|-------|-------|
-| 50Ω microstrip (Rogers) | 0.55mm | On 1.0mm substrate |
-| 50Ω microstrip (FR4) | 0.8mm | On 1.0mm substrate |
+| 50Ω microstrip (FR4) | 0.37 mm | L1 over L2, 0.20 mm prepreg (confirm with the fabricator's solver) |
 | Ground via spacing | < λ/20 | Along RF traces |
 | Component spacing | > 2mm | Between RF stages |
 | Shielding gap | 0.5mm | For RF cans |
@@ -156,15 +155,19 @@ separate shield cans.
 ### 5.3 Stack-up
 
 ```
-Layer 1 (Top):     35µm Cu - RF, components
-Prepreg:           0.2mm (Rogers or FR4)
-Layer 2 (GND):     35µm Cu - Solid ground
-Core:              0.4mm
-Layer 3 (GND):     35µm Cu - Solid ground
-Prepreg:           0.2mm
-Layer 4 (Bot):     35µm Cu - Control, power
-                   ──────────
-Total:             ~1.0mm
+L1 (Top):   35 µm Cu - RF, components (three shield cavities)
+Prepreg:    0.20 mm
+L2:         35-70 µm Cu - solid ground
+Core:       ~0.5 mm
+L3:         35 µm Cu - signals
+Prepreg:    ~0.2 mm
+L4:         35 µm Cu - power planes by domain (+3V0_RX, +3V1_DIG, +5V_PA, +3V3_PA)
+Core:       ~0.5 mm
+L5:         35-70 µm Cu - solid ground
+Prepreg:    0.20 mm
+L6 (Bot):   35 µm Cu - digital components
+            ─────────
+Total:      1.6 mm
 ```
 
 ### 5.4 RF Layout Guidelines
@@ -195,15 +198,16 @@ Total:             ~1.0mm
 
 | Connector | Type | Purpose |
 |-----------|------|---------|
-| J1 | SMA female | Antenna output |
-| J2 | U.FL | Internal test |
+| J3, J4 | SMA female end launch, gold | 2 m balun outputs (+X, −X elements) |
+| J5, J6 | SMA female end launch, gold | 70 cm balun inputs (+Y, −Y elements) |
+| — | U.FL pads (DNP) | EM test at the LPF input and FL1 output |
 
 ### 6.2 Interface Connectors
 
 | Connector | Type | Purpose |
 |-----------|------|---------|
-| J3 | Molex Pico-Clasp 4-pin | Power input |
-| J4 | JST-SH 4-pin | SPI control |
+| J2 | Molex Pico-Clasp 6-pin | RADIO_3V3 and PA_5V (W4B) |
+| J1 | Samtec FTSH-107 (14 pos) | KISS UART, TX_PWR_SEL, XPDR_EN, readbacks, monitors (W4A v2) |
 
 ---
 
@@ -221,7 +225,7 @@ Total:             ~1.0mm
 
 | Parameter | Value |
 |-----------|-------|
-| Material | Tin-plated steel or mu-metal |
+| Material | Nickel-silver or copper alloy, not tin-plated (EEE_PARTS_LIST Rev C §2A.3 item 5; 1.2: tin-plated steel removed) |
 | Height | 5mm |
 | Attachment | Solder to ground pads |
 | Ventilation | Not required (vacuum) |
@@ -263,10 +267,11 @@ Total:             ~1.0mm
 
 | Component | Max Power | Notes |
 |-----------|-----------|-------|
-| PA (1 W mode) | ≈ 1.7 W | ≈ 37 % efficiency |
-| Synthesizer | 0.3W | |
-| LNA | 0.1W | |
-| Total | ≈ 2.1 W keyed at 1 W | |
+| PA (1 W setting) | 0.86 W | 59 % PA efficiency, saturated |
+| PA (0.5 W) | 0.87 W | 42.6 % |
+| Synthesizer + audio ADC | 0.22 W | while keyed |
+| Receiver (always) | 0.10–0.13 W | |
+| Total | 1.26–1.38 W keyed + receiver | SQSO-RF-BRD-001 §11 |
 
 ### 9.2 Thermal Management
 
@@ -337,3 +342,4 @@ Total:             ~1.0mm
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 1.1 | 2026-10-27 | CDR review (communications panel): transmitter and receiver specifications to RF_DESIGN v2.0 (no 2 W level, 97.307(e) spurious, 3rd harmonic ≤ −70 dBc, ±1.0 ppm, receiver sensitivity, selectivity and RX filter); no T/R switch (full duplex on separate antennas); thermal at 1 W; interface lines per SQSO-ICD-003 v2.0 |
+| 1.2 | 2026-10-27 | CDR design completion, RF board | Tables corrected to the board design SQSO-RF-BRD-001: synthesizer, modulator, PA, filter, key components, board size (PC/104), 6-layer FR-4 stack-up, connectors, shield material (no tin-plated steel), dissipation |

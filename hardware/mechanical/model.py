@@ -60,7 +60,7 @@ P: Dict[str, float] = dict(
     bp_w=82.0, bp_h=98.0, sub_t=1.6, cell_t=0.35, cell_y=80.7, cell_z=80.15, cell_zc=3.0,
     gap=1.0,                                # body cells to wing back cells (bumpers)
     wing_y0=-41.0, wing_y1=40.6, wing_z0=-43.0, wing_z1=49.0,
-    hinge_x=54.1, hinge_y=38.75, knuckle_r=1.75,
+    hinge_x=54.1, hinge_y=38.75, knuckle_r=1.75, spring_r=2.0,   # hinge.py: springs OD 4.0 mm on the axis
     holddown_y=-38.5, holddown_z=-40.0, line_h=0.5, snub_z=46.0,
     # AntS (ISIS AntS 1U-3U: 98 x 98 x 7 mm, < 90 g, BUILD_VS_BUY 2.6; ANTENNA_DESIGN 2.0 section 2)
     ants_w=98.0, ants_t=7.0, ants_notch=10.0, tape_w=5.0, tape_t=0.5, vhf_len=500.0, uhf_len=170.0,
@@ -234,8 +234,8 @@ def build_parts(p=P) -> List[Part]:
     bh = p["bp_h"] / 2.0
     bw = p["bp_w"] / 2.0
     czc, czh, cyh = p["cell_zc"], p["cell_z"] / 2.0, p["cell_y"] / 2.0
-    kz = [(-42.8, -37.8), (43.6, 48.6)]                        # knuckle z ranges (end zones)
-    notch_z = [(-43.3, -37.3), (43.3, bh)]
+    kz = [(-49.0, -37.8), (43.6, 49.6)]                        # hinge hardware z ranges on the axis (hinge.py)
+    notch_z = [(-bh - 1.0, -37.3), (43.3, bh)]
     for ax, s in (("x", 1), ("x", -1), ("y", 1), ("y", -1)):
         lo, hi = sorted((s * wx["bp0"], s * wx["bp1"]))
         clo, chi = sorted((s * wx["bp1"], s * wx["bc1"]))
@@ -273,15 +273,22 @@ def build_parts(p=P) -> List[Part]:
         line = B(wx["wf1"], wx["line"], p["holddown_y"] - 1.5, p["holddown_y"] + 1.5, p["holddown_z"] - 1.5,
                  p["holddown_z"] + 1.5)
         snub = C("x", (0, p["holddown_y"], p["snub_z"]), 2.0, wx["bp1"], wx["wb1"])
-        knuck = [C("z", (hx, hy, 0), kr, kz[0][0], kz[0][1]), C("z", (hx, hy, 0), kr, kz[1][0], 46.1)]
-        leaf = [B(wx["shear_out"], hx - 1.0, 36.5, 40.0, kz[0][0], kz[0][1]),
-                B(wx["shear_out"], hx - 1.0, 36.5, 40.0, kz[1][0], 46.1)]
-        hinge = fuse(*(knuck + leaf))
-        flex = fuse(C("z", (hx, hy, 0), kr, 46.3, 48.6), B(wx["shear_out"], hx, 37.0, 37.5, 46.5, 48.4))
+        sr = p["spring_r"]
+        # -Z: frame ear (pin bearing, primary-spring frame leg) z -49.0 .. -47.6, leaf bolted to the shear panel;
+        # primary spring -47.6 .. -40.1 (below the wing, which ends at z = -43); wing-side knuckle = clock-spring
+        # flex cup -39.9 .. -37.3.
+        # +Z: wing knuckle 43.6 .. 44.6; secondary spring 44.8 .. 48.4; frame ear 48.6 .. 49.6 (hinge.py)
+        ears = [C("z", (hx, hy, 0), kr, -49.0, -47.8), B(wx["shear_out"], hx - 1.0, 36.5, 40.0, -48.5, -47.6),
+                C("z", (hx, hy, 0), kr, 48.6, 49.6), B(wx["shear_out"], hx - 1.0, 36.5, 40.0, 48.6, 49.6),
+                C("z", (hx, hy, 0), kr, 43.6, 44.6)]
+        hinge = fuse(*ears)
+        springs = fuse(C("z", (hx, hy, 0), sr, -47.6, -40.1), C("z", (hx, hy, 0), sr, 44.8, 48.4))
+        flex = fuse(C("z", (hx, hy, 0), sr, -39.9, -37.3), B(wx["shear_out"], hx, 37.0, 37.5, -39.5, -37.7))
         post = C("x", (0, p["holddown_y"], p["holddown_z"]), 1.5, wx["bp1"], wx["wf1"])
         sensor = B(wx["bp1"], wx["wb1"] - 0.2, 33.5, 36.3, kz[0][0], kz[0][1])
         burn = B(wx["shear_in"] - 2.0, wx["shear_in"], -41.0, -34.0, -45.0, -35.5)
-        doubl = [B(wx["shear_in"] - 1.0, wx["shear_in"], 35.0, 41.0, z0, min(z1, 48.4)) for z0, z1 in kz]
+        doubl = [B(wx["shear_in"] - 1.0, wx["shear_in"], 35.0, 41.0, z0, z1) for z0, z1 in ((-46.8, -42.0),
+                                                                                           (44.0, 48.4))]
         moving = dict(substrate=sub, back=back, front=front, line=line, snub=snub)
         ax0, ax1 = cq.Vector(hx, hy, 0), cq.Vector(hx, hy, 1)
 
@@ -293,11 +300,15 @@ def build_parts(p=P) -> List[Part]:
             (f"{tag}_cells_back", "wing", {rows[2]: 7.2}, back, True, COL["cell"], "2 x 3G30A"),
             (f"{tag}_cells_front", "wing", {rows[2]: 7.2}, front, True, COL["cell"], "2 x 3G30A"),
             (f"{tag}_holddown_line", "wing", {rows[1]: 0.5}, line, True, COL["mech"], "Vectran/Dyneema loop"),
-            (f"{tag}_snubber", "wing", {rows[1]: 1.0}, snub, True, COL["mech"], "silicone snubber, +Z free corner"),
-            (f"{tag}_hinges", "wing", {rows[1]: 7.0}, hinge, False, COL["mech"],
-             "knuckles 3.5 mm dia: -Z 5 mm, +Z 2.5 mm, frame leaves (springs: see MECHANICAL_DESIGN 6.3)"),
+            (f"{tag}_snubber", "wing", {rows[1]: 1.0}, snub, True, COL["mech"],
+             "PTFE-faced silicone snubber, +Z free corner"),
+            (f"{tag}_hinges", "wing", {rows[1]: 6.0}, hinge, False, COL["mech"],
+             "440C pin (MoS2) in Ti-6Al-4V bushings: frame ears at -Z and +Z, +Z wing knuckle"),
+            (f"{tag}_springs", "wing", {rows[1]: 1.0}, springs, False, COL["rod"],
+             "17-7PH CH900 torsion springs OD 4.0: primary 0.470 mm x 15.4 coils below the wing, secondary "
+             "0.343 mm x 9.5 coils at +Z, 55 deg preload (hinge.py)"),
             (f"{tag}_hinge_flex", "harness", {rows[1]: 2.0}, flex, False, COL["harness"],
-             "flex jumper clock-spring cup coaxial with the +Z hinge, tail into the body"),
+             "two-layer polyimide clock-spring flex (6 turns, R 1.0-1.6 mm) in the -Z wing knuckle, tail into the body"),
             (f"{tag}_holddown_post", "wing", {rows[1]: 1.0}, post, False, COL["mech"], "cup/cone post"),
             (f"{tag}_deploy_sensor_stop", "wing", {rows[1]: 1.0}, sensor, False, COL["mech"],
              "non-contact deployed-state sensor and soft stop"),
@@ -373,10 +384,17 @@ def build_parts(p=P) -> List[Part]:
              note="interconnect and sense board on the clamp (flying leads, no stack connector)"))
 
     # ---------------- deck, rods, GNSS receiver -----------------------------------------------------------
-    deck = B(-45.0, 45.0, -47.9, 47.9, -16.5, -15.5)
+    # skeleton deck (MCAD-02): 3 mm rim, column bosses, a strap under the X rod, two bars under the GNSS receiver and
+    # a strap to the upper centre support; Al 6061-T6 1.0 mm, about 8.6 g (row 5 allocates 9 g)
+    zd0, zd1 = -16.5, -15.5
+    rim = cut(B(-45.0, 45.0, -47.9, 47.9, zd0, zd1), B(-42.0, 42.0, -44.9, 44.9, zd0 - 1, zd1 + 1))
+    deck = fuse(rim, *[C("z", (sx * p["col_x"], sy * p["col_y"], 0), 5.0, zd0, zd1) for sx in (1, -1) for sy in (1, -1)],
+                B(-25.0, 25.0, 30.0, 42.0, zd0, zd1), B(-42.0, 42.0, -42.0, -36.0, zd0, zd1),
+                B(-42.0, 42.0, -4.0, 2.0, zd0, zd1), B(-3.0, 3.0, 2.0, 30.0, zd0, zd1),
+                C("z", (p["cs_x"], p["cs_y"], 0), 5.0, zd0, zd1))
     deck = cut(deck, *colholes, B(-60, -35.5, -6.5, 6.5, -60, 60), C("z", (p["cs_x"], p["cs_y"], 0), 1.6, -60, 60))
-    add(Part("torquer_deck", "frame", {"5": 6.0}, deck, color=COL["al"],
-             note="Al 1.0 mm deck on the stack columns: X rod, GNSS receiver, rod clips"))
+    add(Part("torquer_deck", "frame", {"5": 9.0}, deck, color=COL["al"],
+             note="skeleton deck, Al 1.0 mm (rim, bosses, straps): X rod, GNSS receiver, rod clips (MCAD-02)"))
     add(Part("rod_X", "adcs", {"27r": 16.5}, C("x", (0, 36.0, -10.25), 5.25, -23.5, 23.5), color=COL["rod"],
              note="CubeSpace CR0002, 10.5 x 10.5 x 47 mm, 16.5 g (CubeSpace Gen 2 brochure)"))
     add(Part("rod_Y", "adcs", {"27r": 16.5}, C("y", (42.0, 0, -32.9), 5.25, -23.5, 23.5), color=COL["rod"]))
@@ -442,7 +460,7 @@ def build_parts(p=P) -> List[Part]:
     spreader = fuse(B(-40, 40, jy - 27.0, jy + 33.0, zsp, zsp + 5.0),
                     B(-wx["shear_in"], -40, -20, 20, zsp + 2.0, zsp + 5.0),
                     B(40, wx["shear_in"], -20, 20, zsp + 2.0, zsp + 5.0))
-    add(Part("heat_spreader", "stack", {"23": 65.0, "5": 18.0}, spreader, color=COL["al"],
+    add(Part("heat_spreader", "stack", {"23": 65.0, "5": 15.0}, spreader, color=COL["al"],
              note="Al 6061 80 x 60 x 5 mm with 3 mm flanges bolted (4 x M2.5) to the +-X shear panels"))
     rf_top = fuse(B(-42, 42, P["shield_y0"], P["shield_y1"], P["z_rf"] + pt, P["z_rf"] + pt + 7.0),
                   B(-px + 1, px - 1, P["shield_y1"], py - 1, P["z_rf"] + pt, P["z_rf"] + pt + 2.0),
@@ -615,8 +633,8 @@ def protrusion_stack(p=P):
         "wing front cells": (wx["wf1"] - f, [t["rail_plane"], t["shear_face"], t["sub"], t["cell"], t["gap"],
                                              t["cell"], t["sub"], t["cell"]]),
         "hold-down line loop": (wx["line"] - f, [t["rail_plane"], t["shear_face"], t["post"], t["line"]]),
-        "hinge knuckle": (p["hinge_x"] + p["knuckle_r"] - f, [t["rail_plane"], t["shear_face"], t["hinge_axis"],
-                                                              t["knuckle_r"]]),
+        "hinge spring (OD 4.0)": (p["hinge_x"] + p["spring_r"] - f, [t["rail_plane"], t["shear_face"],
+                                                                     t["hinge_axis"], t["knuckle_r"]]),
     }
     out = {}
     for k, (nom, tols) in chains.items():
@@ -657,10 +675,10 @@ def run_checks(parts: List[Part], p=P, interference=True) -> Dict:
     item("CDS-2", "Rail envelope X and Y, 100.0 +- 0.1 mm", [rb[1] - rb[0], rb[3] - rb[2]], "100.0 +- 0.1",
          abs(rb[1] - rb[0] - 100) <= 0.1 and abs(rb[3] - rb[2] - 100) <= 0.1)
     item("CDS-3", "Rail width to the first protrusion >= 8.5 mm on each face (CDS 2.2.5)",
-         dict(knuckle_edge_from_rail_edge=hw - (p["hinge_y"] + p["knuckle_r"]),
+         dict(hinge_spring_edge_from_rail_edge=hw - (p["hinge_y"] + p["spring_r"]),
               panel_edge_from_rail_edge=hw - p["bp_w"] / 2.0,
               wing_edges=[hw - p["wing_y1"], hw + p["wing_y0"]]),
-         ">= 8.5", min(hw - (p["hinge_y"] + p["knuckle_r"]), hw - p["bp_w"] / 2.0, hw - p["wing_y1"],
+         ">= 8.5", min(hw - (p["hinge_y"] + p["spring_r"]), hw - p["bp_w"] / 2.0, hw - p["wing_y1"],
                        hw + p["wing_y0"]) >= p["rail"])
     item("CDS-4", "Rail ends >= 6.5 x 6.5 mm contact (CDS 2.2.8)", "8.5 x 8.5 solid standoff (less a 4.7 mm "
          "bore at the switch and plunger positions: 54.9 mm2 >= 42.3 mm2)", ">= 42.25 mm2",
@@ -676,7 +694,7 @@ def run_checks(parts: List[Part], p=P, interference=True) -> Dict:
     item("CDS-6", "No protrusion beyond 6.5 mm from the rail plane on +-X/+-Y (CDS 2.2.3), nominal CAD",
          dict(max_mm=side[worst], part=worst), "<= 6.5", side[worst] <= p["protrusion_max"])
     stack = protrusion_stack(p)
-    w = max(("wing front cells", "hold-down line loop", "hinge knuckle"), key=lambda k: stack[k]["worst"])
+    w = max(("wing front cells", "hold-down line loop", "hinge spring (OD 4.0)"), key=lambda k: stack[k]["worst"])
     item("STR-10", "Stowed-wing stack incl. tolerances <= 6.5 mm (worst case)", dict(
         nominal=stack[w]["nominal"], worst_case=stack[w]["worst"], rss=stack[w]["rss"], governing=w),
          "<= 6.5", stack[w]["worst"] <= 6.5)
@@ -767,15 +785,20 @@ def run_checks(parts: List[Part], p=P, interference=True) -> Dict:
     # harness past the hinges
     flex = byname["W1_hinge_flex"].stowed.BoundingBox()
     item("HAR-1", "Hinge flex jumper inside the 6.5 mm envelope and clear of the 8.5 mm rail zone",
-         dict(x_out=flex.xmax - hw, y_max=flex.ymax, bend_radius_available_mm=p["knuckle_r"] - 0.5),
-         "<= 6.5; y <= 41.5; MECH-001 4.2 assumes R >= 5 mm", flex.xmax - hw <= 6.5 and flex.ymax <= 41.5,
-         note="bend radius inside the cup ~1.25 mm, not the R >= 5 mm of the torque estimate (finding)")
-    spring_r = (4.0 + 0.55) / 2.0
-    item("MEC-1", "MECH-001 3 torsion spring (17-7PH 0.55 mm, mean dia 4 mm, ~22 coils = 12 mm) fits the hinge "
-         "envelope", dict(radius=spring_r, x_out=p["hinge_x"] + spring_r - hw, y_max=p["hinge_y"] + spring_r,
-                          length_needed=12.1, end_zone_free=5.0),
-         "x_out <= 6.5, y <= 41.5, length <= free end zone",
-         p["hinge_x"] + spring_r - hw <= 6.5 and p["hinge_y"] + spring_r <= 41.5 and 12.1 <= 5.0)
+         dict(x_out=flex.xmax - hw, y_max=flex.ymax, bend_radius_mm=[1.0, 1.6]),
+         "<= 6.5; y <= 41.5; bend radius >= IPC-2223 flex-to-install 0.82 mm",
+         flex.xmax - hw <= 6.5 and flex.ymax <= 41.5,
+         note="clock-spring flex in the -Z wing knuckle; torque allocation 0.5 mN m cold (hinge.py)")
+    sp = byname["W1_springs"].stowed.BoundingBox()
+    item("MEC-1", "Wing deployment springs (hinge.py: primary 7.5 mm, secondary 3.6 mm, OD 4.0) inside the hinge "
+         "envelope", dict(x_out=sp.xmax - hw, y_max=sp.ymax, z_ranges=[[-47.6, -40.1], [44.8, 48.4]]),
+         "x_out <= 6.5, y <= 41.5, within the free axis lengths", sp.xmax - hw <= 6.5 and sp.ymax <= 41.5)
+    # (z ranges: primary -47.6 .. -40.1, 7.5 mm; secondary 44.8 .. 48.4, 3.6 mm)
+    ear = byname["W1_hinges"].stowed.BoundingBox()
+    item("STR-16d", "Hinge hardware below the wing to the AntS tape band", dict(
+        vertical_gap_mm=ear.zmin - band_top, lateral_from_tape_line_mm=p["hinge_y"] - p["spring_r"] - p["tape_y"]),
+         ">= 10 mm in at least one direction", (p["hinge_y"] - p["spring_r"] - p["tape_y"]) >= 10.0,
+         note="the -Z ear sits 0.5 mm above the tape band but 36.75 mm from the 2 m tape line (y = 0)")
     return res
 
 
@@ -944,7 +967,7 @@ def drawings(parts: List[Part], outdir: str, checks: Dict, mprops: Dict):
     svg.rect(oxB - (hw + pr) * s, oyB - re * s, oxB + (hw + pr) * s, oyB + re * s)
     svg.dim(oxB - (hw + pr) * s, oyB + re * s, oxB - hw * s, oyB + re * s, 22, "6.5", size=7)
     calls = [(wx["wf1"], f"wing front cells {wx['wf1'] - hw:.2f}"), (wx["line"], f"hold-down line {wx['line'] - hw:.2f}"),
-             (P["hinge_x"] + P["knuckle_r"], f"hinge knuckle {P['hinge_x'] + P['knuckle_r'] - hw:.2f}")]
+             (P["hinge_x"] + P["spring_r"], f"hinge spring {P['hinge_x'] + P['spring_r'] - hw:.2f}")]
     for i, (xv, lab) in enumerate(calls):
         u = -xv
         y0 = oyB + P["wing_z0"] * -s
