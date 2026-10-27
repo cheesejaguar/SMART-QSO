@@ -1,7 +1,7 @@
 # SMART-QSO RF Board: Build-to Design
 
 **Document ID**: SQSO-RF-BRD-001
-**Version**: E
+**Version**: F
 **Date**: 2026-10-27
 **Status**: Build-to design for the engineering model (EM): schematic captured as code with selected, orderable parts,
 netlist, BOM, ERC, calculations and layout rules. Not built, not measured. Values follow
@@ -893,3 +893,4 @@ VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 s
 | D (amended) | 2026-10-27 | CDR round 3 (P3A-06, P3A-05) | One Ø 1.5 mm vent per shield lid (SH2–SH4) with positions; leakage 61/51/37 dB at 146 MHz/437 MHz/2.4 GHz, V/A ≤ 9.4 m (`rf_calcs.py` §17, §10). TCXO ageing decided (RFB-05): ground-side uplink correction, RF-P005 amended (§2, §6.5, §15 item 11) |
 | E | 2026-10-27 | CDR board FMEA (SQSO-FMEA-003 A: SMA-B11, SMA-B16) | SMA-B16: LMX2571 on its own TPS7A2033 (U805) from +5V_PA, EN on the PA_5V divider (was a TPS22918 from RADIO_3V3): 3.25 V minimum (100 mV margin) independent of 3V3_AO, second TX-permit path kept; keyed DC +0.08 W (1.84 W at 0.5 W, 2.42 W at 1 W), receive 0.102/0.127 W, board dissipation 1.34–1.46 W (§5, §7.3, §11). SMA-B11: TNC criterion 6 noise-floor check (`rf_calcs.py` §18), KISS STATUS loop query, RX_FAULT power-on self-test, meaning of RX_CD stuck high (§8.6); TNC firmware requirements TNC-FW-NF, -STAT, -POR, -CAL (§13); VI-RFB-10 extended; 193 nets |
 | E (amended) | 2026-10-27 | CDR thermal (THM-04) | Y451 to ABLS-3.6864MHZ-L4-T (−55 … +125 °C, ±30/±50 ppm) for the −40 °C first-orbit board cold case; was ABLS-3.6864MHZ-B4-T (−20 … +70 °C); harmonic plan rechecked at ±80 ppm (§12) |
+| F | 2026-10-27 | CDR parts temperature audit (SQSO-MFG-003) | Q601 cold-operation path (Mitsubishi statement before 2027-01-15, EM characterisation at −40 °C VI-RFB-14, TX_TEMP keying limit or CMX901 as fallbacks, §7.2); L106 20 nH → 0603HP-18NXGLU (FL1 0.73 dB worst, return loss ≥ 19.1 dB, 144–146 MHz ≥ 134 dB; T_sys 552–603 K, §6.1–§6.2); L605 → 0807SQ-10NGLC (10.2 nH, longer land pattern); BFP640F lifetime buy (60 pieces by 2027-03-31, §12); J1 plating code -L (TFM-108-01-L-D-RA); test temperature ranges −40 … +70 °C (VI-RFB-07, -09, -10, VI-RFB-15) |

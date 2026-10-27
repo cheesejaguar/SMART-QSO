@@ -577,7 +577,7 @@ antennas stowed.
 
 ## 15. GSE Umbilical
 
-J9 (Samtec TFM-105-01-S-D-RA, right-angle, 2 × 5, 1.27 mm, gold; pin list SQSO-ICX-001 §3.6) on the OBC's top side at
+J9 (Samtec TFM-105-01-L-D-RA, right-angle, 2 × 5, 1.27 mm, gold; pin list SQSO-ICX-001 §3.6) on the OBC's top side at
 the −X edge, its cable toward −X with the mated plug's back at most 2.0 mm inside the edge (x ≥ −43.1), carries W8A
 (10 × 30 AWG Samtec SFSDT, 0.145 m) down the (−X, −Y) bundle to the access-port board A3 at the −Y window (§15.1). On
 this board: SWD (22 Ω), **RST_REQ** (Version D, SMA-B14: J9-6 → 1 kΩ → the gate of Q1 2N7002BK, 100 kΩ gate

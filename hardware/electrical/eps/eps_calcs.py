@@ -243,8 +243,8 @@ def inhibits():
           "at -40 degC) before a DS1/DS3 FET starts to conduct at the 11.2 V minimum (requirement >= 10 ms; chatter shorter than "
           "this cannot power the bus). The gate capacitors are 68 nF from Version F (47 nF gave 8.8 ms at the cold corner).")
     # storage drain with the switches actuated (AFE in SHUTDOWN)
-    drain = [("BQ76952 SHUTDOWN (incl. TS2 wake source)", 1.0, 3.1), ("BQ771806 secondary protector", 1.0, 2.0),
-             ("BQ771806 cell inputs (4 x < 0.1 uA)", 0.1, 0.4), ("Q16 secondary-fuse FET leakage (PMV40UN2, 25 degC / 60 degC)", 0.05, 1.0),
+    drain = [("BQ76952 SHUTDOWN (incl. TS2 wake source)", 1.0, 3.1), ("BQ771806 secondary protector (battery sense board from Version F)", 1.0, 2.0),
+             ("BQ771806 cell inputs (4 x < 0.1 uA)", 0.1, 0.4), ("Q16 secondary-fuse FET leakage (PMV40UN2, sense board; 25 degC / 60 degC)", 0.05, 1.0),
              ("Q23 wake FET + DS2 gate network (contacts open)", 0.0, 0.1), ("Pack TVS D14 isolated by the open AFE FETs", 0.0, 0.0),
              ("AFE FETs Q1/Q2 off-state leakage to PACK_P (nothing returns)", 0.0, 0.0),
              ("Cell-tap filter capacitors (ceramic leakage, 9 x 0.1 uF)", 0.01, 0.1),
@@ -508,7 +508,7 @@ def thermal():
         ("U1 BQ76952 (NORMAL, balancing one cell 9 mA)", 0.016 * 0.3 + 4.1 * 0.009 * 0.5, None, 29.3, 15.0),
         ("U21 heater switch (TPS1H000) at 79 mA", 0.079 ** 2 * 1.6, None, 30.0, 15.0),
         ("U39 SW11 MTQ switch (TPS1H000) at the bridges' 0.23 A limit", MTQ_BRIDGE_LIMIT_A ** 2 * 1.6, None, 30.0, 15.0),
-        ("Q16 F3 heater FET at 1.55 A (one event, < 1 min)", 0.0, (1.55 ** 2 * 0.066, 60.0), 60.0, 20.0),
+        ("Q16 F3 heater FET at 1.55 A (one event, < 1 min; on the battery sense board from Version F)", 0.0, (1.55 ** 2 * 0.066, 60.0), 60.0, 20.0),
         ("Q20+Q21 EOL fire FETs at 1.46 A (one event)", 0.0, (1.46 ** 2 * 0.066, 60.0), 60.0, 20.0),
         ("U37 EPS controller + 4 INA3221 + 2 INA228 + logic", 0.040, None, 30.0, 15.0),
         ("Y1 oscillator + clock divider", 0.012, None, 40.0, 15.0),
