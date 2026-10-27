@@ -87,7 +87,7 @@ P: Dict[str, float] = dict(
     # magnetometer and RF shield (positions chosen to balance Iyz, MECHANICAL_DESIGN section 5)
     mag_x=24.0, mag_y=27.0, shield_y0=-40.0, shield_y1=14.0,
     rbf_x=20.0, rbf_z=-43.0, port_x=-20.0, port_z=-43.0, rbf_face=-1.0,
-    ants_config="A",
+    ants_config="hybrid",                   # ISIS AntS: four tapes, one per side (2 m +-X, 70 cm +-Y), RF design C
 )
 
 
@@ -527,9 +527,12 @@ def build_parts(p=P) -> List[Part]:
              note="Al 6061 80 x 60 x 5 mm with 3 mm flanges bolted (4 x M2.5) to the +-X shear panels; pedestal 22 x 22 x "
                   "0.75 mm over the SoC lid (flatness 0.05 mm) and a 0.5 mm second face over the DRAM and regulators"))
     rf_notch = B(37.0, 60, -60, -26.0, P["z_rf"] + pt - 0.1, P["z_rf"] + pt + 8.0)       # shield notch for J1 (RF C16)
+    rf_notch2 = B(-60, -30.0, -28.0, -16.0, P["z_rf"] + pt - 0.1, P["z_rf"] + pt + 8.0)   # shield notch for J3/J4
     rf_conn = [B(38.5, 43.5, -39.8, -27.2, P["z_rf"] + pt - 0.1, P["z_rf"] + pt + 9.0),
+               B(-46, -31.0, 16.0, 28.0, P["z_rf"] + pt - 0.1, P["z_rf"] + pt + 9.0),
+               B(-46, -31.0, -28.0, -16.0, P["z_rf"] + pt - 0.1, P["z_rf"] + pt + 9.0),
                B(-31.5, -20.5, -47.0, -41.0, P["z_rf"] + pt - 0.1, P["z_rf"] + pt + 9.0)]
-    rf_top = fuse(cut(B(-42, 42, P["shield_y0"], P["shield_y1"], P["z_rf"] + pt, P["z_rf"] + pt + 7.0), rf_notch),
+    rf_top = fuse(cut(B(-42, 42, P["shield_y0"], P["shield_y1"], P["z_rf"] + pt, P["z_rf"] + pt + 7.0), rf_notch, rf_notch2),
                   B(-px + 1, px - 1, P["shield_y1"], py - 1, P["z_rf"] + pt, P["z_rf"] + pt + 2.0),
                   B(-px + 1, px - 1, -py + 1, P["shield_y0"], P["z_rf"] + pt, P["z_rf"] + pt + 2.0))
     rf_top = cut(rf_top, *rf_conn)
@@ -584,7 +587,20 @@ def build_parts(p=P) -> List[Part]:
     # z -38.2 ... -27.6), y -20.5 ... -27.0 above it (0.5 mm from the spreader flange at y -20), leaving
     # y -28.5 ... -38.5 of the +X wall gap to the W4A ribbon from OBC J2 to RF J1
     hch.append(fuse(B(45.4, 48.4, -33.9, -24.0, zp["mz_in"], -26.0), B(45.4, 48.4, -27.0, -20.5, -26.0, zp["pz_in"])))
-    add(Part("harness_channels", "harness", {"32": 77.0, "31": 20.0, "26": 3.0}, fuse(*hch),
+    # W10 coax (RF board C 4.3): 1.37 mm cables from the MMCX jacks J3-J6 over the -X board edge, down the -X wall gap
+    # (70 cm pair y +20 ... +24, 2 m pair y -20 ... -24), inboard under the battery end caps and through the -Z end frame
+    coax = []
+    for y0, y1 in ((20.0, 24.0), (-24.0, -20.0)):
+        coax += [B(-48.4, -45.4, y0, y1, zp["mz_in"], P["z_rf"] + pt + 6.0),
+                 B(-45.4, -33.6, y0, y1, zp["mz_in"], zp["mz_in"] + 1.4),
+                 B(-35.0, -33.6, y0, y1, zp["mz_out"], zp["mz_in"])]
+    add(Part("coax_W10", "harness", {"32": 3.0}, fuse(*coax), color=COL["harness"],
+             note="W10: four 1.37 mm coax, right-angle MMCX plugs, 7 mm bend radius (RF board C 4.3)"))
+    mmcx = [B(-45.1, -31.5, 16.5, 27.5, P["z_rf"] + pt, P["z_rf"] + pt + 6.0),
+            B(-45.1, -31.5, -27.5, -16.5, P["z_rf"] + pt, P["z_rf"] + pt + 6.0)]
+    add(Part("RF_J3_J6_MMCX", "stack", {"18": 0.0}, fuse(*mmcx), color=COL["comp"],
+             note="MMCX jacks Molex 73415-1473 J3/J4 (2 m) at (-34.5, -19/-25), J5/J6 (70 cm) at (-34.5, +19/+25), mated"))
+    add(Part("harness_channels", "harness", {"32": 74.0, "31": 20.0, "26": 3.0}, fuse(*hch),
              color=COL["harness"], note="four bundles in the +-X wall gaps (the +X -Y one narrowed to 3 x 6.5 mm above z -26)"))
     j2z = P["z_obc"] + pt
     w4a = fuse(B(47.4, 48.4, -38.5, -28.5, j2z + 8.0, P["z_rf"] + pt + 9.0),          # flat, vertical in the gap

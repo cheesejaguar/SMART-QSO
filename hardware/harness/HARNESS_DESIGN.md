@@ -179,6 +179,8 @@ This document defines the electrical harness and interconnect design for the SMA
 
 ### 4.7 H7 - RF to Antenna
 
+> **Superseded** by W10 v3 (`hardware/diagrams/wiring/W10_rf_coax.yml`) and SQSO-RF-BRD-001 C §4.3 ([RF_BOARD_DESIGN.md](../electrical/rf/RF_BOARD_DESIGN.md)): four 1.37 mm cables with MMCX plugs from MMCX jacks J3–J6, down the −X wall gap at y ±(20 … 24) mm; the table below is the earlier RG-316/SMA definition.
+
 | Parameter | Value |
 |-----------|-------|
 | Cable | RG-316 coaxial |

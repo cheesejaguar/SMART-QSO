@@ -13,9 +13,9 @@ format), `rf_board_bom.csv` (BOM), `rf_board_erc.log` (electrical rule check), `
 (version 2); harnesses `hardware/diagrams/wiring/W4_rf_board.yml` (version 3) and `W10_rf_coax.yml` (version 3).
 
 **Governing documents**: [RF_DESIGN.md](../../../docs/hardware/RF_DESIGN.md) (SMART-QSO-RF-001 2.1),
-[TRANSMITTER_DESIGN.md](../../rf/TRANSMITTER_DESIGN.md) (SQSO-RF-TX-001 1.4),
-[RF_ELECTRICAL_DESIGN.md](../../rf/RF_ELECTRICAL_DESIGN.md) (SQSO-RF-003 1.2),
-[ANTENNA_DESIGN.md](../../rf/ANTENNA_DESIGN.md) (SQSO-RF-ANT-001 2.1),
+[TRANSMITTER_DESIGN.md](../../rf/TRANSMITTER_DESIGN.md) (SQSO-RF-TX-001 1.5),
+[RF_ELECTRICAL_DESIGN.md](../../rf/RF_ELECTRICAL_DESIGN.md) (SQSO-RF-003 1.3),
+[ANTENNA_DESIGN.md](../../rf/ANTENNA_DESIGN.md) (SQSO-RF-ANT-001 2.3),
 [BUILD_VS_BUY.md](../../../docs/hardware/BUILD_VS_BUY.md) §3, [ICD_OBC_RF.md](../../../docs/interfaces/ICD_OBC_RF.md)
 (SQSO-ICD-003 2.0), [LINK_BUDGET_ANALYSIS.md](../../../docs/environment/LINK_BUDGET_ANALYSIS.md) (SQSO-LBA-001 3.0),
 [EPS_DESIGN.md](../../../docs/hardware/EPS_DESIGN.md) 2.0, [EMC_ANALYSIS.md](../../../docs/environment/EMC_ANALYSIS.md),

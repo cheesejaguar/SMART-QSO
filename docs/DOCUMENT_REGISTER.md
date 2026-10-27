@@ -236,9 +236,9 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-OBC-002 | Storage Design Document | `hardware/obc/STORAGE_DESIGN.md` | 1.7 | Draft |
 | SQSO-PAY-JET-001 | Jetson Orin Nano Integration Design Document | `hardware/payload-jetson/INTEGRATION_DESIGN.md` | 1.1 | Draft |
 | SQSO-JET-002 | Jetson Payload Power Management | `hardware/payload-jetson/POWER_MANAGEMENT.md` | 1.1 | Draft |
-| SQSO-RF-ANT-001 | Antenna Design Document | `hardware/rf/ANTENNA_DESIGN.md` | 2.2 | Draft |
-| SQSO-RF-003 | RF Electrical Design Specification | `hardware/rf/RF_ELECTRICAL_DESIGN.md` | 1.2 | Draft |
-| SQSO-RF-TX-001 | RF Transmitter Design Document | `hardware/rf/TRANSMITTER_DESIGN.md` | 1.4 | Draft |
+| SQSO-RF-ANT-001 | Antenna Design Document | `hardware/rf/ANTENNA_DESIGN.md` | 2.3 | Draft |
+| SQSO-RF-003 | RF Electrical Design Specification | `hardware/rf/RF_ELECTRICAL_DESIGN.md` | 1.3 | Draft |
+| SQSO-RF-TX-001 | RF Transmitter Design Document | `hardware/rf/TRANSMITTER_DESIGN.md` | 1.5 | Draft |
 | SQSO-STR-001 | Structural Design Document | `hardware/structure/STRUCTURAL_DESIGN.md` | 1.4 | Draft |
 | SQSO-MECH-CAD-001 | SMART-QSO Mechanical Design: CAD Model and Structural Finite-Element Model | `hardware/mechanical/MECHANICAL_DESIGN.md` | B | Draft; envelope level |
 | SQSO-ICX-001 | SMART-QSO Spacecraft Electrical Interconnect (master pin allocation) | `hardware/electrical/INTERCONNECT.md` | B | Draft; build-to design, not yet fabricated |

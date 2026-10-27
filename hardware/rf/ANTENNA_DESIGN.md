@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-RF-ANT-001
-**Version:** 2.2
+**Version:** 2.3
 **Date:** 2026-10-27
 **Status:** CDR. Antenna bought (ISIS AntS 1U–3U, `docs/hardware/BUILD_VS_BUY.md` §2.6); configuration recommended here, to be confirmed by RFQ and a PI decision. Not measured.
 
@@ -85,7 +85,9 @@ the losses for handheld stations (SQSO-LBA-001 §5.3, finding 2).
 | Static bleed | 100 kΩ to ground at each RF connector on the board |
 | Isolation (ANT-5) | ≥ 25 dB at 146 MHz and ≥ 15 dB at 437 MHz between the 2 m and 70 cm ports; the orthogonal pairs help. With these values the board's receive filter holds the 2 m signal at ≤ −55 dBm at the LNA and the desense is ≤ 0.01 dB at 1 W (SQSO-RF-BRD-001 §6.3, §7.5) |
 | Power | 1 W continuous at 2 m, split 0.5 W per element (ANT-4) |
-| Contacts | Gold-plated connectors at the board; feed contacts on the AntS to be free of ferromagnetic material (ANT-8) |
+| Contacts | Gold-plated, non-magnetic MMCX jacks at the board; cable inner conductors silver-plated copper, not copper-clad steel; feed contacts on the AntS to be free of ferromagnetic material (ANT-8) |
+| AntS RF connectors | MMCX female assumed (ISIS antenna brochure); type, count and positions to confirm against the ISIS ICD (SQSO-RF-BRD-001 VI-RFB-13) |
+| Port-to-antenna loss | 0.44 dB at 146 MHz, 0.62 dB at 436 MHz, worst (cable, two MMCX pairs, in-phase mismatch; SQSO-RF-BRD-001 C §4.3) |
 
 ## 5. Mechanical and Operational
 
@@ -127,3 +129,4 @@ the losses for handheld stations (SQSO-LBA-001 §5.3, finding 2).
 | 2.0 | 2026-10-27 | CDR review (communications panel): ISIS AntS 1U–3U as bought (BUILD_VS_BUY §2.6); 70 cm element added; configuration options against the 6°/s spin with their fading and frame statistics (SQSO-LBA-001 §5), option C recommended, B as fall-back; requirements ANT-1 to ANT-8; RFQ questions; verification items. The custom design and 145.825 MHz are removed |
 | 2.1 | 2026-10-27 | CDR design completion, RF board | Baseline configuration recorded (2 m pair ±X, 70 cm pair ±Y, antiphase); §4.1 feed interface to the RF board (lattice baluns, matched coax, static bleed, isolation); RFQ question 1 restated |
 | 2.2 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Option table re-run at 8°/s and 475 km (SQSO-LBA-001 v3.2 §5) |
+| 2.3 | 2026-10-27 | CDR design completion, RF board | §4.1 feed interface to SQSO-RF-BRD-001 C §4.3: MMCX jacks and 1.37 mm cables (W10 v3) replace RG-316; AntS MMCX ports assumed (VI-RFB-13); port-to-antenna loss recorded |
