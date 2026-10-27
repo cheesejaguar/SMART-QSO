@@ -94,16 +94,16 @@ L-2 M licences and ephemeris demonstration).
 | S (separation) | Switches close; the OBC boots; EXOpod ejection 1.10–1.48 m/s, tip-off < 10°/s per axis | LV analysis |
 | S + 0–120 s | No actuation (UG v11 §3.3.4); timers running | SRS-F086; SIL first coil command at 121 s |
 | S + 120 s | B-dot detumble starts (magnetometer sampled 50 ms after a 900 ms coil burst) | ADCS_DESIGN 1.5 |
-| S + 30 min | Wings deployed (two resistors per wing, 0.8 A, 8 s), then the AntS over I²C; 33 % of cases burn in eclipse | SIL: wings 30.1 min, antennas 30.4 min |
+| S + 30 min | Wings deployed (two resistors per wing, 0.8 A, 8 s), then the AntS over I²C; 33 % of cases burn in eclipse | SIL: wings 30.2 min, antennas 30.6 min |
 | S + 45 min | RF silence ends and is latched; receiver on; first beacon in IDLE (template, 120 s) | SIL 45.0 min |
-| S + ≈ 1 h | Detumbled; spin-stabilized sun pointing of +Y at 8°/s | SIL 0.8 h; Monte Carlo ≤ 2.1 h |
+| S + ≈ 1 h | Detumbled; spin-stabilized sun pointing of +Y at 8°/s | SIL 0.2 h, first Sun acquisition 22–36 min; Monte Carlo ≤ 2.1 h |
 | S + 0.7–12.2 h | First pass over the Bay Area (median 5.2 h); first commanding pass median 6.3 h | Pass analysis |
 | ≤ 24 h after first contact | First operator ephemeris from the onboard GNSS fixes | UG v11 §9.5.7.2 |
 | Day 1–14 | Commissioning: telecommand checkout from each station, TX-OFF proven, housekeeping dump, power and thermal characterised, then COMMISSIONING_RELEASE; transponder and Jetson only after the release | `docs/operations/COMMISSIONING_PLAN.md`; SIL release at day 1.5 |
 | ≤ 30 d | Object claimed with the 18th SDS | REG-015 |
 | 2 years | Operations: transponder duty-gated (sunlit, SOC ≥ 55 %, ≤ 25 % of an orbit) | SIL full mission |
 | End of mission | Two-step passivation command: TX-OFF, then the one-shot charge disconnect | ICD-013 §6.4 |
-| ≤ 5 years after | Re-entry by natural decay with the wings deployed | ODAR Draft B §6 |
+| ≤ 5 years after | Re-entry by natural decay with the wings deployed | ODAR Draft C §6; SIL re-entry 2.02 years after the mission (4.02 after deployment) |
 
 ### 3.3 Margins at this review
 
@@ -118,11 +118,11 @@ L-2 M licences and ephemeris demonstration).
 | Wing deployment torque | NASA-STD-5017B torque margin ≥ 0 at end of travel | +0.14 cold, +0.13 one spring out | Positive | MECHANISMS_ANALYSIS B §4A |
 | Power, EOL, sun-pointed | ≥ 20 % | 3.93 W against 2.24 W (allocation) | +75 % | BASELINE §5; POWER_BUDGET_ANALYSIS 2.0 |
 | Power, EOL, tumbling | ≥ 20 % | 2.43 W against 1.84 W (allocation) | +32 % | BASELINE §5; POWER_BUDGET_ANALYSIS 2.0 |
-| Depth of discharge | ≤ 10 % per eclipse | ≤ 2.1 % as flown; 4.5 % worst contingency | × 2.2 | SIL |
+| Depth of discharge | ≤ 10 % per eclipse | ≤ 3.7 % as flown (SIL D, 475 km); 4.5 % worst contingency | × 2.2 | SIL_MISSION_SIMULATION D §7 |
 | Battery temperature | 0 to +45 °C charging | ≥ +4.4 °C with +5/+9 °C set points | — | THERMAL_ANALYSIS 2.0 |
 | Beacon link, 5° | ≥ 6 dB (median gain) | +7.6 dB | +1.6 dB | LINK_BUDGET 3.0 |
 | Telecommand link, 10° | 6 dB with interference allowance | +5.3 dB at 50 W PEP (6 dB from 12°) | −0.7 dB at 10° | LINK_BUDGET 3.0 |
-| Sun pointing | ±15° | mean 4.0°, 99.6 % within 15° | Met | BUILD_VS_BUY §6 |
+| Sun pointing | ±15° | mean 1.8°, p95 3.5°, 99.98 % within 15° (SIL); Monte Carlo 100 % of sunlit time | Met | SIL_MISSION_SIMULATION D §7; BUILD_VS_BUY §6 |
 | Detumble | ≤ 3 orbits | ≤ 2.1 h (≤ 1.4 orbits) | × 2.1 | BUILD_VS_BUY §6 |
 | Total dose, 2 mm Al | design 10 krad, margin ≥ 2 | 5.25 krad at 500 km | × 1.90 → ≥ 2.1 mm required | RADIATION_ANALYSIS C |
 | Orbital lifetime | ≤ 5 yr after mission, P ≥ 0.9 | P ≥ 0.98 at 475 km (planned-end reading) | Met; fallback 460 km | ODAR Draft B |

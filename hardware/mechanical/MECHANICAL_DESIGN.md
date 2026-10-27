@@ -181,13 +181,13 @@ The FE puts the gyro's 10 g on the OBC shells under the window footprint and giv
 
 | Input axis | Response x | Response y | Response z |
 |------------|-----------|-----------|-----------|
-| X | **22.0 Grms** | 4.4 | 12.5 |
-| Y | 3.3 | **25.0 Grms** | 10.5 |
-| Z | 1.9 | 3.2 | **23.8 Grms** |
+| X | **22.0 Grms** | 4.6 | 11.2 |
+| Y | 3.2 | **24.6 Grms** | 12.0 |
+| Z | 2.0 | 3.7 | **25.8 Grms** |
 
-About 2.7–3.1 times the input in the input axis (the stack modes at 326–396 Hz). The bracket on the deck would have
+About 2.7–3.2 times the input in the input axis (the stack modes at 332–412 Hz). The bracket on the deck would have
 put it on the 195 Hz deck, and a frame bracket does not exist (option 2). The 3σ motion of the carrier's window edge
-relative to the gyro is 0.09 mm against the 1.5 mm clearance. The comparison with Epson's vibration and shock
+relative to the gyro is 0.08 mm against the 1.5 mm clearance. The comparison with Epson's vibration and shock
 ratings for the M-G370 family is the OBC design's verification item V-OBC-16 (SQSO-OBC-BRD-001 §9.2; no isolator), with
 the EM board random test (VI-STR-02) and powered checks before and after.
 

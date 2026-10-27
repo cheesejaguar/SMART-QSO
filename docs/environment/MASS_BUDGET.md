@@ -82,9 +82,9 @@ is 81.6 × 92 mm instead of 83 × 98 mm (FR-4 1.8 g lighter per wing, not taken)
 2026-10-27):** two per board on the EPS, OBC and carrier boards at (0, ±21) mm and one at (0, 0) on the RF board, carried
 by row 34 (2 g of spacers). **Gyro (OBC item C3):** the M-G370PDT0 in its socket stands 14.0 mm above the OBC, more
 than the 11.4 mm to the carrier; it stays on the OBC at (−20, +30.5) mm and stands through a 27 × 27 mm window in the
-Jetson carrier, framed by a 2.2 g Al stiffener (SQSO-MECH-CAD-001 §4.3, D-11). No MEL change: row 25 is unchanged and
-row 21 (carrier, 40 g) carries the frame in place of the 2.2 g of FR-4 the window removes; the mass properties below
-include it. **Jetson thermal interface (SQSO-JET-BRD-001 §14, item M1):** the spreader carries a
+Jetson carrier, which is 2.0 mm thick instead of 1.6 mm (SQSO-MECH-CAD-001 §4.3, D-11; the bonded frame of the first
+issue is withdrawn). No MEL change: row 25 is unchanged and row 21 (carrier, 40 g CBE, 25 % growth) absorbs the 2.0 mm
+board's extra FR-4 (about 5.9 g with the window cut out); the mass properties below include it. **Jetson thermal interface (SQSO-JET-BRD-001 §14, item M1):** the spreader carries a
 22 × 22 × 0.75 mm pedestal over the SoC lid and a 0.5 mm second face over the DRAM and regulators: 1.8 g of Al on top of
 the 64.8 g plate: **row 23 raised from 65.0 to 66.6 g CBE** (chair, 2026-10-27; `mass_properties.py` updated): CBE
 1,494.3 g, MEV 1,727.7 g, margin +15.8 % (from +15.9 %) with rods; 1,575.7 / 1,826.5 g, +9.5 % with coils. The
@@ -384,7 +384,7 @@ its own inertia is included (not only its CG). Differences from the reference la
 | Boards | Boxes 90 × 96 × 6–12 mm at −12 … +36 | PC/104 substrates and component envelopes: EPS −3.0, OBC +5.0, carrier +18.0, module +23.6, spreader +27.8, RF +34.8 (substrate bottom z) | CG +1 to +3 mm in Z |
 | Jetson module and spreader | Centred | Module centred at y −6, spreader at y −3, SO-DIMM on the −Y edge, centre supports at (0, ±21): chosen to cancel Iyz | Iyz → 0 |
 | RBF, access port | (20, −47, −20) | −Y face, −Z end zone of the panel (no cells there): (±20, −50, −43) | Iyz |
-| Gyro M-G370PDT0 (row 25) | Inside the OBC box | On the OBC in its socket at (−20, +30.5), 14.0 mm high, through a window in the carrier with a 2.2 g Al stiffening frame (OBC item C3) | with the carrier items below: axis 1.5° / 0.5° with two antenna elements (from 0.2° / 1.6°) |
+| Gyro M-G370PDT0 (row 25) | Inside the OBC box | On the OBC in its socket at (−20, +30.5), 14.0 mm high, through a window in the 2.0 mm carrier (OBC item C3) | with the carrier items below: axis 1.5° / 0.5° with two antenna elements (from 0.2° / 1.6°) |
 | Magnetometer (rows 24, 26; OBC item C13) | Module box at (+30, +30, −46) | Board A2 (RM3100) in the +Z slot at (+24, +27), board on the end frame and parts below it; Ti screws (row 24's 10 g and row 26's 2 g kept: no MEL change) | small (CG and inertia as for the slot allocation) |
 | Jetson thermal interface (rows 20–23; SQSO-JET-BRD-001 §14) | Spreader plate on a TIM layer | Spreader pedestal 22 × 22 × 0.75 mm over the SoC lid and a 0.5 mm second face (1.8 g Al, row 23), gap pads 1.0 / 2.0 mm (row 22), steel module standoffs MP2/MP3 (0.8 g, row 21) | small |
 | Harness | One 90 mm box | Four bundles in the ±X wall gaps at y = ±(24 … 34) mm, full height | Ixy, Iyz → 0 |
