@@ -231,9 +231,10 @@ def pin_name(n):
 
 # ================================================================================================= blocks
 def input_and_filter():
-    j = place(CONN("MicroFit_2x2", [(1, "P1"), (2, "P2"), (3, "P3"), (4, "P4")]), "J1", "VBAT IN", "0430450412", "Molex",
-              "Micro-Fit 3.0 2x2 vertical", "5 A/contact", "1.30 A (EPS eFuse max) on 2 contacts: 13 %",
-              "W5A from EPS J18: VBAT_JET x2, GND x2", "Sn", "Digi-Key: Active (EPS board J18 mate)")
+    j = place(CONN("MicroFit_2x2", [(1, "P1"), (2, "P2"), (3, "P3"), (4, "P4")]), "J1", "VBAT IN", "43045-0400 class, Au (gold-plated variant)", "Molex",
+              "Micro-Fit 3.0 2x2 right-angle header, mating face to -X", "5 A/contact", "1.30 A (EPS eFuse max) on 2 contacts: 13 %",
+              "W5A from EPS J18: VBAT_JET x2, GND x2; plug from -X (HARNESS_DESIGN 2.0 J-1)", "Au (tin prohibited: EEE_PARTS_LIST 2A.3 item 5)",
+              "open: Molex gold-plating suffix of 43045-0400 not confirmed (molex.com unreachable); same class as EPS item E-2")
     conn(j, {"P1": "VBAT_IN", "P2": "VBAT_IN", "P3": "GND", "P4": "GND"})
     ic(S_TVS2200, "D1", "TVS2200", "TVS2200DRVR", "TI", "WSON-6 (DRV)",
        "22 V VRWM, VBR 24.6 V min, 28 V clamp at 40 A (8/20 us), -40..125 C",
@@ -413,10 +414,10 @@ def io_rails():
 
 
 def obc_link():
-    j = place(CONN("PicoClasp_6", [(i, f"P{i}") for i in range(1, 7)]), "J2", "OBC LINK", "5013310607", "Molex",
+    j = place(CONN("PicoClasp_6", [(i, f"P{i}") for i in range(1, 7)]), "J2", "OBC LINK", "501331-0607 class, Au (gold-plated variant)", "Molex",
               "Pico-Clasp 1.0 mm 6 pos SMT", "1 A/contact", "< 1 mA",
               "W5B: GND, JET_RXD (OBC TX), JET_TXD (OBC RX), JET_3V3, PT_NTC, PT_RTN (pins 5-6: proposed change E10)",
-              "Sn", "Digi-Key: Active (EPS/OBC boards)")
+              "Au (tin prohibited: EEE_PARTS_LIST 2A.3 item 5)", "open: Molex gold suffix of 501331-0607 not confirmed (HARNESS_DESIGN 2.0 table 3.1)")
     conn(j, {"P1": "GND", "P2": "JET_RXD", "P3": "JET_TXD", "P4": "JET_3V3", "P5": "PT_NTC", "P6": "PT_RTN"})
     esd4("D2", ["JET_RXD", "JET_TXD", "JET_3V3", "PT_NTC"], "ESD at J2 (W5B)")
     # UART1 of the module (1.8 V) <-> 3.3 V harness: U10 module TX -> OBC, U11 OBC -> module RX
@@ -434,9 +435,9 @@ def obc_link():
     R(33, "JET_RXD", "JET_RXD_B", note="series, as the OBC side")
     R(100e3, "3V3_IO", "JET_RXD_B", note="idle high while the OBC side is high-impedance")
     # spreader thermistor pass-through: J3 (flying leads of RT1 on the spreader) -> J2-5/6; never powered by the carrier
-    j3 = place(CONN("PicoClasp_2", [(1, "P1"), (2, "P2")]), "J3", "SPREADER NTC", "5013310207", "Molex",
-               "Pico-Clasp 1.0 mm 2 pos SMT", "1 A/contact", "< 0.2 mA", "RT1 leads from the heat spreader", "Sn",
-               "Digi-Key: Active (EPS board)")
+    j3 = place(CONN("PicoClasp_2", [(1, "P1"), (2, "P2")]), "J3", "SPREADER NTC", "501331-0207 class, Au (gold-plated variant)", "Molex",
+               "Pico-Clasp 1.0 mm 2 pos SMT", "1 A/contact", "< 0.2 mA", "RT1 leads from the heat spreader",
+               "Au (tin prohibited: EEE_PARTS_LIST 2A.3 item 5)", "open: Molex gold suffix of 501331-0207 not confirmed")
     conn(j3, {"P1": "PT_NTC", "P2": "PT_RTN"})
     p = place(TNTC, "RT1", "10k NTC", "GA10K3MCD1", "TE Connectivity (Measurement Specialties)", "epoxy bead, 0.25 mm leads",
               "10 kOhm at 25 C, +/-0.2 C 0-70 C, B25/85 3976 K (10K3A curve), -40..125 C", "bias current set by the OBC (<= 0.2 mA)",
@@ -499,8 +500,10 @@ def nvme():
 
 def debug_header():
     pins = [(i, f"P{i}") for i in range(1, 11)]
-    j = place(CONN("FTSH_2x5", pins), "J6", "DEBUG", "FTSH-105-01-L-DV-K", "Samtec", "FTSH 1.27 mm 2x5 SMT", "2.4 A/contact",
-              "signals only", "GSE only (flashing and console); unmated in flight, covered", "Au", "Samtec part family as OBC/EPS")
+    j = place(CONN("FTSH_2x5", pins), "J6", "DEBUG", "FTSH-105-01-F-DV-K", "Samtec", "FTSH 1.27 mm 2x5 SMT", "2.4 A/contact",
+              "signals only", "GSE only (flashing and console); unmated in flight, covered",
+              "Au: plating option F (gold on contacts and tails) instead of L (matte-tin tails)",
+              "open: Samtec plating code F for FTSH to be confirmed on the Samtec configurator")
     conn(j, {"P1": "USB0_DP", "P2": "USB0_DN", "P3": "GND", "P4": "DBG_TXD", "P5": "DBG_RXD", "P6": "GND",
              "P7": "FORCE_RECOVERY_N", "P8": "DBG_SYS_RESET", "P9": "GND", "P10": "DBG_LATCH"})
     R(100, "UART2_TXD", "DBG_TXD", note="debug console (UART2, 1.8 V CMOS, /dev/ttyTCU0)")

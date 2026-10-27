@@ -1,7 +1,7 @@
 # SMART-QSO Spacecraft Electrical Interconnect
 
 **Document ID**: SQSO-ICX-001
-**Version**: B
+**Version**: C
 **Date**: 2026-10-27
 **Status**: CDR build-to interconnect: master pin allocation of the OBC's STM32L4R5ZIT6 and the board-to-board signal
 list. Generated in part from the OBC schematic source (`hardware/electrical/obc/design.py` → `obc_pinmap.csv`); where
@@ -11,11 +11,13 @@ built or measured.
 **Owners**: OBC board and interconnect (this document, [OBC_BOARD_DESIGN.md](obc/OBC_BOARD_DESIGN.md), SQSO-OBC-BRD-001);
 EPS board [EPS_BOARD_DESIGN.md](eps/EPS_BOARD_DESIGN.md) (SQSO-EPS-BRD-001); RF board
 [RF_BOARD_DESIGN.md](rf/RF_BOARD_DESIGN.md) (SQSO-RF-BRD-001). Harness drawings: `hardware/diagrams/wiring/W*.yml`
-(WireViz; W3, W5, W6, W8, W9 version 2 from this document; W4, W7, W10 from the RF and EPS boards).
+(WireViz; W3, W5, W6, W8, W9 from this document; W4, W7, W10 from the RF and EPS boards); wire list
+`hardware/harness/wire_list.csv` (SQSO-HAR-001 2.0, governs gauges, lengths and routes).
 
-**Governing documents**: `docs/BASELINE_PARAMETERS.md` Rev D (governs every value); `docs/interfaces/ICD_OBC_EPS.md`
-(SMART-QSO-ICD-001), `ICD_OBC_JETSON.md` (SMART-QSO-ICD-002), `ICD_OBC_RF.md` (SQSO-ICD-003 2.1), `ICD_OBC_ADCS.md`
-(SQSO-ICD-004); `hardware/harness/HARNESS_DESIGN.md` (SQSO-HAR-001: connector families §3.1, wire derating §5.2).
+**Governing documents**: `docs/BASELINE_PARAMETERS.md` Rev E (governs every value); `docs/interfaces/ICD_OBC_EPS.md`
+(SMART-QSO-ICD-001), `ICD_OBC_JETSON.md` (SMART-QSO-ICD-002), `ICD_OBC_RF.md` (SQSO-ICD-003 2.2), `ICD_OBC_ADCS.md`
+(SQSO-ICD-004); `hardware/harness/HARNESS_DESIGN.md` (SQSO-HAR-001 2.0: connector families §3.1, access-port board A3 §3.2, wire
+derating §5.2).
 
 ---
 
@@ -42,8 +44,10 @@ Rules applied to the allocation:
 4. **No back-power.** No OBC output drives a board or sensor whose supply may be off unless it passes a part with
    Ioff/VCC isolation powered from that supply (§5); lines from boards that stay powered while the OBC is off carry
    series resistance that limits the current into the unpowered OBC to 2.7 mA in total (OBC_BOARD_DESIGN §16).
-5. **Wire gauge** per SQSO-HAR-001 §5.2 with 50 % derating: 28 AWG carries ≤ 0.25 A, 26 AWG ≤ 0.5 A, 24 AWG ≤ 1 A,
-   22 AWG ≤ 2 A, 20 AWG ≤ 3 A.
+5. **Wire gauge and derating** per SQSO-HAR-001 2.0 §5.2: NASA EEE-INST-002 (section W1, 200 °C wire in vacuum) times
+   the bundle factor (29 − N)/28 (0.5 above 15 conductors), contacts at ≤ 50 % of their rating; the gauge follows the
+   terminal (Pico-Clasp 28 AWG, Micro-Fit 22–24 AWG, Samtec SFSDT 30 AWG). Version B's table (50 % of a commercial
+   rating) is withdrawn. The ampacity of every power harness is in SQSO-HAR-001 2.0 §9.1.
 
 ## 2. Boards, Connectors and Harnesses
 
@@ -123,7 +127,7 @@ coax only.
 
 Direction is seen from the OBC (out = OBC drives). "Reset" is the line's state while the OBC is in reset or unpowered.
 
-### 3.1 W3: EPS J3 ↔ OBC J1 (40 positions, 28 AWG ribbon, 0.06 m)
+### 3.1 W3: EPS J3 ↔ OBC J1 (40 positions, Samtec SFSDT 30 AWG on TFM-120, 0.065 m)
 
 | Pin | Signal | Dir | Level | Reset / OBC off | OBC pin (series part) | EPS function |
 |----:|--------|-----|-------|-----------------|-----------------------|--------------|
@@ -163,7 +167,7 @@ Direction is seen from the OBC (out = OBC drives). "Reset" is the line's state w
 Wire currents: 3V3_OBC 0.088 A per wire at the SW10 trip (35 % of 0.25 A); VBAT_MTQ 0.115 A per wire at the bridges'
 limit (46 %); all others < 5 mA.
 
-### 3.2 W4A: OBC J2 ↔ RF J1 (16 positions, 28 AWG, 0.06 m); W4B power EPS J19 ↔ RF J2
+### 3.2 W4A: OBC J2 ↔ RF J1 (16 positions, Samtec SFSDT 30 AWG on TFM-108 right-angle, 0.075 m); W4B power EPS J19 ↔ RF J2 (28 AWG)
 
 From SQSO-RF-BRD-001 §4.1 (the RF side) and the OBC board (the OBC side). RF→OBC digital lines are 3.1 V CMOS
 push-pull: VOH ≥ 2.9 V against the STM32's VIH 2.31 V.
@@ -186,7 +190,8 @@ push-pull: VOH ≥ 2.9 V against the STM32's VIH 2.31 V.
 | 16 | RX_FAULT | in | high = receiver fault | **low = healthy** when unwired, open or the radio off (OBC 100 kΩ pull-down) | **PF13** EXTI13 (10 kΩ, 100 kΩ pull-down) | 1 kΩ, push-pull from V_DIG, 100 kΩ pull-down (**new, version 3**, SQSO-RF-BRD-001 B §4.1) |
 
 RADIO_EN and RF_TX_EN switch the RF board's rails on the EPS (W3 pins 10, 14) and reach the RF board as power on W4B
-(RADIO_3V3 J2-1, PA_5V J2-3/4, 24 AWG). W4B runs **PA_5V and its returns as twisted pairs** (J2-3 with J2-2,
+(RADIO_3V3 J2-1, PA_5V J2-3/4, 28 AWG, Pico-Clasp 6 at both ends: 0.536 A per wire at the SW3 limit, 60 % of the
+EEE-INST-002 derated 0.90 A). W4B runs **PA_5V and its returns as twisted pairs** (J2-3 with J2-2,
 J2-4 with J2-5; RADIO_3V3 J2-1 twisted with J2-6) so the 0.47 A PA current adds no loop field at magnetometer A2;
 RF J2 is on the RF board's −Y edge at (−26, −44), by the PA (SQSO-RF-BRD-001 B §4.2). The readbacks are valid while RADIO_3V3 is on and read low through the OBC's
 pull-downs when it is off. The receiver is ready ≤ 50 ms after RADIO_EN (RF board §15 item 12).
@@ -204,7 +209,9 @@ pull-downs when it is off. The receiver is ready ≤ 50 ms after RADIO_EN (RF bo
 | W5B OBC J3-5 | PT_NTC | analog in | spreader thermistor RT1 (TE GA10K3MCD1, 10 kΩ NTC) biased by the OBC: 10.0 kΩ 0.1 % from VDDA; 2.93 V at −15 °C, 1.65 V at 25 °C, 0.49 V at 70 °C | **readable with the carrier off** (the carrier passes the leads through, unpowered) | 1 kΩ → **PA2 ADC1_IN7** (100 nF) | RT1 on the spreader, J2-5 on the carrier |
 | W5B OBC J3-6 | PT_RTN | — | NTC return | — | GND at J3 | J2-6 on the carrier |
 
-W5A 2 × 22 AWG per pole (0.47 A per wire at the guard trip, 23 % of 2 A). W5B 28 AWG, 6 wires (Pico-Clasp 5013310607 at both ends; interface change E10 of the carrier board).
+W5A 24 AWG twisted quad, two wires per pole (0.84 A per wire worst case, 51 % of the derated 1.65 A; Micro-Fit 2×2,
+right-angle at the carrier). W5B 28 AWG, three pairs (Pico-Clasp 6, gold, at both ends; interface change E10 of the
+carrier board).
 
 ### 3.4 W6: ADCS (sensor rail, rods, sun sensors)
 
@@ -216,13 +223,13 @@ W5A 2 × 22 AWG per pole (0.47 A per wire at the guard trip, 23 % of 2 A). W5B 2
 | W6C J7-3/4 | MTQ_Y_P / N | as X | U23 | rod Y |
 | W6C J7-5/6 | MTQ_Z_P / N | as X | U24 | rod Z |
 | W6D OBC J8-1/2 … 11/12 | CSS_PX_K/A, MX, PY, MY, PZ, MZ | photocurrent ≤ 4.0 mA (at AM0 normal incidence: requirement on the panel vendor) | U17–U19 TLV9002-Q1 transimpedance (619 Ω) → U16 ADS7138-Q1 AIN0–5 | panel photodiodes, cathode to K |
-| W6D J8-13/14 | shield drains | — | GND at J8 only | — |
+| W6D J8-13/14 | not used (Version C: W6D unshielded, no drains) | — | unconnected; J8 may become a Pico-Clasp 12 | — |
 | W6E OBC J10-1/2/6 | 3V3_SNS, GND | 3.3 V, < 1 mA (RM3100) | U7 latch-up switch (50–100 mA) | magnetometer board A2 J1 |
 | W6E J10-3/4 | SDA_S, SCL_S | I2C, 4.7 kΩ on the OBC SNS side, 100 kHz recommended | U14 TCA9517-Q1 (SNS side) | RM3100 at 0x20 |
 | W6E J10-5 | MG_DRDY | 3.3 V, high = conversion done | U33 → PD11 (EXTI11) | RM3100 DRDY |
 
-W6B, W6C 26 AWG (W6C twisted pairs, 25 % of 0.5 A at the hardware limit; W6B 68 % at the SW4 trip, transient);
-W6D 28 AWG twisted pairs under one shield. W6E 28 AWG, 0.10 m (about 0.06 m routed up the (+X, +Y) bundle, MECHANICAL_DESIGN §6.9, plus a service loop) to the
+W6B, W6C 28 AWG pairs (the Pico-Clasp terminal; W6B 38 % of the derated 0.90 A at the SW4 trip, W6C 14 % at the
+hardware limit); W6D six unshielded twisted 28 AWG pairs (SQSO-HAR-001 2.0). W6E 28 AWG, 0.10 m (about 0.06 m routed up the (+X, +Y) bundle, MECHANICAL_DESIGN §6.9, plus a service loop) to the
 +Z end frame; any excess is stowed below z +20, away from A2.
 
 ### 3.5 W9: GNSS receiver (SkyFox piNAV-NG/FM)
@@ -236,32 +243,36 @@ W6D 28 AWG twisted pairs under one shield. W6E 28 AWG, 0.10 m (about 0.06 m rout
 | W9A J5-5 | GNSS_1PPS | in | 3.3 V pulse | U32 → PC6 TIM3_CH1 input capture | 1PPS |
 | W9A J5-6 | GND | — | — | — | GND |
 
-26 AWG (0.232 A at the trip, 46 %). The receiver-side connector and pin order follow the SkyFox interface document
+28 AWG pairs (0.232 A at the SW7 trip, 26 % of the derated 0.90 A). The receiver-side connector and pin order follow the SkyFox interface document
 (open: closure when the EM unit is bought; the wire functions do not change).
 
 ### 3.6 W8: GSE access port (OBC J9) and the charging path
 
 The access window is on the −Y face in the −Z end zone (MECHANICAL_DESIGN §6.4), 48 mm below the OBC: OBC J9
-(Samtec FTSH-105, top side) connects through an internal harness W8A (28 AWG, 0.15 m: about 0.10 m routed plus a service loop, excess stowed below z +20, away from A2) to a
-2 × 5 2.54 mm bulkhead header at the window (harness designer's part), into which the GSE cable W8B plugs. The pin
-numbers below hold at both ends of W8A.
+(Samtec TFM-105 right-angle, top side) connects through an internal harness W8A (10 × 30 AWG SFSDT, single-ended,
+0.145 m, (−X, −Y) bundle) soldered to the **access-port board A3** at the window (SQSO-OBC-BRD-001 C §15.1;
+SQSO-HAR-001 2.0 §3.2), whose gold **Micro-D 21 socket receptacle** the GSE cable W8B mates. The 2 × 5 2.54 mm bulkhead
+of Version B is withdrawn (larger than the window). The pin column below is OBC J9; the Micro-D pin is in the last column.
 
-| Pin | Signal | Dir | OBC side | GSE |
-|----:|--------|-----|----------|-----|
-| 1 | VTREF | out | 3V3_OBC through 100 Ω | probe reference sense; jumpered to pin 9 in the plug |
-| 2 | SWDIO | bidir | PA13 (22 Ω) | SWD probe |
-| 3, 10 | GND | — | — | — |
-| 4 | SWCLK | in | PA14 (22 Ω) | SWD probe |
-| 5 | WDT_DIS | in | TPS3850 SET0 (10 kΩ; 100 kΩ pull-down) | switch to VTREF: external watchdog disabled after the next supervisor reset |
-| 6 | NRST | bidir | NRST (100 Ω) | probe reset |
-| 7 | USART3_TX | out | PD8 (100 Ω) | console, key loading |
-| 8 | USART3_RX | in | PD9 (10 kΩ, 100 kΩ pull-up) | console |
-| 9 | UMBILICAL_SENSE | in | PB8 (1 kΩ, 100 kΩ pull-down): high = present | tied to pin 1 in the plug |
+| J9 pin | Signal | Dir | OBC side | GSE | A3 Micro-D pin |
+|----:|--------|-----|----------|-----|---:|
+| 1 | VTREF | out | 3V3_OBC through 100 Ω | probe reference sense; jumpered to UMBILICAL_SENSE in the plug | 1 |
+| 2 | SWDIO | bidir | PA13 (22 Ω) | SWD probe | 2 |
+| 3, 10 | GND | — | — | — | 3, 14 |
+| 4 | SWCLK | in | PA14 (22 Ω) | SWD probe | 4 |
+| 5 | WDT_DIS | in | TPS3850 SET0 (10 kΩ; 100 kΩ pull-down) | switch to VTREF: external watchdog disabled after the next supervisor reset | 5 |
+| 6 | NRST | bidir | NRST (100 Ω) | probe reset | 6 |
+| 7 | USART3_TX | out | PD8 (100 Ω) | console, key loading | 7 |
+| 8 | USART3_RX | in | PD9 (10 kΩ, 100 kΩ pull-up) | console | 12 |
+| 9 | UMBILICAL_SENSE | in | PB8 (1 kΩ, 100 kΩ pull-down): high = present | tied to VTREF in the plug | 13 |
+| — (W11 from EPS J13) | UMB_VMON; PACK_N; UMB_SHUT; UMB_CHG | — | EPS §6.5 | charger, pack voltmeter, AFE shutdown | 9; 10, 11; 19; 20, 21 |
+| — | not connected (separation of the charge cluster from the debug pins) | — | — | — | 8, 15–18 |
 
 Key loading (SQSO-ICD-013 §9.2) needs UMBILICAL_SENSE high, which only the GSE plug provides. The battery is charged
 through the EPS's access-port connector J13 (W11: UMB_CHG through F5 and D16 to PACK_P, return PACK_N, pack monitor
-UMB_VMON through 100 kΩ, AFE shutdown UMB_SHUT; SQSO-EPS-BRD-001 §6.5), reached through the same access window. The
-ESD arrays at J9 and J13 protect both. W8 is not flown.
+UMB_VMON through 100 kΩ, AFE shutdown UMB_SHUT; SQSO-EPS-BRD-001 §6.5), reached through the same Micro-D on A3; PACK_N is never joined to GND on A3, and the
+Micro-D shell bonds to the frame only. ESD at the window is on A3 (debug lines to GND, charge lines to PACK_N),
+behind it at OBC J9 and EPS J13. W8B is not flown; W8A and A3 are.
 
 ## 4. Master Pin Allocation: STM32L4R5ZIT6 (LQFP-144)
 

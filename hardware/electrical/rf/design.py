@@ -243,25 +243,31 @@ def lcode(nh: float) -> str:            # Coilcraft inductance code: 22N, 6N8, R
 
 
 # =============================================================================================== connectors
-part("J1", "Conn 16p 1.27 mm", "OBC-RF signals (W4A)", "FTSH-108-01-L-DV-K", "Samtec", "FTSH-108-01-L-DV-K",
-     "1.27 mm, 3.1 A/contact (single contact), -55..+125 C",
+part("J1", "Conn 16p 1.27 mm right-angle", "OBC-RF signals (W4A)", "TFM-108-01-S-D-RA", "Samtec",
+     "TFM-108 right-angle, 2 x 8, 1.27 mm (Tiger Eye)", "1.27 mm, -55..+125 C; mates Samtec SFSDT (latched, PTFE)",
      [(1, "GND1", P, "GND"), (2, "OBC_TX", P, "UART_OBC_TX_J"), (3, "TNC_TX", P, "UART_TNC_TX_J"), (4, "GND4", P, "GND"),
       (5, "TX_PWR_SEL", P, "TX_PWR_SEL_J"), (6, "XPDR_EN", P, "XPDR_EN_J"), (7, "GND7", P, "GND"),
       (8, "TONE_OK", P, "TONE_OK_RB"), (9, "XPDR_KEY", P, "XPDR_KEY_RB"), (10, "PTT_EXC", P, "PTT_EXC_RB"),
       (11, "TX_TEMP", P, "TX_TEMP"), (12, "TX_FWD", P, "TX_FWD"), (13, "TX_REV", P, "TX_REV"), (14, "AGND", P, "GND"),
       (15, "RX_CD", P, "RX_CD_J"), (16, "RX_FAULT", P, "RX_FAULT_J")],
-     "signal currents < 5 mA (< 1 %)", "W4 v3 pinout (16 positions: v2 had 14, v1 10; RX_CD and RX_FAULT added, RID RFB-07). Tails matte tin over Ni: re-tin; gold contacts. "
-     "Placement (C16): top side, (+X, -Y) corner at the +X edge, pin field along Y centred about (+41.0, -33.5), "
-     "clear of the (+40, -43) column keep-out; the shield's corner is notched for it (§10)",
-     "Samtec series page not read in this session; MPN from the existing W4 harness family")
-part("J2", "Conn 6p 1.00 mm Pico-Clasp", "EPS-RF power (W4B)", "501331-0607", "Molex", "Pico-Clasp 1x6 vertical SMT",
+     "signal currents < 5 mA (< 1 %)", "W4 pinout (16 positions; RX_CD and RX_FAULT, RID RFB-07). Right-angle TFM per SQSO-HAR-001 2.0 item R-1 (was "
+     "FTSH-108 vertical with a PVC FFSD ribbon): gold contacts (-S plating code); tail finish to confirm, re-tin if tin "
+     "(EEE_PARTS_LIST §2A.3). Placement: top side, (+X, -Y) corner, pin field along Y at y -39.3 ... -27.7 (clear of "
+     "the (+40, -43) column keep-out), mating face toward +X so the SFSDT cable leaves toward +X with no bend over the "
+     "top; plug's back at x <= +43.1; header and plug within x +30.0 ... +43.1; height <= 7.0 mm (10.0 mm allocation "
+     "kept); the shield frame is notched at x > +30.0, y < -26.0 (§10)",
+     "MPN from SQSO-HAR-001 2.0 §3; Samtec drawing not read (VI-RFB-12)")
+part("J2", "Conn 6p 1.00 mm Pico-Clasp", "EPS-RF power (W4B)", "203556-0607", "Molex",
+     "Pico-Clasp 1x6 vertical SMT, 0.38 um gold (gold version of 501331-0607)",
      "1.0 A/contact, 50 V", [(1, "RADIO_3V3", PO, "RADIO_3V3_IN"), (2, "GND2", P, "GND"), (3, "PA_5V_A", PO, "PA_5V_IN"),
                              (4, "PA_5V_B", P, "PA_5V_IN"), (5, "GND5", P, "GND"), (6, "GND6", P, "GND")],
      ST.get("connector_PA_contacts", {}).get("stress", "") + " (two contacts)",
-     "Header P/N family to confirm with the harness drawing; tin contacts -> re-tin tails. Placement (C16): top side "
-     "on the -Y edge strip outside the shield at about (-26, -44), next to the PA, so the PA current path "
+     "Gold finish (SQSO-HAR-001 2.0 item R-1; tin prohibited, EEE_PARTS_LIST §2A.3): mates the 501330-0600 housing "
+     "with gold 501334 terminals, W4B 28 AWG in three twisted pairs 3+2, 4+5, 1+6 (item R-2). Placement (C16): top "
+     "side on the -Y edge strip outside the shield at about (-26, -44), next to the PA, so the PA current path "
      "(J2-FB803-L602/L604-Q601) stays >= 60 mm from (+24, +27); PA_5V and its GND contacts adjacent, routed as a pair",
-     "not checked (Molex site not reached)")
+     "6-circuit code inferred from the 203556-0307 and -1407 listings (0.38 um gold, vertical SMT); lock style and "
+     "mating with 501330 to confirm on the Molex drawing (VI-RFB-12)")
 for j, net, lbl, xy in (("J3", "VHF_A", "2 m element +X", "(-34.5, -19.0)"),
                         ("J4", "VHF_B", "2 m element -X", "(-34.5, -25.0)"),
                         ("J5", "UHF_A", "70 cm element +Y", "(-34.5, +19.0)"),
@@ -840,7 +846,7 @@ for tp, net in (("TP1", "+3V3_RAD"), ("TP2", "+3V0_RX"), ("TP3", "+3V1_DIG"), ("
 SHIELD_MAT = ("nickel-silver CuNi18Zn20 (EN CW409J, UNS C75200), 0.20 mm, unplated: non-magnetic (relative "
               "permeability about 1.0); not tin-plated steel, no nickel plating, no tin (EEE_PARTS_LIST §2A.3)")
 MECH += [
-    dict(ref="SH1", qty=1, value="shield frame 84 x 54 x 7 mm, three cavities, notches: (+X, -Y) corner for J1, -X edge "
+    dict(ref="SH1", qty=1, value="shield frame 84 x 54 x 7 mm, three cavities, notches: (+X, -Y) corner (x > +30.0, y < -26.0) for J1, -X edge "
                                     "(x < -30.0, y -28.0 ... -16.0) for J3/J4",
          mpn="made to drawing (RF board layout)", mfr="shield vendor (open)", pkg="SMT frame, solder tabs every 5 mm",
          notes=SHIELD_MAT + ". Wall and lid reach 13 mm from the magnetometer (§10.1)"),

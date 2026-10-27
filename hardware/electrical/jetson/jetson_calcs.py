@@ -419,7 +419,7 @@ PLACE = [  # name, centre, (w, h), magnetic, exempt, height above the board (mm;
     ("damper R_D, C_D", (-13, -41.5), (3.5, 8), False, "", 2.5),
     ("U1 LM61440 and input caps", (-8, -41.5), (4.5, 8), True, "", 2.5),
     ("L2 U1 inductor", (-1.0, -42.0), (6.5, 6.5), True, "", 3.1),
-    ("U1 output caps 4 x 1206", (-8, -46.2), (9, 2.0), False, "", 1.8),
+    ("U1 output caps 4 x 1206", (6.0, -41.5), (3.5, 8), False, "", 1.8),
     ("J6 debug header (unmated in flight)", (-41.0, -9), (6, 7.6), False, "", 4.7),
     ("U3 LMR43620, L3 and caps", (-41.0, 3), (6, 13), True, "", 3.1),
     ("Y1 oscillator (metal lid)", (-41.0, 15.5), (5, 7), True, "", 1.5),
