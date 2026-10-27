@@ -28,7 +28,7 @@ v2.0), `docs/environment/THERMAL_ANALYSIS.md` (SQSO-THA-001 v2.0), `docs/environ
 |------|-------|
 | Board | PC/104 (90.17 × 95.89 mm), **2.0 mm** (D-14), 6 layers, in the OBC/EPS stack; battery on flying leads (no stack connector) |
 | Placements / BOM lines / nets | 742 / 157 / 435 (generated counts) |
-| ICs | 80 plus the oscillator (TI unless noted): BQ76952 AFE, BQ771806 secondary protector, 4 × TPS55340-Q1 trackers, 8 × LM74700-Q1 ideal diodes, 3 × LMR43620-Q1 bucks, TPS16630 eFuse, 2 × TPS1H100B-Q1, 2 × TPS1H000-Q1, 7 × TPS2553-Q1, 2 × INA228-Q1, 4 × INA3221-Q1, 3 × INA186-Q1, ADS7138-Q1, MSP430FR2355 EPS controller, ISO1540-Q1, TCA9517-Q1, 2 × REF3425-Q1, TPS70933-Q1, 6 × TPL5111, TLV9002/OPA2991/TLV7042 analog, LVC logic, Epson SG-8018CA oscillator |
+| ICs | 79 plus the oscillator (U references in the BOM; TI unless noted; the BQ771806 secondary protector is on the battery sense board, not counted): BQ76952 AFE, 4 × TPS55340-Q1 trackers, 8 × LM74700-Q1 ideal diodes, 3 × LMR43620-Q1 bucks, TPS16630 eFuse, 2 × TPS1H100B-Q1, 2 × TPS1H000-Q1, 7 × TPS2553-Q1, 2 × INA228-Q1, 4 × INA3221-Q1, 3 × INA186-Q1, ADS7138-Q1, MSP430FR2355 EPS controller, ISO1540-Q1, TCA9517-Q1, 2 × REF3425-Q1, TPS70933-Q1, 7 × TPL5111, TLV9002/OPA2991/TLV7042 analog, LVC logic, Epson SG-8018CA oscillator |
 | Worst-case board dissipation | **1.33 W** sunlit ACTIVE at maximum array power with Jetson, PA and magnetorquers on; 0.37 W in eclipse; **3.77 W for ≤ 12 s** during a burn; orbit average ≈ 0.49 W (§16) |
 | Hottest parts | burn-driver FET Q24–Q27 (3.0 W for 12 s, Tj 92 °C); burn buck U17 (0.95 W, 12 s, Tj 93 °C); tracker U4 (0.21 W, Tj 66 °C); D9–D12 (0.12 W); SW1 U20 (0.17 W); 5V_PA buck U16 (0.15 W); all with the board at +60 °C |
 | Worst stresses | DS2 FET Vgs 73 % (7.3 V / 10 V); BQ771806 VDD 70 % (17.4 V / 25 V, on the battery sense board from Version F); PTC at 73 % of its 60 °C hold; INA3221 heater channel 65 % (16.8 V / 26 V); all within the §2.3 limits (§15) |
@@ -411,9 +411,11 @@ F1 **ITV4030L1412NR** (three-terminal fuse, 12 A, heater 11.2–20 Ω, triggerab
 sits between the trackers' output (VTRK) and PACK_P (it cannot move to the pack: it is in the array path). **Temperature
 (RID MFG-003 item 1):** the EPS board reaches −11.5 °C in the cold orbit (C12) and −27.6 °C in the first orbit (L4),
 +48.4 °C hot (H7), so F1 carries current outside its −10 °C rating in cold orbits. Its blow is needed only once, at
-end of life, and the passivation sequence fires it only with the EPS board at ≥ 0 °C (INA228 die temperatures, in
-sunlight; ICD-001 §4.6 sequence step), so the blow happens inside the rating; carrying below −10 °C and the
-qualification margins are V-EPS-8 (flight-lot qualification at −40 °C and +70 °C). No three-terminal fuse rated
+end of life. The passivation sequence (SRS-F111 after SMA-B20; ICD-001 §4.6) fires it in sunlight and waits up to 6 h
+per attempt for the EPS board to read ≥ 0 °C (INA228 die temperatures); after 6 h, or at once if the board
+temperature cannot be read, it fires anyway. F1 can therefore be fired at the cold-orbit minimum of −11.5 °C, or
+colder in an unforeseen case, i.e. below its −10 °C rating: V-EPS-8 (c) qualifies the cold blow at −20 °C (8.5 K
+below the predicted −11.5 °C) as a pass criterion, and carrying below −10 °C and the ±70 °C margins are V-EPS-8 (a). No three-terminal fuse rated
 −40 … +70 °C exists in this footprint (SQSO-MFG-003); a disconnect by latching relay or FETs would need power to hold
 or a second non-volatile device and is not adopted. F1: opening it disconnects the array from the pack and the bus, so the loads drain the pack to the
 BMS cut and the spacecraft stays dark. Firing needs **both**: Q21 (gate from the arm latch U61, a D flip-flop
@@ -808,13 +810,13 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | V-EPS-5 | Storage drain, switches actuated, AFE in SHUTDOWN, 25 and 60 °C | ≤ 20 µA (design 13.8 µA, with A3 fitted and both tap ladders) | LVR-071 | EPS EM, FM |
 | V-EPS-6 | Burn drivers: 4, 5, 6, 7 Ω loads; stuck-high line; four lines at once | 0.80 A ± 10 %; stops at 12.0 s ± 1 s; pack ≤ 2.2 A | SMA-05 | EPS EM |
 | V-EPS-7 | Load shed: VBAT ramp and step | shed 13.6 ± 0.2 V after 4–6 s at +25 °C (3.7–5.5 s over −40 … +70 °C); release 14.4 ± 0.2 V | EPS-F012 | EPS EM |
-| V-EPS-8 | ITV4030 flight-lot qualification (F1 and F3; RID MFG-003 item 1), 6 samples per test: (a) carry 2 A for 1 h at −40 °C and at +70 °C, then 5 thermal cycles −40 / +70 °C carrying 1.5 A; (b) heater trigger at 10.5 V and 16.8 V at 0 °C, +25 °C and +65 °C (the temperatures at which F1 and F3 are fired); (c) heater trigger at −40 °C at 16.8 V as a characterisation; (d) EOL fire on the EM (destructive) | (a) no opening, fuse-element resistance change ≤ 10 %, no visible damage; (b) opens < 1 min; (c) recorded (not a pass criterion: the design never fires below 0 °C); F1 opens only with both EOL lines | EPS-F010, V-BSA-7, SQSO-MFG-003 | EM (before the FM build) |
+| V-EPS-8 | ITV4030 flight-lot qualification (F1 and F3; RID MFG-003 item 1), 6 samples per test: (a) carry 2 A for 1 h at −40 °C and at +70 °C, then 5 thermal cycles −40 / +70 °C carrying 1.5 A; (b) heater trigger at 10.5 V and 16.8 V at 0 °C, +25 °C and +65 °C (the temperatures at which F1 and F3 are fired); (c) heater trigger at −20 °C at 10.5 V and at 16.8 V (the cold-orbit EOL fire: F1 may be fired after the 6 h wait at the predicted −11.5 °C, margin 8.5 K), plus −40 °C at 16.8 V as a characterisation; (d) EOL fire on the EM (destructive) | (a) no opening, fuse-element resistance change ≤ 10 %, no visible damage; (b) opens < 1 min; (c) opens < 1 min at −20 °C at both voltages (the −40 °C result recorded); F1 opens only with both EOL lines | EPS-F010, V-BSA-7, SQSO-MFG-003 | EM (before the FM build) |
 | V-EPS-9 | Lockout: set by an emulated SUV PF and by LOCK_SET; clear needs both lines; shock 750 m/s² in both states | state kept through power loss and shock | SMA-06 | EM |
 | V-EPS-10 | Latch-up trips: 1.5 × trip step on each switched rail incl. SW10 | rail off ≤ 10 ms, back after 0.2–0.4 s or 1–2 s | AV-08, RAD-V5 | EM |
 | V-EPS-13 | SW11 and readbacks: VBAT_MTQ short and 0.3–0.5 A steps; VJET_RB and VSW1_RB with SW1 and U19 switched in turn | limit 0.32–0.40 A, retry 40 ms / 1 s; readback ratio 6.00 ± 0.5 %, < 0.1 V off | E1–E3, AV-06 | EM (with V-ICX-1) |
 | V-EPS-14 | NTC1 plausibility: NTC1 opened, shorted and its wire grounded, at 10 °C and 40 °C pack (decade box) | NTC1_BAD set; charging continues inside the AFE's UTC/OTC on NTC2; no BOTHOFF; heater runs under SW5's limit | SMA-B04 | EPS EM |
 | V-EPS-15 | Array start with an open pack path (F0A, F3 or a pack lead opened; array simulator lit) and the switches released | bus up from the array, OBC boots, DS2's FETs on through the PACK_P diode | SMA-B01 | EPS EM |
-| V-EPS-16 | OBC heartbeat supervision: heartbeats stopped; restored; stopped four times in 24 h | SW10 off 1.95 ± 0.1 s (U82) at 600 ± 10 s after the last heartbeat; no cycle within 600 s of a controller start or of the last cycle; at most 3 cycles in 24 h, then stopped and reported (EPS_SUPV bit 7) | SMA-B09 | EPS EM |
+| V-EPS-16 | OBC heartbeat supervision: heartbeats stopped; restored; stopped four times in 24 h | SW10 off 1.95 ± 0.1 s (U82) between 600 and 660 s after the last heartbeat (SQSO-SRS-EPSC-001 EPSC-F081); no cycle within 600 s of a controller start or of the last cycle; at most 3 cycles in 24 h, then stopped and reported (EPS_SUPV bit 7) | SMA-B09 | EPS EM |
 | V-EPS-17 | Per-tracker disable and the active-high tracker clamps: each TDIS line; DS2 pole 2 and RBF pole B wires grounded at the far end | the selected tracker stops; a grounded clamp wire leaves the trackers running; stowed DS2 or RBF in holds them off | SMA-B13, SMA-B17 | EPS EM |
 | V-EPS-18 | Lockout coil drivers: each of Q28, Q30, Q29, Q39 shorted in turn | K1 state unchanged; the other coil still operates | SMA-B12 | EPS EM |
 | V-EPS-11 | Frequency plan: spectrum at the 70 cm port with all converters running | no comb line within 200 kHz of the coordinated uplink | E1, V-EMC-3 | EM |
@@ -851,7 +853,7 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 3. F0/F2 are now FM12A72V5.0A (Version C): the 1000 A interrupt rating and the 60 °C rerating (0.80 assumed) are to be
    read from the MIL-PRF-23419/12 slash sheet and the vendor's (AEM) data sheet at procurement; the FM12 footprint
    replaces the Nano2 land at layout.
-4. The ITV4030's −10 … +65 °C rating (F1 on this board, F3 on the sense board): blows only inside the rating by design (§6.1, §7); carry below −10 °C and the ±70 °C margins rest on the flight-lot qualification V-EPS-8.
+4. The ITV4030's −10 … +65 °C rating (F1 on this board, F3 on the sense board): F3 blows only inside the rating by design (§6.1); F1 may be fired down to the cold-orbit −11.5 °C after the 6 h wait (§7), qualified at −20 °C by V-EPS-8 (c); carry below −10 °C and the ±70 °C margins rest on the flight-lot qualification V-EPS-8.
 5. BQ76952 behaviour assumed from its datasheet (FUSE drive on PF, SUV in SLEEP); the TRM settings must be checked when
    the OTP image is written (V-EPS-2).
 6. Tracker efficiency is marginal against 92 % (§4.3).
@@ -900,4 +902,5 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | F (amended) | 2026-10-27 | CDR design (EPS board) | Stale lines removed: §2.1 EPS-F009 (the array's third inhibit is DS2 pole 2 through the Q40 clamp; DS3's NO is unused); §4.2 and §13.1 checked against Version E (TRK_EN clamps Q40/Q41; J16 a Pico-Clasp 5) |
 | G | 2026-10-27 | CDR design (EPS board) | S&MA RIDs on the protector relocation: F3's heat at the cell (thermal island ≥ 25 mm from the tabs, ≤ 1 K at the nearest can, limit +60 °C; SMA-B21); F3 in the short loops never interrupts (series FM12/FM08 fuses; I²t data item; included in the hard-short abuse test; SMA-B22); §3, §6.1 and §17 no longer place F3 or the BQ771806 on this board (SMA-B23); 4 × 2.2 MΩ ladder on the BQ771806's taps, storage drain 13.8 µA worst (SMA-B24). No netlist change |
 | G (amended) | 2026-10-27 | CDR design (EPS board) | SQSO-SRS-EPSC-001 §9: §8.3 SW10 row and V-EPS-16 to the 600 s heartbeat timeout; §12 SOC from the AFE coulomb counter on the local bus (the controller never masters I2C2); V-EPS-2 leaves the BQ76952 sealed |
+| G (amended 2) | 2026-10-27 | CDR design (EPS board) | Independent verifier: §7 states the actual passivation fire rule (up to 6 h per attempt for ≥ 0 °C, then in sunlight; SMA-B20) and V-EPS-8 (c) becomes a pass criterion at −20 °C (8.5 K margin; P4-01); V-EPS-16 to EPSC-F081's 600–660 s (P4-03); §1 IC count 79, BQ771806 removed from the list (SMA-B23) |
 | B, note | 2026-10-27 | CDR consistency | Citations to BASELINE Rev E, RADIATION Rev D, ICD-001 v1.2; no OBC device on I2C2 (TMP235 analog); §21 item 9 rendered |
