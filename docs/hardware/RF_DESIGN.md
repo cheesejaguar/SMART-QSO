@@ -1,7 +1,7 @@
 # Radio Frequency (RF) Subsystem Design Document
 
 **Document Number**: SMART-QSO-RF-001
-**Version**: 2.3
+**Version**: 2.4
 **Date**: 2026-10-27
 **Status**: CDR design description. The architecture, interfaces and requirements are defined here; the build-to board design with selected parts is [RF_BOARD_DESIGN.md](../../hardware/electrical/rf/RF_BOARD_DESIGN.md) (SQSO-RF-BRD-001 A), not yet built or measured (§9). Values follow [BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md) §7, which governs.
 
@@ -285,3 +285,4 @@ the netlist, the BOM and the ERC log). What it leaves open:
 | 2.3 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Element-option rows at 8°/s and 475 km (SQSO-LBA-001 v3.2 §5) |
 | 2.3 (amended) | 2026-10-27 | CDR round 3 (P3A-05, RID RFB-05) | RF-P005: ±1.0 ppm over temperature and ≤ ±3.0 ppm with 2-year ageing (TG2016SMN worst 2.1 ppm); the ground corrects the uplink from the measured downlink offset. VI-RF-14 adds ageing and offset estimation |
 | 2.3 (amended) | 2026-10-27 | CDR round 3 (P3A-07) | §3.4 and §9: the XPDR_EN heartbeat lease is 40 ms (SRS-F081; was 60 ms), a stalled loop unkeys within 98 ms (90 ms nominal), inside VI-RF-11's 100 ms; VI-RF-13 also checks the GNSS receiver unpowered (GNSS_EN low) before 45:00 (SYS-224 Rev G) |
+| 2.4 | 2026-10-27 | CDR parts temperature audit (SQSO-MFG-003) | Verification temperature range −40 … +70 °C (RF-P003, §2.4, VI-RF-14), was −20 … +60 °C; Q601 minimum operating temperature path (SQSO-RF-BRD-001 F VI-RFB-14) |

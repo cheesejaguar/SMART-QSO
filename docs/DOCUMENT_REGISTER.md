@@ -67,7 +67,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-BOM-001 | SMART-QSO Parts List / Bill of Materials | `docs/hardware/PARTS_LIST.md` | 1.1 | Draft |
 | SMART-QSO-PAYLOAD-001 | AI Payload (Jetson Orin Nano) Design Document | `docs/hardware/PAYLOAD_DESIGN.md` | 1.2 | Draft |
 | SQSO-PAY-SEL-001 | OBC Selector and Transponder Scheduler: Detailed Design | `docs/payload/OBC_SELECTOR_DESIGN.md` | A | Draft; designed, not implemented |
-| SMART-QSO-RF-001 | Radio Frequency (RF) Subsystem Design Document | `docs/hardware/RF_DESIGN.md` | 2.3 | Draft; architecture superseded by the baseline (its notice) |
+| SMART-QSO-RF-001 | Radio Frequency (RF) Subsystem Design Document | `docs/hardware/RF_DESIGN.md` | 2.4 | Draft; architecture superseded by the baseline (its notice) |
 | SQSO-INT-005 | Anomaly Resolution Procedure | `docs/integration/ANOMALY_RESOLUTION.md` | A | Draft |
 | SQSO-ASM-001 | SMART-QSO Assembly Procedure | `docs/integration/ASSEMBLY_PROCEDURE.md` | 1.0 | Draft |
 | SQSO-CCP-001 | SMART-QSO Contamination Control Plan | `docs/integration/CONTAMINATION_CONTROL_PLAN.md` | 2.0 | Draft |
@@ -248,7 +248,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-JET-002 | Jetson Payload Power Management | `hardware/payload-jetson/POWER_MANAGEMENT.md` | 1.1 | Draft |
 | SQSO-RF-ANT-001 | Antenna Design Document | `hardware/rf/ANTENNA_DESIGN.md` | 2.3 | Draft |
 | SQSO-RF-003 | RF Electrical Design Specification | `hardware/rf/RF_ELECTRICAL_DESIGN.md` | 1.3 | Draft |
-| SQSO-RF-TX-001 | RF Transmitter Design Document | `hardware/rf/TRANSMITTER_DESIGN.md` | 1.5 | Draft |
+| SQSO-RF-TX-001 | RF Transmitter Design Document | `hardware/rf/TRANSMITTER_DESIGN.md` | 1.6 | Draft |
 | SQSO-STR-001 | Structural Design Document | `hardware/structure/STRUCTURAL_DESIGN.md` | 1.5 | Draft |
 | SQSO-MECH-CAD-001 | SMART-QSO Mechanical Design: CAD Model and Structural Finite-Element Model | `hardware/mechanical/MECHANICAL_DESIGN.md` | B | Draft; envelope level |
 | SQSO-ICX-001 | SMART-QSO Spacecraft Electrical Interconnect (master pin allocation) | `hardware/electrical/INTERCONNECT.md` | D | Draft; build-to design, not yet fabricated |

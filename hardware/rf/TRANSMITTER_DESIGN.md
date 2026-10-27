@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-RF-TX-001
-**Version:** 1.5
+**Version:** 1.6
 **Date:** 2026-10-27
 **Status:** CDR Baseline
 
@@ -21,7 +21,7 @@ This document defines the 2 m transmitter of the SMART-QSO 1U CubeSat. It carrie
 | Data Rate | 1200 bps | AX.25 Standard |
 | Output Power | 0.5 W nominal, 1 W maximum, at the antenna port | BASELINE §7 |
 | Harmonics and spurious | ≤ 25 µW and ≤ −46 dBc at 1 W (47 CFR 97.307(e)); **3rd harmonic ≤ −70 dBc at the antenna port** (proposed; BASELINE target −60 dBc; SQSO-LBA-001 §7.3) | 97.307(e); desense |
-| Frequency stability | ±1.0 ppm over −20 to +60 °C and 2 years (RF-P005) | SQSO-LBA-001 §4.4 |
+| Frequency stability | ±1.0 ppm over temperature (verified −40 to +70 °C) and ≤ ±3.0 ppm with 2-year ageing, ground uplink correction (RF-P005 as amended, RFB-05) | SQSO-LBA-001 §4.4; RF_DESIGN 2.4 |
 | Duty | Beacon ≈ 1.2 s per 60 s; transponder ≤ 25 % (software); continuous key-down ≤ 120 s (hardware timer) | BASELINE §5 |
 
 ---
@@ -73,7 +73,7 @@ synthesizer at least as quiet as its assumption; the LMX2571 is 17 dB quieter at
 |-----------|-------|
 | Type | TCXO, clipped sine (Epson TG2016SMN) |
 | Frequency | **40 MHz** (1.4: the CC1200 receiver needs 38.4–40 MHz; 40 MHz puts no PCM1808 clock harmonic inside 435.050–437.300 MHz) |
-| Stability | **±1.0 ppm** (−20 to +60 °C), shared by the 2 m exciter and the 70 cm receiver (RF-P005; ±2.5 ppm would give ±1.1 kHz at 435 MHz alone) |
+| Stability | **±1.0 ppm** over temperature (verified −40 to +70 °C; ≤ ±3.0 ppm with ageing, RF-P005 as amended), shared by the 2 m exciter and the 70 cm receiver (RF-P005; ±2.5 ppm would give ±1.1 kHz at 435 MHz alone) |
 | Phase Noise | < -110 dBc/Hz @ 10kHz |
 | Aging | ±1 ppm/year |
 
@@ -385,3 +385,4 @@ transmitters below 30 MHz and does not apply.)
 | 1.3 | 2026-10-27 | CDR review (communications panel): requirements to BASELINE §7 (no 2 W level), deviation ±3.0 kHz (the filed 10K4F2D), stability ±1.0 ppm, spurious per 97.307(e) (≥ 46 dBc at 1 W, not −43 dBc), 3rd harmonic ≤ −70 dBc and phase-noise targets from the desense analysis, LPF analysed as written; tests tied to the verification items of SQSO-LBA-001 §8 and RF_DESIGN §6 |
 | 1.4 | 2026-10-27 | CDR design completion, RF board | Selected design (SQSO-RF-BRD-001): LMX2571 + PCM1808 exciter, RD01MUS3 PA with APC, 40 MHz reference, elliptic LPF with harmonic traps (replaces the §7.3 ladder), sense-line detectors; §10.1 XPDR_EN as implemented (100 Hz square wave on PE4 from TIM7 with a 60 ms lease; board monostable ≈ 50 ms with pull-down; a held level is disabled); DC power 1.76 W at 0.5 W RF recorded against the 1.5 W allocation |
 | 1.5 | 2026-10-27 | CDR design completion, RF board | §13 antenna interface to SQSO-RF-BRD-001 C §4.3 and W10 v3: MMCX jacks (Molex 73415-1473) and 1.37 mm cables with MMCX plugs replace SMA and RG-316 (the 3.3 mm wall gaps); loss port to antenna 0.44 dB worst |
+| 1.6 | 2026-10-27 | CDR parts temperature audit (SQSO-MFG-003) | Frequency-stability rows to RF-P005 as amended (RFB-05) and the −40 … +70 °C verification range |
