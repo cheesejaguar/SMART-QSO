@@ -1,7 +1,7 @@
 # SMART-QSO Mission Timeline and Event Sequence
 
 **Document ID**: SQSO-MTL-001
-**Version**: 2.2
+**Version**: 2.3
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Draft for CDR. Times after separation are from the mission simulation and the pass analysis named in §1;
@@ -227,7 +227,9 @@ commissioning hold (LV-01), the I²C AntS sequence and `DEPLOY_RETRY` (LV-07), t
 | SatNOGS and community | Receive only | — | — | — | — | — |
 
 475 km SSO at 97.31°, period 94.1 min, from 2028-11-01; 576 separation cases, 14 days each, 10 s steps; minimum elevation for a usable
-command pass 15°, for beacon reception 5° (the simulation's values).
+command pass 15°, for beacon reception 5° (the simulation's values). Decision C-14 allows commanding from 10° (2.97
+commanding passes a day at Santa Clara instead of 2.43; SQSO-GND-001 Rev F §5), so these first-command statistics and
+the simulation's 15° contact mask are conservative.
 
 ## 11. Revision History
 
@@ -237,3 +239,4 @@ command pass 15°, for beacon reception 5° (the simulation's values).
 | 2.0 | 2026-10-27 | CDR launch and ConOps review | Rewritten from the mission simulation and the pass analysis: delivery to the integrator, integration and storage with the battery drain, launch, a minute-by-minute LEOP with power, energy, battery and ground actions, the commissioning pass budget, contingencies checked by simulation (eclipse, failed deployables, missed passes, low SOC, switch bounce), the design gaps, and the contact schedule for the baseline orbit. Version 1.0 described P-POD deployment, the RF released at 30 min, a 400 km 51.6° orbit, a 25-year disposal rule and commands that do not exist |
 | 2.1 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: §5 note on the changes since the simulation run (wings first, one resistor at a time at 0.67 A, magnetorquers 1.16–1.3 W from S+120 s, 8°/s, 2028-11, 475 km) and the orbit-1 energy figures that disagree; commissioning C-5 spin 8°/s |
 | 2.2 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Re-run at the Rev E baseline with flight software round 2 (475 km, 2028-11-01, four burn lines): §5 LEOP table from the new commissioning run (magnetorquers from S+121 s, IDLE under the commissioning hold until `COMMISSIONING_RELEASE` at S+36.7 h, one wing resistor, then the AntS, orbit 1: 6.45 Wh generated against 0.89 Wh used; the §5 note removed) and from `leop_passes.py` at 475 km (eclipse at separation 33.3 %, ≤ 28.8 min); §6 pass budget and commissioning energy; §7 the full run's re-entry; §8 variants re-run (wings failed, low SOC, outage, eclipse); §9 items provided; §10 contact schedule |
+| 2.3 | 2026-10-27 | CDR S&MA analysis (decision C-14) | §10: the 15° commanding mask of the pass statistics and the simulation noted as conservative against the 10° commanding rule |

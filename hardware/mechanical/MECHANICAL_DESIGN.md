@@ -25,15 +25,15 @@ numpy/scipy). Outputs are in the same directory: `results.json`, `fem_results.js
 | GNSS patch below the +Z rail ends | 1.75 mm nominal, 1.40 mm worst case | ≥ 0.1 mm | §6.3 |
 | Deployment switches, separation plungers, RBF | DS1, DS2 at −Z and DS3 at +Z on three rails; SP1, SP2 at −Z; all flush when actuated; RBF head 5.10 mm from the rail plane | CDS §2.3.2.3, §2.2.14, §2.3.5.2; BASELINE §4 | §6.4 |
 | Interference, stowed and deployed | None (338 / 332 solid pairs with overlapping boxes tested by boolean intersection) | — | §6.5 |
-| Gyro in its socket (OBC item C3) | M-G370PDT0 stands 14.0 mm above the OBC (11.4 mm to the carrier): **through a 27 × 27 mm window in a 2.0 mm carrier** (no frame; the thicker board keeps the carrier's Steinberg margin, +0.07), 1.5 mm clear of the carrier and 3.6 mm of the Jetson module; raising the carrier 3 mm and a bracket with a ribbon were evaluated and do not fit | OBC_BOARD_DESIGN §9.2, §24 C3 | §4.3 |
+| Gyro in its socket (OBC item C3) | M-G370PDT0 stands 14.0 mm above the OBC (11.4 mm to the carrier): **through a 27 × 27 mm window in a 2.0 mm carrier** (no frame; the thicker board keeps the carrier's Steinberg margin, +0.08), 1.5 mm clear of the carrier and 3.6 mm of the Jetson module; raising the carrier 3 mm and a bracket with a ribbon were evaluated and do not fit | OBC_BOARD_DESIGN §9.2, §24 C3 | §4.3 |
 | Wing sweep (0–90°) | 0.35 mm minimum clearance (at 45°, wing back cells to body-panel coverglass) | > 0.3 mm allowance | §6.6 |
 | AntS tapes to the stowed wings (STR-16) | 6.5 mm (tape band to the wing's −Z edge, wing shortened and moved +3 mm); 0.5 mm with the 98 mm wing centred; deployed 2 m tape to the deployed wing 37.8 mm | ≥ 10 mm or wings first | §6.7 |
 | Wing hinge and deployment springs (MCAD-01, STR-13) | Version A springs do not fit; **Version B design fits**: two 17-7PH torsion springs on the hinge axis (primary below the wing, secondary at +Z), clock-spring flex at R 1.0–1.6 mm. Torque margin (5017B, analysis factors) **+0.14** at the cold end of travel, one spring out +0.13; spring stress MS +0.12 / **+0.04** (yield); damped soft stop 0.157 N·m (214 µε); no latch, holding margin +17 | TM ≥ 0 (5017B Eq. 4-1); Table 4; DDMR 14, 53; ≤ 0.3 N·m (STR-14) | §6.8; SQSO-MECH-001 B |
 | Mass, CG | 1,514.3 g CBE / 1,748.3 g MEV (= MEL, with the 20 g inertia ballast of row 36, chair decision C-13; row 23 at 66.6 g with the SoC pedestal; row 5 re-split for the skeleton deck, MCAD-02); stowed CG (−0.0, +0.1, −1.2) mm CBE | ≤ 2.00 kg; ±20 mm (5 mm baseline) | §5 |
 | Deployed inertia (STR-01) | Iyy/max(Ixx, Izz) **1.056 CBE / 1.047 MEV** (four AntS elements, 2 × 10 g Z-axis ballast, C-13; 1.045 / 1.037 without it); 5th percentile with 2 mm placement scatter 1.045 / 1.036; major axis **0.9° / 0.8°** from +Y | ≥ 1.03; ≤ 5° (BASELINE §4) | §5 |
-| First natural frequency, stowed (FE) | **170 Hz** (stowed wings, out of plane); deck 195, RF 385, EPS 446, carrier 479, OBC 574, battery 1,289 Hz | > 40 Hz (UG v11 §4.1.1) | §8.2 |
-| Margins of safety at the design limit load (larger of the quasi-static 10 g / 17 g and the 3σ random response at 8.18 Grms), NASA-STD-5001B protoflight factors | All positive. Lowest: **+0.74** yield (−Z end frame at the battery isolators), +1.28 (end frames at the rail corners), +1.69 (centre support), +2.21 (rails), +2.40 (stack columns); Ti-6Al-4V stud of the (+40, +43) column +28; G-10CR isolator +4.6 (FS 2.0) | MS ≥ 0 | §8.5 |
-| PCB fatigue (Steinberg, FE relative displacement, 3σ at 8.18 Grms) | **+0.07 to +0.51** with the two centre supports (D-7; EPS, OBC and RF boards 1.6 mm) and the gyro window in a 2.0 mm carrier (D-11); −0.30 (EPS) and −0.05 (carrier) with one support | MS ≥ 0 | §8.5 |
+| First natural frequency, stowed (FE) | **170 Hz** (stowed wings, out of plane); deck 195, RF 385, +Z end frame with the ballast 402, EPS 446, carrier 479, OBC 574, battery 1,288 Hz | > 40 Hz (UG v11 §4.1.1) | §8.2 |
+| Margins of safety at the design limit load (larger of the quasi-static 10 g / 17 g and the 3σ random response at 8.18 Grms), NASA-STD-5001B protoflight factors | All positive. Lowest: **+0.72** yield (−Z end frame at the battery isolators), +1.25 (end frames at the rail corners, +Z), +1.70 (centre support), +2.17 (rails), +2.42 (stack columns); with the 20 g ballast on the +Z end frame (C-13); Ti-6Al-4V stud of the (+40, +43) column +28; G-10CR isolator +4.6 (FS 2.0) | MS ≥ 0 | §8.5 |
+| PCB fatigue (Steinberg, FE relative displacement, 3σ at 8.18 Grms) | **+0.08 to +0.40** with the two centre supports (D-7; EPS, OBC and RF boards 1.6 mm) and the gyro window in a 2.0 mm carrier (D-11); −0.29 (EPS) and −0.03 (carrier) with one support (FE re-run with the inertia ballast; the RF board's margin falls from +0.51 to +0.40 through the +Z end frame) | MS ≥ 0 | §8.5 |
 
 Verdict: **the mechanical design is complete at envelope level and meets the CDS envelope, the mass-properties
 requirements and the structural requirements with positive margins**, with the design changes of §4.2. It is not yet a
@@ -154,8 +154,8 @@ the corner column's. It was first placed at y +14.0 … +41.0; the carrier desig
 module standoff MP2 at the module's far-edge hole, (−31.3, +12.6) mm by the module outline, whose Ø5.1 mm spacer and pad
 need board to y ≈ +16, so window and gyro moved 3 mm toward +Y. The window lies in the carrier's −X power zone of its +Y
 strip; the carrier designer has placed those parts round it. FE (§8.5): in a 1.6 mm carrier the window alone takes the
-carrier's Steinberg margin from +0.07 (same mesh, no window) to **−0.05**: it cuts the board between the corner column
-(−40, +43) and the centre support (0, +21). **The design is a 2.0 mm carrier: +0.07** (with the 2.0 mm allowable,
+carrier's Steinberg margin from +0.08 (same mesh, no window) to **−0.04**: it cuts the board between the corner column
+(−40, +43) and the centre support (0, +21). **The design is a 2.0 mm carrier: +0.08** (with the 2.0 mm allowable,
 0.154 mm), no frame. The Al frame of the first issue (+0.08 with a 1.6 mm board) is withdrawn because its bond cannot be
 closed by analysis (§4.3.3). The 2.0 mm board costs 0.4 mm of height below the carrier (the OBC's free height under it
 falls from 9.4 to 9.0 mm, §4.4) and about 5.9 g of FR-4 (2.7 g net of the frame and its four screws), inside MEL row 21's
@@ -209,7 +209,7 @@ this round. It does not close:
 - **Screws alone.** Four point attachments do not make the frame act with the board along its edges: the stiffening the
   FE credits needs a continuous shear connection.
 
-**Withdrawn.** The window stays; the carrier is 2.0 mm thick with no frame, no adhesive and no screws (FE +0.07,
+**Withdrawn.** The window stays; the carrier is 2.0 mm thick with no frame, no adhesive and no screws (FE +0.08,
 §8.5). For the carrier design: H10–H13 and the frame keep-outs are deleted; the top-side and inner-layer window keep-out
 (window + 0.5 mm) stays; MP2's top-side pad no longer sits over anything. The stack-up becomes 2.0 mm (impedance
 re-calculated by the carrier designer). The frame stays in `model.py` and `fem.py` as an option (`car_frame`) for the
@@ -563,8 +563,8 @@ drawing tool at drawing release.
 
 Boundary condition, as in the dispenser: every rail node fixed in x and y (the guide rails), the rail-end nodes fixed in z
 (pusher plate and door), rotations free. Sensitivity: the eight rail ends fixed only (§8.6). Mesh: 10,860 nodes, 10,066
-shells, 192 beams, 60,144 degrees of freedom; FE mass 1,491.3 g against the CAD and MEL CBE of 1,494.3 g (the 3 g are
-the W10 coax and the W4A ribbon, added to the CAD after this run, and parts outside the meshed groups). MEV masses are not run (+15.6 % mass
+shells, 192 beams, 60,144 degrees of freedom; FE mass 1,514.3 g, equal to the CAD and MEL CBE (the inertia ballast, the
+W10 coax, the W4A ribbon and the hinge springs lumped where the CAD puts them). MEV masses are not run (+15.5 % mass
 lowers the frequencies by about 7 %; the responses scale with the mass at the same acceleration).
 
 Element verification (`fem.py --selftest-only`), same element code and mesh density:
@@ -579,24 +579,25 @@ Element verification (`fem.py --selftest-only`), same element code and mesh dens
 
 ### 8.2 Modes and Effective Mass (design case: D-7, rails held)
 
-| Mode | f (Hz) | Effective mass x / y / z (% of 1,452 / 1,452 / 1,481 g free) | Dominant (share of kinetic energy) |
+| Mode | f (Hz) | Effective mass x / y / z (% of 1,474 / 1,474 / 1,503 g free) | Dominant (share of kinetic energy) |
 |------|--------|---------------------------------------------------------------|------------------------------------|
-| 1, 2 | 170.2 | 0 / 0 / 0; 5.5 / 0 / 0 | Stowed wings W1, W2, out of plane (in and out of phase) |
+| 1, 2 | 170.2 | 0 / 0 / 0; 5.4 / 0 / 0 | Stowed wings W1, W2, out of plane (in and out of phase) |
 | 3 | 194.6 | 0 / 0 / 1.3 | Torquer deck (X rod, GNSS receiver, Z-rod clip) |
 | 4 | 270 | 0 / 0 / 1.2 | Deck, second mode |
-| 5 | 331.7 | **32.7** / 0 / 0 | EPS, OBC, carrier: stack lateral in X |
+| 5 | 331.3 | **32.1** / 0 / 0 | EPS, OBC, carrier: stack lateral in X |
 | 6, 7 | 341.4 | 0 / 0 / 0 | Wings, second mode |
-| 8 | 357.5 | 0 / 0 / **20.0** | Carrier (0.34), EPS, deck: stack drumming in Z |
-| 10 | 384.6 | 0.1 / 0 / 0 | RF board |
-| 11, 12 | 401.0, 411.8 | 0 / **11.1** / 0 each | RF, EPS, deck: stack lateral in Y |
+| 8 | 357.4 | 0 / 0 / **19.0** | Carrier (0.34), EPS, deck: stack drumming in Z |
+| 10 | 384.5 | 0.1 / 0 / 0 | RF board |
+| 11, 13 | 401.0, 411.8 | 0 / **10.5**, **10.9** / 0 | RF, EPS, deck: stack lateral in Y |
+| 12 | 401.5 | 0.1 / 0.4 / 4.0 | +Z end frame with the 20 g inertia ballast (546 Hz without it) |
 | 19 | 445.7 | — | EPS board |
 | 22 | 478.9 | 0.4 / 0 / 0 | Carrier board (2.0 mm) |
-| — | 484, 546, 574, 613, 630 | small | Spreader; +Z end frame; OBC; ±X and ±Y shear panels |
-| 56 | 968 | 0 / 3.3 / 7.6 | Battery on its isolators, axial |
-| 101 | 1,289 | **15.5** / 0 / 0 | Battery on its isolators, lateral |
+| — | 484, 574, 612, 629 | small | Spreader; OBC; ±X and ±Y shear panels |
+| — | 973 | 0 / 2.9 / 8.0 | Battery on its isolators, axial |
+| — | 1,288 | **16.3** / 0 / 0 | Battery on its isolators, lateral |
 | — | 1,526 | — | −Z end frame with the AntS |
 
-450 modes, to 3,708 Hz. Cumulative effective mass to 2,000 Hz (modes kept in the results file): 74 % (x), 53 % (y), 62 % (z) of the free mass; the rest is
+450 modes, to 3,697 Hz. Cumulative effective mass to 2,000 Hz (modes kept in the results file): 76 % (x), 56 % (y), 66 % (z) of the free mass; the rest is
 the frame and panel mass next to the held rails, which moves with the base. First mode 170 Hz: **4.3 times the 40 Hz
 requirement**; no mode below 150 Hz, so the spacecraft is rigid in the launch-vehicle coupled-loads band (UG Appendix B).
 
@@ -607,7 +608,7 @@ requirement**; no mode below 150 Hz, so the spacecraft is rigid in the launch-ve
 | Stowed wing | 142 Hz (four points: two hinges, hold-down, bumper) | 170 Hz (three points and a soft snubber; 183 Hz with a second hard post) | Shorter wing (92 mm) and the hold-down at the corner |
 | PCB stack, lateral, tied at both ends | 289 Hz | 332 Hz (X), 401–412 Hz (Y) | The spreader bolted to the walls at mid-height stiffens the stack; Y stiffer through the flanges |
 | Boards with a centre support | 221 (RF) – 362 (OBC) Hz | RF 385, EPS 446, carrier 479 (2.0 mm), OBC 574 Hz (in the stack) | Two centre supports (D-7); boards coupled |
-| Battery on G-10CR isolators, lateral | 1,280 Hz | 1,289 Hz | Agreement |
+| Battery on G-10CR isolators, lateral | 1,280 Hz | 1,288 Hz | Agreement |
 | Deck (new part) | — | 195 Hz | Lowest internal mode |
 
 ### 8.4 Loads and Criteria
@@ -633,32 +634,37 @@ requirement**; no mode below 150 Hz, so the spacecraft is rigid in the launch-ve
 
 | Location | QS (MPa) | 3σ random (MPa) | Allowable | FS | MS yield | MS ultimate | Where |
 |----------|----------|-----------------|-----------|----|----------|-------------|-------|
-| −Z end frame at the battery isolators | 10.7 | **110.9** | 241 / 290 | 1.25 / 1.40 | **+0.74** | +0.87 | (−40.8, −32.5, −47.7): next to the isolator spider |
-| End frames at the rail corners | 21.7 | 84.5 | 241 / 290 | 1.25 / 1.40 | +1.28 | +1.45 | +Z frame at (−40.8, −42.2) |
-| Centre supports | 29.7 | 71.8 | 241 / 290 | 1.25 / 1.40 | +1.69 | +1.88 | (0, +21) under the spreader |
-| Side shear panels | 15.8 | 66.5 | 241 / 290 | 1.25 / 1.40 | +1.90 | +2.12 | −X panel at the spreader flange |
-| Rails (L-angle, standoffs) | 14.7 | 60.1 | 241 / 290 | 1.25 / 1.40 | +2.21 | +2.45 | (−47.3, −47.3) at the −Z end frame |
-| Stack columns, Al spacer | 16.9 | 56.7 | 241 / 290 | 1.25 / 1.40 | +2.40 | +2.65 | (−40, −43) under the +Z end frame |
-| Stack columns, A286 stud thread root | 20.4 | 68.4 | 758 / 1,103 | 1.25 / 1.40 | +7.9 | +10.5 | Same |
-| Stack column (+40, +43), Ti-6Al-4V stud thread root | 8.3 | 22.7 | 827 / 896 | 1.25 / 1.40 | +28 | +27 | (+40, +43) under the +Z end frame |
-| Battery isolator, G-10CR bushing | 6.8 | 34.1 | 380 (flexural) | 2.00 | — | **+4.57** | (−38.5, +31) |
-| Battery isolator, Ti-6Al-4V screw | 15.2 | 76.2 | 827 / 896 | 1.25 / 1.40 | +7.7 | +7.4 | Same |
+| −Z end frame at the battery isolators | 10.8 | **112.3** | 241 / 290 | 1.25 / 1.40 | **+0.72** | +0.84 | (−40.8, −32.5, −47.7): next to the isolator spider |
+| End frames at the rail corners | 26.3 | 85.5 | 241 / 290 | 1.25 / 1.40 | +1.25 | +1.42 | +Z frame at (−40.8, −41.2), with the ballast |
+| Centre supports | 29.7 | 71.5 | 241 / 290 | 1.25 / 1.40 | +1.70 | +1.90 | (0, +21) under the spreader |
+| Side shear panels | 16.0 | 65.4 | 241 / 290 | 1.25 / 1.40 | +1.95 | +2.17 | −X panel at the spreader flange |
+| Rails (L-angle, standoffs) | 14.8 | 60.8 | 241 / 290 | 1.25 / 1.40 | +2.17 | +2.41 | (−47.3, −47.3) at the −Z end frame |
+| Stack columns, Al spacer | 16.9 | 56.4 | 241 / 290 | 1.25 / 1.40 | +2.42 | +2.67 | (−40, −43) under the +Z end frame |
+| Stack columns, A286 stud thread root | 20.3 | 68.0 | 758 / 1,103 | 1.25 / 1.40 | +7.9 | +10.6 | Same |
+| Stack column (+40, +43), Ti-6Al-4V stud thread root | 8.5 | 23.0 | 827 / 896 | 1.25 / 1.40 | +28 | +27 | (+40, +43) under the +Z end frame |
+| Battery isolator, G-10CR bushing | 6.8 | 34.3 | 380 (flexural) | 2.00 | — | **+4.54** | (−38.5, +31) |
+| Battery isolator, Ti-6Al-4V screw | 15.1 | 76.6 | 827 / 896 | 1.25 / 1.40 | +7.6 | +7.4 | Same |
 | Battery clamp ears (Al) | 5.0 | 22.8 | 241 / 290 | 1.25 / 1.40 | +7.5 | +8.1 | Ear root |
 | Heat spreader and flanges (with the pedestal's 1.8 g) | 8.3 | 25.4 | 241 / 290 | 1.25 / 1.40 | +6.6 | +7.2 | At the upper centre support |
-| Torquer deck (equivalent plate) | 3.6 | 44.2 | 241 / 290 | 1.25 / 1.40 | +3.4 | +3.7 | At the upper centre support (0, +21) |
-| PCBs EPS / OBC / carrier / RF (FR-4) | 3.3 / 3.6 / 5.4 / 4.1 | 29.2 / 22.0 / 27.4 / 18.5 | 340 | 1.50 | — | +6.8 / +9.3 / +7.3 / +11.3 | At the columns |
+| Torquer deck (equivalent plate) | 3.6 | 43.5 | 241 / 290 | 1.25 / 1.40 | +3.4 | +3.8 | At the upper centre support (0, +21) |
+| PCBs EPS / OBC / carrier / RF (FR-4) | 3.3 / 3.6 / 5.4 / 4.1 | 28.8 / 21.6 / 26.9 / 19.5 | 340 | 1.50 | — | +6.9 / +9.5 / +7.4 / +10.6 | At the columns |
 | Stowed wings (FR-4) | 1.7 | 6.4 | 340 | 1.50 | — | +34 | Centre |
 
 | Board | Z₃σ relative (mm) | Steinberg MS, **design** (two centre supports, gyro window in a 2.0 mm carrier) | 1.6 mm carrier, framed window (withdrawn) | 1.6 mm carrier, window, no frame | 1.6 mm carrier, no window (reference) | One centre support | Design with a 2.0 mm EPS board too |
 |-------|------|------|------|------|------|------|------|
-| EPS | 0.144 | **+0.33** | +0.14 | +0.17 | +0.15 | −0.30 | +0.51 |
-| OBC | 0.142 | **+0.35** | +0.14 | +0.17 | +0.15 | +1.26 | +0.54 |
-| Jetson carrier (with the module) | 0.143 (2.0 mm) | **+0.07** | +0.08 | **−0.05** | +0.07 | −0.05 | +0.42 |
-| RF | 0.127 | **+0.51** | +0.35 | +0.33 | +0.35 | +0.44 | +0.53 |
+| EPS | 0.142 | **+0.35** | +0.15 | +0.18 | +0.16 | −0.29 | +0.53 |
+| OBC | 0.140 | **+0.37** | +0.15 | +0.18 | +0.16 | +1.21 | +0.55 |
+| Jetson carrier (with the module) | 0.141 (2.0 mm) | **+0.08** | +0.08 | **−0.04** | +0.08 | −0.03 | +0.43 |
+| RF | 0.137 | **+0.40** | +0.26 | +0.26 | +0.26 | +0.35 | +0.55 |
+
+(FE re-run with the 20 g inertia ballast on the +Z end frame, chair decision C-13: the end frame's local mode falls from
+546 to 402 Hz and couples with the RF board through the (0, 0) centre support and the columns, which lowers the RF margin
+from +0.51 to +0.40; every other board gains 0.01–0.02. No strength margin changes by more than 0.03. Each disc's two
+M2 Ti-6Al-4V screws carry under 20 N even at 200 g on the disc, against about 1.6 kN of tensile strength each.)
 
 The carrier's allowable is the 2.0 mm one (0.154 mm). The window in a 1.6 mm board costs the carrier 0.12 (to −0.05: the
 window cuts the board between the corner column (−40, +43) and the centre support (0, +21)); the 2.0 mm board restores
-+0.07 and raises the EPS and OBC margins (+0.33 / +0.35) through the coupled stack. The framed 1.6 mm alternative gives
++0.08 and raises the EPS and OBC margins (+0.35 / +0.37) through the coupled stack. The framed 1.6 mm alternative gives
 +0.08 but depends on a bond that does not close (§4.3.3).
 
 Hold-down: the post carries 2.0 N quasi-static and **3.9 N 3σ** normal to the wing (SA-001 A §10: 4.9 N); against the
@@ -667,14 +673,14 @@ Hinges 3.9 N, snubber 3.7 N (3σ).
 
 Findings from the FE:
 
-1. **All strength margins are positive** at the protoflight test level with the 5001B factors. The lowest, +0.74, is a
+1. **All strength margins are positive** at the protoflight test level with the 5001B factors. The lowest, +0.72, is a
    local peak in the 1.6 mm −Z end frame beside the isolator attachment (battery 261 g on four points of a ring 13.5 mm
    wide); it is mesh- and spider-dependent. **Design action:** a 1 mm Al doubler (or a 2.5 mm local boss) under each
    isolator on the −Z end frame, specified on the frame drawing or the battery-mount drawing.
 2. **The PCB fatigue margins need the second centre support (D-7):** with the single support of SQSO-SA-001 A at the only
-   place the Jetson module leaves free (y = +21 mm), the EPS and carrier boards are at −0.30 and −0.05 (2.0 mm carrier);
-   with the second support at y = −21 mm (EPS → OBC → carrier) they are +0.33 and +0.07. A 2.0 mm EPS board as well would
-   raise the EPS to +0.51 (with the 2.0 mm allowable; +0.8 to +0.9 in the first issue of Version B, which used the 1.6 mm
+   place the Jetson module leaves free (y = +21 mm), the EPS and carrier boards are at −0.29 and −0.03 (2.0 mm carrier);
+   with the second support at y = −21 mm (EPS → OBC → carrier) they are +0.35 and +0.08. A 2.0 mm EPS board as well would
+   raise the EPS to +0.53 (with the 2.0 mm allowable; +0.8 to +0.9 in the first issue of Version B, which used the 1.6 mm
    allowable) at 0.4 mm more of stack height (available above the RF board, at a re-stack). Steinberg's 2 × 10⁷-cycle criterion is
    conservative for one minute per axis. **Chair decision (2026-10-27): two centre supports, boards kept at 1.6 mm**,
    since all four boards are positive; the 2.0 mm option is held in reserve until the measured Q of the EM board survey
@@ -691,14 +697,14 @@ Findings from the FE:
 
 | Case | First mode | Lowest MS (where) | Steinberg range | Note |
 |------|------------|-------------------|-----------------|------|
-| Design (D-7, D-11 with the 2.0 mm carrier, M1, Ti stud, rails held) | 170 Hz | +0.74 (−Z frame at the isolators) | +0.07 … +0.51 | Baseline |
-| 1.6 mm carrier, framed window (first issue of D-11) | 170 Hz | +0.74 | +0.08 … +0.35 | Withdrawn: the bond does not close (§4.3.3) |
-| 1.6 mm carrier, window, no frame | 170 Hz | +0.73 | **−0.05** … +0.33 | Rejected |
-| 1.6 mm carrier, no window (Version B before D-11) | 170 Hz | +0.74 | +0.07 … +0.35 | Reference |
-| Single centre support | 170 Hz | +0.74 | **−0.30 … +1.26** | Rejected (D-7) |
-| Design with a 2.0 mm EPS board | 170 Hz | +0.73 | +0.42 … +0.54 | Reserve option |
-| Design with a second hard post at the +Z free corner | 183 Hz (wing) | +0.74 | +0.07 … +0.51 | Wing +13 Hz; not needed |
-| Design, rails held at the eight rail ends only | 170 Hz | **+0.85** (−Z frame), +0.86 (rails, 104 MPa), +1.43 (centre support) | +0.07 … +0.50 | Bounds the dispenser contact; rails then carry the lateral load in bending |
+| Design (D-7, D-11 with the 2.0 mm carrier, M1, Ti stud, inertia ballast, rails held) | 170 Hz | +0.72 (−Z frame at the isolators) | +0.08 … +0.40 | Baseline |
+| 1.6 mm carrier, framed window (first issue of D-11) | 170 Hz | +0.71 | +0.08 … +0.26 | Withdrawn: the bond does not close (§4.3.3) |
+| 1.6 mm carrier, window, no frame | 170 Hz | +0.71 | **−0.04** … +0.26 | Rejected |
+| 1.6 mm carrier, no window (Version B before D-11) | 170 Hz | +0.72 | +0.08 … +0.26 | Reference |
+| Single centre support | 170 Hz | +0.71 | **−0.29 … +1.21** | Rejected (D-7) |
+| Design with a 2.0 mm EPS board | 170 Hz | +0.71 | +0.43 … +0.55 | Reserve option |
+| Design with a second hard post at the +Z free corner | 183 Hz (wing) | +0.72 | +0.08 … +0.40 | Wing +13 Hz; not needed |
+| Design, rails held at the eight rail ends only | 170 Hz | **+0.85** (rails, 104 MPa), +0.87 (−Z frame), +1.42 (centre support) | +0.08 … +0.40 | Bounds the dispenser contact; rails then carry the lateral load in bending |
 
 ### 8.7 Limits of the FE Model
 
@@ -735,7 +741,7 @@ Findings from the FE:
 | MCAD-01 (severity 2) | **Closed by design (Version B)**: two OD 4.0 mm torsion springs on the hinge pin and a clock-spring flex in the −Z knuckle fit the envelope; torque margin (5017B, analysis factors) end of travel cold **+0.14**, one spring out +0.13; spring MS +0.12 / +0.04 yield; damped stop 0.157 N·m; no latch (holding margin +17). Thin margins: verification by VI-STR-04, VI-MECH-01 and VI-MECH-02 | §6.8; SQSO-MECH-001 B §3A–§5A; `hinge.py` |
 | STR-13 (reopened in Version A) | **Closed by design** with the flex at the bend radius that fits (1.0–1.6 mm, allocation 0.50 mN·m cold; zero margin at 0.64); **verification item** VI-STR-04 (measured flex and hinge torque at −40 °C) | §6.8; SQSO-MECH-001 B §3A, §4A |
 | MCAD-02 (severity 3) | **Closed by reallocation (Version B)**: skeleton torquer deck 9 g (7.8 g Al) inside a re-split row 5 (deck 9, heat-path 15, doublers 4, patch bracket 2 = 30 g; MEL unchanged). The alternative (growing row 5 by the original 17 g) gives MEV 1,729.7 g and margin +15.6 % | §5.1, MASS_BUDGET v3.1 §1.2 |
-| Centre supports (chair decision) | **Adopted**: two centre supports at (0, ±21) mm on the EPS, OBC and carrier boards, EPS, OBC and RF boards 1.6 mm, the carrier 2.0 mm for its gyro window (D-11); Steinberg margins +0.07 (carrier) to +0.51; a 2.0 mm EPS board held in reserve (+0.42 to +0.54 with the 2.0 mm allowable; the first issue's +0.83 to +0.90 for 2.0 mm boards used the 1.6 mm allowable) | §4.1, §8; SQSO-SA-001 B §8A |
+| Centre supports (chair decision) | **Adopted**: two centre supports at (0, ±21) mm on the EPS, OBC and carrier boards, EPS, OBC and RF boards 1.6 mm, the carrier 2.0 mm for its gyro window (D-11); Steinberg margins +0.08 (carrier) to +0.40 (with the inertia ballast); a 2.0 mm EPS board held in reserve (+0.43 to +0.55 with the 2.0 mm allowable; the first issue's +0.83 to +0.90 for 2.0 mm boards used the 1.6 mm allowable) | §4.1, §8; SQSO-SA-001 B §8A |
 | OBC item C3 (gyro stack clearance) | **Closed by design**: gyro on its socket on the OBC, through a 27 × 27 mm window in the Jetson carrier, which is 2.0 mm thick (D-11; the bonded frame of the first issue is withdrawn, §4.3.3); the two proposed options (carrier raised 3 mm; bracket and ribbon) do not fit (§4.3). Gyro alignment to be measured and compensated (VI-MCAD-05) | §4.3; check OBC-C3 |
 | MCAD-03 (new, severity 3) | Wing sweep clearance 0.35 mm: body-panel cell layout action for the panel vendor | §6.6 |
 
@@ -824,4 +830,4 @@ Findings from the FE:
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | A | 2026-10-27 | Mechanical design (CDR design completion) | Initial issue: parametric CAD of layout B with MEL masses; mass properties and principal-axis balancing; CDS envelope, tolerance-stack, standoff, interference, sweep and clearance checks; STEP (full and outer mould line) and SVG drawings; beam-shell FE model with modes, effective masses, quasi-static and random stresses and margins; L-8 M deliverable statement; RIDs SE-01 (mechanical), SE-12, STR-01, STR-10, STR-11, STR-16; findings MCAD-01 to MCAD-03 |
-| B | 2026-10-27 | Mechanical design (CDR design completion) | Chair follow-up: wing hinge designed (two OD 4.0 mm torsion springs, clock-spring flex in the −Z knuckle, damped stop, no latch; `hinge.py`), MCAD-01 and STR-13 closed by design with verification items; protrusion stack now governed by the springs (6.10 / 6.38 mm); skeleton torquer deck and row-5 re-split (MCAD-02 closed by reallocation); two centre supports at (0, ±21) mm adopted (chair decision) with 1.6 mm boards; Jetson to y = −6 mm; carrier 2.0 mm with the gyro window and no frame (the bonded frame withdrawn, §4.3.3); four AntS elements (2 m ±X, 70 cm ±Y; ratio 1.045 / 1.037 without ballast; chair decision C-13: 2 × 10 g W-Ni-Cu Z-axis ballast on the +Z end frame adopted, MEL row 36, ratio 1.056 / 1.047, D-9, §5.2); harness bundle (+X, −Y), W4A, RF connectors and W10 coax (ICX E12, RF C §4; §6.9); Ti stud at (+40, +43); FE re-run (§8); magnetometer board A2 in the +Z slot with its 20 mm non-ferromagnetic zone, W6E/W8A routing, no OBC frame bond (OBC item C13; §4.4, §6.9, VI-MCAD-07); window-frame screws H10–H13 amended into tapped pads (§4.3.3); Jetson carrier item M1 (spreader pedestal, gap pads, module standoffs, (0, −21) fastener, shims and thermal path; §4.5, VI-MCAD-06; gyro and window moved 3 mm toward +Y to clear the module standoff); gyro (OBC item C3) through a framed window in the carrier (§4.3, D-11) after the carrier raise and the bracket were shown not to fit, OBC placement constraints recorded (§4.4), gyro alignment item VI-MCAD-05; Steinberg allowable made thickness-dependent (2.0 mm reserve +0.41 to +0.58); mass properties, interference and FE results recomputed |
+| B | 2026-10-27 | Mechanical design (CDR design completion) | Chair follow-up: wing hinge designed (two OD 4.0 mm torsion springs, clock-spring flex in the −Z knuckle, damped stop, no latch; `hinge.py`), MCAD-01 and STR-13 closed by design with verification items; protrusion stack now governed by the springs (6.10 / 6.38 mm); skeleton torquer deck and row-5 re-split (MCAD-02 closed by reallocation); two centre supports at (0, ±21) mm adopted (chair decision) with 1.6 mm boards; Jetson to y = −6 mm; carrier 2.0 mm with the gyro window and no frame (the bonded frame withdrawn, §4.3.3); four AntS elements (2 m ±X, 70 cm ±Y; ratio 1.045 / 1.037 without ballast; chair decision C-13: 2 × 10 g W-Ni-Cu Z-axis ballast on the +Z end frame adopted, MEL row 36, ratio 1.056 / 1.047, D-9, §5.2); harness bundle (+X, −Y), W4A, RF connectors and W10 coax (ICX E12, RF C §4; §6.9); Ti stud at (+40, +43); FE re-run (§8); magnetometer board A2 in the +Z slot with its 20 mm non-ferromagnetic zone, W6E/W8A routing, no OBC frame bond (OBC item C13; §4.4, §6.9, VI-MCAD-07); window-frame screws H10–H13 amended into tapped pads (§4.3.3); Jetson carrier item M1 (spreader pedestal, gap pads, module standoffs, (0, −21) fastener, shims and thermal path; §4.5, VI-MCAD-06; gyro and window moved 3 mm toward +Y to clear the module standoff); gyro (OBC item C3) through a framed window in the carrier (§4.3, D-11) after the carrier raise and the bracket were shown not to fit, OBC placement constraints recorded (§4.4), gyro alignment item VI-MCAD-05; Steinberg allowable made thickness-dependent (2.0 mm reserve +0.41 to +0.58); mass properties, interference and FE results recomputed (with the C-13 ballast and the coax, ribbon and hinge springs lumped: FE mass = CAD 1,514.3 g, lowest MS +0.72, Steinberg +0.08 to +0.40, +Z end frame 402 Hz) |

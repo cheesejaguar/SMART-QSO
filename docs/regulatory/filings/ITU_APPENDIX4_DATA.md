@@ -2,7 +2,7 @@
 ## Non-GSO Amateur-Satellite Network "SMART-QSO"
 
 **Document Number:** SQSO-REG-017
-**Revision:** A.2 (draft)
+**Revision:** A.3 (draft)
 **Date:** 2026-10-27
 **Purpose:** Source data for the SpaceCap electronic filing that the FCC submits to the ITU Radiocommunication Bureau
 under RR Articles 9 (advance publication) and 11 (notification), as required for the pre-space notification
@@ -66,8 +66,8 @@ transponder briefly muted; this is simpler and lower-power than a second transmi
 
 | Data | Typical amateur user station | Telecommand station |
 |------|------------------------------|---------------------|
-| Antenna | Handheld 2-element Yagi to fixed cross-Yagi; gain 5–12 dBi | Cross-Yagi with rotator; gain ~12–14 dBi |
-| Transmit power (435 MHz) | 5–50 W | 25–50 W PEP (50 W PEP limit within 240 km of Beale AFB, 47 CFR 2.106 US270; up to 1 kW EIRP under 97.313(f) with the antenna's lower half-power point above 10°) |
+| Antenna | Handheld 2-element Yagi to fixed cross-Yagi; gain 5–12 dBi | Cross-Yagi with rotator, ≥ 14 dBic (variant A), or a stacked pair of cross-Yagis, ≥ 17.5 dBic (variant B) |
+| Transmit power (435 MHz) | 5–50 W | ≥ 64 dBm EIRP (2.5 kW) toward the spacecraft above 10° elevation (decision C-14): variant A, outside the 47 CFR 2.106 US270 areas, ≥ 100 W PEP at the feed into ≥ 14 dBic; variant B, inside them (the Bay Area site near Beale AFB, Fairbanks near Clear SFS), **≤ 50 W PEP** at the feed into ≥ 17.5 dBic (a stacked pair of cross-Yagis, ≤ 0.5 dB feed); EIRP ≈ 2.5–3.5 kW at boresight; transmitting only above 10° elevation (SQSO-GND-001 Rev F §3.1) |
 | Receive noise temperature (145.9 MHz) | 500–1000 K | 500 K with LNA (galactic noise alone is ≈ 480 K at 146 MHz, ITU-R P.372) |
 | Location | Worldwide | `[lat/long]` ×2 |
 
@@ -88,3 +88,4 @@ transponder briefly muted; this is simpler and lower-power than a second transmi
 | A | 2026-10-14 | Initial data sheet (funding audit) |
 | A.1 | 2026-10-27 | CDR review (communications panel): power and EIRP, antenna, uplink range and CTCSS tone, receiver noise temperature, telecommand-station power limits, Res. 32 and API timing |
 | A.2 | 2026-10-27 | CDR 2026 consistency pass: altitude 475 km target, 465–485 km, period 93.9–94.3 min, uplink request windows (BASELINE Rev E §3, §7) |
+| A.3 | 2026-10-27 | §E telecommand station: the EIRP requirement of decision C-14 and the two station variants (≥ 100 W into ≥ 14 dBic outside US270; ≤ 50 W PEP into ≥ 17.5 dBic inside US270) |

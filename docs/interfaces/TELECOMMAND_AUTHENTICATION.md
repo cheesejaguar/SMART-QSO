@@ -1,7 +1,7 @@
 # Interface Control Document: Telecommand Authentication and TX-OFF
 
 **Document ID**: SQSO-ICD-013
-**Version**: 0.8 (Draft)
+**Version**: 0.9 (Draft)
 **Date**: 2026-10-27
 **Status**: Draft. Implemented and tested in the host simulation. Not yet run on target hardware (Section 10).
 
@@ -24,7 +24,7 @@ Where this document conflicts with SQSO-ICD-005 (`ICD_SPACE_GROUND.md`) or `docs
 | ITU RR 22.1 | Space stations must be able to cease emissions immediately by telecommand | Same as above |
 | 47 CFR 97.211(b) | Telecommand to a space station may use codes that obscure meaning | The uplink is authenticated with a message authentication code. Nothing is encrypted, no key material is ever sent over RF, and the downlink stays in the clear (97.113(a)(4)) |
 | 47 CFR 97.211(a) | Only designated telecommand stations may send telecommand | Only holders of a key can produce an accepted command. The stations themselves are still to be designated (finding RG-03): at least two, by 2027-01-05 (`docs/ground/GROUND_STATION_DESIGN.md` §3; REGULATORY_ROADMAP F13) |
-| 47 CFR 97.313(f); 2.106 US270 | 70 cm power near listed military radars | The Bay Area site is within 240 km of Beale AFB: 50 W PEP unless the antenna's lower half-power point stays above 10° elevation (up to 611 W ERP). Ground-station matter (SQSO-GND-001 §3) |
+| 47 CFR 97.313(f); 2.106 US270 | 70 cm power near listed military radars | Telecommand stations radiate ≥ 64 dBm EIRP (2.5 kW) toward the spacecraft and command only above 10° (decision C-14): outside the US270 areas by ≥ 100 W PEP at the feed into ≥ 14 dBic; inside them (the Bay Area site, within 240 km of Beale AFB; Fairbanks, within 160 km of Clear SFS) by **≤ 50 W PEP** into ≥ 17.5 dBic (a stacked pair of cross-Yagis). Ground-station matter (SQSO-GND-001 Rev F §3.1) |
 
 ## 3. Uplink Framing
 
@@ -459,3 +459,4 @@ python3 software/ground/tools/telecommand_builder.py TX_DISABLE --key-file test.
 | 0.6, note | 2026-10-24 | The C files named in §6, §7 and §10 were ported to Rust; references now name the Rust files (`software/rust/README.md`). The test suites named are unchanged and run against the Rust. No content change |
 | 0.7 | 2026-10-27 | CDR review (communications panel): telecommand-station status and the 70 cm power limit near Beale AFB (§2); Doppler pre-correction rule (§5.2 rule 5); UTC-derived counters for several stations (§5.2.1, proposed); end-of-life passivation by telecommand (§6.4, proposed: no such command exists, which the pre-space notification must reflect); status rows (§10) |
 | 0.8 | 2026-10-27 | CDR flight software, round 2: end-of-life passivation implemented (§6.4) with the codes 0x70 PASSIVATE_ARM and 0x71 PASSIVATE_EXECUTE (0x34 and 0x35 are XPDR_ENABLE and XPDR_DISABLE); §7 dictionary completed (0x08, 0x09, 0x0A DUMP_TLM, 0x14 EPS_CLEAR_LOCKOUT, 0x24, 0x34, 0x35, 0x50, 0x60, 0x70, 0x71); §9.1 the recovery key also authenticates PASSIVATE_EXECUTE; §10 status rows |
+| 0.9 | 2026-10-27 | CDR S&MA analysis (decision C-14): §2 US270 row states the telecommand EIRP requirement and the two station variants (≤ 50 W PEP at US270 sites) |

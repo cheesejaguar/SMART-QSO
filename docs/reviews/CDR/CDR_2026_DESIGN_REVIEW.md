@@ -109,19 +109,19 @@ L-2 M licences and ephemeris demonstration).
 
 | Quantity | Requirement | Predicted | Margin | Source |
 |----------|-------------|-----------|--------|--------|
-| Mass | ≤ 2.00 kg (design), 2.5 kg Nova | MEV 1.728 kg | +15.8 % (+44.7 % to the Nova) | MASS_BUDGET 3.1 |
-| CG, stowed | ±20 mm | (+0.4, −0.1, −1.8) mm CBE, (+0.5, −0.2, −0.7) mm MEV (CAD) | > 18 mm | MECHANICAL_DESIGN |
-| Deployed inertia | Iyy ≥ 1.03 × max, axis within 5° of +Y | 1.056 / 1.047 (CBE / MEV), 0.6° / 1.1° | Met | MECHANICAL_DESIGN |
+| Mass | ≤ 2.00 kg (design), 2.5 kg Nova | MEV 1.748 kg (with the C-13 ballast) | +14.4 % (+43.0 % to the Nova) | MASS_BUDGET 3.1 |
+| CG, stowed | ±20 mm | (−0.03, +0.10, −1.23) mm CBE, (+0.01, +0.04, −0.18) mm MEV (CAD) | > 18 mm | MECHANICAL_DESIGN |
+| Deployed inertia | Iyy ≥ 1.03 × max, axis within 5° of +Y | 1.056 / 1.047 (CBE / MEV, four AntS elements, C-13 ballast), 0.9° / 0.8°; ≥ 1.03 to 3.2 mm placement scatter | Met | MECHANICAL_DESIGN §5 |
 | First mode, stowed | > 40 Hz | 170 Hz (FE), ≈ 140 Hz (analytic) | × 3.5–4.2 | STRUCTURAL_ANALYSIS B |
-| Strength | MS ≥ 0 (NASA-STD-5001B protoflight factors at MPE + 3 dB) | Lowest +0.72 (local peak) | Positive | STRUCTURAL_ANALYSIS B |
-| PCB fatigue (Steinberg) | MS ≥ 0 | +0.09 to +0.36 with two supports | Positive | STRUCTURAL_ANALYSIS B |
+| Strength | MS ≥ 0 (NASA-STD-5001B protoflight factors at MPE + 3 dB) | Lowest +0.72 (−Z end frame at the battery isolators) | Positive | STRUCTURAL_ANALYSIS B |
+| PCB fatigue (Steinberg) | MS ≥ 0 | +0.08 (2.0 mm carrier) to +0.40 (RF) with two supports | Positive | STRUCTURAL_ANALYSIS B |
 | Wing deployment torque | NASA-STD-5017B torque margin ≥ 0 at end of travel | +0.14 cold, +0.13 one spring out | Positive | MECHANISMS_ANALYSIS B §4A |
 | Power, EOL, sun-pointed | ≥ 20 % | 3.92 W against 2.24 W (allocation) | +75 % | BASELINE §5; POWER_BUDGET_ANALYSIS 2.2 |
 | Power, EOL, tumbling | ≥ 20 % | 2.48 W against 1.84 W (allocation) | +35 % | BASELINE §5; POWER_BUDGET_ANALYSIS 2.2 |
 | Depth of discharge | ≤ 10 % per eclipse | ≤ 3.7 % as flown (SIL D, 475 km); 2.8 % worst contingency (PBA 2.2) | × 2.7 | SIL_MISSION_SIMULATION D §7; POWER_BUDGET_ANALYSIS 2.2 |
 | Battery temperature | 0 to +45 °C charging | ≥ +4.4 °C with +5/+9 °C set points | — | THERMAL_ANALYSIS 2.0 |
 | Beacon link, 5° | ≥ 6 dB (median gain) | +7.9 dB | +1.9 dB | LINK_BUDGET 3.2 |
-| Telecommand link, 10° | 6 dB with interference allowance | +8.3 dB at 64 dBm EIRP, receiver as designed, 10th-percentile gain (+6.5 dB at 5°) | +2.3 dB | LINK_BUDGET 3.3 (C-14) |
+| Telecommand link, 10° | 6 dB with interference allowance | +8.8 to +9.5 dB (variants B, A), receiver as designed, 10th-percentile gain, 0.3 dB pointing (+7.0 to +7.7 dB at 5°) | ≥ +2.8 dB | LINK_BUDGET 3.4 (C-14) |
 | Sun pointing | ±15° | mean 1.8°, p95 3.5°, 99.98 % within 15° (SIL); Monte Carlo 100 % of sunlit time | Met | SIL_MISSION_SIMULATION D §7; BUILD_VS_BUY §6 |
 | Detumble | ≤ 3 orbits | ≤ 2.1 h (≤ 1.4 orbits) | × 2.1 | BUILD_VS_BUY §6 |
 | Total dose, 2 mm Al | design 10 krad, margin ≥ 2 | 5.25 krad at 500 km | × 1.90 → ≥ 2.1 mm required | RADIATION_ANALYSIS C |
@@ -147,7 +147,7 @@ L-2 M licences and ephemeris demonstration).
 | C-11 | Heater set points +5/+9 °C; ≈ 207 Ω heater | THM-02, BUILD_VS_BUY §4.5 |
 | C-12 | Two centre supports on the EPS, OBC and carrier boards | STR-05, MECHANICAL_DESIGN |
 | C-13 | 2 × 10 g non-ferromagnetic ballast on the Z axis at the end frames, so the deployed inertia ratio keeps margin with all four AntS elements | MCAD-09, RFB-11 |
-| C-14 | Telecommand stations radiate ≥ 64 dBm EIRP above 10° elevation: ≥ 100 W PEP into ≥ 14 dBic outside the 47 CFR 2.106 US270 areas, ≤ 50 W PEP into ≥ 17.5 dBic (stacked array) inside them; commands only above 10° | RF-23 |
+| C-14 | Telecommand stations radiate ≥ 64 dBm EIRP above 10° elevation: ≥ 100 W PEP into ≥ 15.5 dBic outside the 47 CFR 2.106 US270 areas (variant A), ≤ 50 W PEP into a ≥ 17.5 dBic stacked pair inside them (variant B); commands only above 10° | RF-23 |
 
 ## 5. Design completion (round 2)
 
@@ -161,13 +161,13 @@ L-2 M licences and ephemeris demonstration).
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 26 |
-| Closed by design change | 99 | 160 |
+| Closed by design change | 99 | 162 |
 | Closed by chair decision | 38 | 37 |
 | Verification item | 42 | 41 |
 | Decision point (dated) | 13 | 13 |
-| Implementation | 80 | 20 |
+| Implementation | 80 | 18 |
 
-Open implementation RIDs: SE-01, SE-19, SE-21, RF-23, REG-12, SMA-15, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, RFB-11, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02.
+Open implementation RIDs: SE-01, SE-19, SE-21, REG-12, SMA-15, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -288,7 +288,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | RF-20 | 3 | Self-generated EMI into the receivers | VI | Verification item | VI-RF-07 |
 | RF-21 | 3 | Repeat-path readbacks not wired to the OBC | IMP | Closed by design change | Readbacks wired on the RF board (W4 J1-8/9/10) and the OBC (PC9, PG12, PC7) |
 | RF-22 | 3 | SIL link model simplified | IMP | Closed by design change | SIL link model to LBA 3.0 |
-| RF-23 | 2 | Telecommand link with the receiver as designed: +3.8 dB at 10° at 50 W PEP against the 6 dB requirement (LB-3) | IMP | Implementation | Chair C-14: stations transmit ≥ 100 W PEP at the feed; commanding above 10°; LBA, ground design and operations manual |
+| RF-23 | 2 | Telecommand link with the receiver as designed: +3.8 dB at 10° at 50 W PEP against the 6 dB requirement (LB-3) | IMP | Closed by design change | C-14: ≥ 64 dBm EIRP above 10°; variant A ≥ 100 W into ≥ 15.5 dBic (+7.7 / +9.5 dB at 5° / 10°), variant B ≤ 50 W into a stacked 18.2 dBic pair at the US270 sites (+7.0 / +8.8 dB), 0.3 dB pointing (LBA 3.4; GND F; RF exposure 13-16 m, VI-GND-05) |
 
 #### Ground segment (GND)
 
@@ -545,7 +545,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | RFB-08 | 3 | Magnetometer A2 is 4 mm above the RF board: shield, lids, ferrites, crystals and the PA loop near it | CD | Closed by design change | No part within 20 mm of A2, no ferromagnetic part within 40 mm; nickel-silver shield, soldered lids; PA supply paired on layers 4/5 and routed 80-87 mm away (0.5 nT keyed step) (SQSO-RF-BRD-001 B §10.1); VI-RFB-11 |
 | RFB-09 | 2 | SMA end-launch connectors J3-J6 with mated plugs and cable bends do not fit the 3.3 mm gap to the side walls | IMP | Closed by design change | MMCX jacks (Molex 73415-1473, brass/BeCu, gold) at the −X edge; 1.37 mm coax with silver-plated copper inner conductor down the −X wall gap at \|y\| 20-24 mm; port-to-antenna 0.44 dB (146 MHz) and 0.62 dB (436 MHz); uplink system noise 548-598 K inside 650 K (SQSO-RF-BRD-001 C §4.3, §16) |
 | RFB-10 | 3 | AntS RF port type and the connector mated heights not confirmed from the ISIS ICD and the Molex/Samtec drawings | VI | Verification item | VI-RFB-12 (drawings, plating, cable attenuation and inner conductor) by 2026-11-13, before layout; VI-RFB-13 against the ISIS ICD (only the AntS-end plug changes if it differs) |
-| RFB-11 | 2 | CAD models two AntS elements; the AntS and the RF board use four (2 m along ±X, 70 cm along ±Y): the deployed inertia ratio must be re-checked | IMP | Implementation | Mechanical CAD: four elements, mass properties with growth |
+| RFB-11 | 2 | CAD models two AntS elements; the AntS and the RF board use four (2 m along ±X, 70 cm along ±Y): the deployed inertia ratio must be re-checked | IMP | Closed by design change | Four AntS elements in the CAD; with the C-13 ballast the deployed ratio is 1.056 / 1.047, ≥ 1.03 with growth to 3.2 mm placement scatter (MECHANICAL_DESIGN B §5) |
 
 #### EPS board (round 2) (EPSB)
 

@@ -72,5 +72,7 @@ CLOSURE: dict[str, tuple[str, str]] = {
     "MCAD-08": ("CD", "Bonded frame withdrawn (thermal shear at −40 °C near adhesive strength; no adhesive strong hot within the 1.0 % TML limit): carrier 2.0 mm with the window, fatigue +0.07, carrier mode 479 Hz; FE re-run lowest strength +0.74; materials list C: no structural adhesive"),
     "SE-15": ("CD", "END_OF_LIFE_PLAN C rewritten: end criteria, 0x70/0x71 passivation step by step with go/no-go from HK1 and the ack, cases where it cannot be commanded, post-space notification, ODAR Draft D lifetimes"),
     "SE-16": ("CA", "Re-run at Rev E: ODAR Draft D (wings-failed 0.29 %, P 0.997), EMC C, LBA 3.2, DATA_BUDGET 2.1, GND D, PBA 2.2 (tumbling 2.48 W, +34 %), MISSION_TIMELINE 2.2 LEOP from the SIL, RELIABILITY 2.1 (0.75 / 0.61 / 0.51); scripts updated"),
+    "RFB-11": ("CD", "Four AntS elements in the CAD; with the C-13 ballast the deployed ratio is 1.056 / 1.047, ≥ 1.03 with growth to 3.2 mm placement scatter (MECHANICAL_DESIGN B §5)"),
+    "RF-23": ("CD", "C-14: ≥ 64 dBm EIRP above 10°; variant A ≥ 100 W into ≥ 15.5 dBic (+7.7 / +9.5 dB at 5° / 10°), variant B ≤ 50 W into a stacked 18.2 dBic pair at the US270 sites (+7.0 / +8.8 dB), 0.3 dB pointing (LBA 3.4; GND F; RF exposure 13-16 m, VI-GND-05)"),
     "SE-10": ("CD", "SRS 1.6 requirements defined; SQSO-FSW-012 Appendix C mapping; traceability 0 undefined"),
 }

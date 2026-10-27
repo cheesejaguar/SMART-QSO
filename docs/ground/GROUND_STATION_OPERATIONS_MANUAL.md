@@ -1,10 +1,10 @@
 # SMART-QSO Ground Station Operations Manual
 
 **Document ID**: SQSO-GSOM-001
-**Version**: 1.4
+**Version**: 1.5
 **Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR draft for the designated telecommand stations (none agreed yet; `docs/ground/GROUND_STATION_DESIGN.md` Rev E). Frequencies are planning values until the IARU letter. Command procedures follow SQSO-ICD-013, which governs.
+**Status**: CDR draft for the designated telecommand stations (none agreed yet; `docs/ground/GROUND_STATION_DESIGN.md` Rev F). Frequencies are planning values until the IARU letter. Command procedures follow SQSO-ICD-013, which governs.
 
 ## 1. Purpose
 
@@ -38,8 +38,9 @@ This manual provides step-by-step procedures for operating the SMART-QSO ground 
 | Equipment | Model | Purpose |
 |-----------|-------|---------|
 | VHF Antenna | M2 2MCP22 | 145 MHz receive |
-| UHF Antenna | M2 436CP30 class, ≥ 14 dBic (≈ 17.5 dBic stacked pair at a US270 site using 50 W PEP) | 435 MHz transmit |
-| UHF amplifier and sequencer | Class AB solid-state, ≥ 150 W FM; hardware sequencer with the ≥ 10° PTT gate | **100 W PEP at the antenna feed** (decision C-14; SQSO-GND-001 Rev E §3.1a). At a US270 site (Bay Area: Beale AFB; Fairbanks: Clear SFS) 50 W PEP at the transmitter unless authorized case by case |
+| UHF Antenna | Variant A: M2 436CP30 class, ≥ 14 dBic; variant B (US270 sites): stacked pair, ≈ 18 dBic, same circular sense on both | 435 MHz transmit; **≥ 64 dBm EIRP toward the spacecraft** (decision C-14) |
+| UHF amplifier and sequencer | Variant A: class AB solid-state, ≥ 150 W FM, 100 W PEP at the feed; variant B: none, the transceiver at **≤ 50 W PEP** (US270); both: hardware PTT gate (no keying below 10°) | SQSO-GND-001 Rev F §3.1, §3.1a |
+| Rotator accuracy | ±5° (variant A); **±2°** for the variant B array (calibrate against the Sun or a beacon before each campaign) | 0.3 dB pointing allowance (SQSO-LBA-001 v3.4 §6.1) |
 | Rotator | Yaesu G-5500 | Antenna pointing |
 | LNA | SSB SP-2000 | Low noise amplifier |
 | Radio | Icom IC-9700 class, satellite (full-duplex) mode | Transceiver |
@@ -119,8 +120,8 @@ This manual provides step-by-step procedures for operating the SMART-QSO ground 
 □ 9. Configure transmit (if commanding)
      □ Set to the coordinated uplink (planning value 435.500 MHz), Doppler pre-correction ON (±10.4 kHz over the
        pass; the uplink must be within ±1 kHz at the spacecraft or nothing decodes, SQSO-LBA-001 §4.4)
-     □ Verify 100 W ± 0.5 dB at the antenna feed on the wattmeter (≤ 50 W PEP at the transmitter at a US270 site without
-       an authorization); deviation ±3.0 kHz (VI-GND-01)
+     □ Verify the power at the antenna feed on the wattmeter: variant A 100 W ± 0.5 dB; variant B (US270 site) ≤ 50 W PEP,
+       never more; deviation ±3.0 kHz (VI-GND-01)
      □ Verify the sequencer's PTT gate refuses to key below 10° (rotator parked at 0°: no keying)
      □ Verify PTT interface connected
      □ Verify station clock against GNSS (±1 s)
@@ -419,8 +420,7 @@ CHECK:
 
 RETRY:
 - Check the uplink Doppler correction (must be within ±1 kHz at the spacecraft)
-- Wait for higher elevation (≥ 10°; ≥ 16° in the degraded mode); 100 W at the feed, 50 W PEP at the transmitter at a
-  US270 site without an authorization
+- Wait for higher elevation (≥ 10°; ≥ 16° in the degraded mode); variant A 100 W at the feed, variant B ≤ 50 W PEP (US270)
 - Rebuild with a new counter; never re-send a spent frame
 - If AUTH_FAIL is suspected (wrong key slot after a rotation, counter behind): check the counter file and key ID
 ```
@@ -500,3 +500,4 @@ If telemetry indicates emergency:
 | 1.2 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: spin 8°/s and its fade period (BASELINE Rev E §8) |
 | 1.3 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Fade length from SQSO-LBA-001 v3.2 §5.2 (5 s every 22.5 s at 8°/s); TX-OFF wait 13.0 h from SQSO-GND-001 Rev D §5 (475 km) |
 | 1.4 | 2026-10-27 | CDR S&MA analysis (decision C-14) | Commanding only above 10° elevation (16° in the degraded mode at 50 W); 100 W PEP at the antenna feed with the amplifier and sequencer, PTT gate check; US270 sites (§2.2, §5, troubleshooting) |
+| 1.5 | 2026-10-27 | CDR S&MA analysis (decision C-14 restated) | Station variants A (100 W into ≥ 14 dBic) and B (≤ 50 W PEP into a stacked pair at US270 sites), rotator accuracy ±2° for B, power checks |

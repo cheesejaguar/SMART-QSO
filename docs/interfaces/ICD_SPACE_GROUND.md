@@ -1,7 +1,7 @@
 # Interface Control Document: Space-to-Ground
 
 **Document ID**: SQSO-ICD-005
-**Version**: 2.3
+**Version**: 2.4
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR. RF values follow BASELINE §7; frequencies are planning values until the IARU coordination letter.
@@ -72,7 +72,7 @@ baseline, and Version 2.0 replaces it.
 | Link | Case | Margin or SINAD |
 |------|------|-----------------|
 | Beacon, 0.5 W, reference station (12 dBic, 500 K) | 5°, median / 10th-percentile spacecraft gain | +7.9 dB / +0.9 dB |
-| Telecommand, 25 W, 14 dBic | 10°, 10th-percentile gain, +6 dB interference | +2.6 dB (+5.6 dB at 50 W) |
+| Telecommand, 64 dBm EIRP toward the spacecraft (decision C-14; either station variant), receiver as designed | 5° / 10°, 10th-percentile gain, +6 dB interference | +6.5 / +8.3 dB, less 0.3 dB pointing |
 | Transponder, handheld Yagis both ends | 5° / 20° | 20 dB / 27 dB SINAD |
 | Transponder, handheld whips both ends | 20° / zenith | 14 dB / 26 dB SINAD |
 
@@ -197,7 +197,7 @@ minutes of dump at the maximum rate; the mission simulation's plan asks for the 
 | GS-2 | Holds the operational key under SQSO-ICD-013 §9 (offline at rest; never on a networked machine); the recovery key with a separate custodian | Telecommand stations |
 | GS-3 | Counters per SQSO-ICD-013 §5.2 (shared sequence or UTC-derived, §5.2.1) | Telecommand stations |
 | GS-4 | Doppler pre-correction to ±1 kHz; tracking antennas | Telecommand stations |
-| GS-5 | Power within 47 CFR 97.313 and 2.106 US270 (50 W PEP near Beale AFB and other listed sites unless 97.313(f)); RF exposure per 1.1310 | Telecommand stations |
+| GS-5 | ≥ 64 dBm EIRP (2.5 kW) toward the spacecraft above 10° elevation (decision C-14): variant A, outside the 47 CFR 2.106 US270 areas, ≥ 100 W PEP at the feed into ≥ 14 dBic; variant B, inside them (the Bay Area site near Beale AFB, Fairbanks near Clear SFS), **≤ 50 W PEP** at the feed into ≥ 17.5 dBic (a stacked pair of cross-Yagis, ≤ 0.5 dB feed); power within 47 CFR 97.313 and 2.106 US270 (≤ 50 W PEP at US270 sites); RF exposure per 1.1310 (SQSO-GND-001 Rev F §3.1a) | Telecommand stations |
 | GS-6 | Able to send `TX_DISABLE` on the next pass after an FCC order (97.207(b)); 24-hour contact number | Telecommand stations |
 | GS-7 | Forward decoded frames with time, station and Doppler-corrected frequency to the mission database | All receive stations |
 | GS-8 | Transponder users identify per 97.119 and use CTCSS 67.0 Hz | Users |
@@ -256,3 +256,4 @@ gap between passes 12.9 h.
 | 2.1 | 2026-10-27 | CDR flight software, round 2 | §5.3 the ±5 s beacon jitter as implemented (RF-04) and the HK1 contact fields; §5.5 the command acknowledgement as implemented (GND-03; was a proposal); §5.6 new: stored housekeeping, DUMP_TLM frames and the 44-byte record (DB-01); §7.1 commands checked by their acknowledgement |
 | 2.2 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: uplink request windows from BASELINE Rev E §7 (§2, §4); pass-analysis altitude noted |
 | 2.3 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | §4.3 link summary from SQSO-LBA-001 v3.2 and §7.2 pass statistics from SQSO-GND-001 Rev D, both at 475 km (were 500 km) |
+| 2.4 | 2026-10-27 | CDR S&MA analysis (decision C-14) | §4.3 telecommand margin at 64 dBm EIRP; GS-5 the EIRP requirement and the two station variants, ≤ 50 W PEP at US270 sites |
