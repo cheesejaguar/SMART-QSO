@@ -249,6 +249,7 @@ def inhibits():
              ("AFE FETs Q1/Q2 off-state leakage to PACK_P (nothing returns)", 0.0, 0.0),
              ("Cell-tap filter capacitors (ceramic leakage, 9 x 0.1 uF)", 0.01, 0.1),
              ("Open-tap ladder 4 x 1.00 M across the cells (RID SMA-B03; 15.2 V / 16.8 V)", 3.8, 4.2),
+             ("Open-tap ladder 4 x 2.2 M on the BQ771806's own taps (battery sense board; RID SMA-B24)", 1.7, 1.9),
              ("SMF24A TVS on UMB_VMON (access-port board A3, OBC item C18) through R 100 k from BAT_F", 0.1, 1.0)]
     tot_typ = sum(d[1] for d in drain)
     tot_max = sum(d[2] for d in drain)

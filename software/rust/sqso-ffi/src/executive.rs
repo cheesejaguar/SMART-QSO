@@ -1401,6 +1401,7 @@ impl Executive {
                 gnss_sessions: (self.gnss.sessions, self.gnss.fixes),
                 passivation: passivation::passivation_phase(),
                 eol: (passivation::eol_state(), passivation::passivation_attempts()),
+                eol_wait: passivation::passivation_waiting(),
                 rx: (receiver::receiver_cycles(), receiver::receiver_failed()),
                 contacts: cmd_handler::contacts(),
                 stored: stored_counts(),

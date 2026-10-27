@@ -136,6 +136,13 @@ pub extern "C" fn passivation_execute() -> i32 {
     EOL.with(|p| code(p.execute(now, &mut HalFlash))).unwrap_or(rc::BUSY)
 }
 
+/// Why the fire waits, or went ahead without the EPS board condition
+/// (`sqso_fsw::passivation::WAIT_SUN` and the others; 0 when busy)
+#[unsafe(no_mangle)]
+pub extern "C" fn passivation_waiting() -> u8 {
+    EOL.with(|p| p.waiting()).unwrap_or(0)
+}
+
 /// Every pass: the arm's window and the fire sequence
 #[unsafe(no_mangle)]
 pub extern "C" fn passivation_tick(sunlit: bool) {

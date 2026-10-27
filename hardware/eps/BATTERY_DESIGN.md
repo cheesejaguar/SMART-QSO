@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-BAT-001
-**Version:** 2.9
+**Version:** 2.10
 **Date:** 2026-10-27
 **Status:** Battery definition and cycle-life analysis for the baseline in `docs/BASELINE_PARAMETERS.md` §5 (finding TB-08). **Analysis, not measured; no cell has been bought or tested.**
 
@@ -298,6 +298,19 @@ pin for it yet (RID EPS-06).
     F3 rated −10 … +65 °C: on the pack it must blow only when charging, which the hardware refuses below +1.1 °C; it
     carries below −10 °C only in the first orbit after a cold soak (pack −10 … −16 °C) and is qualified for that and
     the ±70 °C margins by V-EPS-8. Drain unchanged (≤ 2.4 µA, in SQSO-EPS-BRD-001 §6.6)
+  - **F3 placement (RID SMA-B21):** F3 on a thermal island at the sense board's edge, ≥ 25 mm from every cell tab and
+    can, joined by a 25 mm × 2 mm 2-oz trace (≈ 390 K/W with the FR-4 path) and no copper pour toward the cells: when
+    it is blown (15–27 W, ≤ 1.6 kJ in the < 1 min bound) the nearest can rises ≤ 1 K (limit used: can ≤ +60 °C; one
+    cell absorbing the whole bound would rise 32 K). V-BSA-2 measures the island, the cell-4 tab and the nearest can
+  - **F3 in the short loops (RID SMA-B22):** in series with F0A, F0B and F0N, which interrupt the pack short
+    (≤ 211 A) themselves; F3 (50 A interrupting rating) only sees their let-through and never interrupts
+    (SQSO-EPS-BRD-001 G §6.1); in the hard-short abuse test
+  - **Open-tap ladder on the protector's own taps (RID SMA-B24):** 4 × 2.2 MΩ (0603, 1 %) from tap to tap at the
+    BQ771806's pins, after the 1 kΩ filters: an open tap trace or filter resistor is held between its neighbours,
+    so no false 4.35 V reading blows F3. 1.9 µA from the pack at 16.8 V (in the 20 µA budget, SQSO-EPS-BRD-001 §6.6).
+    Accuracy: the ladder current flows through the 1 kΩ filters only at the top and bottom taps (the intermediate
+    tap currents cancel), shifting cells 1 and 4 by ≤ 1.9 mV against the protector's ± 10 mV threshold accuracy:
+    the trip stays at 4.350 V ± 12 mV
   - Sense board (the pack's 15 g interconnect board): FR-4, conformal coated; F0A, F0B, F0N, FT0–FT4 and the 15 tap
     resistors under the coating; the fuses' 72 VDC rating is 4.3× the 16.8 V pack (voltage rule 50 %); terminations in
     the non-tin finish of the slash sheet
@@ -393,3 +406,4 @@ lot uniformity OCV < 1 %, mass < 2 %, capacity < 5 %, resistance < 15 %).
 | 2.7 | 2026-10-27 | CDR design (EPS board): round-3 panel (RID P3E-02): BAT_TOP fuses F0A + F0B and BAT_BOT fuse F0N (FM12A72V5.0A) on the sense board; tap current-limiting chains 3 × 68.1 Ω moved to the sense board (balancing ≈ 9 mA); software-fault pack current 2.0 A (§4.1, §5.1, §7.2) |
 | 2.8 | 2026-10-27 | CDR design (EPS board): F0B a diverse part (FM08A125V5A, Littelfuse, MIL-PRF-23419/8) so the two positive-leg fuses are independent by design (SQSO-FMEA-003); the EPS's open-tap ladder noted (§5.1, §7.2); §7.1 cell retention replaced by the mechanical retention of SQSO-MECH-CAD-001 §4.6 (no adhesive or potting) |
 | 2.9 | 2026-10-27 | CDR design (EPS board): the secondary over-voltage protector BQ771806, its heater driver and F3 move onto the battery sense board (own taps; F3 at the pack's temperature, blowing only inside its rating; SQSO-MFG-003 item 1) (§4.2, §7.2) |
+| 2.10 | 2026-10-27 | CDR design (EPS board): F3 on a thermal island ≥ 25 mm from the cells (SMA-B21), F3 in the short loops never interrupts (SMA-B22), 4 × 2.2 MΩ ladder on the protector's taps (SMA-B24) (§7.2) |

@@ -34,7 +34,7 @@
 //! | `MR` | magnetometer samples rejected (coils on) | — |
 //! | `GF` | GNSS: age of the latest fix/satellites used | s/— |
 //! | `GS` | GNSS sessions run/with a fix | — |
-//! | `PS` | passivation (`passivation.h`: 0 idle, 1 armed, 2 firing, 3 passivated, 4 reporting)/EPS `EOL_STATE` (bit 0 armed, 1 fired, 2 fuse intact; `-` no answer)/fire attempts (RID REG-12) | —/—/— |
+//! | `PS` | passivation (`passivation.h`: 0 idle, 1 armed, 2 firing, 3 passivated, 4 reporting)/EPS `EOL_STATE` (bit 0 armed, 1 fired, 2 fuse intact; `-` no answer)/fire attempts (RID REG-12)/the fire's reasons (`sqso_fsw::passivation`: bit 0 waiting for sunlight, 1 waiting for the EPS board at 0 °C, 2 fired cold after the 6 h bound, 3 board temperature unreadable; RID SMA-B20) | —/—/—/— |
 //! | `RX` | receiver recovery cycles since boot/known failed 1/0 (`receiver.h`) | —/— |
 //! | `CN` | authenticated commands counted as contact since boot (with `CS`, the loss-of-contact count, GND-03) | — |
 //! | `ST` | stored housekeeping: next five-minute/sixty-second record number (`hk_store.h`, DUMP_TLM) | — |
@@ -141,6 +141,8 @@ pub struct Housekeeping {
     /// The EPS controller's `EOL_STATE` (`None`: no answer) and the fire
     /// attempts (RID REG-12: the final report carries them)
     pub eol: (Option<u8>, u8),
+    /// The fire's reasons (`Passivation::waiting`, RID SMA-B20)
+    pub eol_wait: u8,
     /// Receiver recovery cycles since boot, and known failed
     pub rx: (u32, bool),
     /// Authenticated commands counted as contact since boot
@@ -243,8 +245,9 @@ fn tail(w: &mut Out<'_>, hk: &Housekeeping) -> core::fmt::Result {
     opt_u(w, hk.eol.0.map(u32::from))?;
     write!(
         w,
-        "/{} RX={}/{} CN={} ST={summary}/{detail} FR={}/{}",
+        "/{}/{} RX={}/{} CN={} ST={summary}/{detail} FR={}/{}",
         hk.eol.1,
+        hk.eol_wait,
         hk.rx.0,
         flag(hk.rx.1),
         hk.contacts,
@@ -455,6 +458,7 @@ mod tests {
             gnss_sessions: (5, 4),
             passivation: 1,
             eol: (Some(4), 0),
+            eol_wait: 3,
             rx: (2, false),
             contacts: 3,
             stored: [12, 60],
@@ -465,7 +469,7 @@ mod tests {
             t,
             "HK1 N=7 UP=3600 BOOT=3 RST=2 MODE=3 HOLD=1 XP=0 TX=1 SOC=873 VB=15812 IB=-120 PA=2410 TB=123 TO=215 \
              TP=301 TJ=- DEP=8/15/1 RFS=3/2700 CT=30 CS=2 FC=4 FL=17/2 W=12/-5/600 AM=2 MR=0 GF=1200/7 GS=5/4 \
-             PS=1/4/0 RX=2/0 CN=3 ST=12/60 FR=0/0"
+             PS=1/4/0/3 RX=2/0 CN=3 ST=12/60 FR=0/0"
         );
         assert!(t.len() <= MAX_LEN);
         assert!(t.is_ascii());
@@ -474,7 +478,7 @@ mod tests {
         assert!(empty.contains("FL=- "), "{empty}");
         assert!(empty.contains("GF=- "), "{empty}");
         assert!(empty.contains(" DEP=0/-/0 "), "the AntS not answering: {empty}");
-        assert!(empty.contains(" PS=0/-/0 "), "the EPS not answering: {empty}");
+        assert!(empty.contains(" PS=0/-/0/0 "), "the EPS not answering: {empty}");
     }
 
     #[test]
@@ -506,6 +510,7 @@ mod tests {
             gnss_sessions: (99_999, 99_999),
             passivation: 4,
             eol: (Some(255), 3),
+            eol_wait: 15,
             rx: (99_999, true),
             contacts: 99_999,
             stored: [u32::MAX, u32::MAX],

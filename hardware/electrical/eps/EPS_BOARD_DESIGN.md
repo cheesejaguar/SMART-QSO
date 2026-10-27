@@ -1,7 +1,7 @@
 # SMART-QSO EPS Board: Build-to Design
 
 **Document ID**: SQSO-EPS-BRD-001
-**Version**: F
+**Version**: G
 **Date**: 2026-10-27
 **Status**: CDR build-to electrical design (schematic captured as code, parts selected, ERC clean). No PCB layout, no
 engineering model; every number below is analysis until its verification item (§19) closes.
@@ -32,7 +32,7 @@ v2.0), `docs/environment/THERMAL_ANALYSIS.md` (SQSO-THA-001 v2.0), `docs/environ
 | Worst-case board dissipation | **1.33 W** sunlit ACTIVE at maximum array power with Jetson, PA and magnetorquers on; 0.37 W in eclipse; **3.77 W for ≤ 12 s** during a burn; orbit average ≈ 0.49 W (§16) |
 | Hottest parts | burn-driver FET Q24–Q27 (3.0 W for 12 s, Tj 92 °C); burn buck U17 (0.95 W, 12 s, Tj 93 °C); tracker U4 (0.21 W, Tj 66 °C); D9–D12 (0.12 W); SW1 U20 (0.17 W); 5V_PA buck U16 (0.15 W); all with the board at +60 °C |
 | Worst stresses | DS2 FET Vgs 73 % (7.3 V / 10 V); BQ771806 VDD 70 % (17.4 V / 25 V, on the battery sense board from Version F); PTC at 73 % of its 60 °C hold; INA3221 heater channel 65 % (16.8 V / 26 V); all within the §2.3 limits (§15) |
-| Storage drain, switches actuated | **6.1 µA typical, 11.9 µA worst** (limit 20 µA; §6.6; incl. the access-port board's UMB_VMON TVS) |
+| Storage drain, switches actuated | **7.8 µA typical, 13.8 µA worst** (limit 20 µA; §6.6; incl. the access-port board's UMB_VMON TVS) |
 | Peak pack current, one burn | **0.75 A** with the magnetorquers at 1.16 W (0.67 A without; 0.90 A with the coil bridges at their hardware limit; chair limit 1.0 A); four drivers at once (software fault) held to 2.0 A by the burn buck's limit |
 | Tracker efficiency (analysis) | 90.9–92.3 % (EPS-F002 asks ≥ 92 %: **marginal**, §4.3) |
 
@@ -72,7 +72,7 @@ supply 3V3_RTC, the W6B/W9B routing of J20/J21 and the allocated OBC pins (§13.
 | Burn drivers | One per wing (§5.1 text) / chair: one per resistor | **One per resistor (four)** | Chair decision; REL-03 |
 | DS2 | One low-side FET | **Two FETs back to back** (Q6, Q7) | One FET's body diode passes charge current into the pack with DS2 open |
 | DS1/DS3 gate return | not specified | DS1 returns to PACK_N, DS3 to GND, each through its own contact | Independence: no FET's drive depends on another switch's wiring (§6.3) |
-| Shunts for gauge and charge loop | low side | **high side** (RS6 between F3 and the AFE FETs) | Any ground-referenced circuit on the PACK_N node would bypass DS2 (§6.4) |
+| Shunts for gauge and charge loop | low side | **high side** (RS6 between RT1 and the AFE FETs) | Any ground-referenced circuit on the PACK_N node would bypass DS2 (§6.4) |
 | NTC1 | common return in the pack | **own return wire** (W1 J1-6) | Keeps the hardware comparators in the ground domain without a path to the pack negative |
 | Charge inhibit | "charger disabled and CHG FET open" | Charge-current set point to 0 A (trackers keep the bus up) **and** AFE CHG FET open (CFETOFF) | A boost-tracker power path cannot be disabled without losing the bus; the set point is the charge path's own control |
 | Converter UVLO (EMC rule E8) | 10.8 V falling | 7.5 V (3V3_AO) and 8.7 V (others) falling; 10.5 V and 12.1 V rising | The LMR43620's fixed EN hysteresis makes a 10.8 V fall a 15.1 V start; E8's intent (BMS decides, below 11.2 V) is met (§8.1) |
@@ -101,13 +101,13 @@ NASA-STD-8739.1) over all terminations, and Sn63Pb37 assembly per J-STD-001 with
                         ├─ T3 (W1B,W2B) │  CV/CC/MPPT loops (VCTL)        │            │  SW10 OBC
                         └─ T4 (PX,MX,MY)┘                                 │            ├─ U16 5V_PA ── SW3 PA (TX-OFF, shed)
                                                                           ▼            ├─ SW1+U19 Jetson (VBAT, shed)
- BAT_TOP ─F2─RT1─F3(OVP)─RS6─[Q1 CHG|Q2 DSG]─ PACK_P ─Q4(DS1)─ VB1 ─Q5(DS3)─ VB3 ─RS8─ VBAT ─┼─ SW5 heater (F4, 40 °C cutout)
+ BAT_TOP ─F2─RT1─────────RS6─[Q1 CHG|Q2 DSG]─ PACK_P ─Q4(DS1)─ VB1 ─Q5(DS3)─ VB3 ─RS8─ VBAT ─┼─ SW5 heater (F4, 40 °C cutout)
                                                                                             ├─ SW11 VBAT_MTQ (ADCS_EN) → OBC coil bridges
    4S cells (U1 BQ76952; BQ771806 + F3 on the sense board)                                                     └─ SW6 → U17 V_BURN → 4 burn drivers
  BAT_BOT ─RS7─ PACK_N ─[Q6|Q7 back to back](DS2)─ GND        umbilical J13: PACK_P / PACK_N (bypasses the inhibits for charging)
 ```
 
-**Domains.** The PACK domain is referenced to BAT_BOT (cell 1 negative): cells, F2/RT1/F3, the AFE U1, its FETs, the
+**Domains.** The PACK domain is referenced to BAT_BOT (cell 1 negative): cells and the battery sense board (F0A/F0B/F0N, the BQ771806 and F3), F2/RT1, the AFE U1, its FETs, the
 secondary protector U2 and the DS2 gate drive. Everything else is the GND domain. DS2 sits between them. Every signal
 that crosses goes through the I2C isolator U50 or a ≥ 100 kΩ series resistor, and no ground-referenced part touches
 PACK_N: otherwise a component's input clamp would carry bus return current around an open DS2 (§6.4).
@@ -252,7 +252,7 @@ every fault downstream of its FETs. The W1 leads also keep their construction co
 
 **External-short fault tolerance (RID P3E-02).** Downstream of the AFE FETs: (1) the positive-leg fuses F0A/F0B/F2,
 (2) the negative-leg fuse F0N, (3) the AFE SCD (10 A, 15 µs) and OCD: three controls, 2-FT, counting the positive-leg
-fuses as one (one part type in one leg). Upstream of the AFE FETs (W1, J1, F2–RT1–F3 copper): (1) F0A, (2) F0B, (3)
+fuses as one (one part type in one leg). Upstream of the AFE FETs (W1, J1, F2–RT1 copper, and F3 on the sense board): (1) F0A, (2) F0B, (3)
 F0N: three interrupting elements in every loop, **2-FT**. From Version E the two positive-leg fuses are diverse
 (FM12 by AEM, FM08 by Littelfuse), so they are independent controls by design and the count no longer rests on the
 CDR round-3 lot decision (C-16). F0B's interrupt rating is 300 A at 125 VDC (the FM08's commercial equivalent, the
@@ -269,7 +269,17 @@ therefore the space-heritage **FM12A72V5.0A** (MIL-PRF-23419/12 solid-body fuse,
 1000 A at the maximum DC voltage per the slash sheet; cold resistance 13.5–22.5 mΩ, NASA NEPP parts list), so the
 rating holds for any cell and interconnect resistance ≥ 3.3 mΩ in total (16.8 V / 1000 A less the fuse's 13.5 mΩ:
 0.8 mΩ per cell, far below any 18650), without relying on a measured cell resistance. F0A, F0B, F0N and F2 are the only elements rated to break
-the pack's short-circuit current; RT1 (40 A maximum) and F3 (ITV4030) are not, so they sit after F2. The PTC's trip rises to ≈ 6.5 A at −20 °C;
+the pack's short-circuit current; RT1 (40 A maximum) is not, so it sits after F2. **F3 in the short loops (RID SMA-B22).**
+F3 (ITV4030, 12 A, interrupting rating 50 A) is in every pack-short loop on the sense board, in series with F0A, F0B
+and F0N (up to 211 A). It never has to interrupt: the series FM12/FM08 fuses are each rated to interrupt the
+prospective current (1000 A / 300 A), so the circuit is opened by the fastest of them in any case, and F3 sees at
+most their let-through. F3's element withstands 60 A for 5 ms 10 000 times without melting (5 × I_rated, its
+data sheet's interrupting-current test), i.e. a melting I²t well above 18 A²s; a 5 A fast fuse at 40 × its rating
+clears in about a millisecond with a let-through of the order of 10 A²s (to be confirmed: AEM and Littelfuse I²t data
+are a data item). If F3's element melted first, its arc would be in series with fuses that are still conducting and
+that then clear: arc energy ≲ 20 V × 200 A × 1 ms ≈ 4 J in a ceramic body, no interruption duty. F3 is included in the
+pack hard-short abuse test (SQSO-BSA-001 §3.1, V-BSA-9): pass if F3 is intact, or open without rupture, smoke or
+damage to the sense board. The PTC's trip rises to ≈ 6.5 A at −20 °C;
 it is a backup.
 
 **AFE BQ76952 OTP settings** (written and verified at EPS acceptance; V-EPS-2): COV 4.25 V (1 s), CUV 2.80 V,
@@ -292,8 +302,19 @@ below 0 °C): F3's blow function is only ever needed inside its rating. It carri
 the first orbit after a cold soak (pack −10 … −16 °C, THERMAL_ANALYSIS 2.2 §4.3; above +3.6 °C in every orbit case),
 and the hottest it sees is the pack's +60 °C trip (the +64 °C dispenser soak is unpowered, no current). The carry
 case below −10 °C and the qualification margins (−40 °C, +70 °C) are V-EPS-8. The EPS controller detects an open
-F3 (or an open sense-board fuse) as cell taps present with BAT_F absent (CHG_INHIBIT bit 4). This gives overcharge three dissimilar controls: CV loop,
-AFE COV (OTP), fixed-threshold U2 + F3 (SQSO-BSA-001 H1: two-fault tolerant; RID EPS-11).
+F3 (or an open sense-board fuse) as cell taps present with BAT_F absent (CHG_INHIBIT bit 4).
+**Heat at the cell when F3 is blown (RID SMA-B21).** The heater dissipates 15–27 W until the element opens (the
+data sheet bounds the cut time to < 1 min; ≈ 5–15 s at these powers on its cut-time curve): ≤ 1.6 kJ in the bound.
+Lumped, if all of it went into one 50 g cell (c ≈ 1.0 J/g·K) the can would rise 32 K, from the +45 °C charge limit
+to 77 °C, above the limit used here: **cell can ≤ +60 °C** (the cell's discharge maximum; the 35E's self-heating
+and vent region starts well above 100 °C). So F3 sits on a **thermal island** of the sense board, ≥ 25 mm from every
+cell tab and can, on the board's edge away from the cells, joined to the BAT_TOP chain by a 25 mm × 2 mm 2-oz trace
+and to Q16 by a narrow trace, with no copper pour to the tabs: the conduction path is ≈ 390 K/W (trace 460 K/W in
+parallel with 2 600 K/W of FR-4), radiation from 1 cm² at ≤ 200 °C to the cells ≤ 0.15 W; with the island at the
+element's melting temperature the heat reaching the cells is ≤ 0.6 W, ≤ 35 J in 60 s: **≤ 1 K** at the nearest can.
+The heater energy stays in the island and the fuse body (V-BSA-2 measures the island, the cell-4 tab and the nearest
+can during the F3 trip on the EM pack). This gives overcharge three dissimilar controls: CV loop,
+AFE COV (OTP), fixed-threshold BQ771806 + F3 on the sense board (SQSO-BSA-001 H1: two-fault tolerant; RID EPS-11).
 
 **Fuel gauge**: U28 INA228-Q1 on RS6 (high side), 20-bit, charge and energy accumulators, OBC I2C2 at 0x44, powered
 from 3V3_AO; plus the AFE's coulomb counter (RS7). Two NTCs at the cells: NTC1 (hardware comparators, ADS7138 telemetry)
@@ -369,16 +390,17 @@ UMB_SHUT → AFE RST_SHUT (held high > 1 s by the GSE puts the AFE in SHUTDOWN f
 | BQ771806 secondary protector | 1.0 | 2.0 |
 | BQ771806 cell inputs (4 × < 0.1 µA) | 0.1 | 0.4 |
 | Open-tap ladder, 4 × 1.00 MΩ across the cells (Version E, RID SMA-B03) | 3.8 | 4.2 |
+| Open-tap ladder, 4 × 2.2 MΩ on the BQ771806's own taps (battery sense board, Version G, RID SMA-B24) | 1.7 | 1.9 |
 | Q16 secondary-fuse FET leakage (PMV40UN2, 25 °C / 60 °C) | 0.05 | 1.0 |
 | Q23 wake FET + DS2 gate network (contacts open) | 0.0 | 0.1 |
 | Pack TVS D14, CV and VBATT dividers: isolated by the open AFE FETs | 0.0 | 0.0 |
 | Cell-tap filter capacitors (ceramic leakage, 9 × 0.1 µF) | 0.01 | 0.1 |
 | SMF24A TVS on UMB_VMON on the access-port board A3 (OBC item C18), fed from BAT_F through the EPS's 100 kΩ (W11 stays attached in flight; worst case its return is PACK_N, inside the pack loop) | 0.1 | 1.0 |
-| **Total** | **6.1** | **11.9** |
+| **Total** | **7.8** | **13.8** |
 
-Worst 11.9 µA = 60 % of the 20 µA limit (margin 8.1 µA). From the final charge at L-47 d (60 ± 5 % SOC,
-BASELINE §4) to separation: 13.4 mAh, 0.39 % SOC, so ≥ 54.6 % before the cells' own self-discharge (a cell property
-outside this budget), against ≥ 40 % required. 90 days at the worst drain: 25.7 mAh (0.75 % of 3.45 Ah). The 1 µA
+Worst 13.8 µA = 69 % of the 20 µA limit (margin 6.2 µA). From the final charge at L-47 d (60 ± 5 % SOC,
+BASELINE §4) to separation: 15.6 mAh, 0.45 % SOC, so ≥ 54.5 % before the cells' own self-discharge (a cell property
+outside this budget), against ≥ 40 % required. 90 days at the worst drain: 29.8 mAh (0.86 % of 3.45 Ah). The 1 µA
 through 100 kΩ moves UMB_VMON by at most 0.1 V. No fix is needed. The AFE enters SHUTDOWN on the GSE command after the
 final charge (UMB_SHUT) and stays there until DS2's release or the array's light wakes it; in SHUTDOWN its FETs are open,
 which also isolates PACK_P (not counted as an inhibit).
@@ -750,12 +772,12 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | Bottom side over the X rod | bottom-side parts **≤ 0.6 mm** high over the X rod's footprint (x −24.5 … +24.5, y +29.75 … +42.25; 1.0 mm clearance, D-14): 0402/0603 passives only, no ICs or connectors |
 | Connector zones (SQSO-HAR-001 2.0 §10.1, moved 0.4 mm down with the 2.0 mm board) | all harness connectors on the **bottom side** in zones Z1–Z5 and the +X edge per §13.1; bottom-side envelope 9.0 mm (z −3.4 … −12.4 with the 2.0 mm board) in the zones; footprints within the harness design's allocations (≤ 80 % of each zone's area: Z1 69 %, Z2 73 %, Z3 67 %, Z4 27 %, Z5 58 %); J3 at the +X edge within \|y\| < 15.5 mm; J21 on the +X edge, +Y side (W9B, (+X, +Y) bundle); J20 on the −X edge, +Y side; J10's plug toward +X |
 | Stack-up | 6 layers, **2.0 mm** (D-14, MECHANICAL_DESIGN: Steinberg margin of the coupled stack; bottom face at z −3.4, top unchanged), no controlled impedance (no RF on the board; SYNC, I2C and the SBW lines are short and not impedance-controlled), copper 2 / 1 / 1 / 1 / 1 / 2 oz with ≈ 0.33 mm dielectrics, FR-4 Tg ≥ 170 °C (polyimide preferred for TVAC): L1 parts/power (2 oz), L2 GND, L3 power (PACK_P, VBAT, VTRK islands), L4 signals, L5 GND, L6 parts/power (2 oz); IPC-6012 Class 3/A |
-| Domains | PACK domain (U1, U2, Q1–Q3, Q6/Q7, F2/RT1/F3, RS6/RS7, J1/J2 area) in the **(−X, +Y) corner, zone Z1** (the W1 route), on its own BAT_BOT copper, joined to GND only through Q6/Q7; U50 straddles the boundary; ≥ 1.0 mm gap between BAT_BOT and GND copper |
-| Power paths | pack line (J1 → F2 → RT1 → F3 → RS6 → Q1/Q2 → PACK_P → Q4 → Q5 → RS8): ≥ 3 mm/A on 2 oz outer layers, ≥ 2 A design current (5 A fuse); Kelvin sense to RS5–RS8 and RS20–RS23 |
+| Domains | PACK domain (U1, Q1–Q3, Q6/Q7, F2/RT1, RS6/RS7, J1/J2 area; the BQ771806 and F3 are on the battery sense board from Version F) in the **(−X, +Y) corner, zone Z1** (the W1 route), on its own BAT_BOT copper, joined to GND only through Q6/Q7; U50 straddles the boundary; ≥ 1.0 mm gap between BAT_BOT and GND copper |
+| Power paths | pack line (J1 → F2 → RT1 → RS6 → Q1/Q2 → PACK_P → Q4 → Q5 → RS8): ≥ 3 mm/A on 2 oz outer layers, ≥ 2 A design current (5 A fuse); Kelvin sense to RS5–RS8 and RS20–RS23 |
 | Converters | each tracker and buck as a tight loop (input cap, switch, diode, output cap) on L1 over solid L2; inductors and switch nodes on the side away from the antennas (rule E2); SYNC traces short, series 100 Ω at the source; no converter within 10 mm of U37's ADC pins or U53/U54; where the layout allows, keep the tracker inductors and switch nodes out of the board area over the bottom-side zones Z1–Z3, which carry the unshielded W6D sun-sensor branches (SQSO-HAR-001 E-9) |
 | Thermal | thermal vias (≥ 9 × 0.3 mm) under U4–U7, U15–U17, U19, U20, Q24–Q27 into L2/L5; the burn FETs and U17 near a mounting hole; ≥ 2 cm² copper per burn FET |
-| Creepage / clearance | ≤ 30 V everywhere: IPC-2221B B4 (coated) ≥ 0.13 mm; use ≥ 0.3 mm between PACK domain and GND copper and around F1/F3 heater pins (fuse opening heat) |
-| Keep-outs | 5 mm around Y1 and the clock dividers from switch nodes; no copper under F1/F3 (heat to the fuse element per Littelfuse land pattern); relay K1 away from inductors (stray field) |
+| Creepage / clearance | ≤ 30 V everywhere: IPC-2221B B4 (coated) ≥ 0.13 mm; use ≥ 0.3 mm between PACK domain and GND copper and around F1's heater pins (fuse opening heat; F3 is on the sense board) |
+| Keep-outs | 5 mm around Y1 and the clock dividers from switch nodes; no copper under F1 (heat to the fuse element per Littelfuse land pattern; F3's thermal island on the sense board, BATTERY_DESIGN §7.2); relay K1 away from inductors (stray field) |
 | Test points | TP1 TRK_EN, TP2 VBAT, TP3 PACK_P, TP4 GND, TP5 3V3_AO, TP6 5V_PA, TP7 SHED_N; add at layout: VCTL, VHW, REF_C, REF_A, SYNC_A/B, V_BURN, each tracker COMP, CTRL_DN, PERMIT, CHG_INHIBIT, EOL_ARMED, BXP_W1A–W2B |
 | Coating | conformal coat (tin-whisker mitigation, EEE_PARTS_LIST §2A.3), keep J1–J22 mating faces (gold), K1 and the test points clear |
 | RF | no RF on this board; the PA supply leaves on J19 through RS13 with a 1 µF at the switch and the PA board's own filter |
@@ -783,7 +805,7 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | V-EPS-2 | AFE OTP programming and readback; trip of every threshold (COV, CUV, OCD, SCD, UTC/OTC/OTD, SUV PF) on a pack simulator | within ± 25 mV, ± 10 % current, ± 2 K | EPS-F011, BSA §4 step 9 | EPS EM |
 | V-EPS-3 | Inhibits: with the array simulator lit and the pack connected, each combination of two of DS1, DS2, DS3 jumpered closed (failed) with the third actuated, and the RBF removed; bus, PA supply, V_BURN, 3V3_ANTS, TRK_EN and every rail measured | bus ≤ 6.5 V and no converter running, no tracker switching, no RF, no burn current in all three cases; chatter of 5 ms bursts does not raise the bus | EPS-F009, CDS 2.3.7/2.3.8, P3E-01 | EPS EM, FM (with V-BSA-6) |
 | V-EPS-4 | GND–PACK_N resistance with DS2 open, board powered from the array simulator | ≥ 100 kΩ | §6.4 | EPS EM |
-| V-EPS-5 | Storage drain, switches actuated, AFE in SHUTDOWN, 25 and 60 °C | ≤ 20 µA (design 7.7 µA, with A3 fitted) | LVR-071 | EPS EM, FM |
+| V-EPS-5 | Storage drain, switches actuated, AFE in SHUTDOWN, 25 and 60 °C | ≤ 20 µA (design 13.8 µA, with A3 fitted and both tap ladders) | LVR-071 | EPS EM, FM |
 | V-EPS-6 | Burn drivers: 4, 5, 6, 7 Ω loads; stuck-high line; four lines at once | 0.80 A ± 10 %; stops at 12.0 s ± 1 s; pack ≤ 2.2 A | SMA-05 | EPS EM |
 | V-EPS-7 | Load shed: VBAT ramp and step | shed 13.6 ± 0.2 V after 4–6 s at +25 °C (3.7–5.5 s over −40 … +70 °C); release 14.4 ± 0.2 V | EPS-F012 | EPS EM |
 | V-EPS-8 | ITV4030 flight-lot qualification (F1 and F3; RID MFG-003 item 1), 6 samples per test: (a) carry 2 A for 1 h at −40 °C and at +70 °C, then 5 thermal cycles −40 / +70 °C carrying 1.5 A; (b) heater trigger at 10.5 V and 16.8 V at 0 °C, +25 °C and +65 °C (the temperatures at which F1 and F3 are fired); (c) heater trigger at −40 °C at 16.8 V as a characterisation; (d) EOL fire on the EM (destructive) | (a) no opening, fuse-element resistance change ≤ 10 %, no visible damage; (b) opens < 1 min; (c) recorded (not a pass criterion: the design never fires below 0 °C); F1 opens only with both EOL lines | EPS-F010, V-BSA-7, SQSO-MFG-003 | EM (before the FM build) |
@@ -876,4 +898,5 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | E (amended) | 2026-10-27 | CDR design (EPS board) | SQSO-ICX-001 E14/E15: AntS on the OBC's I2C3 through U80 (J3-28/40, no EPS pull-ups), J12 Pico-Clasp 8 with AntS side B jumpers; OBC heartbeat every ≤ 60 s, 600 s timeout, hardware one-shot U82 for the SW10 cycle; 2.0 mm board and stack-up, X-rod height rule (D-14); burn 10 s (C-17); DS2 fallback (second SPDT, DS2B). Netlist 759 / 157 / 445, ERC clean |
 | F | 2026-10-27 | CDR design (EPS board) | Parts temperature audit SQSO-MFG-003: secondary protector BQ771806 and F3 moved to the battery sense board (F3 blows only inside its rating; own taps at the cells), F1 fired only with the board ≥ 0 °C, V-EPS-8 extended to flight-lot qualification at −40 / +70 °C; part codes corrected (1N4148WQ-7-F, ERJ 10R0, ERA-6AEB above 330 k, ERA E24 three-digit codes, WSL2010 0.5 Ω, TFM plating -L); X7R −10 % and −15 % at −40 °C in the timing worst cases: DS1–DS3 gate filters 47 → 68 nF (≥ 12.8 ms), C_RETRY R_FAULT 150 k for the 1 s retries, load-shed delay 3.7–5.5 s. Netlist 742 / 157 / 435, ERC clean |
 | F (amended) | 2026-10-27 | CDR design (EPS board) | Stale lines removed: §2.1 EPS-F009 (the array's third inhibit is DS2 pole 2 through the Q40 clamp; DS3's NO is unused); §4.2 and §13.1 checked against Version E (TRK_EN clamps Q40/Q41; J16 a Pico-Clasp 5) |
+| G | 2026-10-27 | CDR design (EPS board) | S&MA RIDs on the protector relocation: F3's heat at the cell (thermal island ≥ 25 mm from the tabs, ≤ 1 K at the nearest can, limit +60 °C; SMA-B21); F3 in the short loops never interrupts (series FM12/FM08 fuses; I²t data item; included in the hard-short abuse test; SMA-B22); §3, §6.1 and §17 no longer place F3 or the BQ771806 on this board (SMA-B23); 4 × 2.2 MΩ ladder on the BQ771806's taps, storage drain 13.8 µA worst (SMA-B24). No netlist change |
 | B, note | 2026-10-27 | CDR consistency | Citations to BASELINE Rev E, RADIATION Rev D, ICD-001 v1.2; no OBC device on I2C2 (TMP235 analog); §21 item 9 rendered |

@@ -184,15 +184,15 @@ ratings, outgassing data).
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
-| Closed by design change | 101 | 232 |
+| Closed by design change | 101 | 235 |
 | Closed by chair decision | 42 | 35 |
-| Verification item | 46 | 28 |
+| Verification item | 46 | 29 |
 | Decision point (dated) | 15 | 32 |
-| Implementation | 161 | 38 |
+| Implementation | 161 | 34 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 84 new findings; 44 of the reopened and 58 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 84 new findings; 44 of the reopened and 62 of the new are since closed.
 
-Open implementation RIDs: SE-21, SMA-15, STR-27, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B02, SMA-B10, SMA-B11, SMA-B19, P3T-01, P3T-02, P3T-03, P3T-04, P3T-05, P3T-06, P3T-07, P3T-08, SMA-B20, SMA-B21, SMA-B22, SMA-B23, SMA-B24, P3T-09.
+Open implementation RIDs: SE-21, SMA-15, STR-27, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B02, SMA-B10, SMA-B11, SMA-B19, P3T-01, P3T-02, P3T-03, P3T-04, P3T-05, P3T-06, P3T-07, P3T-08, SMA-B20, P3T-09.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -406,10 +406,10 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | SMA-B18 | 3 | Magnetometer shares a switch and bus segment | IMP | Closed by design change | Magnetometer on its own switch U35 (MAG_EN PF14, MAG_RB PF15) and I2C4 repeater U34 |
 | SMA-B19 | 2 | One failed PA-temperature reading silences the downlink | IMP | Implementation | Plausibility check and a pull-down (flight software, OBC) |
 | SMA-B20 | 2 | The F1 fire's EPS-board ≥ 0 °C condition (ICD-001 1.6 §4.6) can block passivation: the board sits near −11.5 °C in the cold orbit case and the temperature is unreadable with the EPS I2C bus down; not in SRS-F111 or passivation.rs | IMP | Implementation | Bounded wait, unreadable does not block, in the SRS and the code |
-| SMA-B21 | 2 | F3 now blows (15–27 W for up to 1 min, about 1.6 kJ) at the tab of the cell it protects, during that cell's overcharge: not analysed | IMP | Implementation | Thermal estimate, placement or isolation; V-BSA-2 measures tab and can |
-| SMA-B22 | 2 | F3 is now in every pack-short loop (up to 211 A) beside the 5 A pack fuses; coordination not shown | IMP | Implementation | Fuse coordination from the datasheets, or move F3; F3 in the short-circuit abuse tests |
-| SMA-B23 | 3 | EPS_BOARD_DESIGN F §3, §6.1, §17 still place F3 on the EPS board | IMP | Implementation | Correct the text |
-| SMA-B24 | 3 | U2's own taps have no open-tap ladder: one open resistor can blow F3 or blind a channel | IMP | Implementation | ≥ 2.2 MΩ ladder on the sense board |
+| SMA-B21 | 2 | F3 now blows (15–27 W for up to 1 min, about 1.6 kJ) at the tab of the cell it protects, during that cell's overcharge: not analysed | IMP | Closed by design change | F3 on a thermal island ≥ 25 mm from every tab and can, 25 × 2 mm 2-oz neck (≈ 390 K/W), no pour toward the cells: ≤ 0.6 W reaches the cells, nearest can rise ≤ 1 K (one-cell lumped bound without the island: +32 K, fails the +60 °C limit); V-BSA-2 measures island, cell-4 tab and nearest can during the EM F3 trip, pass can ≤ 60 °C and rise ≤ 5 K (BATTERY_DESIGN 2.10, BSA G) |
+| SMA-B22 | 2 | F3 is now in every pack-short loop (up to 211 A) beside the 5 A pack fuses; coordination not shown | IMP | Verification item | F3 never interrupts the short: F0A/F0B/F0N in series break up to 211 A (1000 A / 300 A ratings) against F3's 50 A; F3 survives 60 A × 5 ms 10,000 times (melt I²t well above 18 A²s) against an estimated ≈ 10 A²s let-through of a 5 A fast fuse at 40×; AEM and Littelfuse I²t curves a data item before the EM order 2027-01-15 (EPS designer); V-BSA-9 hard-short abuse test with F3 fitted, pass F3 intact or open without rupture |
+| SMA-B23 | 3 | EPS_BOARD_DESIGN F §3, §6.1, §17 still place F3 on the EPS board | IMP | Closed by design change | EPS_BOARD_DESIGN G §3, §6.1, §17 and the shunt departure row no longer place F3 or the BQ771806 on the EPS board |
+| SMA-B24 | 3 | U2's own taps have no open-tap ladder: one open resistor can blow F3 or blind a channel | IMP | Closed by design change | 4 × 2.2 MΩ 1 % tap-to-tap ladder at the BQ771806 pins after the 1 kΩ filters, 1.9 µA; cells 1 and 4 shift ≤ 1.9 mV, trip 4.350 V ± 12 mV; storage drain 7.8 µA typical, 13.8 µA worst against 20 µA, ≥ 54.5 % SOC after 47 days against ≥ 40 % (EPS_DESIGN 2.5) |
 
 #### Reliability (REL)
 

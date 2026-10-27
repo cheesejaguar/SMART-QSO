@@ -1,7 +1,7 @@
 # SMART-QSO Battery Safety Assessment
 
 **Document ID**: SQSO-BSA-001
-**Version**: F
+**Version**: G
 **Date**: 2026-10-27
 **Status**: CDR assessment. No cell has been bought or tested; every control below is a design requirement until its
 verification item (§9) is closed.
@@ -84,7 +84,7 @@ same class is the conservative reading of the SSCMAN 91-710 "potentially hazardo
 | Over-discharge / forced discharge (§6.4.3.1) | Cell and pack | 3 cells, EM pack | Pack (protections enabled) | All |
 | External short, low impedance (§6.4.3.1) | Cell (≤ 5 mΩ) | 3 cells | — (UN 38.3 T5 at pack level) | Yes |
 | External short, "smart" impedance (just below the protection's trip, §6.4.3.1) | Cell and pack | 3 cells, pack | — | Yes |
-| **Pack hard short and soft short with the current limiters bypassed** (§5.1.3.1c) | Pack, fuses and AFE bypassed in turn, at full charge | Sacrificial pack 1 | **Yes** (shows the fuses and the AFE are the controls: H3, H3b) | Yes |
+| **Pack hard short and soft short with the current limiters bypassed** (§5.1.3.1c) | Pack, fuses and AFE bypassed in turn, at full charge, **with F3 fitted** (it is in every short loop; pass: F3 intact, or open without rupture, smoke or damage; RID SMA-B22) | Sacrificial pack 1 | **Yes** (shows the fuses and the AFE are the controls: H3, H3b) | Yes |
 | Internal short / crush (§6.4.3.1) | Cell | 3 cells | — | Yes |
 | Heat to vent (§6.4.3.1) | Cell | 3 cells | — | Yes |
 | Vent/burst ratio and venting path (§5.1.1.1e–g) | Pack enclosure: vent area vs. cell vent flow, burst margin | Analysis + sacrificial pack 2 | Analysis | Analysis and test |
@@ -119,7 +119,7 @@ Per JSC 20793 Rev D §4.2.3 and §6.4.3.3, and the BATTERY_DESIGN §9 tests, for
 
 The pack sits upstream of the three deployment switches DS1, DS2 and DS3 (DS3 added at CDR, EPS_DESIGN v2.0 §8). The
 only circuits powered at launch are the BMS AFE (CDS 2.3.1.2), which must be in its lowest-power state (BQ76952
-SHUTDOWN), the secondary protector and the access-port board's UMB_VMON TVS: ≤ 20 µA in all (11.9 µA worst designed with the open-tap ladder, SQSO-EPS-BRD-001 E §6.6) (LVR-051/071, `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`),
+SHUTDOWN), the secondary protector and the access-port board's UMB_VMON TVS: ≤ 20 µA in all (13.8 µA worst designed with both open-tap ladders, SQSO-EPS-BRD-001 G §6.6) (LVR-051/071, `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`),
 1.3 % of the pack in 90 days. The
 inhibit chains are in `docs/hardware/EPS_DESIGN.md` §8. Two battery-specific points:
 
@@ -165,7 +165,7 @@ accredited laboratory. Budget ≈ $8–15k and 6–8 weeks (no quote yet).
 | ID | Item | Pass criterion | Verifies | When |
 |----|------|----------------|----------|------|
 | V-BSA-1 | Cell lot screening and acceptance (§4 steps 1–6) | §4 criteria | H4, SYS-088 | Before the EM pack |
-| V-BSA-2 | Protection trip tests on the EM EPS and pack (§4 step 9), including the secondary protector and its fuse | Trips within tolerance; the secondary protector blows the fuse at 4.35 ± 0.025 V | H1, H2, H3, H3b, H5, H6 | EM |
+| V-BSA-2 | Protection trip tests on the EM EPS and pack (§4 step 9), including the secondary protector and its fuse | Trips within tolerance; during the F3 trip on the EM pack the cell cans stay ≤ +60 °C and rise ≤ 5 K (thermocouples on the F3 island, the cell-4 tab and the nearest can; SQSO-EPS-BRD-001 G §6.1, RID SMA-B21); the secondary protector blows the fuse at 4.35 ± 0.025 V | H1, H2, H3, H3b, H5, H6 | EM |
 | V-BSA-3 | Pack acceptance on the flight pack (§4 step 8) | §4 criteria | JSC 20793 §6.4.3.3 | FM |
 | V-BSA-4 | Pack-to-frame isolation, both poles, after vibration | ≥ 1 MΩ at 50 VDC | H3a, H3b, §5 item 1 | EM, FM |
 | V-BSA-5 | UN 38.3 battery tests (§8) | All tests passed, test summary issued | 49 CFR 173.185 | Before first shipment of a pack |
@@ -184,3 +184,4 @@ accredited laboratory. Budget ≈ $8–15k and 6–8 weeks (no quote yet).
 | D | 2026-10-27 | CDR design (EPS board) | Round-3 panel: H3 and H3b restated with the negative-leg fuse F0N, the second positive-leg fuse and the tap current-limiting chains (P3E-02; RT1 not counted, DFMR for wiring not counted); hazard class catastrophic and the custom-battery abuse-test programme with Falcon 9 / ISS applicability and cost (§3.1, V-BSA-9; P3E-03); H9 with the keyed EOL arm (P3E-11); air transport ≤ 30 % SoC per the IATA 2026 guidance for PI 967 (§6; P3E-12); amended: H3b 2-fault tolerant on the chair's decision (F0A and F0B from two lots as independent controls, F0N the third), NRCSD safety engineer's concurrence recorded as a decision point |
 | E | 2026-10-27 | CDR design (EPS board) | After SQSO-FMEA-003 A: H3b count basis by design (F0B a diverse part, FM08A125V5A by Littelfuse); H5 with the NTC1 plausibility hand-over to NTC2; §5 storage drain 11.9 µA worst (open-tap ladder) |
 | F | 2026-10-27 | CDR S&MA, round 3 (coordinator check) | H1: secondary protector, Q16 and F3 on the battery sense board (SQSO-EPS-BRD-001 F, BATTERY_DESIGN 2.9), independence and the cold-overcharge fault count (three faults) per SQSO-FMEA-003 B §4.1; two-fault tolerance unchanged; open items SMA-B21, SMA-B22, V-EPS-8. H9: the F1 fire temperature condition (ICD-001 1.6 §4.6) and SMA-B20 |
+| G | 2026-10-27 | CDR design (EPS board) | F3 relocation RIDs: V-BSA-2 measures the F3 island, tab and can temperatures (SMA-B21); the pack hard short includes F3 (SMA-B22); storage drain with the protector's tap ladder 13.8 µA worst (SMA-B24) |

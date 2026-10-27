@@ -288,7 +288,7 @@ between its supply and its knives.
   crosses from the pack domain, so that no sneak path bypasses DS2 (SQSO-EPS-BRD-001 §6.4); DS2 is two FETs back to
   back so it blocks charge as well as discharge.
 - Storage drain with the switches actuated ≤ 20 µA in all (LVR-051/071 of `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`):
-  designed 6.1 µA typical, 11.9 µA worst with the AFE in SHUTDOWN, including the access-port board's UMB_VMON TVS and the open-tap ladder
+  designed 7.8 µA typical, 13.8 µA worst with the AFE in SHUTDOWN, including the access-port board's UMB_VMON TVS and both open-tap ladders
   (BRD-001 §6.6).
 
 ## 9. Telemetry
@@ -339,4 +339,4 @@ readable without the EPS controller, and the controller's block at 0x48 fed by t
 | 2.2 | 2026-10-27 | CDR design (EPS board) | Interconnect of SQSO-ICX-001 §7 (SQSO-EPS-BRD-001 B): SW11 magnetorquer supply on ADCS_EN, SW4 sensors only, Jetson readbacks, 3V3_RTC, OBC pins PB2 (PAYLOAD_EN), PF3 (DEPLOY_EN), PE7 (BURN_W2B), PF4/PG1 (EOL), burn peak-current row with the magnetorquers |
 | 2.3 | 2026-10-27 | CDR design (EPS board) | Pack fuse F2 (and F0 on the battery sense board) FM12A72V5.0A for breaking capacity; storage drain 7.7 µA worst with the access-port board's TVS (SQSO-EPS-BRD-001 C) |
 | 2.4 | 2026-10-27 | CDR design (EPS board) | Round-3 panel (SQSO-EPS-BRD-001 D): DS2 two-pole, array path with three inhibits (§8.1, §8.2); load shed on both Jetson series switches and the covered failure modes restated (§6); EOL arm with the EPS controller's key, fault-tolerance claim corrected (§7); sense-board fuses F0A/F0B/F0N and fused, current-limited taps (§5); JETSON_PWR PA8; harness table to SQSO-HAR-001 2.0; BMS BQ76952; cold-burn bus voltage per EMC_ANALYSIS C (§4, §5.1) |
-| 2.5 | 2026-10-27 | CDR design (EPS board) | Board FMEA (SQSO-FMEA-003 A) changes in SQSO-EPS-BRD-001 E: PA out of the load shed (EPS-F012 change proposed), AntS supply on DEPLOY_EN OR the EPS controller, OBC heartbeat supervision of SW10, DS2 drive from the pack or the array, active-high tracker clamps (DS3's tracker contact dropped), passivation's dependence on the EPS controller stated (§7); EPS-F001 2.23 W (SYS-100 Rev G) with 2.48 / 3.92 W; transponder 1.84 / 2.42 W DC on SW3; burn 10 s per resistor (C-17); AntS bus on the OBC's I2C3 (SQSO-ICX-001 E14) |
+| 2.5 | 2026-10-27 | CDR design (EPS board) | Board FMEA (SQSO-FMEA-003 A) changes in SQSO-EPS-BRD-001 E: PA out of the load shed (EPS-F012 change proposed), AntS supply on DEPLOY_EN OR the EPS controller, OBC heartbeat supervision of SW10, DS2 drive from the pack or the array, active-high tracker clamps (DS3's tracker contact dropped), passivation's dependence on the EPS controller stated (§7); EPS-F001 2.23 W (SYS-100 Rev G) with 2.48 / 3.92 W; transponder 1.84 / 2.42 W DC on SW3; burn 10 s per resistor (C-17); AntS bus on the OBC's I2C3 (SQSO-ICX-001 E14); storage drain 13.8 µA worst (protector tap ladder, SQSO-EPS-BRD-001 G) |
