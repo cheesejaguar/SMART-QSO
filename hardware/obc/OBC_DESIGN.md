@@ -151,9 +151,9 @@ the C linker script cited here until 2026-10-24 was removed with the C target bu
 |-----------|-------|
 | Type | Independent Watchdog (IWDG) |
 | Clock | LSI (32 kHz) |
-| Timeout | 28 seconds (`WDT_HW_TIMEOUT_MS`; refreshed only while every task checks in): 26.4–30.4 s over the LSI's tolerance, below the TPS3850 supervisor's 31.3 s minimum (SQSO-ICX-001 D §6 row 37) |
+| Timeout | 25.6 seconds (25600 ms, `WDT_HW_TIMEOUT_MS`; refreshed only while every task checks in): 24.1–27.8 s over the LSI's tolerance, below the TPS3850 supervisor's 29.3 s minimum with C23–C26 at 440 nF C0G (SQSO-ICX-001 D §4.3, §6 row 37). The IWDG therefore resets first; the supervisor is the backstop when the IWDG itself fails |
 | Prescaler | 256 |
-| Reload | 3500 |
+| Reload | 3200 |
 
 ### 5.3 Multi-Task Watchdog
 
@@ -773,8 +773,8 @@ Revision C; change request CR-2026-002, `docs/project/CHANGE_REQUEST_LOG.md`). T
 |-----------|-------|
 | Clock | LSI (32 kHz) |
 | Prescaler | 256 |
-| Reload | 3500 |
-| Timeout | 28 seconds (26.4–30.4 s; the TPS3850 supervisor's minimum is 31.3 s) |
+| Reload | 3200 |
+| Timeout | 25.6 seconds (25600 ms; 24.1–27.8 s; the TPS3850 supervisor's minimum is 29.3 s) |
 | Reset Type | System reset |
 
 #### A.7.2 Watchdog Kick Pattern

@@ -49,14 +49,14 @@ fn divider_for(timeout_ms: u32) -> Option<(u8, u16)> {
     })
 }
 
-/// Start the IWDG at the operating timeout (28 s: reload 3500 at the LSI /
-/// 256, 26.4 to 30.4 s, inside the external supervisor's 31.3 s minimum,
-/// SQSO-ICX-001 D §6 row 37) before anything else runs: the clock set-up
+/// Start the IWDG at the operating timeout (25.6 s: reload 3200 at the LSI /
+/// 256, 24.1 to 27.8 s, inside the external supervisor's 29.3 s minimum,
+/// SQSO-ICX-001 D §4.3 and §6 row 37) before anything else runs: the clock set-up
 /// waits for the PLL to lock, and a part that never locks must reset rather
 /// than hang. The flight software sets the operating timeout again later
 /// (hal_wdt_init, hal_wdt_start).
 pub(crate) fn start_boot_watchdog() {
-    const BOOT_TIMEOUT_MS: u32 = 28_000;
+    const BOOT_TIMEOUT_MS: u32 = 25_600;
     if hal_wdt_init(BOOT_TIMEOUT_MS, MODE_RESET) == rc::OK {
         let _ = hal_wdt_start();
     }

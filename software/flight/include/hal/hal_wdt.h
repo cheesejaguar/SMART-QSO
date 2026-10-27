@@ -23,12 +23,12 @@ extern "C" {
 /*===========================================================================*/
 
 /**
- * @brief Default watchdog timeout in milliseconds: the IWDG reload 3500 at
- *        LSI / 256, 26.4-30.4 s over the LSI's tolerance, so the IWDG acts
- *        before the TPS3850 supervisor's 31.3 s minimum (SQSO-ICX-001 D §6
- *        row 37, RID SMA-B08)
+ * @brief Default watchdog timeout in milliseconds: the IWDG reload 3200 at
+ *        LSI / 256, 24.1-27.8 s over the LSI's tolerance, so the IWDG acts
+ *        before the TPS3850 supervisor's 29.3 s minimum (C23-C26 440 nF C0G;
+ *        SQSO-ICX-001 D §4.3 and §6 row 37, RID SMA-B08)
  */
-#define HAL_WDT_DEFAULT_TIMEOUT_MS  28000
+#define HAL_WDT_DEFAULT_TIMEOUT_MS  25600
 
 /**
  * @brief Minimum watchdog timeout

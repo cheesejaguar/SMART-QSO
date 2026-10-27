@@ -3780,9 +3780,9 @@
  },
  "mass_g": {
   "by_mel_row": {
-   "26": 6.6,
+   "26": 8.4,
    "31": 2.3,
-   "32": 76.7
+   "32": 79.8
   },
   "extras": {
    "PTFE over-sleeve on the four pack leads": 0.3,
@@ -3874,7 +3874,7 @@
     "wire_g": 0.2
    },
    "W6C": {
-    "conn_g": 1.14,
+    "conn_g": 3.0,
     "wire_g": 0.99
    },
    "W6D": {
@@ -3886,15 +3886,15 @@
     "wire_g": 0.73
    },
    "W7A": {
-    "conn_g": 1.1,
+    "conn_g": 1.72,
     "wire_g": 2.35
    },
    "W7B": {
-    "conn_g": 1.1,
+    "conn_g": 1.72,
     "wire_g": 2.0
    },
    "W7C": {
-    "conn_g": 1.21,
+    "conn_g": 3.07,
     "wire_g": 1.67
    },
    "W8A": {
@@ -3910,7 +3910,7 @@
     "wire_g": 0.23
    }
   },
-  "total": 85.6
+  "total": 90.5
  },
  "problems": []
 }
