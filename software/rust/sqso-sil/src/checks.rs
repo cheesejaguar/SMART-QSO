@@ -258,6 +258,17 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
         ),
         None => check("rf-silence", "First transmission", "never transmitted".into(), ">= 45 min", Anomaly),
     });
+    // The payload's hard limits (MSC L2-05): the Jetson on only in ACTIVE,
+    // sunlit, SOC >= 55 %, within its burst limit (the flight software's own
+    // condition, logged on each onset)
+    let hard = t.faults.get("Payload hard limit violated").copied().unwrap_or(0);
+    c.push(check(
+        "payload-limits",
+        "Jetson within its hard limits: ACTIVE, sunlit, SOC >= 55 %, burst limit (MSC L2-05; the flight software's condition)",
+        format!("{hard} onset(s)"),
+        "0 (a stuck-on payload contingency shows it)",
+        if hard == 0 { Pass } else { Anomaly },
+    ));
     // The AntS temperature gate (decision C-18): deferred while the AntS is
     // below -17 °C, at most 30 slots of 50 min
     let deferrals =

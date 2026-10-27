@@ -52,7 +52,7 @@ Measured from the release image (2026-10-27, flight software round 3, third part
 
 | Category | Used | Available | Margin |
 |----------|------|-----------|--------|
-| Code and constants (text) | 207,156 B | 2 MB flash (SRS-C004: 256 KB) | 90 % (21 % of SRS-C004) |
+| Code and constants (text) | 207,260 B | 2 MB flash (SRS-C004: 256 KB) | 90 % (21 % of SRS-C004) |
 | Initialized data (data) | 26,400 B | (in SRAM2; initial values in flash) | — |
 | Zeroed data (bss) | 17,052 B | (in SRAM2) | — |
 | Static RAM (data + bss) | 43,452 B | 64 KB SRAM2, less the 8 KB stack and its 32-byte guard (57,312 B) | 24 % (13,860 B free between the statics and the guard) |
@@ -345,4 +345,4 @@ a disagreement toward the safe side (SRS-F133):
 | E | 2026-10-27 | §3.1 the firmware's own `memory.x`: statics in SRAM2 (parity), the stack in SRAM3, SRAM1 unlinked; §3.2 budget of the CDR round-2 image; §6.2 worst case 6,004 B; §8.1 regions HK_DETAIL, OPS, HK_SUMMARY, HK_INDEX and EOL; §10 SRAM2 parity and the NMI handler, the periodic check of the persisted state and what is not mitigated (RID AV-07) | SMART-QSO Team (CDR flight software, round 2) |
 | F | 2026-10-27 | §3.1 the stack moved into SRAM2 (initial SP 0x20040000; RID AV-13), SRAM3 unused; §3.2 budget of the round-3 image; §6 worst case 6,236 B, the budget and guard addresses; §8.1 region ADCS_CAL; §10.3 the programming procedure sets `SRAM2_PE`; §10.5 the stack no longer unprotected | SMART-QSO Team (CDR flight software, round 3) |
 | G | 2026-10-27 | §3.1 the second FRAM U36 (RID SMA-B10); §8.2 every record mirrored, read from the mirror when the first FRAM fails, the degraded mode without either (SRS-F160); §3.2 and §6 the image and worst-case stack of round 3, second part | SMART-QSO Team (CDR flight software, round 3, second part) |
-| H | 2026-10-27 | §3.2 and §6 the image and worst-case stack of round 3, third part (text 207,156 B, data 26,400 B, bss 17,052 B; 6,332 B of 8 KB), the statics' end 0x2003A9BC (Revision G named these without changing the figures) | SMART-QSO Team (CDR flight software, round 3, third part) |
+| H | 2026-10-27 | §3.2 and §6 the image and worst-case stack of round 3, third part (text 207,260 B, data 26,400 B, bss 17,052 B; 6,332 B of 8 KB), the statics' end 0x2003A9BC (Revision G named these without changing the figures) | SMART-QSO Team (CDR flight software, round 3, third part) |

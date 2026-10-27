@@ -219,8 +219,8 @@ def items() -> List[Item]:
     a(Item("31", "GNSS cable, adapter and bracket", "1", 26.0, "E1", "Balance of the 70 g GNSS allocation",
            [box(1.0, (0, 0, 46.0), (60, 60, 6))]))
     # Distributed ------------------------------------------------------------------------
-    a(Item("32", "Harness (incl. 120 mm battery flying leads, access-port board A3)", "1", 76.9, "E1",
-           "SQSO-HAR-001 2.0 sec. 11 amended, parts audit M-11 (85.5 g in all, 2026-10-27; D-200-82 splices, tabs): wire, W10 coax, harness-side connector halves, A3, tabs, lacing "
+    a(Item("32", "Harness (incl. 120 mm battery flying leads, access-port board A3)", "1", 77.0, "E1",
+           "SQSO-HAR-001 2.0 sec. 11 amended, parts audit M-11 (85.6 g in all, 2026-10-27; D-200-82 splices, tabs, TB-ANT carrier): wire, W10 coax, harness-side connector halves, A3, tabs, lacing "
            "(wing flex jumpers in rows 10/11, W6B-W6E in row 26, W10E in row 31)",
            [box(1.0, (0, 0, -5.0), (90, 90, 90))]))
     a(Item("33", "Thermal control (tapes, interface materials, MLI patches)", "1", 30.0, "E1",

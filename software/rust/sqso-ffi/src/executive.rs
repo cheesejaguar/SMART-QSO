@@ -1482,6 +1482,8 @@ impl Executive {
     /// With the EPS controller answering, the Jetson in batches
     /// (`sqso_fsw::payload_schedule`); on the stand-in power model it
     /// follows the power mode
+    ///
+    /// @requirement SRS-F166 A Jetson batch starts only within the payload's hard limits (ACTIVE, sunlit, SOC at least 55 %) and ends at once when one of them fails
     #[inline(never)] // a stage of step(): only the deepest one's frame counts (SRS-C003)
     fn run_payload_schedule(&mut self, now: u64, state: u32) {
         let measured = eps_control::eps_telemetry().is_some();
@@ -1498,7 +1500,12 @@ impl Executive {
             let dt_s = dt_ms as f64 / 1000.0;
             self.schedule.add_energy(hw::adc(pins::ADC_VJET_RB) * t.ijet_a * dt_s);
         }
-        match self.schedule.step(now, on, state == STATE_ACTIVE, self.ai_cached) {
+        // A batch only within the payload's hard limits (ACTIVE, sunlit, SOC
+        // at least 55 %, MSC L2-05): it starts only there and ends when one
+        // fails (SIL-39: the batches ran on into eclipse, the hard limit
+        // logged 4,497 times in the reference run)
+        let allowed = state == STATE_ACTIVE && self.power.sunlit && self.power.soc >= sqso_fsw::mode::SOC_PAYLOAD;
+        match self.schedule.step(now, on, allowed, self.ai_cached) {
             Action::None => {}
             Action::PowerOn => {
                 crate::c::console(format_args!("[PAYLOAD] Batch: Jetson on"));

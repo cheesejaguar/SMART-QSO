@@ -181,7 +181,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-FTEG-001 | SMART-QSO Flatsat Test Execution Guide | `docs/test/FLATSAT_TEST_EXECUTION_GUIDE.md` | 1.0 | Draft |
 | SQSO-TP-001 | SMART-QSO Flatsat Test Procedures | `docs/test/FLATSAT_TEST_PROCEDURES.md` | 1.0 | Draft |
 | SQSO-STC-001 | SMART-QSO System Test Cases | `docs/test/SYSTEM_TEST_CASES.md` | 1.0 | Draft |
-| SQSO-SIL-001 | Mission Simulation (Software in the Loop) | `docs/test/SIL_MISSION_SIMULATION.md` | D | Draft; models are analysis-grade, not correlated with hardware |
+| SQSO-SIL-001 | Mission Simulation (Software in the Loop) | `docs/test/SIL_MISSION_SIMULATION.md` | E | Draft; models are analysis-grade, not correlated with hardware |
 | SQSO-ATP-001 | SMART-QSO Acceptance Test Procedure | `docs/test_procedures/ACCEPTANCE_TEST_PROCEDURE.md` | 1.0 | Draft; no run recorded |
 | TP-ADCS-001 | Test Procedure: ADCS Sensor Test | `docs/test_procedures/TP-ADCS-001_Sensor_Test.md` | B | Draft; no run recorded |
 | SQSO-TP-ADCS-002 | Test Procedure: ADCS Actuator Test | `docs/test_procedures/TP-ADCS-002_Actuator_Test.md` | 1.1 | Draft; no run recorded |

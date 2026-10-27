@@ -261,6 +261,7 @@ criteria need (SQSO-MSC-001 §7, RID SMA-15) and the OBC board's supervision (`h
 | `SEP` | Separation latched on this boot 1/0 (DEPLOY_SENSE released for 10 s) / stowed readings since the latch (an open line; RID SMA-B02, SRS-F159) | |
 | `PT` | TX_TEMP sensor faulted now 1/0 (the downlink then uses the board temperature + 15 °C) / faults since boot (RID SMA-B19, SRS-F161) | |
 | `SV` | The EPS controller's `EPS_SUPV` (bits 0–3 trackers disabled, bit 4 AntS supply from the controller, bits 5–6 OBC power cycles in 24 h, bit 7 heartbeat supervision stopped; `-` no answer) / heartbeats the controller refused since boot (SRS-F162) | |
+| `CI` | The EPS controller's `CHG_INHIBIT` (0x7A): bit 0 cold, 1 hot, 2 cell over-voltage, 3 BMS fault, 4 secondary protector blown, 5 recharge lockout latched, 6 NTC1 implausible (its window handed to the AFE on NTC2, SQSO-EPS-BRD-001 E §5.3); `-` no answer (SQSO-ICD-001 1.6 §4.6) | |
 
 During the final passivation report (SRS-F155) HK1 and HK2 are sent three times, 60 s apart, before TX-OFF.
 
@@ -388,4 +389,4 @@ SQSO_SUMMARY_YYYYMM.csv
 | 1.1 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 2) | §4.3 beacon interval jitter; §4.4 the HK1 housekeeping frame with its fields (new: `PS`, `RX`, `CN`, `ST`; `PA` from the bus-side array current); §4.5 the command acknowledgement; §4.6 the stored housekeeping records |
 | 1.2 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §4.4 `PS` carries the EPS `EOL_STATE` (fuse F1 intact, bit 2) and the fire attempts (RID REG-12, finding EOL-1); §4.4.1 new: the second housekeeping frame HK2 (RID SMA-15) |
 | 1.3 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, second part) | §4.4.2 new: the GNSS state frame `GNS` (RID LV-04, SRS-F158); HK1 `FR` (SMA-B10); HK2 `TR` with the magnetometer rail, `SEP`, `PT`, `SV` (SMA-B02, B19, B09) |
-| 1.4 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, third part) | §4.4 HK1 `PS` with the fire's reasons (the EPS board ≥ 0 °C condition bounded at 6 h, RID SMA-B20); HK1 `AD`, the AntS temperature gate (decision C-18) |
+| 1.4 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, third part) | §4.4 HK1 `PS` with the fire's reasons (the EPS board ≥ 0 °C condition bounded at 6 h, RID SMA-B20); HK1 `AD`, the AntS temperature gate (decision C-18); §4.4.1 HK2 `CI`, the EPS controller's CHG_INHIBIT with bit 6 NTC1 implausible |

@@ -213,10 +213,13 @@ TERMINATIONS = {
     ("W6C", "ROD-Z"): ("tab", "shear_mx", lambda: [B(-48.5, -46.5, 7.0, 13.0, 7.0, 17.0)]),
     # TB-RX on the deck strap under the X rod (strap extended to x -30.5) beside the rod's -X end
     ("W6C", "ROD-X"): ("tab", "torquer_deck", lambda: [B(-29.6, -23.6, 31.0, 41.0, -15.5, -13.5)]),
-    # TB-RY on the Y rod's +Y end face, 0.5 mm inboard of the (+X,+Y) bundle
-    ("W6C", "ROD-Y"): ("tab", "rod_Y", lambda: [B(38.9, 44.9, 23.5, 25.5, -37.9, -27.9)]),
-    # TB-ANT (8 pads) in the -Z end-frame window beside the W7C drop, 0.5 mm above the AntS; bond substrate open
-    ("W7C", "ANTS"): ("tab", "", lambda: [B(-34.0, -28.0, -19.5, -9.5, -48.0, -46.0)]),
+    # TB-RY on the +X shear panel's inner face in the (+X,+Y) bundle, 1.0 mm from the Y rod (HARNESS_DESIGN 10.2)
+    ("W6C", "ROD-Y"): ("tab", "shear_px", lambda: [B(46.4, 48.4, 24.5, 30.5, -38.0, -28.0)]),
+    # TB-ANT (8 pads) in the -Z end-frame window beside the W7C drop, 0.7 mm above the AntS housing, bonded under a
+    # G-10CR carrier 0.8 x 10 x 7 mm whose outboard 2.5 x 10 mm is bonded under the battery clamp's -X end cap (0.1 mm
+    # bond line); W7C runs under the carrier
+    ("W7C", "ANTS"): ("tab", "battery_clamp", lambda: [B(-34.0, -28.0, -19.5, -9.5, -47.8, -45.8),
+                                                        B(-35.0, -28.0, -19.5, -9.5, -45.8, -45.0)]),
 }
 
 
