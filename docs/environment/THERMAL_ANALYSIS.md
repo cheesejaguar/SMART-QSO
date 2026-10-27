@@ -1,7 +1,7 @@
 # SMART-QSO Thermal Analysis
 
 **Document ID**: SQSO-THA-001
-**Version**: 2.3
+**Version**: 2.4
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR analysis (uncorrelated model). Replaces version 1.0, which analysed a 400 km ISS orbit and an Apollo4
@@ -26,6 +26,7 @@ uncorrelated lumped model and carries the 10 °C uncertainty margin until the en
 | Jetson 8 W bursts (120 s, and 600 s batches) | Node ≤ 39 °C at 0.44 W/K, ≤ 35 °C at 1.0 W/K | The ≥ 1 W/K path is not driving at these duties; stuck-on 8 W gives 61 °C (0.44 W/K) |
 | Dispenser cold soak (SpaceX bounding −20 °C) | Battery −9 °C after 2 h, −15 °C after 3 h; first charge ≈ 33 min after deployment with the 1 W heater | Below the cell's −10 °C discharge limit if deployment is later than 2 h (RID THM-06, EPS-08) |
 | Dispenser hot soak (SpaceX bounding +69 °C) | Battery +55.5 °C after 2 h, +64 °C after 3 h; boards +66 °C | **Exceeds** the battery's +60 °C limit after about 2.4 h and SYS-601 (+60 °C) for the boards (RID THM-07) |
+| ISIS AntS on the −Z face (Version 2.4, §4.4; SQSO-MFG-003 §12 V-1) | At the release, separation + 31 min after the 2 h cold soak: **−44.0 °C** separating at eclipse entry (β = 0), −35.1 °C on the 2028-11-01 orbit, −7.7 / +27.9 °C separating at eclipse exit; first-orbit minimum −47.0 °C. Orbit: −30.5 … −5.9 °C sun-pointed at β = 0, up to +34.8 °C | Release in the first eclipse is 24 °C below the −20 °C qualified operating minimum (34 °C with the margin) and the unpowered minimum is 7 °C below the −50 °C storage limit with the margin: temperature gate at −10 °C predicted (−20 °C with the margin), open within 69 min (tumbling) to 177 min (sun-pointed) after separation, then ≥ 6 min every orbit (≥ 22 min with the black finish), never in the stowed-wing sun-pointed contingency (timeout); hot side +44.8 °C with the margin, inside +60 °C |
 
 ## 2. Model
 
@@ -44,6 +45,7 @@ solar array model (`env/solar.rs`) takes out the electrical power. The cases are
 | `ThermalParams` (battery mount, battery ε, Jetson path) | Sensitivity cases | Defaults unchanged: 0.05 W/K mount, 0.44 W/K Jetson path |
 | Albedo and Earth IR per case; a radiative sink temperature and a rail conductance | Hot and cold environments; the dispenser soak | Defaults unchanged (0.30, 237 W/m², deep space) |
 | (Version 2.2) Wings stowed until the first burn, the separation phase swept over the orbit, and sub-nodes for each wing's hinge (frame side, wing side), burn board and hold-down line, one-way coupled to the network (§4.3) | RID P3S-01: the hinge, line and wing temperatures at the burns; L1–L3 deploy the wings at separation | Run by an analysis harness on the network's public interface (`sqso_sil::env::thermal`, unchanged); the harness reproduces C11 and C14 of §4.1 to 0.1 °C. Folding case L4 and the sub-nodes into `cdr_thermal_cases` is an action on the simulation owner |
+| (Version 2.4) ISIS AntS node on the −Z face (§4.4), one-way coupled to the −Z end-frame node | SQSO-MFG-003 §12 item V-1: the AntS releases its elements in the first orbit and was not modelled | Same harness; the change to the network itself (`env/thermal.rs`, a 13th node) is given to the flight-software owner of that file |
 
 The mission simulation keeps a 0.5 W heater (`mission.rs`) and 0.05 W/K of mount conduction, both conservative for
 the cold case against the design (1 W heater, ≈ 0.03 W/K mount; BUILD_VS_BUY §4).
@@ -94,7 +96,7 @@ also in BASELINE §8 as "0.72–1.30 W"); §4.2 re-runs them at 0.70 W and its v
 | Wings (cell assemblies) | −40 … +85 | −100 … +100 | SOLAR_ARRAY_DESIGN §1.1 | To be replaced by the panel vendor's qualification range |
 | EPS fuses F1, F3 (ITV4030L1412NR) | −10 … +65 (data sheet) | No mounted rating published | THERMAL_DESIGN §1.1; SQSO-MFG-003 §4 | Below the stack AFT at both ends: V-EPS-8 extended to −40 °C and +70 °C, or a design change |
 | RF PA Q601 (RD01MUS3) | Tj ≤ +150; no published minimum | Tstg −40 … +125 | THERMAL_DESIGN §1.1; SQSO-MFG-003 §5 | Vendor statement and EM characterisation at −40 °C |
-| ISIS AntS (−Z face) | −20 … +60 (vendor qualified) | −50 … +85 | THERMAL_DESIGN §1.1; SQSO-MFG-003 §12 | **Not a node of this network.** At its first-orbit release (after the wing burns, separation + ≈ 31 min, eclipse) the nearest nodes are −30.2 °C (frame-side hinge) to −40.6 °C (stowed wing), §4.3; an AntS node is an action on this analysis (SQSO-MFG-003 §12 item V-1) |
+| ISIS AntS (−Z face) | −20 … +60 (vendor qualified) | −50 … +85 | THERMAL_DESIGN §1.1; SQSO-MFG-003 §12 | Node added in Version 2.4 (§4.4): at the release (separation + 31 min) −44.0 °C after an eclipse separation at β = 0 (−54.0 °C with the margin), −7.7 °C after a sunlit separation; first-orbit minimum −47.0 °C (−57.0 °C, below the −50 °C storage limit); in orbit −30.5 … +34.8 °C. Release gated at −10 °C predicted, −20 °C with the margin (§4.4) |
 | Magnetorquer rods (CR0002) | −20 … +80 thermal vacuum, cold start −35 (family data) | Not published | THERMAL_DESIGN §1.1; SQSO-MFG-003 §12 | Not a node; inside the structure near the stack (−27.6 °C first orbit). Vendor rating or qualification at −40 °C |
 
 **Margin rule.** A prediction passes when it is at least 10 °C inside the operating limit (BASELINE §8, before EM
@@ -305,6 +307,76 @@ on the resistor's temperature, −39.4 °C (−40.8 °C after 3 h) with the marg
 (radiating half to space): not in the release path, but it is where the line's negative expansion coefficient
 (Dyneema and Vectran lengthen as they cool) and the frame's contraction act together on the 30 N preload; the
 mechanical designer checks the preload and slack with the free span at −81 °C and the anchors at −42 °C.
+
+### 4.4 ISIS AntS node (Version 2.4, SQSO-MFG-003 §12 item V-1)
+
+**Node.** The AntS (98 × 98 × 7 mm, `hardware/mechanical/MECHANICAL_DESIGN.md` §3 and §4.1: outside the recessed −Z end
+frame, z −55.5 … −48.5 mm) is the spacecraft's −Z outer surface. Mass 85 g (MASS_BUDGET row 19; < 90 g in
+`hardware/rf/ANTENNA_DESIGN.md` §2; the ISIS data sheet ISIS-ANTS-DSH-0001 was not obtained), heat capacity 77 J/K at
+0.9 J/g/K. Outer face 0.0096 m² to space, the four 7 mm edges with half their view free; finish taken as the −Z end
+face's black anodize (α 0.88, ε 0.85; the AntS finish is to come with the data sheet). Back face to the −Z end frame by
+radiation (ε_eff 0.74) and by conduction through the four isolated fasteners (polyimide or G-10 washers and sleeves,
+MECHANICAL_DESIGN D-13): 0.02 W/K. In the dispenser its outer face sees the dispenser wall (ε_eff 0.70). The node is
+one-way coupled to the −Z end-frame node of the network, which still radiates as the bare end face; the two-way node
+for `env/thermal.rs` is left to the owner of that file. Controller power (< 40 mW) and the element burns (1.5 W for
+≤ 40 s, < 1 K) are not credited. Sensitivities: 30 g (27 J/K), a 0.10 W/K mount, a solder-mask top (α 0.75, ε 0.90),
+bare or alodined aluminium (α 0.35, ε 0.15).
+
+**First orbit** (2 h cold soak: AntS −18.0 °C at separation; LEOP loads; wings deployed at separation + 30 min;
+tip-off tumble, or detumbled after 0.8 h or 1.4 h and then sun-pointed), AntS temperature, °C, with the 10 °C margin
+in brackets:
+
+| Separation | At the release, sep. + 31 min | First-orbit minimum | First time ≥ −10 °C (≥ −20 °C with the margin) |
+|---|---|---|---|
+| β = 0, cold environment, at eclipse entry, tumbling | **−44.0 (−54.0)** | −47.0 (−57.0) | 69 min (33 min into the first sunlit period); 167 min if sun-pointed from 0.8 h |
+| β = 0, at eclipse exit (sunlit start) | −7.7 (−17.7) | −33.9 (−43.9) | 29 min |
+| 2028-11-01, LTAN 22:30, at eclipse entry | −35.1 (−45.1) | −35.6 (−45.6) | 43 min |
+| 2028-11-01, LTAN 22:30, at eclipse exit | +27.9 (+37.9 hot) | −19.0 … −26.8 (−29.0 … −36.8) | 3 min |
+| Sensitivities, β = 0 eclipse entry: 30 g / 0.10 W/K / solder mask / bare Al | −53.2 / −38.9 / −44.8 / −27.1 | −55.4 / −40.8 / −47.8 / −28.7 | 61–69 / 64–70 / 72–177 / 71–79 min |
+
+**Operational orbits** (last of 25 orbits; the AntS is unpowered after the deployment, so its storage range applies):
+
+| Case | AntS (°C) | With the margin |
+|---|---|---|
+| Cold, β = 0, SAFE, sun-pointed (−Z never sunlit) | −30.5 … −5.9 | −40.5 / +4.1 |
+| Cold, β = 0, SAFE, tumbling | −26.8 … +26.6 | −36.8 / +36.6 |
+| Cold, wings stowed, sun-pointed (contingency) | −36.1 … −13.1 | −46.1 |
+| Cold real, LTAN 23:30, June, tumbling | −28.1 … +13.5 | −38.1 |
+| Hot bounding, no eclipse, ACTIVE: sun-pointed / tumbling / spin with +Y perpendicular to the Sun | +1.1 … +6.2 / +15.6 … +24.7 / +28.7 … +34.6 | +44.6 |
+| Hot real, LTAN 21:30, January: sun-pointed / spin with +Y perpendicular to the Sun | −21.9 … +4.6 / −22.1 … +34.8 | **+44.8** |
+
+Across the sensitivities the coldest orbit minimum is −41.0 °C (30 g, wings stowed; −51.0 °C with the margin) and the
+hottest maximum +52.2 °C (bare aluminium, spin with +Y perpendicular to the Sun; +62.2 °C with the margin). In orbit
+the unpowered AntS stays inside its −50 … +85 °C storage range with the margin, except the 30 g, wings-stowed
+contingency (1 °C).
+
+**Findings.** (1) A release in the first eclipse happens 24 °C below the −20 °C qualified operating minimum (34 °C with
+the margin): the controller and the thermal knives would operate where ISIS has not qualified them. (2) The unpowered
+first-orbit minimum, −47.0 °C, is −57.0 °C with the margin, below the −50 °C storage limit (−65 °C for a 30 g unit):
+the ISIS statement of V-1 must cover unpowered survival at about −57 °C, or the finish and mount must keep the AntS
+warmer (bare or alodined aluminium, ε 0.15, keeps the first-orbit minimum at −28.7 °C but takes the hot maximum to
++52.2 °C). (3) The −Z face never sees the Sun once the spacecraft sun-points: the AntS then warms only through the
+frame, and stays at −30.5 … −5.9 °C at β = 0.
+
+**Temperature-gated deployment (for the flight software).** Gate the AntS deployment on −10 °C predicted, which is −20 °C
+with the 10 °C margin; a gate on a measured AntS temperature needs only the sensor's tolerance above −20 °C. The design
+has no AntS sensor (none on −Z, `sqso_fsw::ants` reads no temperature): the AntS's own temperature report, if the ISIS
+statement confirms one and permits powering the controller to read it, or a schedule from these results.
+
+| Condition | Gate opens after separation | Time ≥ −10 °C per orbit afterwards |
+|---|---|---|
+| Tumbling (detumble not finished), β = 0, eclipse separation | 69 min | 25 min in the first orbit, 40–45 min after |
+| Detumbled at 0.8 h then sun-pointed, β = 0, eclipse separation | 167 min (second orbit; 177 min with a solder-mask top) | 22–29 min (6–17 min with a solder-mask top) |
+| Sunlit separation | 3–29 min | as above |
+| Deployment orbit (2028-11-01, LTAN 22:30), eclipse or sunlit separation | ≤ 47 min | 35–83 min (black finish) |
+| Wings stowed and sun-pointed, β = 0 (contingency) | **Never** (orbit maximum −13.1 °C; −16.6 °C with a solder-mask top) | 0 |
+
+In every nominal case the gate opens within the second orbit after separation (≤ 177 min, 1.9 orbits) and stays open
+for at least 6 min of every orbit after it (22 min with the black finish; 17 min from the third orbit with a
+solder-mask top), mostly in sunlight. Only the stowed-wing contingency at β ≈ 0 can hold it
+shut indefinitely, so the gate needs a timeout: deploy at the end of a sunlit period after 16 orbits (one day) without
+an opening, or on a ground command, which can also ask for the tumble that suns the −Z face. The deployment would then
+be near the orbit maximum, about −13 °C (−23 °C with the margin), instead of −44 °C.
 
 ## 5. Margins
 
@@ -565,3 +637,4 @@ The full RID table is in the CDR reviewer report; the thermal RIDs closed or ope
 | 2.1 | 2026-10-27 | CDR flight software, round 3 | §4.1 new: the cases re-run at 475 km (BASELINE Rev E) with the 2028-11-01 launch date and the +5/+9 °C set points, and the deployment case L3 (2028-11-01, LTAN 22:30, from the cold soak: boards −24 to −25 °C); §2.2 orbit row |
 | 2.2 | 2026-10-27 | CDR thermal analyst, round 3 | Panel reopenings P3S-01, THM-03, THM-04: §4.3 new, LEOP with the wings stowed until the burn, separation phase swept, hinge, burn-board and line sub-nodes; burn temperatures for the mechanisms (wing −40.6 °C, hinge −30.2 / −38.8 °C, resistor −29.4 °C at separation + 30 min; inside −55 °C with the margin: P3S-01 closed by analysis); case L4 (boards −27.6 / −28.6 °C, Jetson −28.9 °C); §6.6 per-unit allowables from the board BOMs, design changes evaluated, first-orbit −40 °C extension with a test-margin deviation, SYS-600/601 text for the change request; §6.8 wings-stowed heater sweep and energy balance, contingency accepted; §4.2 heater 0.70 W at 12.0 V (207 Ω; was 0.72 W): C11 +3.6 °C, C15 0.0 °C, C14 −1.5 °C; §1, §2.1, §2.3, §4.1 extremes, §5, §7, §8 updated; V-THM-6 restated to ETP Rev D §3.4; V-THM-8 new |
 | 2.3 | 2026-10-27 | EEE parts engineer (chair action, RID P3T-01) | §3 allowables aligned with THERMAL_DESIGN 1.6 §1.1 (−30 °C AFT, −40 °C first orbit; Jetson −15 °C gate) and the parts audit SQSO-MFG-003 A; rows for the EPS fuses F1/F3, the RF PA Q601, the ISIS AntS (not modelled) and the CR0002 rods; BQ76920 corrected to BQ76952 |
+| 2.4 | 2026-10-27 | CDR thermal analyst, round 3 (chair action, SQSO-MFG-003 §12 V-1) | §4.4 new: ISIS AntS node on the −Z face (85 g, black anodize, isolated mount 0.02 W/K, sensitivities); release at separation + 31 min −44.0 °C after an eclipse separation (−54.0 °C with the margin), −7.7 °C after a sunlit one; first-orbit minimum −47.0 °C (below the −50 °C storage limit with the margin); orbit −30.5 … +34.8 °C; temperature gate −10 °C predicted: open ≤ 177 min after separation, then ≥ 6 min per orbit, never in the stowed-wing sun-pointed contingency (timeout recommended); §1, §2.1, §3 AntS rows |

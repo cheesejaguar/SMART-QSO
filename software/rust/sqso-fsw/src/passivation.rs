@@ -22,7 +22,11 @@
 //!    persisted: from here on every boot carries it through) and runs, in
 //!    this order:
 //!    - the fire, in sunlight only (the array then carries the loads while
-//!      the heater draws from the pack), **while the spacecraft still
+//!      the heater draws from the pack) and only with the EPS board at or
+//!      above [`FIRE_MIN_BOARD_C`] by the INA228 die temperatures (the fuse
+//!      F1, ITV4030, is rated −10 … +65 °C; SMART-QSO-ICD-001 1.6 §4.6
+//!      amended, SQSO-EPS-BRD-001 F §7; an invalid or missing temperature
+//!      is not warm enough), **while the spacecraft still
 //!      transmits** so the ground can see the result: `EOL_FIRE` (a level, in
 //!      series with the latch through F1's heater) high at least
 //!      [`FIRE_MIN_MS`]; it drops once the EPS reports the charge path open
@@ -33,8 +37,10 @@
 //!      (across resets too). The EPS reporting the charge path open ends
 //!      the fire whenever it is seen (the array, and with it the sunlight
 //!      the software sees, is gone once it opens); an attempt not ended
-//!      within [`FIRE_DEADLINE_MS`] (no sunlight) goes to the report all the
-//!      same;
+//!      within [`FIRE_DEADLINE_MS`] (no sunlight, or the board never warm
+//!      enough) goes to the report all the same. While it waits, the reason
+//!      ([`WAIT_SUN`], [`WAIT_BOARD`]) is kept for housekeeping (HK1 `PS`)
+//!      and stays in the final report;
 //!    - the final report (RID REG-12, finding EOL-1 of the end-of-life
 //!      plan): [`FINAL_REPORTS`] housekeeping frames, [`REPORT_INTERVAL_MS`]
 //!      apart, carrying `EOL_STATE`, the fuse state and the attempts;
@@ -55,6 +61,7 @@
 //! @requirement SRS-F111 Passivation order: record, charge disconnect through two series lines while transmitting, final report, then TX-OFF
 //! @requirement SRS-F112 Transmitters off for good after passivation
 //! @requirement SRS-F155 The final passivation report: three frames over three minutes carrying EOL_STATE, the fuse state and the attempts, before TX-OFF
+//! @requirement SRS-F165 The passivation fire starts only in sunlight with the EPS board at or above 0 °C (an invalid temperature counts as cold); it waits, reporting why, up to the 24 h deadline
 //! @requirement SRS-F157 Two-processor passivation arm: the EPS controller's key and the OBC's EOL_ARM, the latch confirmed before PASSIVATE_EXECUTE is accepted
 
 use crate::nvm::{self, Flash, RecordStatus};
@@ -74,6 +81,27 @@ pub const ARM_CONFIRM_MS: u64 = 2_000;
 pub const FIRE_MIN_MS: u64 = 60_000;
 /// and at most this long, ms, when the EPS does not confirm
 pub const FIRE_MAX_MS: u64 = 120_000;
+/// The fire starts only with the EPS board at or above this, °C (F1's
+/// rating starts at −10 °C)
+pub const FIRE_MIN_BOARD_C: f64 = 0.0;
+/// An INA228 die temperature outside this range is not a reading, °C (the
+/// part's specified range)
+pub const BOARD_VALID_C: (f64, f64) = (-40.0, 125.0);
+/// Waiting reason: no sunlight
+pub const WAIT_SUN: u8 = 0x01;
+/// Waiting reason: the EPS board below [`FIRE_MIN_BOARD_C`] or its
+/// temperature invalid
+pub const WAIT_BOARD: u8 = 0x02;
+
+/// The EPS board's temperature from the two INA228 die temperatures: the
+/// lower of the valid ones (`None`: neither valid)
+pub fn board_c(dies: [Option<f64>; 2]) -> Option<f64> {
+    dies.into_iter()
+        .flatten()
+        .filter(|t| (BOARD_VALID_C.0..=BOARD_VALID_C.1).contains(t))
+        .reduce(f64::min)
+}
+
 /// Fire sequences at most, across resets
 pub const MAX_FIRE_ATTEMPTS: u8 = 3;
 /// The fire gives up this long after it started (or resumed after a
@@ -167,6 +195,8 @@ pub trait PassivationIo: Flash {
     fn drive(&mut self, line: Line, on: bool) -> bool;
     /// The EPS controller's `EOL_STATE` (`None`: no answer)
     fn eol_state(&mut self) -> Option<u8>;
+    /// The EPS board's temperature, °C ([`board_c`]; `None`: invalid)
+    fn eps_board_c(&mut self) -> Option<f64>;
     /// Write [`KEY`] to the EPS controller's `EOL_KEY`; false if a write failed
     fn write_key(&mut self) -> bool;
     /// Log an event
@@ -233,6 +263,8 @@ pub struct Passivation {
     fire_from: u64,
     /// The final report: when it started, ms, and the frames handed out
     report: Option<(u64, u8)>,
+    /// Why the fire waits ([`WAIT_SUN`], [`WAIT_BOARD`]; 0: not waiting)
+    waiting: u8,
     initialized: bool,
 }
 
@@ -251,6 +283,7 @@ impl Passivation {
             fire: None,
             fire_from: 0,
             report: None,
+            waiting: 0,
             initialized: false,
         }
     }
@@ -444,16 +477,8 @@ impl Passivation {
         }
         match self.fire {
             Some(Step::WaitSun) if path_open(io) => self.end_attempt(now_ms, true, io),
-            Some(Step::WaitSun) if sunlit => {
-                if io.drive(Line::Fire, true) {
-                    self.fire = Some(Step::Fire(now_ms));
-                } else {
-                    // No retry can drive it either: straight to the report
-                    io.report(Report::LineUnavailable);
-                    self.finish(now_ms, false, io);
-                }
-            }
-            None | Some(Step::WaitSun) => {}
+            Some(Step::WaitSun) => self.wait_or_fire(now_ms, sunlit, io),
+            None => {}
             Some(Step::Fire(since)) => {
                 let held = now_ms.saturating_sub(since);
                 // The open path takes the array, and the sunlight seen, with it
@@ -467,6 +492,23 @@ impl Passivation {
                     self.end_attempt(now_ms, false, io);
                 }
             }
+        }
+    }
+
+    /// Waiting to fire: in sunlight with the EPS board warm enough, the fire
+    /// starts; otherwise the reasons are kept
+    fn wait_or_fire<IO: PassivationIo>(&mut self, now_ms: u64, sunlit: bool, io: &mut IO) {
+        let warm = io.eps_board_c().is_some_and(|t| (FIRE_MIN_BOARD_C..=BOARD_VALID_C.1).contains(&t));
+        self.waiting = if sunlit { 0 } else { WAIT_SUN } | if warm { 0 } else { WAIT_BOARD };
+        if self.waiting != 0 {
+            return;
+        }
+        if io.drive(Line::Fire, true) {
+            self.fire = Some(Step::Fire(now_ms));
+        } else {
+            // No retry can drive it either: straight to the report
+            io.report(Report::LineUnavailable);
+            self.finish(now_ms, false, io);
         }
     }
 
@@ -550,6 +592,12 @@ impl Passivation {
         self.confirmed
     }
 
+    /// Why the fire waits, or last waited before the final report
+    /// ([`WAIT_SUN`], [`WAIT_BOARD`]; 0: not waiting)
+    pub const fn waiting(&self) -> u8 {
+        self.waiting
+    }
+
     /// Fire sequences run
     pub const fn attempts(&self) -> u8 {
         self.attempts
@@ -594,11 +642,13 @@ mod tests {
         log: Vec<Report>,
         /// (line, on) in the order driven
         drives: Vec<(Line, bool)>,
+        /// The EPS board's temperature, °C (`None`: invalid)
+        board: Option<f64>,
     }
 
     /// An EPS ready to be armed: the fuse intact, nothing armed
     fn ready() -> Bench {
-        Bench { eps: Some(FUSE_INTACT), ..Bench::default() }
+        Bench { eps: Some(FUSE_INTACT), board: Some(12.0), ..Bench::default() }
     }
 
     impl Flash for Bench {
@@ -641,6 +691,9 @@ mod tests {
         }
         fn eol_state(&mut self) -> Option<u8> {
             self.eps
+        }
+        fn eps_board_c(&mut self) -> Option<f64> {
+            self.board
         }
         fn write_key(&mut self) -> bool {
             if self.key_bus_fails {
@@ -824,6 +877,47 @@ mod tests {
         p.tick(200_000 + FIRE_MIN_MS, !SUN, &mut io);
         assert_eq!(io.log.last(), Some(&Report::NotConfirmed));
         assert_eq!(p.attempts(), 2);
+    }
+
+    /// The fire waits for the EPS board at 0 °C as for the Sun (F1's rating),
+    /// reporting why; an invalid temperature is cold; the deadline applies
+    #[test]
+    fn the_fire_waits_for_a_warm_eps_board() {
+        assert_eq!(board_c([Some(3.0), Some(-1.5)]), Some(-1.5), "the colder die");
+        assert_eq!(board_c([None, Some(4.0)]), Some(4.0));
+        assert_eq!(board_c([Some(-80.0), Some(f64::NAN)]), None, "neither valid");
+        assert_eq!(board_c([Some(130.0), None]), None);
+        let mut io = ready();
+        io.board = Some(-0.5);
+        let mut p = executed(&mut io, 1000);
+        p.tick(2_000, SUN, &mut io);
+        assert_eq!(io.lines, [false, false], "the board below 0 °C: no fire");
+        assert_eq!(p.waiting(), WAIT_BOARD);
+        p.tick(3_000, !SUN, &mut io);
+        assert_eq!(p.waiting(), WAIT_SUN | WAIT_BOARD);
+        io.board = None;
+        p.tick(4_000, SUN, &mut io);
+        assert_eq!(p.waiting(), WAIT_BOARD, "an invalid temperature is cold");
+        assert_eq!(io.lines, [false, false]);
+        assert_eq!(p.phase(4_000), Phase::Firing, "waiting, not aborted");
+        assert_eq!(p.attempts(), 1, "no attempt spent while waiting");
+        io.board = Some(0.0);
+        p.tick(5_000, SUN, &mut io);
+        assert_eq!(io.lines, [false, true], "at 0 °C in sunlight: the fire");
+        assert_eq!(p.waiting(), 0);
+        // Cold for a day: the report with the reason, then silence
+        let mut io = ready();
+        io.board = Some(-5.0);
+        let mut p = executed(&mut io, 1000);
+        p.tick(1000 + FIRE_DEADLINE_MS - 1, SUN, &mut io);
+        assert_eq!(p.phase(0), Phase::Firing);
+        p.tick(1000 + FIRE_DEADLINE_MS, SUN, &mut io);
+        assert_eq!(p.phase(0), Phase::Reporting);
+        assert_eq!(p.waiting(), WAIT_BOARD, "the reason stays in the final report");
+        assert!(!p.confirmed());
+        assert!(io.drives.iter().all(|&(l, on)| !(l == Line::Fire && on)), "never fired");
+        let _ = run_report(&mut p, &mut io, 1000 + FIRE_DEADLINE_MS);
+        assert!(p.passivated());
     }
 
     /// The charge path opening takes the array (no sunlight seen after it):
