@@ -312,8 +312,8 @@ with J1/J2 disconnected (V-BSA-4): on the board, PACK_N joins GND only through D
 
 | Gate network | Network | |Vgs| (rating) | Filter time constant | Current |
 |---|---|---|---|---|
-| DS1 / DS3 high-side P-FET gate | 1.0 M / 1.0 M, 47 nF | 5.6–8.4 V (52 % of 16 V) | 23.5 ms on / 47.0 ms off | 8.4 µA released, 0 stowed |
-| DS2 back-to-back N-FET gate | 1.3 M / 1.0 M, 47 nF | 4.9–7.3 V (73 % of 10 V) | 26.6 ms on / 47.0 ms off | 7.3 µA released, 0 stowed |
+| DS1 / DS3 high-side P-FET gate | 1.0 M / 1.0 M, 68 nF | 5.6–8.4 V (52 % of 16 V) | 34.0 ms on / 68.0 ms off | 8.4 µA released, 0 stowed |
+| DS2 back-to-back N-FET gate | 1.3 M / 1.0 M, 68 nF | 4.9–7.3 V (73 % of 10 V) | 38.4 ms on / 68.0 ms off | 7.3 µA released, 0 stowed |
 
 **Three inhibits on each source (RID P3E-01).** Pack: DS2 (Q6/Q7, the return), DS1 (Q4), DS3 (Q5). Array: DS1 (Q4)
 and DS3 (Q5) in VTRK → F1 → PACK_P → VBAT, and DS2's second pole holding TRK_EN low through the clamp Q40. With the trackers disabled the boost passes the string through its inductor and
@@ -326,7 +326,7 @@ DPDT fits the ≤ Ø4.5 mm body:** a second SPDT switch DS2B in a +Z standoff on
 three separate switches (DS1, DS3, DS2B) on its path (the switch RFQ asks for both); W12C carries two
 (DS3's NO wire is dropped in Version E).
 
-A contact closure must last 11.7 ms before a DS1/DS3 FET begins to conduct at the 11.2 V minimum, so contact chatter in
+A contact closure must last 17.0 ms (12.8 ms with the X7R gate capacitor at −10 % and −15 % at −40 °C; 68 nF from Version F, 47 nF gave 8.8 ms at that corner) before a DS1/DS3 FET begins to conduct at the 11.2 V minimum, so contact chatter in
 vibration cannot power the bus; the switches carry µA only (RID EPS-05). Wiring: each switch on its own rail and its own
 three-wire harness; the 10 kΩ at the board end of DS1's and DS2's common limits a harness short to the frame to ≤ 1.7 mA.
 The RBF (J14) is two-pole: pole A in series with DS2's drive, pole B (closed with the pin in) carrying VCTL to the
@@ -451,10 +451,10 @@ free-run at ≈ 1 MHz (R_FREQ 46.4 k) and the bucks drop to auto mode: no spread
 |---|---|---|---|---|---|---|
 | SW10 OBC 3.3 V | TPS2553-Q1 U38 | 178 k | 0.152 (0.130–0.176) A | 0.040 A | 0.28 s, auto | always (no command); power-cycled by the EPS controller (Q42) after a 120 s OBC heartbeat timeout |
 | SW9 EPS controller | TPS2553-Q1 U27 | ILIM to IN | 0.075 (0.050–0.100) A | 0.012 A | 0.28 s, auto | always |
-| SW2 RADIO | TPS2553-Q1 U22 | 226 k | 0.120 (0.102–0.141) A | 0.038 A (RF board, SQSO-RF-BRD-001) | 1.3 s, auto | RADIO_EN PB5 |
+| SW2 RADIO | TPS2553-Q1 U22 | 226 k | 0.120 (0.102–0.141) A | 0.038 A (RF board, SQSO-RF-BRD-001) | 2.0 s (≥ 1.26 s worst), auto | RADIO_EN PB5 |
 | SW3 PA (TX-OFF) | TPS2553-Q1 U23 | 26.1 k | 0.989 (0.918–1.071) A | 0.485 A at 1 W RF (0.368 A at 0.5 W; RF board E) | 0.28 s, auto | RF_TX_EN PA3 (not shed from Version E) |
 | SW4 ADCS sensors (OBC J6) | TPS2553-Q1 U24 | 88.7 k | 0.299 (0.265–0.339) A | 0.049 A (SQSO-ICX-001 §3.4) | 0.28 s, auto | ADCS_EN PB6 |
-| SW7 GNSS | TPS2553-Q1 U25 | 133 k | 0.202 (0.175–0.232) A | 0.100 A | 1.3 s, auto | GNSS_EN PE5 |
+| SW7 GNSS | TPS2553-Q1 U25 | 133 k | 0.202 (0.175–0.232) A | 0.100 A | 2.0 s (≥ 1.26 s worst), auto | GNSS_EN PE5 |
 | SW8 AntS | TPS2553-Q1 U26 | 18.7 k | 1.370 (1.287–1.465) A | 0.610 A | 0.28 s, auto | DEPLOY_EN PF3 OR the EPS controller's ANTS_EN (U81; ANTS_PWR register) |
 | SW1 PAYLOAD | TPS1H100B-Q1 U20 | 1.24 k | 1.99 (1.71–2.27) A | 0.93 A | thermal cycling | PAYLOAD_EN PB2 AND SHED_N |
 | U19 Jetson eFuse | TPS16630 | 15.0 k | 1.20 (1.10–1.30) A | 0.93 A (12 W guard) | latch-off, OBC re-enables | JETSON_PWR PA8 AND SHED_N |
@@ -463,8 +463,8 @@ free-run at ≈ 1 MHz (R_FREQ 46.4 k) and the bucks drop to auto mode: no spread
 | SW11 MTQ bridges (VBAT_MTQ, J3-36/39) | TPS1H000-Q1 U39 | 1.33 k | 0.361 (0.322–0.401) A | 0.23 A at the bridges' limit (0.104 A at 1.16 W, 11.2 V) | auto-retry 40 ms on / 1 s off | ADCS_EN PB6 |
 
 TPS2553 rails: the current is limited within 2 µs; FAULT asserts after its 8 ms deglitch and pulls EN low (FAULT tied
-to EN, R_FAULT 100 kΩ, C_RETRY 22 µF or 4.7 µF), which removes the rail; EN recharges to its threshold in ≈ 0.6 × R × C
-(1.3 s or 0.28 s), and a persisting latch-up repeats the cycle. A BAT54 across R_FAULT makes a commanded turn-off fast
+to EN, R_FAULT 150 kΩ with C_RETRY 22 µF, or 100 kΩ with 4.7 µF), which removes the rail; EN recharges to its threshold in ≈ 0.6 × R × C
+(2.0 s with R_FAULT 150 kΩ and 22 µF, ≥ 1.26 s with the X7R at −10 %, −15 % at −40 °C and DC bias; or 0.28 s, ≥ 0.18 s), and a persisting latch-up repeats the cycle. A BAT54 across R_FAULT makes a commanded turn-off fast
 (< 1 ms). Trip levels against RADIATION_ANALYSIS §5.3: OBC 0.15 A (normal ≈ 30–40 mA, proposed 150 mA), radio 0.12 A
 (38 mA measured-design load of the RF board; the 0.3 A first proposed could not see a latch-up of a 38 mA load; the
 EPS controller also reports the rail's INA3221 current so the OBC can trip it in software), GNSS 0.20 A (0.1 A, proposed 0.2 A), all ≥ 100 ms off (≥ 1 s for radio and GNSS). **The OBC rail
@@ -485,7 +485,7 @@ LOAD_SHED/fault register.
 |---|---|---|
 | Shed (falling) | 13.62 V | VBAT < 13.6 V |
 | Release (rising) | 14.42 V | VBAT > 14.4 V |
-| Delay before shedding | 4.9 s (4.75 M × 1.0 µF from 3.1 V to the 1.100 V threshold; 4.2–5.7 s) | 5 s |
+| Delay before shedding | 4.9 s (4.75 M × 1.0 µF from 3.1 V to the 1.100 V threshold; 3.7–5.5 s with the X7R at ±10 % and −15 % at −40 °C) | 5 s |
 | Release delay | < 1 ms | |
 
 U48A compares VBAT (1.00 M / 221 k, 0.1 %; 4.12 M hysteresis) with REF_A; U48B times 5 s; SHED_N gates SW1 (U51) and the Jetson eFuse U19's
@@ -785,7 +785,7 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | V-EPS-4 | GND–PACK_N resistance with DS2 open, board powered from the array simulator | ≥ 100 kΩ | §6.4 | EPS EM |
 | V-EPS-5 | Storage drain, switches actuated, AFE in SHUTDOWN, 25 and 60 °C | ≤ 20 µA (design 7.7 µA, with A3 fitted) | LVR-071 | EPS EM, FM |
 | V-EPS-6 | Burn drivers: 4, 5, 6, 7 Ω loads; stuck-high line; four lines at once | 0.80 A ± 10 %; stops at 12.0 s ± 1 s; pack ≤ 2.2 A | SMA-05 | EPS EM |
-| V-EPS-7 | Load shed: VBAT ramp and step | shed 13.6 ± 0.2 V after 4–6 s; release 14.4 ± 0.2 V | EPS-F012 | EPS EM |
+| V-EPS-7 | Load shed: VBAT ramp and step | shed 13.6 ± 0.2 V after 4–6 s at +25 °C (3.7–5.5 s over −40 … +70 °C); release 14.4 ± 0.2 V | EPS-F012 | EPS EM |
 | V-EPS-8 | ITV4030 flight-lot qualification (F1 and F3; RID MFG-003 item 1), 6 samples per test: (a) carry 2 A for 1 h at −40 °C and at +70 °C, then 5 thermal cycles −40 / +70 °C carrying 1.5 A; (b) heater trigger at 10.5 V and 16.8 V at 0 °C, +25 °C and +65 °C (the temperatures at which F1 and F3 are fired); (c) heater trigger at −40 °C at 16.8 V as a characterisation; (d) EOL fire on the EM (destructive) | (a) no opening, fuse-element resistance change ≤ 10 %, no visible damage; (b) opens < 1 min; (c) recorded (not a pass criterion: the design never fires below 0 °C); F1 opens only with both EOL lines | EPS-F010, V-BSA-7, SQSO-MFG-003 | EM (before the FM build) |
 | V-EPS-9 | Lockout: set by an emulated SUV PF and by LOCK_SET; clear needs both lines; shock 750 m/s² in both states | state kept through power loss and shock | SMA-06 | EM |
 | V-EPS-10 | Latch-up trips: 1.5 × trip step on each switched rail incl. SW10 | rail off ≤ 10 ms, back after 0.2–0.4 s or 1–2 s | AV-08, RAD-V5 | EM |
