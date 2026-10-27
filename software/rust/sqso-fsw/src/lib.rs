@@ -96,6 +96,7 @@ pub mod pa_temp;
 pub mod passivation;
 pub mod payload_guard;
 pub mod payload_schedule;
+pub mod ptt_watch;
 pub mod receiver;
 pub mod rf_control;
 pub mod rf_silence;

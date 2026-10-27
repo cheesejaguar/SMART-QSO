@@ -471,7 +471,7 @@ free-run at ≈ 1 MHz (R_FREQ 46.4 k) and the bucks drop to auto mode: no spread
 
 | Switch | Part | R_ILIM / R_CL | Limit nominal (min–max) | Peak load | Off after a trip | Enable (OBC pin) |
 |---|---|---|---|---|---|---|
-| SW10 OBC 3.3 V | TPS2553-Q1 U38 | 178 k | 0.152 (0.130–0.176) A | 0.040 A | 0.28 s, auto | always (no command); power-cycled by the EPS controller (Q42) after a 120 s OBC heartbeat timeout |
+| SW10 OBC 3.3 V | TPS2553-Q1 U38 | 178 k | 0.152 (0.130–0.176) A | 0.040 A | 0.28 s, auto | always (no command); power-cycled by the EPS controller (U82, Q42) after a 600 s OBC heartbeat timeout (heartbeat every ≤ 60 s; ICD-001 §4.6) |
 | SW9 EPS controller | TPS2553-Q1 U27 | ILIM to IN | 0.075 (0.050–0.100) A | 0.012 A | 0.28 s, auto | always |
 | SW2 RADIO | TPS2553-Q1 U22 | 226 k | 0.120 (0.102–0.141) A | 0.038 A (RF board, SQSO-RF-BRD-001) | 2.0 s (≥ 1.26 s worst), auto | RADIO_EN PB5 |
 | SW3 PA (TX-OFF) | TPS2553-Q1 U23 | 26.1 k | 0.989 (0.918–1.071) A | 0.485 A at 1 W RF (0.368 A at 0.5 W; RF board E) | 0.28 s, auto | RF_TX_EN PA3 (not shed from Version E) |
@@ -585,7 +585,7 @@ ICD-001 §2.3). The AFE (0x08), INA3221s and ADS7138 are on the controller's loc
 
 MSP430FR2355TPTR (FRAM, −40…105 °C) on its own latch-up-tripping supply SW9. Firmware (a new configuration item, for the
 chair: not written; Class C, NPR 7150.2D) implements the ICD register block (0x00–0x33 read by `sqso_fsw::eps_telemetry`
-and the §4.6 extended registers), the MPPT perturb-and-observe on the four SAC DACs, SOC from the INA228, the lockout
+and the §4.6 extended registers), the MPPT perturb-and-observe on the four SAC DACs, SOC from the AFE's coulomb counter on RS7, read on the controller's own local bus through the ISO1540 (the INA228s on I2C2 stay the OBC's independent gauge: the controller is only a target on I2C2 and never masters it; SQSO-SRS-EPSC-001 EPSC-F040), the lockout
 SET backup and the UNLOCK step, the **EOL key** (Version D: on the two-write sequence to the EOL_KEY register, first
 0x3C then 0xC3 within 1 s, accepted only while EOL_STATE shows not armed and F1 intact, it raises EOL_KEY (P4.2) for
 10 s and reports it in EOL_STATE bit 3; any other write or a timeout drops it), **OBC heartbeat supervision**
@@ -802,7 +802,7 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | ID | Item | Pass criterion | Verifies | When |
 |----|------|----------------|----------|------|
 | V-EPS-1 | Tracker efficiency 3.5–6.3 V, 0.05–1.1 A, −20/+25/+60 °C, synchronised | ≥ 92 % above 2 W, ≥ 90 % above 1 W | EPS-F002, §4.3 | EPS EM |
-| V-EPS-2 | AFE OTP programming and readback; trip of every threshold (COV, CUV, OCD, SCD, UTC/OTC/OTD, SUV PF) on a pack simulator | within ± 25 mV, ± 10 % current, ± 2 K | EPS-F011, BSA §4 step 9 | EPS EM |
+| V-EPS-2 | AFE OTP programming and readback; trip of every threshold (COV, CUV, OCD, SCD, UTC/OTC/OTD, SUV PF) on a pack simulator; the BQ76952 is then **left SEALED** (security state read back; no unseal or full-access key leaves the acceptance station; the controller firmware holds none, EPSC-F063) | within ± 25 mV, ± 10 % current, ± 2 K | EPS-F011, BSA §4 step 9 | EPS EM |
 | V-EPS-3 | Inhibits: with the array simulator lit and the pack connected, each combination of two of DS1, DS2, DS3 jumpered closed (failed) with the third actuated, and the RBF removed; bus, PA supply, V_BURN, 3V3_ANTS, TRK_EN and every rail measured | bus ≤ 6.5 V and no converter running, no tracker switching, no RF, no burn current in all three cases; chatter of 5 ms bursts does not raise the bus | EPS-F009, CDS 2.3.7/2.3.8, P3E-01 | EPS EM, FM (with V-BSA-6) |
 | V-EPS-4 | GND–PACK_N resistance with DS2 open, board powered from the array simulator | ≥ 100 kΩ | §6.4 | EPS EM |
 | V-EPS-5 | Storage drain, switches actuated, AFE in SHUTDOWN, 25 and 60 °C | ≤ 20 µA (design 13.8 µA, with A3 fitted and both tap ladders) | LVR-071 | EPS EM, FM |
@@ -814,7 +814,7 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | V-EPS-13 | SW11 and readbacks: VBAT_MTQ short and 0.3–0.5 A steps; VJET_RB and VSW1_RB with SW1 and U19 switched in turn | limit 0.32–0.40 A, retry 40 ms / 1 s; readback ratio 6.00 ± 0.5 %, < 0.1 V off | E1–E3, AV-06 | EM (with V-ICX-1) |
 | V-EPS-14 | NTC1 plausibility: NTC1 opened, shorted and its wire grounded, at 10 °C and 40 °C pack (decade box) | NTC1_BAD set; charging continues inside the AFE's UTC/OTC on NTC2; no BOTHOFF; heater runs under SW5's limit | SMA-B04 | EPS EM |
 | V-EPS-15 | Array start with an open pack path (F0A, F3 or a pack lead opened; array simulator lit) and the switches released | bus up from the array, OBC boots, DS2's FETs on through the PACK_P diode | SMA-B01 | EPS EM |
-| V-EPS-16 | OBC heartbeat supervision: heartbeats stopped; restored; stopped four times in 24 h | SW10 off 1 s at 120 ± 5 s after the last heartbeat; no cycle within 300 s of a start; at most 3 cycles, then stopped and reported | SMA-B09 | EPS EM |
+| V-EPS-16 | OBC heartbeat supervision: heartbeats stopped; restored; stopped four times in 24 h | SW10 off 1.95 ± 0.1 s (U82) at 600 ± 10 s after the last heartbeat; no cycle within 600 s of a controller start or of the last cycle; at most 3 cycles in 24 h, then stopped and reported (EPS_SUPV bit 7) | SMA-B09 | EPS EM |
 | V-EPS-17 | Per-tracker disable and the active-high tracker clamps: each TDIS line; DS2 pole 2 and RBF pole B wires grounded at the far end | the selected tracker stops; a grounded clamp wire leaves the trackers running; stowed DS2 or RBF in holds them off | SMA-B13, SMA-B17 | EPS EM |
 | V-EPS-18 | Lockout coil drivers: each of Q28, Q30, Q29, Q39 shorted in turn | K1 state unchanged; the other coil still operates | SMA-B12 | EPS EM |
 | V-EPS-11 | Frequency plan: spectrum at the 70 cm port with all converters running | no comb line within 200 kHz of the coordinated uplink | E1, V-EMC-3 | EM |
@@ -899,4 +899,5 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | F | 2026-10-27 | CDR design (EPS board) | Parts temperature audit SQSO-MFG-003: secondary protector BQ771806 and F3 moved to the battery sense board (F3 blows only inside its rating; own taps at the cells), F1 fired only with the board ≥ 0 °C, V-EPS-8 extended to flight-lot qualification at −40 / +70 °C; part codes corrected (1N4148WQ-7-F, ERJ 10R0, ERA-6AEB above 330 k, ERA E24 three-digit codes, WSL2010 0.5 Ω, TFM plating -L); X7R −10 % and −15 % at −40 °C in the timing worst cases: DS1–DS3 gate filters 47 → 68 nF (≥ 12.8 ms), C_RETRY R_FAULT 150 k for the 1 s retries, load-shed delay 3.7–5.5 s. Netlist 742 / 157 / 435, ERC clean |
 | F (amended) | 2026-10-27 | CDR design (EPS board) | Stale lines removed: §2.1 EPS-F009 (the array's third inhibit is DS2 pole 2 through the Q40 clamp; DS3's NO is unused); §4.2 and §13.1 checked against Version E (TRK_EN clamps Q40/Q41; J16 a Pico-Clasp 5) |
 | G | 2026-10-27 | CDR design (EPS board) | S&MA RIDs on the protector relocation: F3's heat at the cell (thermal island ≥ 25 mm from the tabs, ≤ 1 K at the nearest can, limit +60 °C; SMA-B21); F3 in the short loops never interrupts (series FM12/FM08 fuses; I²t data item; included in the hard-short abuse test; SMA-B22); §3, §6.1 and §17 no longer place F3 or the BQ771806 on this board (SMA-B23); 4 × 2.2 MΩ ladder on the BQ771806's taps, storage drain 13.8 µA worst (SMA-B24). No netlist change |
+| G (amended) | 2026-10-27 | CDR design (EPS board) | SQSO-SRS-EPSC-001 §9: §8.3 SW10 row and V-EPS-16 to the 600 s heartbeat timeout; §12 SOC from the AFE coulomb counter on the local bus (the controller never masters I2C2); V-EPS-2 leaves the BQ76952 sealed |
 | B, note | 2026-10-27 | CDR consistency | Citations to BASELINE Rev E, RADIATION Rev D, ICD-001 v1.2; no OBC device on I2C2 (TMP235 analog); §21 item 9 rendered |

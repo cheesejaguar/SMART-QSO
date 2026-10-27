@@ -549,6 +549,61 @@ nominal 1.2 dB) sets +3.5 dBm (0.333 Vrms) at the AD8361 for 2.5 V at 1 W (7.5 V
 PTT_EXCITER (U734). TX_TEMP: TMP235A2 on the PA ground pad (10 mV/°C, 0.5 V at 0 °C, ±2 °C), always powered, so the
 software's 70 °C hold works with the PA off.
 
+### 7.7 Synthesizer programming, readback, and the CC1200 with TX-OFF (F amended, SQSO-SRS-TNC-001)
+
+**Readback path.** The board already has one; no hardware change is needed. The LMX2571's MUXout (pin 10, net
+LMX_LD) goes to the TNC's PB14. TI's data sheet (SNAS654A, July 2016, §7.3.15 and R39) gives MUXout two functions,
+set by R39 bit 3 SDO_LD_SEL: register-readback serial data (0) or lock detect (1). To read a register the TNC sends
+R/W = 1 with the 7-bit address, and the 16 data bits come out on MUXout from the 9th clock.
+
+The same net also gates the PA: PA_EN is PTT_EXC AND LMX_LD (U733). Readback is therefore done **only with
+PTT_EXC low**, when PA_EN is low whatever MUXout does.
+
+**Power-down and CE.**
+- What the data sheet says (§7.3.11, R0): registers are preserved while the device is powered down by CE or by the
+  POWERDOWN bit. After power-up, R0 with FCAL_EN = 1 must be programmed again, after a recommended 100 µs wait.
+- What it does not say: whether MICROWIRE writes are accepted while CE is low.
+- The design does not rely on writes with CE low. With TX-OFF, +3V3_LMX is absent anyway (U805 has no input), so the
+  register contents are lost and the full set is written at every key-up.
+
+**Key-up sequence** (TNC requirement):
+1. PA_5V present; CE high.
+2. Wait ≥ 100 µs.
+3. Write all registers, ending with R0 with FCAL_EN = 1.
+4. With R39 SDO_LD_SEL = 0, read back every programmed register and compare. A mismatch means rewrite once; a second
+   mismatch aborts the key-up and is logged.
+5. Set SDO_LD_SEL = 1 and wait for lock detect high, ≤ 1.5 ms.
+6. Only then assert TNC_PTT. Unkeying sets CE low.
+
+**Residual.** No readback is possible while keyed, because readback would toggle PA_EN. A register upset during a
+transmission can therefore persist until the next key-up:
+- A beacon is about 1.2 s; a repeat transmission lasts at most the 120 s key-down timer.
+- An upset that unlocks the PLL drops LMX_LD, and with it PA_EN: no emission.
+- An upset of SDO_LD_SEL does the same (MUXout idles low), so it unkeys.
+- An upset of a frequency word that keeps the PLL locked is the residual. To bound it to ≤ 5 s, the TNC rewrites
+  (write-only) the frequency and FSK registers with their stored values every 5 s while keyed, never R0 or FCAL.
+  Whether such a rewrite disturbs the carrier is checked on the EM (VI-RFB-16).
+
+**CC1200 and TX-OFF.** TX-OFF removes PA_5V, not RADIO_3V3, so the CC1200 transceiver stays powered. What isolates
+it from the antenna:
+1. **Layout.** Its PA output (pin 17) has no RF path to any antenna port. It sees only the DC choke L206 to +3V0_RX,
+   and the matching capacitor C208 to TRX_SW is DNP. TRX_SW (pin 18) is otherwise unconnected. The receive input
+   (LNA_P/N) is the only path to J5/J6, through the SAW, the LNA in reverse and FL1.
+2. **Firmware.** The TNC never issues STX and sets the PA to its minimum (PA_CFG1). RXOFF_MODE/TXOFF_MODE are set so
+   that no state transition can enter TX; the 10 s scrub restores them. Criterion 2 (MARCSTATE checked every 1 s)
+   forces SIDLE then SRX on any TX state, and resets the CC1200 (CC_RESETN) if the state persists. This bounds an
+   upset-induced transmission to ≤ 1 s.
+3. **Estimate, not measured.** A worst-case accidental transmission at the CC1200's full +14 dBm would reach J5/J6 at
+   about −35 to −45 dBm: −20 to −30 dB from PA pin to LNA pins inside the package, the SAW, about −25 dB LNA
+   reverse isolation, and FL1. That is above VI-RF-12's −60 dBm. At the minimum PA setting (−16 dBm) it is below
+   −60 dBm.
+
+So hardware does not prevent a firmware- or upset-induced CC1200 transmission. The two firmware bounds (the minimum
+PA setting and the 1 s MARCSTATE check) keep it below the TX-OFF limit, and it would be in the 70 cm band at ≤ 1 s.
+VI-RFB-16 measures the leakage. If the EM leakage at full PA power exceeds −60 dBm, the hardware fix is to remove L206,
+which leaves the PA pin unbiased, after confirming with TI that pin 17 may be left unconnected in receive-only use.
+The data sheet's reference design feeds it.
+
 ## 8. FM Repeat Path and the `XPDR_EN` Gate
 
 ### 8.1 Heartbeat and EN_OK
@@ -795,7 +850,8 @@ Radiation (BASELINE §6: 10 krad design): no part has published TID data except 
 (CC1200, LMX2571) typically survive tens of krad, but that is an expectation, not data: lot sample test RAD-V3 at
 ≥ 10 krad for CC1200, LMX2571, STM32L431, CMX138A, PCM1808 (EEE_PARTS_LIST §2A.4). Latch-up: the RADIO rail's
 always-on parts have no current limiter on this board (§4.2, §15). Single-event upsets in the CC1200, LMX2571 and
-CMX138A registers: the TNC re-writes and verifies their configuration every 10 s and at every key-up.
+CMX138A registers: the TNC re-writes and verifies their configuration every 10 s and at every key-up. The LMX2571
+is verified through its MUXout readback, and only while unkeyed; see §7.7 for the sequence and the residual.
 
 ## 13. TNC Firmware (new software item)
 
@@ -812,7 +868,9 @@ threshold. Added in E (SMA-B11):
 - **TNC-FW-CAL:** the calibration procedure for the floor table (acceptance and TVAC, antenna port terminated in 50 Ω
   at the chamber temperature).
 
-The other duties are: CC1200, LMX2571 and CMX138A configuration with read-back
+- **TNC-FW-LMX (F amended):** the LMX2571 key-up sequence of §7.7: CE, 100 µs, writes ending with R0 FCAL_EN = 1, readback through MUXout with SDO_LD_SEL = 0 and PTT low, then lock detect before PTT. While keyed, the frequency and FSK registers are rewritten every 5 s, never R0. Never STX to the CC1200, PA at minimum, and the MARCSTATE TX check.
+
+The other duties are: CC1200, LMX2571 (readback only while unkeyed, §7.7) and CMX138A configuration with read-back
 scrubbing; TONE_OK relay from CMX138A IRQN; frequency trims from flash; independent watchdog. It can reuse the
 `sqso-protocol` KISS and AX.25 code (`no_std`, Rust). Its requirements and tests belong in
 `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` (for the chair).
@@ -835,6 +893,7 @@ scrubbing; TONE_OK relay from CMX138A IRQN; frequency trims from flash; independ
 | VI-RFB-13 | AntS RF interface against the ISIS ICD: connector type (MMCX jack assumed), number of ports (four, or two if ISIS phases the pairs), their positions on the AntS's inner face, and the clearance of the mated right-angle plugs under the battery (z −48.5 … −42.2 under the cells, −48.5 … −44.9 under the clamp end caps); then the cable cut lengths. Also: fit check of the four cables in the −X wall-gap bands on the EM structure; return loss port to antenna ≥ 13.6 dB with the AntS replaced by 50 Ω loads | ANT-3, ANT-8; §4.3 | Analysis (ICD), EM **Owner: RF lead.** The ISIS AntS RFQ, asking for the 1U–3U ICD (connector type, port count and positions, whether ISIS phases the pairs), goes out by **2026-11-06**; the ICD check closes 10 working days after the RFQ response and in any case before the EM COTS buys start (**2027-01-15**, SCHEDULE EM_LL). The EM fit and return-loss parts are done at the EM. |
 | VI-RFB-14 | (F) Q601 cold operation: Mitsubishi statement of the minimum operating case temperature (RF lead, before 2027-01-15); on the EM at −40 °C (and +70 °C): output power at both settings within RF-P003 under APC, DC at 0.5 W ≤ 1.1 × room value, no oscillation or spurious > −60 dBc (1–1,000 MHz, 3:1 load, all phases), bias settled ≤ 100 ms after key-up, H3 ≤ −70 dBc; 10 cold starts (4 h unpowered soak at −40 °C, keyed 1 W for 60 s, within criteria from the first frame). Failure: TX_TEMP keying limit (flight software) or the CMX901 board revision (§7.2) | SQSO-MFG-003, RF-P003 | EM thermal |
 | VI-RFB-15 | (F) Temperature range of the board-level RF tests: every VI-RF and VI-RFB item with a temperature range is run at −40 to +70 °C, the board allowables plus test margin, with the first-orbit cold start at −40 °C (THERMAL_DESIGN §1.1; SQSO-MFG-003 §10) | SQSO-MFG-003 | EM thermal |
+| VI-RFB-16 | (F amended) Synthesizer and CC1200 isolation: (a) the §7.7 key-up sequence with readback, and an injected readback mismatch aborts the key-up; (b) the 5 s keyed rewrite of the frequency/FSK registers causes no phase or frequency step > 50 Hz and no unlock; (c) SDO_LD_SEL forced to 0 while keyed unkeys the PA; (d) with TX-OFF (PA_5V removed), the CC1200 forced into TX by a test build at +14 dBm and at its minimum setting: J5/J6 ≤ −60 dBm at the minimum setting, and the full-power value recorded (if > −60 dBm, the L206 removal of §7.7 with TI's confirmation) | SQSO-SRS-TNC-001, VI-RF-12 | EM |
 | VI-RFB-09 | Sense-line coupling and directivity (≥ 15 dB); detector calibration ±0.5 dB −40 to +70 °C (F: was −20 to +60 °C) | §7.6 | EM |
 
 VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 still apply.
@@ -894,3 +953,4 @@ VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 s
 | E | 2026-10-27 | CDR board FMEA (SQSO-FMEA-003 A: SMA-B11, SMA-B16) | SMA-B16: LMX2571 on its own TPS7A2033 (U805) from +5V_PA, EN on the PA_5V divider (was a TPS22918 from RADIO_3V3): 3.25 V minimum (100 mV margin) independent of 3V3_AO, second TX-permit path kept; keyed DC +0.08 W (1.84 W at 0.5 W, 2.42 W at 1 W), receive 0.102/0.127 W, board dissipation 1.34–1.46 W (§5, §7.3, §11). SMA-B11: TNC criterion 6 noise-floor check (`rf_calcs.py` §18), KISS STATUS loop query, RX_FAULT power-on self-test, meaning of RX_CD stuck high (§8.6); TNC firmware requirements TNC-FW-NF, -STAT, -POR, -CAL (§13); VI-RFB-10 extended; 193 nets |
 | E (amended) | 2026-10-27 | CDR thermal (THM-04) | Y451 to ABLS-3.6864MHZ-L4-T (−55 … +125 °C, ±30/±50 ppm) for the −40 °C first-orbit board cold case; was ABLS-3.6864MHZ-B4-T (−20 … +70 °C); harmonic plan rechecked at ±80 ppm (§12) |
 | F | 2026-10-27 | CDR parts temperature audit (SQSO-MFG-003) | Q601 cold-operation path (Mitsubishi statement before 2027-01-15, EM characterisation at −40 °C VI-RFB-14, TX_TEMP keying limit or CMX901 as fallbacks, §7.2); L106 20 nH → 0603HP-18NXGLU (FL1 0.73 dB worst, return loss ≥ 19.1 dB, 144–146 MHz ≥ 134 dB; T_sys 552–603 K, §6.1–§6.2); L605 → 0807SQ-10NGLC (10.2 nH, longer land pattern); BFP640F lifetime buy (60 pieces by 2027-03-31, §12); J1 plating code -L (TFM-108-01-L-D-RA); test temperature ranges −40 … +70 °C (VI-RFB-07, -09, -10, VI-RFB-15) |
+| F (amended) | 2026-10-27 | TNC firmware SRS (SQSO-SRS-TNC-001) | §7.7: LMX2571 verification uses the existing MUXout readback (SDO_LD_SEL), only while PTT is low because LMX_LD gates PA_EN; the data sheet does not state that writes are accepted with CE low, so the design writes after CE high and 100 µs, ending with R0 FCAL_EN = 1; the residual is a locked-frequency upset during a transmission, bounded to ≤ 5 s by keyed rewrites; the CC1200 is not isolated by TX-OFF (RADIO_3V3 stays): its PA pin has no RF path, and the firmware bounds (minimum PA, no STX, 1 s MARCSTATE check) keep any leakage below −60 dBm, estimated, VI-RFB-16; TNC-FW-LMX in §13 |

@@ -142,6 +142,7 @@ static void test_contract_500(void **state)
         {RUST_CONST_DEPLOYMENT_ANTS_START_MS, (double)DEPLOYMENT_ANTS_START_MS},
         {RUST_CONST_ADCS_SENSOR_RAIL_SETTLE_MS, (double)ADCS_SENSOR_RAIL_SETTLE_MS},
         {RUST_CONST_RF_INHIBIT_ANTS_PENDING, (double)RF_INHIBIT_ANTS_PENDING},
+        {RUST_CONST_RF_CONTROL_PTT_LIMIT_MS, (double)RF_CONTROL_PTT_LIMIT_MS},
     };
     for (size_t i = 0U; i < (sizeof(k) / sizeof(k[0])); i++) {
         assert_true(fabs(sqso_rust_constant((RustConst_t)k[i].id) - k[i].value) < 0.5);

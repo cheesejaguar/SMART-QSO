@@ -1,7 +1,7 @@
 # Interface Control Document: OBC-EPS
 
 **Document Number**: SMART-QSO-ICD-001
-**Version**: 1.6
+**Version**: 1.7
 **Date**: 2026-10-27
 **Status**: Preliminary. Electrical values from the EPS board build-to design (`hardware/electrical/eps/EPS_BOARD_DESIGN.md`,
 SQSO-EPS-BRD-001) and pins from the master allocation (`hardware/electrical/INTERCONNECT.md`, SQSO-ICX-001);
@@ -144,8 +144,8 @@ Pins per SQSO-ICX-001 §3.1; switches, limits and loads per SQSO-EPS-BRD-001 §8
 
 The four burn lines (BURN_W1A PB10, BURN_W1B PE6, BURN_W2A PB9, BURN_W2B PE7; J1-18, 30, 17, 31) each start one
 driver's 12 s one-shot; the passivation lines EOL_ARM (PF4, J1-32) and EOL_FIRE (PG1, J1-33) and the lockout clear
-LOCK_CLR (PF5, J1-34) are listed in SQSO-ICX-001 §3.1. SW1 and SW3 are also gated by the EPS's hardware low-voltage
-load shed (VBAT below 13.6 V for 5 s; EPS_DESIGN §6, SQSO-EPS-BRD-001 §8.4).
+LOCK_CLR (PF5, J1-34) are listed in SQSO-ICX-001 §3.1. SW1 and the Jetson eFuse are also gated by the EPS's hardware low-voltage
+load shed (the PA's SW3 is not, from SQSO-EPS-BRD-001 E) (VBAT below 13.6 V for 5 s; EPS_DESIGN §6, SQSO-EPS-BRD-001 §8.4).
 
 ### 3.3 Power Sequencing
 
@@ -187,8 +187,8 @@ START | ADDR+W | REG | RESTART | ADDR+R | DATA[0] | ... | DATA[n] | STOP
 | Register | Address | R/W | Size | Description |
 |----------|---------|-----|------|-------------|
 | STATUS | 0x00 | R | 1 | System status |
-| MODE | 0x01 | R/W | 1 | Power mode |
-| LOAD_EN | 0x02 | R/W | 1 | Load enables |
+| (retired) | 0x01 | — | 1 | Formerly MODE: retired in 1.7 (the controller sets no mode); reads 0x00, writes acknowledged and ignored |
+| (retired) | 0x02 | — | 1 | Formerly LOAD_EN: retired in 1.7 (the controller drives no load; the loads are the OBC's own lines, §3); reads 0x00, writes acknowledged and ignored |
 | VBATT | 0x10 | R | 2 | Battery voltage (mV) |
 | IBATT | 0x12 | R | 2 | Battery current (mA, signed) |
 | TBATT | 0x14 | R | 2 | Battery temp (0.1°C) |
@@ -202,6 +202,7 @@ START | ADDR+W | REG | RESTART | ADDR+R | DATA[0] | ... | DATA[n] | STOP
 | BOOT_CNT | 0x50 | R | 2 | Boot counter |
 | ALERT_CFG | 0x60 | R/W | 4 | Alert configuration |
 | VERSION | 0xF0 | R | 2 | Firmware version |
+| IMAGE_CRC | 0xF2 | R | 2 | CRC-16 of the controller's flight image, computed at start-up (EPSC-I010; adopted in 1.7) |
 
 ### 4.3 Status Register (0x00)
 
@@ -213,25 +214,13 @@ START | ADDR+W | REG | RESTART | ADDR+R | DATA[0] | ... | DATA[n] | STOP
 | 4 | OVER_TEMP | Over temperature |
 | 3 | UNDER_TEMP | Under temperature |
 | 2 | FAULT | Fault condition active |
-| 1:0 | MODE | Current power mode |
+| 1:0 | — | Reserved, read 0 (MODE retired in 1.7) |
 
-### 4.4 Mode Register (0x01)
+### 4.4 Mode Register (0x01) and 4.5 Load Enable Register (0x02): retired
 
-| Value | Mode | Description |
-|-------|------|-------------|
-| 0x00 | SAFE | Minimum power, beacon only |
-| 0x01 | IDLE | Normal operations, no payload |
-| 0x02 | ACTIVE | Full operations, payload enabled |
-
-### 4.5 Load Enable Register (0x02)
-
-| Bit | Name | Default | Description |
-|-----|------|---------|-------------|
-| 7:4 | Reserved | 0 | Reserved |
-| 3 | ADCS_EN | 0 | ADCS power enable |
-| 2 | HEATER_EN | 0 | Heater enable |
-| 1 | RF_EN | 1 | RF system enable |
-| 0 | PAYLOAD_EN | 0 | Jetson payload enable |
+Retired in 1.7 (SQSO-SRS-EPSC-001 §9 item 2): the EPS controller drives no load enable and sets no power mode; the
+OBC's own lines switch the loads (§3) and the OBC keeps the mode. The addresses stay reserved (read 0x00, writes
+acknowledged and ignored) so that no old image misreads another register.
 
 ---
 
@@ -244,15 +233,19 @@ START | ADDR+W | REG | RESTART | ADDR+R | DATA[0] | ... | DATA[n] | STOP
 | CHG_INHIBIT | 0x7A | R | 1 | Charge-inhibit cause: bit 0 cold, 1 hot, 2 cell OV, 3 BMS fault, 4 secondary protector blown, 5 recharge lockout latched, 6 NTC1 implausible (window and 60 °C trip handed to the AFE on NTC2; SQSO-EPS-BRD-001 E §5.3) |
 | LOAD_SHED | 0x7B | R | 1 | Hardware low-voltage load shed active (bit 0: SW1 and the eFuse U19 shed; the PA is not shed from SQSO-EPS-BRD-001 E), SW1/SW3 fault flags (bits 1–2) |
 | EOL_STATE | 0x7C | R | 1 | Passivation: bit 0 armed, bit 1 fired (charge path open), bit 2 fuse F1 intact (F1_SNS; SQSO-EPS-BRD-001 §19), bit 3 EOL key active (EOL_KEY high, see 0x7E). Read every housekeeping frame and in the final passivation report (HK1 `PS`, HK2 `EOL`; SRS-F155) |
-| LOCK_UNLOCK | 0x7D | W | 1 | Recharge-lockout unlock: writing 0xC5 raises UNLOCK, the second of the two conditions for a lockout clear (with LOCK_CLR; EPS_CLEAR_LOCKOUT 0x14, SRS-F129); any other value lowers it |
+| LOCK_UNLOCK | 0x7D | W | 1 | Recharge-lockout unlock: writing 0xC5 raises UNLOCK, the second of the two conditions for a lockout clear (with LOCK_CLR; EPS_CLEAR_LOCKOUT 0x14, SRS-F129), **for 1.0 s, then UNLOCK clears itself** (1.7); any other value lowers it at once. Sequence: write 0xC5, then within 0.5 s raise LOCK_CLR (PF5) for ≥ 200 ms, so the two overlap ≥ 100 ms (the reset one-shot U59 needs ≥ 100 ms) |
 | EOL_KEY | 0x7E | W | 1 | Passivation arm key (SQSO-EPS-BRD-001 D §7, §12; RID P3E-11): writing **0x3C then 0xC3** within 1 s, accepted only while EOL_STATE bit 0 = 0 (not armed) and bit 2 = 1 (F1 intact), makes the EPS controller raise EOL_KEY for 10 s (EOL_STATE bit 3 = 1); the arm latch sets only while EOL_KEY and the OBC's EOL_ARM (PF4, J3-32) are both high. Any other value, a write out of order, or the 10 s timeout lowers EOL_KEY; a refused sequence leaves bit 3 = 0 |
 | PTRACK1–4 | 0x80–0x87 | R | 4 × 2 | Tracker input power (mW) |
 | IHEATER | 0x88 | R | 2 | Heater current (mA) |
 | IMON_JET | 0x8A | R | 2 | Jetson rail current from the eFuse U19 IMON (0.84 V/A at the controller's ADC), mA, little-endian like the other words: the flight software's JPC (SQSO-JET-BRD-001 §13 item F3, RID JETB-03) |
 | OBC_HEARTBEAT | 0x8C | W | 1 | OBC heartbeat (RID SMA-B09; SQSO-ICX-001 E14): the flight software writes **0x5A at least every 60 s**. After **600 s** without a valid write, and not within 600 s of the controller's start or of the last cycle, the controller power-cycles the OBC rail SW10 once (hardware one-shot U82: SW10 off 1.95 s, back after 0.28 s). At most **3 cycles in 24 h**, then supervision stops (EPS_SUPV bit 7); 10 consecutive valid heartbeats reset the count. Any other value is ignored (not a heartbeat). No command disables it |
 | ANTS_PWR | 0x8D | W | 1 | AntS supply by the EPS controller (RID SMA-B06): **0xA6** raises ANTS_EN (SW8 on, in OR with DEPLOY_EN) for at most 30 min; any other value lowers it. SW8 is downstream of DS1–DS3 |
-| TRK_DISABLE | 0x8E | W | 2 | Per-tracker disable (RID SMA-B17): byte 0 key **0x96**, byte 1 mask (bits 0–3 = T1–T4 off; 0 = all enabled), in one write; a write without the key is ignored; the mask is held in FRAM and reported in EPS_SUPV |
+| TRK_DISABLE | 0x8E | W | 2 | Per-tracker disable (RID SMA-B17): byte 0 key **0x96**, byte 1 mask (bits 0–3 = T1–T4 off; 0 = all enabled), in one write; a write without the key is ignored; **a mask that disables all four trackers (0x0F) or sets a bit above bit 3 is refused with a NACK and no change** (1.7, EPSC-F092: with all four off the pack is never charged again); the mask is held in FRAM and reported in EPS_SUPV |
 | EPS_SUPV | 0x8F | R | 1 | Supervisor status: bits 0–3 trackers disabled (T1–T4), bit 4 ANTS_EN from the controller, bits 5–6 OBC power cycles in the last 24 h (0–3), bit 7 heartbeat supervision stopped (limit reached) |
+| BURN_I1–4, V_BURN, VTRK | 0x90–0x9B | R | 6 × 2 | Burn currents W1A, W1B, W2A, W2B (mA), V_BURN and VTRK (mV), every 100 ms (SQSO-SRS-EPSC-001 EPSC-F014; adopted in 1.7) |
+| EPSC_FLAGS | 0x9C | R | 1 | Controller flags: bit 0 SOC uncalibrated, bit 1 calibration default, bit 3 burn overrun (> 0.4 A for > 13 s), bit 4 AFE settings differ from the acceptance record, bit 5 a local-bus device failed, bit 6 LOCK_SET event; bits 2, 7 reserved (EPSC-F005, F010, F014, F041, F060, F063) |
+| RESET_CAUSE | 0x9D | R | 1 | Cause of the controller's last reset (EPSC-F004 codes) |
+| EOL_REFUSED | 0x9E | R | 1 | Count of refused EOL_KEY sequences, saturating at 255 (EPSC-F072) |
 
 **Passivation sequence (OBC, SQSO-EPS-BRD-001 D §7).** On PASSIVATE_ARM (authenticated): (1) read EOL_STATE and
 require bit 0 = 0 and bit 2 = 1; (2) write 0x3C then 0xC3 to EOL_KEY (0x7E) within 1 s; (3) read EOL_STATE bit 3 = 1;
@@ -309,27 +302,9 @@ Example: ENERGY = 0x00001388 = 5000 mWh = 5.0 Wh
 
 ## 6. Command Interface
 
-### 6.1 Set Power Mode
+### 6.1 Set Power Mode, 6.2 Set Load Enables: retired in 1.7
 
-**Write to MODE register (0x01)**
-
-| Byte | Value | Description |
-|------|-------|-------------|
-| 0 | 0x00-0x02 | Mode value |
-
-**Response**: ACK if valid, NACK if invalid mode
-
-### 6.2 Set Load Enables
-
-**Write to LOAD_EN register (0x02)**
-
-| Byte | Value | Description |
-|------|-------|-------------|
-| 0 | 0x00-0x0F | Enable bits |
-
-**Constraints**:
-- PAYLOAD_EN only settable in ACTIVE mode
-- RF_EN always enabled in all modes
+MODE (0x01) and LOAD_EN (0x02) are retired (§4.4). Writes are acknowledged and ignored.
 
 ### 6.3 Configure Alerts
 
@@ -477,3 +452,4 @@ When Alert GPIO is asserted:
 | 1.4 | 2026-10-27 | CDR flight software round 3 | §4.6: EOL_STATE bit 2 fuse F1 intact; IMON_JET 0x8A (Jetson rail current, the JPC sensor) |
 | 1.5 | 2026-10-27 | CDR design (EPS board) | §3 payload row: JETSON_PWR on PA8 (PA2 is the spreader thermistor), both Jetson switches shed-gated; §4.6 (amended): EOL_KEY register 0x7E (key 0x3C, 0xC3), EOL_STATE bit 3, the OBC passivation sequence (RID P3E-11) |
 | 1.6 | 2026-10-27 | CDR design (EPS board) | SQSO-EPS-BRD-001 E: §4.6 OBC_HEARTBEAT 0x8C (every ≤ 60 s, 600 s timeout, ≤ 3 cycles per 24 h), ANTS_PWR 0x8D, TRK_DISABLE 0x8E, EPS_SUPV 0x8F; CHG_INHIBIT bit 6 (NTC1 implausible); LOAD_SHED without the PA; §2 AntS moved to the OBC's I2C3 (0x31, 0x32); AntS supply also by the controller; amended: passivation fire only with the EPS board ≥ 0 °C |
+| 1.7 | 2026-10-27 | CDR design (EPS board) | From SQSO-SRS-EPSC-001 §9: LOCK_UNLOCK self-clears after 1.0 s with the clear sequence stated; MODE (0x01) and LOAD_EN (0x02) retired (§4.2–§4.5, §6.1–§6.2); registers 0x90–0x9E and IMAGE_CRC 0xF2 adopted; TRK_DISABLE refuses an all-four mask; §3 load shed without the PA |

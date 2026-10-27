@@ -1473,6 +1473,8 @@ impl Executive {
         // SAFETY: dl is a live DownlinkStatus_t
         let _ = unsafe { downlink::downlink_get_status(&mut dl) };
         receiver::receiver_step(dl.keyed || self.transponder.enabled);
+        // The exciter keyed by the TNC alone (C-014-9, SRS-F168)
+        let _ = rf_control::rf_control_ptt_supervise(now, dl.keyed);
         eps_lockout::eps_lockout_poll();
         eps_supervision::step(now);
         if now.wrapping_sub(self.last_verify_ms) >= VERIFY_INTERVAL_MS {

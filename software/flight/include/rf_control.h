@@ -123,6 +123,33 @@ typedef enum {
  */
 void rf_control_set_inhibit(RfInhibit_t source, bool active);
 
+/** The exciter may stay keyed unexplained this long, ms (C-014-9) */
+#define RF_CONTROL_PTT_LIMIT_MS 6000U
+
+/**
+ * @brief The exciter's keying watch (SW-HAZ-014 control C-014-9)
+ *
+ * The beacon path's TNC_PTT bypasses the transponder heartbeat and its
+ * 120 s timer. Called each main-loop pass: PTT_EXCITER (GPIO_PIN_PTT_EXC)
+ * read high for more than RF_CONTROL_PTT_LIMIT_MS with XPDR_KEY
+ * (GPIO_PIN_XPDR_KEY, the repeat path) low and no downlink frame
+ * outstanding latches TX-OFF (rf_control_tx_off(): RF_TX_EN low,
+ * persisted) and logs a CRITICAL fault, once per episode; the watch re-arms
+ * when the condition clears. Recovery is TX-OFF's: TX_ENABLE.
+ *
+ * @param[in] now_ms             Time now (hal_timer), ms
+ * @param[in] frame_outstanding  A downlink frame may be on the air (downlink.h)
+ * @return true if it latched TX-OFF now
+ *
+ * @requirement SRS-F168 TX-OFF when PTT_EXCITER reads high for more than 6 s with the repeat path not keyed and no downlink frame outstanding; logged; recovered by TX_ENABLE
+ */
+bool rf_control_ptt_supervise(uint64_t now_ms, bool frame_outstanding);
+
+/**
+ * @brief Trips of the exciter watch since boot
+ */
+uint32_t rf_control_ptt_trips(void);
+
 /**
  * @brief Check the RAM copy of the TX-OFF latch against its record (AV-07)
  *

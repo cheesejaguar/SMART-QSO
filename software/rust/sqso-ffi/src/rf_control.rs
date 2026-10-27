@@ -1,8 +1,12 @@
 //! `rf_control.h`: transmitter permission and the latched TX-OFF
 //! (`sqso_fsw::rf_control`), on the GPIO and flash HAL.
 //!
+//! The exciter's keying watch (`sqso_fsw::ptt_watch`, C-014-9) latches
+//! TX-OFF through the same latch.
+//!
 //! @requirement SYS-204 Cease emissions on telecommand; stay ceased across resets (97.207(b))
 
+use sqso_fsw::ptt_watch::PttWatch;
 use sqso_fsw::rf_control::{self, Error, Report, RfControl, RfIo};
 
 use crate::c::{self, HalFlash, fault_type, rc, severity};
@@ -136,6 +140,42 @@ pub extern "C" fn rf_control_verify() {
     let _ = RF.with(|rf| rf.verify(&mut HalFlash));
 }
 
+/// `GPIO_PIN_XPDR_KEY`: the transponder's repeat keyed (input)
+const GPIO_PIN_XPDR_KEY: u32 = 41;
+/// `GPIO_PIN_PTT_EXC`: the exciter keyed, PTT_EXCITER (input)
+const GPIO_PIN_PTT_EXC: u32 = 42;
+
+static PTT: Global<PttWatch> = Global::new(PttWatch::new());
+
+/// The exciter's keying watch (C-014-9 of SW-HAZ-014, SRS-F168): PTT_EXCITER
+/// read high for more than `sqso_fsw::ptt_watch::LIMIT_MS` with XPDR_KEY low
+/// and no downlink frame outstanding latches TX-OFF and logs the fault,
+/// once per episode. True when it acted now (busy: does nothing)
+///
+/// @requirement SRS-F168 TX-OFF when PTT_EXCITER reads high for more than 6 s with the repeat path not keyed and no downlink frame outstanding; logged; recovered by TX_ENABLE
+#[unsafe(no_mangle)]
+pub extern "C" fn rf_control_ptt_supervise(now_ms: u64, frame_outstanding: bool) -> bool {
+    // SAFETY: plain values (the HAL)
+    let (ptt, repeat) = unsafe { (c::hal_gpio_get(GPIO_PIN_PTT_EXC), c::hal_gpio_get(GPIO_PIN_XPDR_KEY)) };
+    let trip = PTT.with(|w| w.step(now_ms, ptt, repeat, frame_outstanding)).unwrap_or(false);
+    if trip {
+        let _ = rf_control_tx_off();
+        c::log(
+            fault_type::COMMAND,
+            severity::CRITICAL,
+            c"PTT_EXCITER keyed over 6 s with no frame: TX-OFF (C-014-9)",
+            0.0,
+        );
+    }
+    trip
+}
+
+/// The exciter watch's trips since boot
+#[unsafe(no_mangle)]
+pub extern "C" fn rf_control_ptt_trips() -> u32 {
+    PTT.with(|w| w.trips).unwrap_or(0)
+}
+
 /// The automatic inhibit bits in force (busy: none known)
 #[cfg(test)]
 pub(crate) fn inhibits() -> u32 {
@@ -206,6 +246,9 @@ mod tests {
             (commands, seen, rf_control_tx_permitted(), rf_control_get_power_level())
         });
         let seen = [(true, false), (true, false), (false, false), (true, true), (true, true)];
+        // The exciter watch, nested: nothing done
+        let ptt = PTT.with(|_| (rf_control_ptt_supervise(u64::MAX, false), rf_control_ptt_trips()));
+        assert_eq!(ptt, Some((false, 0)));
         assert_eq!(nested, Some(([rc::BUSY; 4], seen, false, rf_control::POWER_0W5)));
     }
 }
