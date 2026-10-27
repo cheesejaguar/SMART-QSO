@@ -108,6 +108,20 @@ NEW: list[tuple[str, int, str, str, str]] = [
 ]
 
 FINAL3: dict[str, tuple[str, str]] = {
+    "EPS-02": ("CD", "Generation 2.48 / 3.92 W EOL; ACTIVE +34 % / +54 % against the bottom-up load with the heater (PBA 2.3)"),
+    "EPS-04": ("CD", "Third array inhibit: DS2 now two-pole, pole 2 holds the tracker enables low independently of DS3; array broken by DS1, DS2, DS3; boost-off pass-through ≤ 6.16 V below every converter start (≥ 9.9 V); V-EPS-3 with each pair jumpered (EPS_BOARD_DESIGN D §6.2)"),
+    "P3E-01": ("CD", "With EPS-04"),
+    "EPS-09": ("CD", "SHED_N also gates the Jetson eFuse U19 enable: covers either series switch failed closed, a stuck enable, or software that never turns the Jetson off; residual both power stages failed closed (EPS_BOARD_DESIGN D §18, PBA 2.3 §8.4)"),
+    "P3E-06": ("CD", "With EPS-09"),
+    "P3E-02": ("CD", "F0A, F0B (two lots) in BAT_TOP and F0N in BAT_BOT, FM12A72V5.0A; worst short ≤ 209 A against 1000 A; taps limited to ≤ 82 mA by 3 × 68.1 Ω plus a fuse; H3 2-fault tolerant without RT1 (BSA D, BATTERY_DESIGN 2.7); H3b per chair decision C-16"),
+    "EPSB-10": ("CH", "C-16: F0A and F0B from different lots, each able to clear the fault alone, count as two independent controls with F0N the third: H3b 2-fault tolerant; NRCSD safety-engineer concurrence for the ISS backup path at the NRCSD contract (BSA D)"),
+    "EPS-23": ("CD", "Claims restated in BSA D H3/H3b; integrator safety review at contract 2027-06-30 (owner: safety lead)"),
+    "P3E-03": ("CD", "BSA D: custom 4S Li-ion classed Catastrophic (JSC 20793 Rev D §4.1.3, to be confirmed with the NRCSD safety engineer); abuse-test programme §3.1 and V-BSA-9: Falcon 9 path (overcharge, over-discharge, pack hard/soft short with limiters bypassed, vibration; vent/burst by analysis) about $10-15k, ISS backup full set about $50-75k"),
+    "P3E-11": ("CD", "Arm latch clocked only by OBC EOL_ARM AND the EPS controller's keyed EOL_KEY (U64; register 0x7E, ICD-001 1.5); fire from OBC EOL_FIRE; no single hardware or OBC pin fault fires F1 (EPS_BOARD_DESIGN D §12); flight software sequence in round 3"),
+    "P3E-05": ("CD", "JETSON_PWR PA8 in EPS_BOARD_DESIGN D, EPS_DESIGN 2.4, ICD-001 1.5, CARRIER_BOARD_DESIGN E, ICD-002 1.4, PAYLOAD_DESIGN 1.2"),
+    "P3E-12": ("CD", "≤ 30 % SOC by air (IATA, strongly recommended for PI 967), 60 % integration state by road, final charge 60 ± 5 % at the integrator: BSA D §6, MISSION_TIMELINE 2.4, LAUNCH_PROVIDER_DELIVERABLES D"),
+    "P3E-13": ("CD", "BQ76952 throughout, stuck-on Jetson 66.6 h, cold-burn bus 14.1-14.4 V at 0.75 A (13.8-14.1 V at 1.0 A), EMC D third harmonic ≥ 70 dB, SIL F1 heater 15.6 Ω nominal (11.2-20.0 Ω) to the flight software"),
+    "P3S-03": ("CD", "EPS board outline: centre supports at (0, ±21) mm with Ø7 mm copper-free rings, Z-rod notch x < −35.5, |y| < 6.5 with 1 mm keep-out (EPS_BOARD_DESIGN D)"),
     "P3A-06": ("CD", "One Ø1.5 mm vent per shield lid (SH2-SH4), V/A 3.2-9.4 m against 50.8 m; hole leakage ≥ 37 dB at 2.4 GHz, PA-to-LNA via vents ≈ 142 dB against 85 dB (RF_BOARD_DESIGN D §10)"),
     "P3A-05": ("CD", "RF-P005: ±1.0 ppm over temperature, ≤ ±3.0 ppm total over 2 years with ageing; ground scales the measured beacon offset by 435.5/145.9; VI-RF-14 (a)-(d) incl. offset estimation within ±20 Hz (RF_DESIGN 2.3)"),
     "P3A-08": ("CD", "Report §3.1-§3.3 corrected: ODAR Draft D P 0.997, 86 LVR rows, storage SOC from the 7.7 µA drain, burn sequence, pass statistics (MISSION_TIMELINE 2.3), fire-first passivation, ODAR lifetimes"),

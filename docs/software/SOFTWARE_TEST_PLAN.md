@@ -6,7 +6,7 @@
 **Status**: Preliminary
 
 **Governing Standards**:
-- NPR 7150.2 Rev B - NASA Software Engineering Requirements
+- NPR 7150.2D - NASA Software Engineering Requirements
 - GSFC-STD-7000 (GEVS) - General Environmental Verification Standard
 
 **Heritage**: NASA Ames Research Center Small Satellite Division

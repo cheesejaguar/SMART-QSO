@@ -113,7 +113,7 @@ The flight software applies tailored NASA practices (NPR 7150.2D Class C, [SDP](
 
 - **Executive**: one main loop of stages, every 20 ms, each stage supervised by the watchdog ([run-time architecture](software/flight/docs/RTOS_ARCHITECTURE.md))
 - **State Machine**: BOOT, SAFE, DETUMBLE, IDLE, ACTIVE and EMERGENCY modes (one guarded mode manager)
-- **FDIR**: Fault Detection, Isolation, and Recovery per NASA-STD-8719.13
+- **FDIR**: Fault Detection, Isolation, and Recovery, with software safety per NASA-STD-8739.8B
 - **Watchdog**: Hardware and software watchdog management
 - **Telemetry**: AX.25 beacon generation with AI-enhanced content
 

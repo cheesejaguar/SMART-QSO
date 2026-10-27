@@ -6,7 +6,7 @@
 **Status**: Preliminary
 
 **Governing Standards**:
-- NPR 7150.2 Rev B - NASA Software Engineering Requirements
+- NPR 7150.2D - NASA Software Engineering Requirements
 - IEEE 1016-2009 - Software Design Description
 
 ---

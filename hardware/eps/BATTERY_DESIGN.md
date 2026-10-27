@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-BAT-001
-**Version:** 2.6
+**Version:** 2.7
 **Date:** 2026-10-27
 **Status:** Battery definition and cycle-life analysis for the baseline in `docs/BASELINE_PARAMETERS.md` §5 (finding TB-08). **Analysis, not measured; no cell has been bought or tested.**
 
@@ -143,11 +143,11 @@ BASELINE §5 nominal 10 %. Both documents now cite this section.
 | Feature | Specification | Basis |
 |---------|---------------|-------|
 | Cell Balancing | Passive, resistor-based | Version 1.0 |
-| Balance Current | ≈ 18 mA, one cell at a time (BQ76952 internal balancing through the 100 Ω tap resistors) | SQSO-EPS-BRD-001 §6.1 |
+| Balance Current | ≈ 9 mA, one cell at a time (BQ76952 internal balancing through the 2 × 214 Ω tap loop: 3 × 68.1 Ω current-limiting chain per tap on the sense board, 10 Ω at the AFE) | SQSO-EPS-BRD-001 D §6.1 |
 | Balance Threshold | 50 mV | Version 1.0 |
 | Overcharge Protection | ≤ 4.25 V per cell | BASELINE §5 |
 | Overdischarge Protection | 2.8 V per cell | Above the 2.65 V cut-off of the cell specification's cycle test |
-| Overcurrent Protection | 4 A for 0.5 s; short-circuit trip ≤ 200 µs | Below the 5 A pack fuse (the resettable trip acts first) and the cell's 8 A continuous limit; largest legitimate load 1.8 A, largest software-fault load 3.3 A (all four burn resistors at 0.8 A; EPS_DESIGN v2.0 §5.1; SQSO-PBA-001 v2.0 §5) |
+| Overcurrent Protection | 4 A for 0.5 s; short-circuit trip ≤ 200 µs | Below the 5 A pack fuse (the resettable trip acts first) and the cell's 8 A continuous limit; largest legitimate load 1.40 A, largest software-fault load 2.0 A (all four burn drivers on, held by the 7.0 V burn buck's current limit; SQSO-EPS-BRD-001 §6.1, §9) |
 | Secondary over-voltage protector | 4.35 V/cell, fixed threshold, blows a three-terminal fuse in the charge path | Second, dissimilar overcharge control (SQSO-BSA-001 §3, H1; RID EPS-11) |
 | Charge temperature window | Charge inhibited below 0 °C and above +45 °C, in hardware at the charge regulator's TS input | Cell specification; BASELINE §5; SYS-602 |
 | Pack over-temperature | Both FETs open above +60 °C (hardware comparator) | Cell specification |
@@ -179,7 +179,7 @@ BASELINE §5 nominal 10 %. Both documents now cite this section.
 
 | Protection | Implementation |
 |------------|----------------|
-| Fuse | **F0 on the sense board** in BAT_TOP at the cell-4 positive (5 A, protects the W1 pack leads, §7.2) and the EPS pack fuse F2 (5 A) in series, both MIL-PRF-23419/12 FM12A72V5.0A (1000 A interrupt), non-resettable; tap fuses FT0–FT4 (FM12A72V3/4A, 0.75 A) at the sense board; resettable PTC RT1 on the EPS (hold 2.6 A, 1.92 A at 60 °C) |
+| Fuse | On the sense board, MIL-PRF-23419/12 FM12A72V5.0A (5 A, 1000 A interrupt): **F0A and F0B** in series in BAT_TOP at the cell-4 positive and **F0N** in BAT_BOT at the cell-1 negative (the grounded negative leg); the EPS pack fuse F2 (same part) behind them; all non-resettable. Cell taps: 3 × 68.1 Ω current-limiting chain and an FM12A72V3/4A fuse each. Resettable PTC RT1 on the EPS (hold 2.6 A, 1.92 A at 60 °C; not an interrupter) |
 | Overcharge | Charger CV at 4.10 V/cell, BMS AFE at 4.25 V, secondary protector at 4.35 V with fuse (two-fault tolerant; SQSO-BSA-001 §3) |
 | Overdischarge | BMS + hardware comparator |
 | Overcurrent | PTC + electronic switch |
@@ -260,34 +260,34 @@ pin for it yet (RID EPS-06).
 - **All leads 0.12 m** from the sense board to the EPS bottom-side zone Z1 (service loop), **PTFE over-sleeve** on the
   pack leads (double insulation: they are upstream of the EPS fuse F2), no metal clamps, tied to the sense board within
   10 mm (SQSO-HAR-001 §7.2)
-- **Sense-board fuses (decision, this version).** W1 is upstream of every protection on the EPS: a BAT_TOP lead shorted
-  to BAT_BOT, or to the frame (the frame is at GND, which reaches the pack negative through DS2 and RS7 once released),
-  would see the cells' short-circuit current (≈ 80–100 A) with no fuse in the loop, and the AFE's short-circuit
-  detection opens FETs that are downstream of the fault. The construction controls (double insulation, routing, hipot)
-  are kept and a fuse is added:
-  - **F0**, **FM12A72V5.0A** (MIL-PRF-23419/12 solid-body fuse, 5 A, 72 VDC, short-circuit interrupt 1000 A at the
-    maximum DC voltage; cold resistance 13.5–22.5 mΩ; the same part as the EPS's F2), in BAT_TOP on the sense board
-    within 10 mm of the cell-4 positive tab, before the W1 pads. Carrying: 1.40 A largest legitimate pack current
-    (35 %), 2.0 A with four burn drivers on (software fault, 50 %) of the 4.0 A 60 °C rerating (0.80 assumed, to
-    confirm on the slash sheet; rule 50 %). Coordination: the
-    AFE (OCD1 3.6–4.4 A for 0.5 s, SCD 10 A in 15 µs, on the FETs) acts first on every fault downstream of its FETs;
-    F0 and F2 act on faults upstream of the FETs (W1, J1, F2 area) or if the AFE fails. F0 and F2 are in series and
-    either opening isolates the pack for good, so selectivity between them is not needed: the pair makes the fuse
-    function single-fault tolerant (a fuse that fails to open). **Breaking capacity:** the prospective current of a
-    short just after F0 is ≤ 314 A at 16.8 V even with the cells at a lower-bound 10 mΩ each (about a third of the
-    35E's typical DC resistance) and F0 at its minimum 13.5 mΩ; the FM12's 1000 A holds for any cell and interconnect
-    resistance ≥ 3.3 mΩ in total, so it does not rest on a measured cell resistance. (The Nano2 0451005.MRL first
-    chosen is rated 50 A at 125 V and 300 A at 32 VDC: below the bound, so it was replaced, also as F2 on the EPS.)
-  - **FT0–FT4**, **FM12A72V3/4A** (MIL-PRF-23419/12, 0.75 A, 72 VDC, 1000 A interrupt; cold resistance 0.225–0.375 Ω),
-    one in each cell tap at the sense board: they protect the 28 AWG tap wires (0.90 A derated) against a tap-to-tap
-    or tap-to-frame short, whose prospective current is ≤ 63 A through one tap fuse at its minimum resistance (a 0466
-    chip fuse, 50 A at 63 V, would not have covered it). Balancing current ≈ 18 mA through ≤ 0.375 Ω: ≤ 7 mV on the
-    reading taken while a cell balances (the AFE's
-    measurement-during-balancing behaviour to be set and checked with the OTP image, V-EPS-2); a blown tap fuse shows
-    as an open cell input (AFE open-wire check)
-  - Sense board (the pack's 15 g interconnect board): FR-4, conformal coated; F0 and FT0–FT4 under the coating; the
-    fuses' 72 VDC rating is 4.3× the 16.8 V pack (voltage rule 50 %); terminations in the non-tin finish of the slash
-    sheet
+- **Sense-board protection (Version 2.5, revised 2.7 after the round-3 panel, RID P3E-02).** W1 is upstream of every
+  protection on the EPS: a BAT_TOP lead shorted to BAT_BOT, or to the frame (the frame is at GND, which reaches the
+  pack negative through DS2 and RS7 once released), would see the cells' short-circuit current with no EPS fuse in
+  the loop, and the AFE's short-circuit detection opens FETs that are downstream of the fault. The construction
+  controls (double insulation, routing, hipot) are kept but not counted, and the sense board carries:
+  - **F0A and F0B** in series in BAT_TOP within 10 mm of the cell-4 positive tab, before the W1 pads, and **F0N** in
+    BAT_BOT at the cell-1 negative tab (the interrupter in the grounded negative leg, JSC 20793 Rev D §5.1.3.1a):
+    all **FM12A72V5.0A** (MIL-PRF-23419/12 solid-body fuse, 5 A, 72 VDC, short-circuit interrupt 1000 A at the
+    maximum DC voltage; cold resistance 13.5–22.5 mΩ; the same part as the EPS's F2), F0A and F0B from different lots.
+    Every short loop of the pack passes all three. Carrying: 1.40 A largest legitimate pack current (35 %), 2.0 A with
+    four burn drivers on (software fault, 50 %) of the 4.0 A 60 °C rerating (0.80 assumed, to confirm on the slash
+    sheet; rule 50 %); 0.13 W in the three at 1.40 A. Coordination: the AFE (OCD1 3.6–4.4 A for 0.5 s, SCD 10 A in
+    15 µs, on the FETs) acts first on every fault downstream of its FETs; the fuses act on faults upstream of the FETs
+    (W1, J1, the EPS's F2 area) or if the AFE fails. The fuses are in series and any one opening isolates the pack for
+    good, so selectivity among them is not needed. **Breaking capacity:** the prospective current of a short in W1 is
+    ≤ 209 A at 16.8 V with the cells at a lower-bound 10 mΩ each (about a third of the 35E's typical DC resistance) and
+    the three fuses at their 13.5 mΩ minimum (≤ 314 A with one fuse), within the 1000 A rating for any cell and
+    interconnect resistance; the Nano2 0451005.MRL first chosen (50 A at 125 V, 300 A at 32 VDC) was replaced
+  - **Cell taps TAP0–TAP4:** each a 0.75 A **FM12A72V3/4A** fuse (MIL-PRF-23419/12, cold resistance 0.225–0.375 Ω) and
+    a current-limiting chain of three 68.1 Ω 2512 1 W thick-film resistors (the AFE's tap filter resistance, moved from
+    the EPS board, which keeps 10 Ω + 0.1 µF at the AFE). A tap short in W1 is limited to ≤ 82 mA tap to frame
+    (0.46 W per resistor, 46 %) and ≤ 41 mA tap to tap, so the 28 AWG tap wire (0.90 A derated) cannot heat even with
+    the fuses closed; a single resistor failed short leaves 136 Ω. Balancing ≈ 9 mA (was 18 mA): the 50 mV balance
+    window is unchanged and the pack's expected spread is corrected in a few charge cycles; measurement error from the
+    AFE's input current ≤ 0.2 mV; a blown tap fuse or open chain shows as an open cell input (AFE open-wire check)
+  - Sense board (the pack's 15 g interconnect board): FR-4, conformal coated; F0A, F0B, F0N, FT0–FT4 and the 15 tap
+    resistors under the coating; the fuses' 72 VDC rating is 4.3× the 16.8 V pack (voltage rule 50 %); terminations in
+    the non-tin finish of the slash sheet
 - Strain relief at all connections
 - Conformal coating on BMS PCB
 
@@ -377,3 +377,4 @@ lot uniformity OCV < 1 %, mass < 2 %, capacity < 5 %, resistance < 15 %).
 | 2.4 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: §5.2 inhibit text, the array path has its third inhibit DS3 (SQSO-EPS-BRD-001 §6) |
 | 2.5 | 2026-10-27 | CDR design (EPS board): §7.2 wiring per SQSO-HAR-001 2.0 (B-1): pack leads 22 AWG, all leads 0.12 m, PTFE over-sleeve; sense-board fuse F0 (5 A) in BAT_TOP and tap fuses FT0–FT4 (0.5 A) added, with their coordination against F2 and the BMS; §5.1 fuse row |
 | 2.6 | 2026-10-27 | CDR design (EPS board): sense-board fuses changed for breaking capacity: F0 (and the EPS's F2) FM12A72V5.0A, tap fuses FT0–FT4 FM12A72V3/4A (MIL-PRF-23419/12, 1000 A interrupt) against a 314 A / 63 A prospective-current bound (§5.1, §7.2) |
+| 2.7 | 2026-10-27 | CDR design (EPS board): round-3 panel (RID P3E-02): BAT_TOP fuses F0A + F0B and BAT_BOT fuse F0N (FM12A72V5.0A) on the sense board; tap current-limiting chains 3 × 68.1 Ω moved to the sense board (balancing ≈ 9 mA); software-fault pack current 2.0 A (§4.1, §5.1, §7.2) |

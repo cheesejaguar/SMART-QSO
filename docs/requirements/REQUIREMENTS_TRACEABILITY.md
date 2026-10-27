@@ -13,8 +13,8 @@
 > numbers do not match the code.
 
 **Governing Standards**:
-- NPR 7123.1 Rev E - NASA Systems Engineering Processes and Requirements
-- NPR 7150.2 Rev B - NASA Software Engineering Requirements
+- NPR 7123.1D - NASA Systems Engineering Processes and Requirements (reference framework, tailored: `docs/project/CDR_CRITERIA_MATRIX.md` §2)
+- NPR 7150.2D - NASA Software Engineering Requirements (Class C)
 
 ---
 

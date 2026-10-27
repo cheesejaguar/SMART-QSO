@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REG-016
-**Revision:** C
+**Revision:** D
 **Date:** 2026-10-27
 **Status:** Checklist. Every item is **open**; no hardware exists yet.
 **Applies to:** the primary path of the [orbital access plan](../../ORBITAL_ACCESS.md) (SpaceX Transporter-class rideshare through Exolaunch, EXOpod Nova) and, where noted, the NRCSD backup. The dated deliverable schedule with sources is [SQSO-LVR-001 §9](../../mission/LAUNCH_VEHICLE_REQUIREMENTS.md); the requirement flow-down with verification is the rest of that document. The integrator's mission ICD **supersedes** this list where it differs.
@@ -90,7 +90,7 @@ Providers, and for ISS deployment NASA JSC-20793, require more than CDS 2.3.6. P
 
 ## 5. Delivery Logistics
 
-- Pack-out procedure with ESD protection and the battery state of charge allowed by the carrier (lithium cells by air: the carrier's state-of-charge limit, typically 30 %; then a final charge to 60 % at the integrator); shipping container; humidity indicators; UN 38.3 test summary
+- Pack-out procedure with ESD protection and the battery state of charge for transport (by air ≤ 30 % SoC: UN3481 contained in equipment, PI 967, where the IATA DGR 2026 guidance recommends it and operator variations may require it; by road the 60 % integration state; then the final charge to 60 ± 5 % at the integrator; SQSO-BSA-001 §6); shipping container; humidity indicators; UN 38.3 test summary
 - Pre-ship review sign-off (`docs/integration/PRE_SHIP_CHECKLIST.md`)
 - Charging and access plan matched to the dispenser's access-port availability (CDS 2.3.4.1)
 
@@ -103,3 +103,4 @@ Providers, and for ISS deployment NASA JSC-20793, require more than CDS 2.3.6. P
 | A | 2026-10-14 | Initial checklist (funding audit) |
 | B | 2026-10-27 | CDR launch review: §0 SpaceX Statement-of-Work deliverables from UG v11 Appendix G with sources and status; the 120 s rule, prohibited materials, hard-body radius and ephemeris rows; inhibit row restated (no schematic); shipping state of charge; the dated schedule is SQSO-LVR-001 §9 |
 | C | 2026-10-27 | CDR 2026 consistency pass: orbit selection ≤ 485 km (BASELINE Rev E §3) |
+| D | 2026-10-27 | CDR design (EPS board): pack-out state of charge aligned with SQSO-BSA-001 D §6 (≤ 30 % by air, PI 967) |

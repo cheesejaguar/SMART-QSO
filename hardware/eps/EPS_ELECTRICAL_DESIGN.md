@@ -2,11 +2,11 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-003
-**Version:** 1.3
+**Version:** 1.4
 **Date:** 2026-10-27
 **Status:** CDR Baseline — parts selected: the build-to schematic, BOM and layout constraints are
-`hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001 B), which governs where this document differs;
-`docs/hardware/EPS_DESIGN.md` v2.2 governs the architecture
+`hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001 D), which governs where this document differs;
+`docs/hardware/EPS_DESIGN.md` v2.4 governs the architecture
 
 > **CDR review (2026-10-27).** The funding-audit notice of 2026-10-16 (2S battery, 2-cell charger, six solar channels
 > superseded) is acted on here: §2.1, §2.2 and §3.2 now carry the 4S configuration of `docs/hardware/EPS_DESIGN.md`
@@ -31,7 +31,7 @@ This document specifies the electrical design requirements for the SMART-QSO EPS
 | Solar array input | Blocking diode (or ideal diode) per string, TVS per tracker with standoff ≥ 7 V | 8 strings, 3.5–6.4 V, ≤ 0.55 A each; string Voc reaches 6.31 V at −45 °C |
 | MPPT / charge regulator | 4S buck-boost charger with MPPT, TS input and power path (BQ25798 class) or boost stages into one 4S CC/CV regulator | Four trackers (EPS_DESIGN §3.2); CC ≤ 0.40 A, CV 16.40 V ± 0.5 %; charge only 0 … +45 °C in hardware |
 | Battery interface | Micro-Fit power, Pico-Clasp cell taps, pack fuse F2 5 A, PTC | 4S1P Li-ion |
-| BMS | 4S AFE (BQ76920 class) + secondary OVP (BQ7718 class) with a three-terminal fuse | SQSO-BSA-001 §3 |
+| BMS | 4S AFE BQ76952 (OTP thresholds) + secondary OVP BQ771806 with a three-terminal fuse | SQSO-BSA-001 §3 |
 | EOL disconnect | One-shot thermal cut-off with heater, two series fire switches | EPS_DESIGN §7 |
 
 ### 2.2 Power Distribution Section
@@ -323,3 +323,4 @@ Total:             ~1.6mm
 | 1.1 | 2026-10-27 | CDR review (EPS): §2.1, §2.2, §3.2 corrected to the 4S design of EPS_DESIGN v2.0 (trackers, 4S charger, secondary OVP, VBAT switches, load shed, EOL disconnect; string TVS 7.0 V); §7–§8 superseded by SQSO-THA-001 v2.0 and SQSO-EMC-001 |
 | 1.2 | 2026-10-27 | CDR design (EPS board) | §3.2 parts selected (SQSO-EPS-BRD-001 A); board outline and layer count point to BRD-001 §17 |
 | 1.3 | 2026-10-27 | CDR design (EPS board) | §3.2 VBAT load switches: SW11 magnetorquer supply added (SQSO-EPS-BRD-001 B, SQSO-ICX-001 E3) |
+| 1.4 | 2026-10-27 | CDR design (EPS board) | §2 BMS row: BQ76952 and BQ771806 as selected (was "BQ76920 class") |

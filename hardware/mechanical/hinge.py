@@ -239,7 +239,11 @@ def main():
     R["cold_case_C"] = T_COLD
     R["cold_values"] = COLD[T_COLD]
     # burn-wire release energy at the cold bound (the mechanisms.py model; STR-15: >= 1.5 x 3-sigma)
+    # flight timing (sqso_fsw::deployment): 8 s per resistor, retries 50 min apart, so no heat is kept between attempts
+    keep0 = MECH.KEEP
+    MECH.KEEP = 0.0
     R["burn_release"] = {f"{t:+.0f}C_{b:.0f}s": MECH.burn_release(float(t), b) for t in (-40, T_COLD) for b in (5.0, 8.0, 10.0)}
+    MECH.KEEP = keep0
     for k, v in R["burn_release"].items():
         print(f"burn {k}: {v['E_attempt_J']:.1f} J, 3-sigma need {v['need_3sigma_J']:.1f} J, ratio {v['ratio_3sigma']:.2f}, "
               f"first {v['p_first']*100:.2f} %, fail-all {v['p_fail_all']*100:.4f} %")

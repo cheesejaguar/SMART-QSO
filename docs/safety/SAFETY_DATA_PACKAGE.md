@@ -14,14 +14,14 @@
 
 ## 1. Purpose
 
-This document consolidates the software safety information for SMART-QSO, following NASA-STD-8719.13 (software safety).
+This document consolidates the software safety information for SMART-QSO, following NASA-STD-8739.8B (software assurance and software safety; it replaced NASA-STD-8719.13, cancelled 2020).
 It is one input to the system safety data package. It does not authorize release of flight software or flight.
 
 ## 2. Applicable Documents
 
 | Document ID | Title |
 |-------------|-------|
-| NASA-STD-8719.13 | NASA Software Safety Standard |
+| NASA-STD-8739.8B | Software Assurance and Software Safety Standard |
 | NPR 8715.3 | NASA General Safety Program Requirements |
 | NPR 8705.4 | Risk Classification for NASA Payloads |
 | SQSO-SHA-001 | Software Hazard Analysis |

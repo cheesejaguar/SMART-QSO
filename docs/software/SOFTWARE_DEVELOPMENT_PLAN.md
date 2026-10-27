@@ -7,7 +7,7 @@
 
 **Governing Standards**:
 - NPR 7120.5 Rev F - NASA Space Flight Program and Project Management Requirements
-- NPR 7123.1 Rev E - NASA Systems Engineering Processes and Requirements
+- NPR 7123.1D - NASA Systems Engineering Processes and Requirements
 - NPR 7150.2D - NASA Software Engineering Requirements (Version 1.1 said Rev B)
 
 **Process Heritage**: NASA Ames Research Center Small Satellite Division (GeneSat, PharmaSat, O/OREOS, EcAMSat)
@@ -499,7 +499,7 @@ See `docs/verification/VERIFICATION_MATRIX.md` for complete VCRM.
 ## Appendix A: References
 
 1. NPR 7120.5 Rev F - NASA Space Flight Program and Project Management Requirements
-2. NPR 7123.1 Rev E - NASA Systems Engineering Processes and Requirements
+2. NPR 7123.1D - NASA Systems Engineering Processes and Requirements
 3. NPR 7150.2D - NASA Software Engineering Requirements
 4. NASA-STD-8739.8B - Software Assurance and Software Safety Standard (replaces NASA-STD-8719.13, cancelled 2020)
 5. JPL D-60411 - JPL Institutional Coding Standard

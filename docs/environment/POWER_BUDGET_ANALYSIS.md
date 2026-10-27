@@ -1,7 +1,7 @@
 # SMART-QSO Power Budget Analysis
 
 **Document ID**: SQSO-PBA-001
-**Version**: 2.2
+**Version**: 2.3
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR power closure (analysis by simulation; nothing measured). Replaces version 1.x, whose array
@@ -193,7 +193,7 @@ duty with the wings stowed (THERMAL_ANALYSIS C16), which leaves 0.58 W: SAFE (0.
 
 | Stuck load | Power at the pack | Balance in SAFE, EOL | Result |
 |------------|-------------------|----------------------|--------|
-| Jetson rail on (both series switches failed closed) | 8.9 W inferring; ≈ 3.9 W idle | −5.7 W sun-pointed, −7.2 W tumbling (inferring) | Simulated (the module idling, as the flight software never sends it work; as flown −4 % over 14 days): SOC 58 % → SAFE at 56.9 h, EMERGENCY at 64.5 h, BMS under-voltage cut at 66.6 h, then 233 brown-out cycles in 14 days (uptime 55 %). Loss of mission in the simulation, which does not model the hardware load shed below 13.6 V that the EPS now has (RID EPS-09, EPS_DESIGN §6): to be added to the simulation and re-run |
+| Jetson rail on (both series switches failed closed) | 8.9 W inferring; ≈ 3.9 W idle | −5.7 W sun-pointed, −7.2 W tumbling (inferring) | Simulated (the module idling, as the flight software never sends it work; as flown −4 % over 14 days): SOC 58 % → SAFE at 56.9 h, EMERGENCY at 64.5 h, BMS under-voltage cut at 66.6 h, then 233 brown-out cycles in 14 days (uptime 55 %). Loss of mission in the simulation. The EPS's hardware load shed (13.6 V for 5 s, RID EPS-09, EPS_DESIGN §6) gates the enables of **both** Jetson series switches (SW1 and the eFuse U19, SQSO-EPS-BRD-001 D §8.4), so it covers either switch failed closed, a stuck enable line or software that never turns the Jetson off: in those cases the Jetson is removed at 13.6 V and the pack stops at ≈ 3.4 V/cell, with the OBC, receiver and TX-OFF alive. **Not covered (residual):** both series switches failed closed in their power stages, the case simulated here (two independent part failures; recorded in the FMEA notes, SQSO-EPS-BRD-001 §18). The shed is not modelled in the simulation yet (flight-software/SIL item) |
 | Heater on (thermostat and switch failed) | 1.3 W | +0.58 W tumbling; −0.38 W with the wings stowed | Survivable except with stowed wings; the +40 °C cutout limits the temperature (THERMAL_ANALYSIS §6.2) |
 | PA keyed continuously (PTT stuck, 0.5 W RF) | 1.67 W | +0.20 W tumbling | Energy-positive; the 120 s hardware key-down timer (BUILD_VS_BUY §3.2) and TX-OFF are the controls |
 | GNSS continuous (0.125 W typical, 0.32 W worst, BASELINE §5 note) | 0.32 W | ACTIVE tumbling +31 % → +16 % | Within margin only at the typical draw; keep it duty-cycled |
@@ -299,3 +299,4 @@ and delete the "Under review" paragraph below the table.
 | 2.0 | 2026-10-27 | CDR review, EPS/thermal | Rewritten: CDR power closure from the mission simulation (year runs at LTAN 21:30/22:30/23:30, BOL and EOL, contingencies), bottom-up mode loads, the tumbling-margin question settled (finding TB-02) |
 | 2.1 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: LEOP case added (§8.6) with the magnetorquers' 1.16–1.3 W during detumble and its energy balance; peak pack currents from the EPS board (one resistor at a time, 0.75 A with the magnetorquers; §5); cold-soak burn bus voltage (§8.5); §3 note on the 475 km baseline |
 | 2.2 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Run matrix re-run with the simulation's Rev E defaults and flight software round 2 (475 km, 2028-11-01, four burn lines): EOL generation 3.92 W sun-pointed (was 3.93) and 2.48 W tumbling (was 2.43); margins ACTIVE +54 % / +34 % (was +54 / +31 %), SYS-100 +14.8 %; as-flown year at LTAN 23:30 EOL 1.53 W used, +142 % (was 1.32 W, +182 %), DoD ≤ 2.3 %, battery ≥ 4.9 °C; wings stowed held in IDLE (+38 % as flown); stuck Jetson cut-off at 66.6 h (the hardware shed not simulated); §3 β and eclipse at 475 km; §8.6 LEOP with the 28.8 min worst darkness |
+| 2.3 | 2026-10-27 | CDR design (EPS board) | §8.4 stuck-Jetson row: the hardware load shed gates both series switches (SQSO-EPS-BRD-001 D); covered failure modes and the residual (both power stages failed closed) stated |

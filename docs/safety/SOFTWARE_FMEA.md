@@ -4,7 +4,7 @@
 **Document Number:** SQSO-FMEA-001
 **Revision:** C
 **Date:** 2026-10-27
-**Reference:** NASA-STD-8719.13, MIL-STD-1629A
+**Reference:** NASA-STD-8739.8B (software safety analysis), MIL-STD-1629A
 
 ---
 

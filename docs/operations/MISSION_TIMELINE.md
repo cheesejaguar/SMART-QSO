@@ -1,7 +1,7 @@
 # SMART-QSO Mission Timeline and Event Sequence
 
 **Document ID**: SQSO-MTL-001
-**Version**: 2.3
+**Version**: 2.4
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Draft for CDR. Times after separation are from the mission simulation and the pass analysis named in §1;
@@ -41,7 +41,7 @@ separation cases.
 
 | When | Event | Spacecraft state | Energy | Ground / team action |
 |------|-------|------------------|--------|----------------------|
-| ≈ L-50 d | Flight model received at the integrator's site; receiving inspection, rail measurement against the Exolaunch guide | Off; RBF in | Pack as shipped (≤ 30 % if flown as air cargo under the carrier's lithium rules; otherwise 60 %) | Exolaunch and the team; record SOC by OCV |
+| ≈ L-50 d | Flight model received at the integrator's site; receiving inspection, rail measurement against the Exolaunch guide | Off; RBF in | Pack as shipped: ≤ 30 % SoC by air (UN3481 contained in equipment, PI 967: recommended by the IATA DGR 2026 guidance, mandatory under many operator variations), 60 % by road (SQSO-BSA-001 §6); final charge to 60 ± 5 % at the integrator | Exolaunch and the team; record SOC by OCV |
 | L-48 d | Functional test on the umbilical (OBC up from the umbilical, no RF: conducted checks into a load only, UG §9.5.2) | OBC on the umbilical | GSE power | Record boot log, EPS telemetry |
 | L-47 d, step 1 | **Final charge to 60 % ± 5 %** through the umbilical, RBF in (the charge path must not energize the loads, VI-LV-15) | Charger only | 3.4 Ah pack to ≈ 2.0 Ah | Charge log; stop by OCV/coulomb count |
 | L-47 d, step 2 | Key load and GSE provisioning (7 operations), `ARM_FLIGHT` as the **last** umbilical action: deployment sequence and RF silence set to ARMED | OBC on the umbilical | GSE | The SIL does this: "GSE: 7 of 7 operations done; OBC off, umbilical removed" |
@@ -240,3 +240,4 @@ the simulation's 15° contact mask are conservative.
 | 2.1 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: §5 note on the changes since the simulation run (wings first, one resistor at a time at 0.67 A, magnetorquers 1.16–1.3 W from S+120 s, 8°/s, 2028-11, 475 km) and the orbit-1 energy figures that disagree; commissioning C-5 spin 8°/s |
 | 2.2 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Re-run at the Rev E baseline with flight software round 2 (475 km, 2028-11-01, four burn lines): §5 LEOP table from the new commissioning run (magnetorquers from S+121 s, IDLE under the commissioning hold until `COMMISSIONING_RELEASE` at S+36.7 h, one wing resistor, then the AntS, orbit 1: 6.45 Wh generated against 0.89 Wh used; the §5 note removed) and from `leop_passes.py` at 475 km (eclipse at separation 33.3 %, ≤ 28.8 min); §6 pass budget and commissioning energy; §7 the full run's re-entry; §8 variants re-run (wings failed, low SOC, outage, eclipse); §9 items provided; §10 contact schedule |
 | 2.3 | 2026-10-27 | CDR S&MA analysis (decision C-14) | §10: the 15° commanding mask of the pass statistics and the simulation noted as conservative against the 10° commanding rule |
+| 2.4 | 2026-10-27 | CDR design (EPS board) | §3 shipped SoC aligned with SQSO-BSA-001 D §6 (≤ 30 % by air per the IATA 2026 guidance for PI 967; 60 % by road) |

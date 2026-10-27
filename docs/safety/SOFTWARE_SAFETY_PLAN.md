@@ -27,11 +27,10 @@ This plan applies to all software components of the SMART-QSO mission:
 ### 3.1 Governing Standards
 | Document | Title |
 |----------|-------|
-| NPR 7120.5 | NASA Space Flight Program and Project Management Requirements |
-| NPR 7123.1 | NASA Systems Engineering Processes and Requirements |
-| NPR 7150.2 | NASA Software Engineering Requirements |
-| NASA-STD-8719.13 | Software Safety Standard |
-| NASA-STD-8739.8 | Software Assurance Standard |
+| NPR 7120.5F | NASA Space Flight Program and Project Management Requirements (reference only; not governing for this privately funded mission, CM plan 1.1) |
+| NPR 7123.1D | NASA Systems Engineering Processes and Requirements |
+| NPR 7150.2D | NASA Software Engineering Requirements |
+| NASA-STD-8739.8B | Software Assurance and Software Safety Standard (replaced NASA-STD-8719.13, cancelled 2020) |
 
 ### 3.2 Project Documents
 | Document | Title |
@@ -55,7 +54,7 @@ This plan applies to all software components of the SMART-QSO mission:
 
 ### 4.2 Independence Requirements
 
-Per NASA-STD-8719.13 for Class D missions:
+Per NASA-STD-8739.8B (software safety and independence tailored for Class C software on a Class D payload):
 - Software safety analysis may be performed by development team
 - Independent review required for safety-critical software changes
 - Safety-critical code requires peer review by qualified reviewer
@@ -64,7 +63,7 @@ Per NASA-STD-8719.13 for Class D missions:
 
 ### 5.1 Software Classification Criteria
 
-Per NPR 7150.2 and NASA-STD-8719.13:
+Per NPR 7150.2D Appendix D and NASA-STD-8739.8B:
 
 | Class | Description | SMART-QSO Application |
 |-------|-------------|----------------------|
@@ -301,4 +300,4 @@ All personnel working on safety-critical software shall complete:
 
 ---
 
-*Prepared in accordance with NASA-STD-8719.13 and NPR 7150.2*
+*Prepared in accordance with NASA-STD-8739.8B and NPR 7150.2D*

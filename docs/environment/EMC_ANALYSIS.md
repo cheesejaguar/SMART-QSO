@@ -1,7 +1,7 @@
 # SMART-QSO Electromagnetic Compatibility Assessment
 
 **Document ID**: SQSO-EMC-001
-**Version**: C
+**Version**: D
 **Date**: 2026-10-27
 **Status**: CDR assessment (analysis and design rules). No unit exists; the emission levels of the Jetson carrier,
 the converters and the PA are not yet measured. The tests that close it are in §6 and in
@@ -16,7 +16,7 @@ the launch vehicle.
 | Source | Requirement |
 |--------|-------------|
 | SYS-713 | Emissions measured at the 435 MHz receiver input, every mode including a Jetson burst and magnetorquer actuation, ≥ 6 dB below the receiver's minimum usable signal; normal operation while each transmitter radiates full power |
-| SYS-203; BASELINE §7 | Spurious ≥ 46 dBc and ≤ 25 µW at 1 W (47 CFR 97.307(e)); third harmonic ≥ 60 dBc |
+| SYS-203; BASELINE §7 | Spurious ≥ 46 dBc and ≤ 25 µW at 1 W (47 CFR 97.307(e)); third harmonic ≥ 70 dB below the carrier at the antenna port (BASELINE §7; ≤ 0.5 dB uplink desense at 1 W, SQSO-LBA-001 §7.3) |
 | SYS-085, SYS-704, SYS-905 | Powered off in the dispenser; inhibits verified in vibration; launch-vehicle EMI compatibility by the inhibits |
 | SpaceX UG v11 §4.1.7, Tables 4-7 to 4-9, §6.7.8, Table 6-2 | LV and range fields 120–150 dBµV/m; maximum payload emissions 108 dBµV/m (30–1000 MHz) and 33 dBµV/m in 1127–1327 and 1475–1675 MHz, by test with 6 dB margin; EMC verification advised (MIL-STD-461 or an accredited lab) |
 | GSFC-STD-7000B §2.5, Table 2.5-2; Appendix B §2.5 | Tailored MIL-STD-461G CE101, CE102, RE102, RS103, CS101, CS06 at unit level; CubeSat self-compatibility at system level |
@@ -44,7 +44,7 @@ the launch vehicle.
 
 No 2 m harmonic falls on L1 (10 × 145.9 = 1459 MHz; 11 × 145.9 = 1605 MHz), and no uplink harmonic does
 (3.61 × 436 MHz). The 2 m third harmonic is in the 70 cm uplink band; BASELINE §7 already requires the uplink
-frequency away from 3 × f_downlink and ≥ 60 dBc suppression.
+frequency away from 3 × f_downlink and ≥ 70 dB third-harmonic suppression (60 dB would cost 3.2 dB of desense).
 
 ## 4. Bus transients (analysis)
 
@@ -146,3 +146,4 @@ pass criteria in numbers:
 | A | 2026-10-27 | CDR review, EPS/thermal | Initial issue: victims, sources, bus transients, design rules, verification |
 | B | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: deviations E6 (amended) and E8 recorded as SQSO-EPS-BRD-001 states them (§5.1); S1, S2, S5 sources and the burn current per the EPS board (synchronised 1.000 MHz plan, separate PA buck, 0.75 A one-resistor burn); §4 bus table with the 0.75 A burn; V-EMC-6; EMC-02 and EMC-03 closed by design |
 | C | 2026-10-27 | CDR S&MA analysis (RID SE-16) | §4 re-run with `bus_transients.py` modelling the one-resistor-at-a-time burn (0.67 A nominal, 0.75 A worst case, 1.0 A limit, 2.0 A four-driver fault) in place of the 1.7 A two-resistor burn; lowest-SOC table; cold-soak burn 14.1–14.4 V (was 12.8–13.4 V in the two-resistor bound) |
+| D | 2026-10-27 | CDR design (EPS board) | §1 and §3: third-harmonic requirement ≥ 70 dB per BASELINE §7 (was 60 dBc) |

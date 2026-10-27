@@ -5,7 +5,7 @@
 **Revision:** D
 **Date:** 2026-10-27
 **Classification:** Class D Mission
-**Reference:** NASA-STD-8719.13
+**Reference:** NASA-STD-8739.8B (replaced NASA-STD-8719.13, cancelled 2020)
 
 ---
 
@@ -473,4 +473,4 @@ concurrence with the SDP §3.2 list.
 
 ---
 
-*Prepared in accordance with NASA-STD-8719.13*
+*Prepared in accordance with NASA-STD-8739.8B*

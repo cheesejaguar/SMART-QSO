@@ -235,6 +235,10 @@ def items() -> List[Item]:
     a(Item("36", "Inertia ballast, 2 x 10 g W-Ni-Cu discs on the +Z end frame (Z-axis trim)", "2", 20.0, "C1",
            "Machined to mass; trimmed at integration from the measured inertia",
            [box(0.5, (-17.0, 15.5, 46.6), (14, 14, 3.6)), box(0.5, (-17.0, 0.5, 46.6), (14, 14, 3.6))]))
+    a(Item("37", "Battery cell retention: 2 G-10CR cell-locator plates, -X cap disc-spring stacks and Ti shoulder "
+           "screws, polyimide insulators, shims (RID STR-08)", "1 set", 5.0, "E2",
+           "Locator plates 3.0 g, 4 shoulder screws 1.0 g, 8 disc springs 0.4 g, polyimide 0.4 g, shims 0.2 g "
+           "(SQSO-MECH-CAD-001 4.6)", [box(0.5, (-31.5, 0, -20.0), (2, 74, 20)), box(0.5, (31.5, 0, -20.0), (2, 74, 20))]))
     return L
 
 
@@ -247,7 +251,7 @@ def items() -> List[Item]:
 #: (index: new z).
 LAYOUTS: Dict[str, Dict] = {
     "ref": {},
-    "endmass": {"13": -35.0, "14": -22.0, "15": -35.0, "16": -35.0, "33": -35.0,
+    "endmass": {"13": -35.0, "14": -22.0, "15": -35.0, "16": -35.0, "37": -35.0, "33": -35.0,
                 "27r": {0: -19.5, 1: -19.5}, "28r": -19.5, "27c": {0: -19.5},
                 "12": -12.0, "17": -3.0, "21": 6.0, "20": 10.0, "22": 13.0, "23": 19.0,
                 "18": 36.0, "29": 45.0, "31": 47.0, "24": 46.0},
@@ -422,9 +426,10 @@ def margin(limit, pred):
     return (limit - pred) / pred * 100.0
 
 
-FSW_INERTIA = np.array([0.0029, 0.0041, 0.0037])
-SIL_STOWED = np.array([3.05e-3, 3.05e-3, 2.67e-3])
-SIL_DEPLOYED = np.array([3.19e-3, 4.09e-3, 3.90e-3])
+# sqso_fsw::adcs::INERTIA and sqso-sil env/attitude.rs as of 2026-10-27 (the CAD means of MASS_BUDGET v3.1 6.5)
+FSW_INERTIA = np.array([0.0030565, 0.0044675, 0.0042525])
+SIL_STOWED = np.array([2.952e-3, 3.2805e-3, 2.9605e-3])
+SIL_DEPLOYED = np.array([3.0565e-3, 4.4675e-3, 4.2525e-3])
 
 
 def nutation_ratio(i: np.ndarray, spin_axis: int = 1) -> Dict[str, float]:

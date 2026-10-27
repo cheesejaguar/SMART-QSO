@@ -6,7 +6,7 @@
 **Status**: Preliminary
 
 **Governing Standards**:
-- NPR 7123.1 Rev E - NASA Systems Engineering Processes and Requirements
+- NPR 7123.1D - NASA Systems Engineering Processes and Requirements
 - NPR 7150.2D - NASA Software Engineering Requirements (Class C; requirement mapping in `docs/software/NPR7150_COMPLIANCE_MATRIX.md`)
 - NASA-STD-8739.8B - Software Assurance and Software Safety
 

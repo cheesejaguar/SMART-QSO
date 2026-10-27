@@ -150,6 +150,7 @@ L-2 M licences and ephemeris demonstration).
 | C-13 | 2 × 10 g non-ferromagnetic ballast on the Z axis at the end frames, so the deployed inertia ratio keeps margin with all four AntS elements | MCAD-09, RFB-11 |
 | C-14 | Telecommand stations radiate ≥ 64 dBm EIRP above 10° elevation: ≥ 100 W PEP into ≥ 15.5 dBic outside the 47 CFR 2.106 US270 areas (variant A), ≤ 50 W PEP into a ≥ 17.5 dBic stacked pair inside them (variant B); commands only above 10° | RF-23 |
 | C-15 | Harness wire under the EPS tied to the deck straps and shear panels; only connector strain-relief ties on the EPS board (EPS Steinberg +0.23, −0.52 otherwise) | MCAD-11 |
+| C-16 | Battery-lead shorts: the two positive-leg fuses F0A and F0B, from different lots and each able to clear the fault alone, count as two independent controls (F0N in the negative leg the third), so BSA H3b is 2-fault tolerant; NRCSD safety-engineer concurrence for the ISS backup path | EPSB-10, P3E-02 |
 
 ## 5. Design completion (round 2)
 
@@ -181,15 +182,15 @@ ratings, outgassing data).
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 24 |
-| Closed by design change | 100 | 155 |
-| Closed by chair decision | 42 | 33 |
+| Closed by design change | 100 | 168 |
+| Closed by chair decision | 42 | 34 |
 | Verification item | 45 | 31 |
 | Decision point (dated) | 13 | 7 |
-| Implementation | 128 | 103 |
+| Implementation | 128 | 89 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 47 new findings; 0 of the reopened and 4 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 47 new findings; 5 of the reopened and 13 of the new are since closed.
 
-Open implementation RIDs: LV-04, LV-09, LV-11, LV-13, PM-03, PM-04, SE-03, SE-05, SE-07, SE-09, SE-14, SE-21, SE-22, VV-06, VV-07, VV-08, RF-05, RF-07, RF-13, GND-04, REG-10, REG-11, REG-12, ODA-02, SMA-09, SMA-15, REL-01, STR-04, STR-08, STR-13, STR-26, STR-27, EPS-02, EPS-04, EPS-09, EPS-23, THM-03, THM-04, THM-07, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, MCAD-03, RFB-10, EPSB-01, EPSB-04, EPSB-10, JETB-11, JETB-01, JETB-03, JETB-09, JETB-10, JETB-12, JETB-13, MCAD-12, OBCB-01, OBCB-02, P3P-01, P3P-02, P3P-03, P3P-04, P3P-05, P3P-06, P3P-08, P3P-09, P3P-10, P3P-11, P3P-13, P3E-01, P3E-02, P3E-03, P3E-04, P3E-05, P3E-06, P3E-07, P3E-08, P3E-09, P3E-10, P3E-11, P3E-12, P3E-13, P3S-01, P3S-02, P3S-03, P3S-04, P3S-06, P3S-07, P3S-08, P3S-09, P3S-10, P3S-11, P3S-12, P3S-13, P3A-01, P3A-02, P3A-03, P3A-04, P3A-07, P3A-09, P3A-10.
+Open implementation RIDs: LV-04, LV-09, LV-11, LV-13, PM-03, PM-04, SE-03, SE-05, SE-07, SE-09, SE-14, SE-21, SE-22, VV-06, VV-07, VV-08, RF-05, RF-07, RF-13, GND-04, REG-10, REG-11, REG-12, ODA-02, SMA-09, SMA-15, REL-01, STR-04, STR-08, STR-13, STR-26, STR-27, THM-03, THM-04, THM-07, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, MCAD-03, RFB-10, EPSB-01, EPSB-04, JETB-11, JETB-01, JETB-03, JETB-09, JETB-10, JETB-12, JETB-13, MCAD-12, OBCB-01, OBCB-02, P3P-01, P3P-02, P3P-03, P3P-04, P3P-05, P3P-06, P3P-08, P3P-09, P3P-10, P3P-11, P3P-13, P3E-04, P3E-07, P3E-08, P3E-09, P3E-10, P3S-01, P3S-02, P3S-04, P3S-06, P3S-07, P3S-08, P3S-09, P3S-10, P3S-11, P3S-12, P3S-13, P3A-01, P3A-02, P3A-03, P3A-04, P3A-07, P3A-09, P3A-10.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -449,14 +450,14 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
 | EPS-01 | 1 | No power closure at CDR | CA | Closed by analysis | SQSO-PBA-001 v2.0 |
-| EPS-02 | 2 | Baseline tumbling margin '+19 %' open | CH | Implementation | Reopened in round 3: Evidence quotes superseded power figures |
+| EPS-02 | 2 | Baseline tumbling margin '+19 %' open | CH | Closed by design change | Generation 2.48 / 3.92 W EOL; ACTIVE +34 % / +54 % against the bottom-up load with the heater (PBA 2.3) |
 | EPS-03 | 2 | EPS documents described a 2S module EPS | CD | Closed by design change | EPS_DESIGN 2.0; PDU 1.1; EPS_ELECTRICAL 1.1; ICD-001 1.1 |
-| EPS-04 | 1 | Third inhibit not designed (array path) | CD | Implementation | Reopened in round 3: Solar array path has two independent inhibits, not three |
+| EPS-04 | 1 | Third inhibit not designed (array path) | CD | Closed by design change | Third array inhibit: DS2 now two-pole, pole 2 holds the tracker enables low independently of DS3; array broken by DS1, DS2, DS3; boost-off pass-through ≤ 6.16 V below every converter start (≥ 9.9 V); V-EPS-3 with each pair jumpered (EPS_BOARD_DESIGN D §6.2) |
 | EPS-05 | 2 | Deployment-switch rating unspecified | CD | Closed by design change | §8.4 RC-filtered FET gates |
 | EPS-06 | 2 | End-of-life charge disconnect has no hardware design, command or pins | IMP | Closed by design change | One-shot disconnect F1 with EOL_FIRE and EOL_ARM latch (SQSO-EPS-BRD-001 §7), PF4 and PG1 (SQSO-ICX-001), commands with REG-01; V-EPS-8 |
 | EPS-07 | 2 | Drawings drive the antennas from the OBC though AntS is bought | IMP | Closed by design change | S5 and W7 redrawn for the AntS: supply after DS1-DS3, switched by DEPLOY_EN, I2C through a TCA9517 (SQSO-EPS-BRD-001) |
 | EPS-08 | 2 | BMS low-temperature discharge cut-off would keep the bus dark | CD | Closed by design change | BATTERY_DESIGN 2.2 §4.1 |
-| EPS-09 | 2 | Stuck-on Jetson drains the pack | CD | Implementation | Reopened in round 3: Load shed gates only SW1: does not cover both series Jetson switches failed closed |
+| EPS-09 | 2 | Stuck-on Jetson drains the pack | CD | Closed by design change | SHED_N also gates the Jetson eFuse U19 enable: covers either series switch failed closed, a stuck enable, or software that never turns the Jetson off; residual both power stages failed closed (EPS_BOARD_DESIGN D §18, PBA 2.3 §8.4) |
 | EPS-10 | 3 | ACTIVE with wings stowed closes only through the SOC gate | IMP | Closed by design change | IDLE held while the wings are spent and not deployed (SRS-F128; test_ops_state) |
 | EPS-11 | 2 | Overcharge had two firmware-set controls | CD | Closed by design change | Secondary 4.35 V protector (SQSO-BSA-001 H1); V-BSA-2 |
 | EPS-12 | 2 | No latched recharge lockout | CD | Closed by design change | EPS_CLEAR_LOCKOUT 0x14: I2C unlock then LOCK_CLR 150 ms (SRS-F129); V-EPS-9 |
@@ -470,7 +471,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | EPS-20 | 3 | Integration SOC inconsistent | CD | Closed by design change | 60 % ± 5 % |
 | EPS-21 | 3 | SIL document states a 5 A BMS trip | CH | Closed by chair decision | SQSO-SIL-001 §3: 4 A |
 | EPS-22 | 2 | UN 38.3 and JSC 20793 screening not planned | VI | Verification item | V-BSA-1, V-BSA-5 |
-| EPS-23 | 3 | Battery failure tolerance per SSCMAN 91-710 Vol. 3 not read | DP | Implementation | Reopened in round 3: Decision point without owner or date; two-fault tolerance for an external short not supported |
+| EPS-23 | 3 | Battery failure tolerance per SSCMAN 91-710 Vol. 3 not read | DP | Closed by design change | Claims restated in BSA D H3/H3b; integrator safety review at contract 2027-06-30 (owner: safety lead) |
 
 #### Thermal (THM)
 
@@ -588,7 +589,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | EPSB-07 | 3 | No magnetorquer current monitor on the EPS board | CH | Closed by chair decision | Coil current is the sum of the OBC's MTQ_X/Y/Z_I channels; SW11 (TPS1H000A, 0.361 A, auto-retry) protects VBAT_MTQ (SQSO-EPS-BRD-001 B) |
 | EPSB-08 | 2 | Pack leads unfused (80-314 A short-circuit current); the Nano2 fuses' breaking capacity below the worst-case current | CD | Closed by design change | F0 added at the cell-4 tab, F0 and F2 MIL-PRF-23419/12 FM12A72V5.0A (1000 A interrupt, 3.2× the 314 A bound), tap fuses FM12A72V3/4A (BATTERY_DESIGN 2.6, EPS_BOARD_DESIGN C §6.1, BSA C H3/H3a/H3b) |
 | EPSB-09 | 3 | FM12 interrupt rating, 60 °C rerating and termination code, and the SMF24A leakage, not read from the vendor data sheets | VI | Verification item | Procurement data review before the EM order (with V-HAR-3); storage drain 7.7 µA worst against 20 µA leaves margin for a 10× leakage error |
-| EPSB-10 | 3 | Shorts in the pack leads and cell taps (BSA H3b) are controlled by one fuse plus construction, not two-fault tolerant | CH | Implementation | Reopened in round 3: JSC 20793 Rev D does not accept design for minimum risk for wiring; a negative-leg fuse is practical |
+| EPSB-10 | 3 | Shorts in the pack leads and cell taps (BSA H3b) are controlled by one fuse plus construction, not two-fault tolerant | CH | Closed by chair decision | C-16: F0A and F0B from different lots, each able to clear the fault alone, count as two independent controls with F0N the third: H3b 2-fault tolerant; NRCSD safety-engineer concurrence for the ISS backup path at the NRCSD contract (BSA D) |
 
 #### OBC board (round 2) (OBCB)
 
@@ -642,19 +643,19 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 
 | RID | Sev | Finding | Round 1 | Final disposition | Evidence |
 |-----|-----|---------|---------|-------------------|----------|
-| P3E-01 | 2 | Solar array path has only two independent inhibits | IMP | Implementation | Third independent array inhibit |
-| P3E-02 | 2 | External-short fault tolerance overstated (RT1 cannot break 314 A; F0 and F2 are one part type) | IMP | Implementation | Negative-leg fuse; restated hazards |
-| P3E-03 | 2 | Battery case incomplete against JSC 20793 Rev D (Catastrophic class; abuse tests for a custom pack) | IMP | Implementation | Classification and abuse-test programme |
+| P3E-01 | 2 | Solar array path has only two independent inhibits | IMP | Closed by design change | With EPS-04 |
+| P3E-02 | 2 | External-short fault tolerance overstated (RT1 cannot break 314 A; F0 and F2 are one part type) | IMP | Closed by design change | F0A, F0B (two lots) in BAT_TOP and F0N in BAT_BOT, FM12A72V5.0A; worst short ≤ 209 A against 1000 A; taps limited to ≤ 82 mA by 3 × 68.1 Ω plus a fuse; H3 2-fault tolerant without RT1 (BSA D, BATTERY_DESIGN 2.7); H3b per chair decision C-16 |
+| P3E-03 | 2 | Battery case incomplete against JSC 20793 Rev D (Catastrophic class; abuse tests for a custom pack) | IMP | Closed by design change | BSA D: custom 4S Li-ion classed Catastrophic (JSC 20793 Rev D §4.1.3, to be confirmed with the NRCSD safety engineer); abuse-test programme §3.1 and V-BSA-9: Falcon 9 path (overcharge, over-discharge, pack hard/soft short with limiters bypassed, vibration; vent/burst by analysis) about $10-15k, ISS backup full set about $50-75k |
 | P3E-04 | 2 | Launch compliance documents contradict the closed inhibit design | IMP | Implementation | LVR E, CDS C |
-| P3E-05 | 2 | JETSON_PWR pin inconsistent across documents (PA2 vs PA8) | IMP | Implementation | Align to SQSO-ICX-001 |
-| P3E-06 | 3 | Load-shed coverage mis-stated | IMP | Implementation | Restate or shed U19 |
+| P3E-05 | 2 | JETSON_PWR pin inconsistent across documents (PA2 vs PA8) | IMP | Closed by design change | JETSON_PWR PA8 in EPS_BOARD_DESIGN D, EPS_DESIGN 2.4, ICD-001 1.5, CARRIER_BOARD_DESIGN E, ICD-002 1.4, PAYLOAD_DESIGN 1.2 |
+| P3E-06 | 3 | Load-shed coverage mis-stated | IMP | Closed by design change | With EPS-09 |
 | P3E-07 | 2 | Reliability programme absent from the test plan (with P3P-03) | IMP | Implementation | With P3P-03 |
 | P3E-08 | 3 | Power margin bookkeeping mixes formulas; SYS-100 and EPS-F001 at 1.80 W | IMP | Implementation | Correct |
 | P3E-09 | 3 | MPPT efficiency requirement and pass criteria disagree | IMP | Implementation | One value by CR |
 | P3E-10 | 3 | Stale harness gauges and fuse values in EPS and harness documents | IMP | Implementation | Correct |
-| P3E-11 | 3 | End-of-life arm and fire both from one processor | IMP | Implementation | Independent arm path |
-| P3E-12 | 3 | Shipping state of charge inconsistent (65 % vs 30 %) | IMP | Implementation | Align to IATA DGR |
-| P3E-13 | 3 | Record inconsistencies (BMS part, stuck-on Jetson hours, cold-burn bus voltage, SIL F1 heater, third harmonic) | IMP | Implementation | Correct |
+| P3E-11 | 3 | End-of-life arm and fire both from one processor | IMP | Closed by design change | Arm latch clocked only by OBC EOL_ARM AND the EPS controller's keyed EOL_KEY (U64; register 0x7E, ICD-001 1.5); fire from OBC EOL_FIRE; no single hardware or OBC pin fault fires F1 (EPS_BOARD_DESIGN D §12); flight software sequence in round 3 |
+| P3E-12 | 3 | Shipping state of charge inconsistent (65 % vs 30 %) | IMP | Closed by design change | ≤ 30 % SOC by air (IATA, strongly recommended for PI 967), 60 % integration state by road, final charge 60 ± 5 % at the integrator: BSA D §6, MISSION_TIMELINE 2.4, LAUNCH_PROVIDER_DELIVERABLES D |
+| P3E-13 | 3 | Record inconsistencies (BMS part, stuck-on Jetson hours, cold-burn bus voltage, SIL F1 heater, third harmonic) | IMP | Closed by design change | BQ76952 throughout, stuck-on Jetson 66.6 h, cold-burn bus 14.1-14.4 V at 0.75 A (13.8-14.1 V at 1.0 A), EMC D third harmonic ≥ 70 dB, SIL F1 heater 15.6 Ω nominal (11.2-20.0 Ω) to the flight software |
 
 #### Round 3: structures, mechanisms, thermal (P3S)
 
@@ -662,7 +663,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 |-----|-----|---------|---------|-------------------|----------|
 | P3S-01 | 2 | Mechanism cold design and test point (−40 °C) warmer than the predicted stowed-wing temperature | IMP | Implementation | Bounding temperature; margins and test temperatures |
 | P3S-02 | 2 | Board fatigue computed at CBE mass only | IMP | Implementation | Run at MEV |
-| P3S-03 | 2 | EPS board layout guidance lacks the centre supports and the Z-rod notch | IMP | Implementation | Add |
+| P3S-03 | 2 | EPS board layout guidance lacks the centre supports and the Z-rod notch | IMP | Closed by design change | EPS board outline: centre supports at (0, ±21) mm with Ø7 mm copper-free rings, Z-rod notch x < −35.5, \|y\| < 6.5 with 1 mm keep-out (EPS_BOARD_DESIGN D) |
 | P3S-04 | 2 | No humidity control or ground cycle budget for the MoS2 hinges | IMP | Implementation | Ground-ops limits and cycle budget |
 | P3S-05 | 3 | Report §3.3 strength and battery-temperature rows optimistic | IMP | Closed by design change | Report §3.3: strength +1.00 design / +0.84 bounding; battery temperature rows at 12.0 V, 0.10 W/K and wings stowed |
 | P3S-06 | 3 | Launch mass deliverables stale | IMP | Implementation | Update to the CAD and MEL 3.1 |

@@ -1,10 +1,10 @@
 # Electrical Power Subsystem (EPS) Design Document
 
 **Document Number**: SMART-QSO-EPS-001
-**Version**: 2.3
+**Version**: 2.4
 **Date**: 2026-10-27
 **Status**: CDR design description; the build-to board design with selected parts, netlist, BOM and ERC is
-`hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001 C), which governs part-level detail; board-to-board pins: `hardware/electrical/INTERCONNECT.md`
+`hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001 D), which governs part-level detail; board-to-board pins: `hardware/electrical/INTERCONNECT.md`
 (SQSO-ICX-001)
 
 **Governing documents**: `docs/BASELINE_PARAMETERS.md` Rev D (§4 inhibits and timers, §5 power, §7 TX-OFF);
@@ -118,14 +118,16 @@ steps would then modulate the PA's supply. Feed the Jetson carrier from VBAT thr
 the carrier) and give the PA its own 5 V buck; U2 then needs 1.2 A, not 4 A. If the carrier must take 5 V, use a
 second 5 V buck for it.
 
-Bus voltage under load steps (EMC_ANALYSIS §4): the burn at a cold pack (−20 °C, 55 % SOC) leaves 12.2 V; every
-converter's under-voltage lock-out is set at 10.8 V falling (rule E8) so the BMS, not a converter, decides.
+Bus voltage under load steps (EMC_ANALYSIS Version C §4): the one-resistor burn after a cold soak (pack −10 … −16 °C,
+≈ 58 % SOC) leaves 14.1–14.4 V at 0.75 A and 13.8–14.1 V at the 1.0 A limit; the converters stop at 7.5 V (3V3_AO)
+and 8.7 V (the others) falling, below the 11.2 V BMS cut, so the BMS, not a converter, decides (rule E8 as deviated
+in SQSO-EPS-BRD-001 §2.2).
 
 ## 5. Load switches, current limits and protection
 
 | Switch | Rail in | Enable (firmware pin) | Load | Nominal | Peak | Limit / trip | Part (SQSO-EPS-BRD-001) | Notes |
 |--------|---------|-----------------------|------|---------|------|--------------|-------------------------|-------|
-| SW1 + U19 | VBAT | PAYLOAD_EN (PB2) on SW1 (AND load shed); JETSON_PWR (PA2) on U19 | Jetson carrier | 0.62 A | 0.93 A (guard) | SW1 2.0 A; U19 eFuse 1.20 A (1.10–1.30) latch-off; flight-software guard 8 W for 2 s and 12 W (`payload_guard.rs`) first | TPS1H100B-Q1 (U20); TPS16630 (U19) | Two different parts on two lines; EPS-F012 shed acts on SW1; readbacks VSW1_RB, VJET_RB to the OBC ADC (RID AV-06) |
+| SW1 + U19 | VBAT | PAYLOAD_EN (PB2) on SW1 (AND load shed); JETSON_PWR (PA8) on U19 (AND load shed) | Jetson carrier | 0.62 A | 0.93 A (guard) | SW1 2.0 A; U19 eFuse 1.20 A (1.10–1.30) latch-off; flight-software guard 8 W for 2 s and 12 W (`payload_guard.rs`) first | TPS1H100B-Q1 (U20); TPS16630 (U19) | Two different parts on two lines; EPS-F012 shed acts on SW1; readbacks VSW1_RB, VJET_RB to the OBC ADC (RID AV-06) |
 | SW2 | 3V3_AO | RADIO_EN (PB5) | Receiver, synthesizer, TNC, exciter (SQSO-RF-BRD-001) | 0.038 A | 0.05 A | 0.12 A (0.10–0.14), retry 1.3 s; software trip on the INA3221 reading | TPS2553-Q1 (U22) | Off only in the RF-silence window (97.207(b)) |
 | SW3 | 5V_PA | RF_TX_EN (PA3) AND load shed | PA | 0.30 A | 0.54 A | 0.99 A, retry 0.28 s | TPS2553-Q1 (U23) | Hardware TX-OFF; pull-down mandatory |
 | SW4 | 3V3_AO | ADCS_EN (PB6) | ADCS sensors on the OBC (W6B to OBC J6) | 0.04 A | 0.049 A | 0.30 A, retry 0.28 s | TPS2553-Q1 (U24) | Backstop; the OBC's own sensor switches (50–100 mA) see a sensor latch-up (AV-03) |
@@ -168,39 +170,42 @@ The CDR design:
 | One driver failed short (its resistor straight across V_BURN) | ≤ 1.6 A at 7 V | — | ≤ 1.1 A | the one-shot still ends it in 12 s |
 
 The simulation's 1.63 A (one line of two resistors at 0.8 A) is the A/B pairing drawn from VBAT; with the burn buck it
-becomes 1.25 A. Bus voltage during a single-resistor burn at a cold pack (−20 °C, 55 % SOC) is ≈ 13.9 V (15.04 V less
-0.67 A through the cold pack's 1.67 Ω; EMC_ANALYSIS §4).
+becomes 1.25 A. Bus voltage during a single-resistor burn after a cold soak is 14.1–14.4 V at 0.75 A (EMC_ANALYSIS Version C §4,
+pack model of the mission simulation; the earlier 12.2 V and 13.9 V figures were the two-resistor and a hand estimate).
 
-**Pack protection** (details SQSO-BSA-001 §3): F2, non-resettable 5 A, MIL-PRF-23419/12 FM12A72V5.0A (interrupt 1000 A against a prospective ≤ 314 A), with the same part F0 on the battery sense board ahead of the pack leads; RT1 PTC
-hold 2.5 A, trip ≤ 5 A (PDU_DESIGN 1.0's 8 A trip equalled the cell's continuous limit); BMS AFE (BQ76920 class)
+**Pack protection** (details SQSO-BSA-001 §3): F2, non-resettable 5 A, MIL-PRF-23419/12 FM12A72V5.0A (interrupt 1000 A against a prospective ≤ 209 A with the sense-board fuses in the loop), with the same part as F0A and F0B in BAT_TOP and F0N in BAT_BOT on the battery sense board ahead of the pack leads, and current-limited, fused cell taps; RT1 PTC
+hold 2.6 A (1.92 A at 60 °C), trip 5 A (PDU_DESIGN 1.0's 8 A trip equalled the cell's continuous limit); BMS AFE (BQ76952)
 cell OV 4.25 V, UV 2.8 V, over-current 4 A for 0.5 s (below F2, so the resettable trip acts first), short-circuit trip; secondary OV protector at 4.35 V with a
 three-terminal fuse (RID EPS-11); pack over-temperature +60 °C on a hardware comparator; no low-temperature discharge
 cut-off (RID EPS-08: a −10 °C cut-off would keep the bus dark after a cold deployment, THERMAL_ANALYSIS §6.7).
 
-**Harness and derating** (SQSO-HAR-001 §5.2, 50 % derating):
+**Harness and derating** (SQSO-HAR-001 2.0 §5.2, §9.1: EEE-INST-002 with the bundle factor):
 
 | Path | Wire | Derated rating | Current | Verdict |
 |------|------|----------------|---------|---------|
-| Pack to EPS (W1) | 2 × 20 AWG per pole | 6 A | ≤ 1.8 A; fuse 5 A | Pass (wire above the fuse) |
-| Each solar string (W2, H8) | 2 × 26 AWG per pole on two Pico-Clasp contacts (the crimps take 26–32 AWG) | 1.0 A | 0.55 A | Pass (0.28 A per wire; RID EPS-13) |
-| Jetson supply from VBAT | 2 × 22 AWG | 4 A | 0.93 A; eFuse 1.2 A | Pass |
-| PA 5 V (W4) | 22 AWG | 2 A | 0.54 A; trip 1.0 A | Pass |
+| Pack to EPS (W1) | 2 × 22 AWG M22759/33 per pole, PTFE over-sleeve, 0.12 m | 2.50 A per wire | 1.2 A per wire worst (2.0 A pack, 60/40 split); fuses F0A/F0B/F0N 5 A at the cells | Pass |
+| Each solar string (W2) | 2 × 28 AWG M22759/33 per pole on two Pico-Clasp contacts (the crimps take 28–32 AWG) | 0.90 A per wire | 0.55 A | Pass (0.28 A per wire, 0.33 A worst: 37 %; RID EPS-13) |
+| Jetson supply from VBAT (W5A) | 2 × 24 AWG per pole, twisted quad | 1.65 A per wire | 0.84 A per wire worst; eFuse 1.2 A | Pass (51 %) |
+| PA 5 V (W4B) | 2 × 28 AWG per pole, twisted pairs | 0.90 A per wire | 0.536 A per wire at the SW3 limit | Pass (60 %) |
 | Burn resistors (W7) | 24 AWG each | 1.0 A | 0.88 A limited, ≤ 12 s | Pass |
-| Deployment switches DS1, DS2, DS3 | own 3-wire harness each | switch rating | ≤ 8.4 µA (gate drives) | Pass: the switches drive FET gates only (RID EPS-05) |
+| Deployment switches DS1, DS2, DS3 (W12A–W12C) | own harness each (DS1, DS3 three wires; DS2 five, two poles) | switch rating | ≤ 8.4 µA (gate drives) | Pass: the switches drive FET gates and TRK_EN only (RID EPS-05) |
 
 ## 6. Battery management and the low-voltage load shed
 
 The BMS (BATTERY_DESIGN §4) monitors each cell, balances passively, and opens the CHG and DSG FETs on its thresholds.
-A **hardware low-voltage disconnect** (EPS-F012) opens SW1 (Jetson) and SW3 (PA) through an AND into their enables
-when VBAT falls below 13.6 V (3.4 V/cell) for 5 s, and releases above 14.4 V, independent of the OBC. The heater is
+A **hardware low-voltage disconnect** (EPS-F012) opens SW1 and the eFuse U19 (the Jetson's two series switches, each
+through its own AND gate) and SW3 (PA) through an AND into their enables when VBAT falls below 13.6 V (3.4 V/cell) for 5 s, and releases above 14.4 V, independent of the OBC. The heater is
 not shed: it protects the pack from cold charging and a stuck-on heater is survivable (SQSO-PBA-001 §8.4); the 5 s
 filter rides through the deployment burn (EMC_ANALYSIS §4). It keeps the OBC, the
-receiver and TX-OFF alive with a stuck-on Jetson (two switch failures), which otherwise empties the pack in about
-41 h and leaves the spacecraft brown-out cycling (SQSO-PBA-001 §8.4). It sits above the flight software's EMERGENCY
+receiver and TX-OFF alive with a stuck-on Jetson enable: covered are either switch failed closed, a stuck
+PAYLOAD_EN or JETSON_PWR, or software that never turns the Jetson off; not covered is the pair of series switches
+(SW1 and U19) both failed closed in their power stages, which the shed cannot open (the residual, two independent
+part failures; FMEA note). Without the shed a stuck-on Jetson reaches the BMS under-voltage cut at 66.6 h in the
+mission simulation and leaves the spacecraft brown-out cycling (SQSO-PBA-001 §8.4). It sits above the flight software's EMERGENCY
 threshold (15 % SOC, ≈ 14.0 V at rest) only under load, so in normal operation the software acts first.
 
 **Implemented** (SQSO-EPS-BRD-001 §8.4): TLV7042-Q1 comparator against a 2.500 V reference (13.62 V falling,
-14.42 V rising), 4.9 s RC timer and a second comparator, AND gates in SW1's and SW3's enables. The BMS is the
+14.42 V rising), 4.9 s RC timer and a second comparator, AND gates in SW1's, U19's and SW3's enables (U51, U65, U52). The BMS is the
 BQ76952 with its thresholds in OTP (BRD-001 §6.1).
 
 ## 7. End-of-life charge disconnect (97.207(g)(1)(iii))
@@ -211,8 +216,8 @@ the bus; the loads then drain the pack to the BMS cut-off and the spacecraft goe
 | Element | Specification |
 |---------|---------------|
 | F1 | Three-terminal fuse Littelfuse ITV4030L1412NR (12 A, 36 VDC, heater 11.2–20 Ω, triggerable 10.5–19.6 V) between the trackers' output and PACK_P (SQSO-EPS-BRD-001 §7) |
-| Fire circuit | F1's heater to GND through two series FETs: Q21 from the arm latch U61 (set by an EOL_ARM rising edge, cleared at power-up) and Q20 from EOL_FIRE; 9.8–24 W, cut < 1 min. Each line from its own OBC pin and authenticated command (PASSIVATE_ARM, PASSIVATE_EXECUTE of REG-01) |
-| Fault tolerance | No single failure (switch short, software fault, latch upset) fires F1: two independent series elements, two commands. A failure to fire leaves the mission's TX-OFF and loss-of-contact inhibit as the controls |
+| Fire circuit | F1's heater to GND through two series FETs: Q21 from the arm latch U61 (set only while the OBC's EOL_ARM AND the EPS controller's EOL_KEY are both high, cleared at power-up) and Q20 from the OBC's EOL_FIRE; 9.8–24 W, cut < 1 min. EOL_KEY is raised by the EPS controller only on a keyed two-write I2C sequence (ICD-001 extended register), so the arm has a source independent of the OBC's GPIOs (RID P3E-11); commands PASSIVATE_ARM, PASSIVATE_EXECUTE of REG-01 |
+| Fault tolerance | No single hardware failure (switch short, latch upset) and no single OBC pin-map or GPIO fault fires F1: two series elements, and the arm needs the EPS controller's key as well as the OBC's line. A flight-software fault that executes the whole keyed sequence and both authenticated commands could fire it; the controls against that are the two-command protocol, the key and the controller's checks (SQSO-EPS-BRD-001 §7). A failure to fire leaves the mission's TX-OFF and loss-of-contact inhibit as the controls |
 | Verification | V-BSA-7: EM only (destructive) |
 | Gap | Hardware done (RID EPS-06). OBC pins EOL_ARM PF4, EOL_FIRE PG1 (SQSO-ICX-001); the flight software's commands and state remain, for the chair (BRD-001 §13.2) |
 
@@ -228,19 +233,21 @@ single command or software fault, removes more than one of them.
 The drawings (S1) have two deployment switches and a "third inhibit" left open (finding F5). The CDR design adds a
 **third deployment switch DS3** (RID SMA-01 / EPS-04, adopted with the safety, launch and RF reviewers): a separate
 switch on a third rail standoff driving a second high-side FET in VBAT+, with a second contact that holds every
-tracker's enable low. Each switch drives its own FET gate (§8.4).
+tracker's enable low. **DS2 is a two-pole switch** (SQSO-EPS-BRD-001 D, RID P3E-01): its first pole drives the
+pack-return FETs, its second holds the trackers' enables low independently of DS3, so the array also has three
+inhibits. Each switch drives its own FET gate (§8.4).
 
 | # | Element | Type | Breaks | Independent of the others because |
 |---|---------|------|--------|-----------------------------------|
 | — | F2, RT1, BMS FETs | Protection | Pack | Closed in normal storage: not inhibits |
 | — | RBF pin | GSE | Pack and array | Not counted |
-| **1** | **DS2** → low-side FET in the pack return (PACK− to GND) | Mechanical separation signal | Pack | Own switch, rail, gate drive and wiring, in the negative leg |
+| **1** | **DS2** → low-side FETs in the pack return (PACK− to GND); second pole → the trackers' enables | Mechanical separation signal | Pack (pole 1); array (pole 2: with the boost off the string passes ≤ 6.2 V, below every converter's start at ≥ 9.9 V) | Own switch, rail, gate drive and wiring, in the negative leg; pole 2 is a separate contact in the GND domain |
 | **2** | **DS1** → high-side FET in VBAT+ | Mechanical separation signal | Pack and array | Own switch on a diagonally opposite rail, positive leg |
-| **3** | **DS3** → second high-side FET in VBAT+, and the trackers' enables | Mechanical separation signal | Pack and array (the only switch that also stops the array charging the pack and the MPPTs running) | Own switch on a third rail; its FET and DS1's are separate parts with separate gate drives, and their wiring is routed apart so one short cannot bridge both |
+| **3** | **DS3** → second high-side FET in VBAT+, and the trackers' enables | Mechanical separation signal | Pack and array (with DS2 pole 2, it stops the MPPTs running) | Own switch on a third rail; its FET and DS1's are separate parts with separate gate drives, and their wiring is routed apart so one short cannot bridge both |
 | (4) | SW3, PA supply switch (RF_TX_EN, PA3), off at reset | Load switch | Pack and array | Needs a software command after all three switches have closed; counted only as margin |
 | — | SW2 (RADIO_EN), hardware TX permit into the PTT gate (BUILD_VS_BUY §3.2), 45-min RF timer | Same controller as SW3, or a timer | — | Not counted |
 
-**Three independent inhibits for the pack and for the array, all from the mechanical separation signal** (UG v11
+**Three independent inhibits for the pack (DS2, DS1, DS3) and for the array (DS1, DS3, DS2 pole 2), all from the mechanical separation signal** (verified with any two of the three failed closed and the array lit, V-EPS-3) (UG v11
 §6.7.7: "inhibited from a mechanical separation signal, and not because of other factors such as software delays"),
 with SW3 as a fourth. Common cause between the three switches: they are released together by design at ejection; an
 early release needs the spacecraft to move off three rails at once, so they sit on three different rails. The same
@@ -250,7 +257,7 @@ three switches give the NRCSD backup its ground-leg inhibit.
 
 | # | Element | Breaks |
 |---|---------|--------|
-| **1** | DS2 | Pack |
+| **1** | DS2 (pole 1 the pack return; pole 2 the trackers) | Pack and array |
 | **2** | DS1 | Pack and array |
 | **3** | DS3 | Pack and array |
 | (4) | SW6 (DEPLOY_EN, PF3, high side) and the wing's low-side driver (one per wing, §5.1) | Both; counted as one, because one OBC drives both lines |
@@ -329,3 +336,4 @@ readable without the EPS controller, and the controller's block at 0x48 fed by t
 | 2.1 | 2026-10-27 | CDR design (EPS board) | Parts selected and the board designed in SQSO-EPS-BRD-001 A (`hardware/electrical/eps/`): charge regulator (§3.3), rails incl. V_BURN, 3V3_OBC, 3V3_MCU (§4), switch table with parts and latch-up trips incl. the OBC rail (§5, RID AV-08; radio 0.12 A), four burn drivers on a 7.0 V burn buck with the peak-current table (§5.1), load shed, EOL fuse and pins, AntS chain, sneak-path rule and drain figures (§6–§9) |
 | 2.2 | 2026-10-27 | CDR design (EPS board) | Interconnect of SQSO-ICX-001 §7 (SQSO-EPS-BRD-001 B): SW11 magnetorquer supply on ADCS_EN, SW4 sensors only, Jetson readbacks, 3V3_RTC, OBC pins PB2 (PAYLOAD_EN), PF3 (DEPLOY_EN), PE7 (BURN_W2B), PF4/PG1 (EOL), burn peak-current row with the magnetorquers |
 | 2.3 | 2026-10-27 | CDR design (EPS board) | Pack fuse F2 (and F0 on the battery sense board) FM12A72V5.0A for breaking capacity; storage drain 7.7 µA worst with the access-port board's TVS (SQSO-EPS-BRD-001 C) |
+| 2.4 | 2026-10-27 | CDR design (EPS board) | Round-3 panel (SQSO-EPS-BRD-001 D): DS2 two-pole, array path with three inhibits (§8.1, §8.2); load shed on both Jetson series switches and the covered failure modes restated (§6); EOL arm with the EPS controller's key, fault-tolerance claim corrected (§7); sense-board fuses F0A/F0B/F0N and fused, current-limited taps (§5); JETSON_PWR PA8; harness table to SQSO-HAR-001 2.0; BMS BQ76952; cold-burn bus voltage per EMC_ANALYSIS C (§4, §5.1) |

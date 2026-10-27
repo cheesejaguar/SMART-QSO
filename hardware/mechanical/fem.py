@@ -635,12 +635,13 @@ class SC:
 
 
 def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_car=1.6, deck_E=0.35,
-                     spider_r=2.6, car_window=True, car_frame=True, ti_column=(1, 1)) -> SC:
+                     spider_r=2.6, car_window=True, car_frame=True, ti_column=(1, 1), grown=False,
+                     harness_tie="deck") -> SC:
     sys.path.insert(0, HERE)
     import model as CAD
     P = CAD.P
     parts = CAD.build_parts()
-    mass = CAD.assign_masses(parts)
+    mass = CAD.assign_masses(parts, grown)          # grown: MEV masses (every MEL row at its growth)
     byname = {pt.name: pt for pt in parts}
     md = Model()
     mm = 1e-3
@@ -810,7 +811,7 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
                  kEA=1.0)
     # ---------------- battery: rigid body on four ears and G-10CR isolators ------------------------------
     pack_parts = [n for n in ("cell_1", "cell_2", "cell_3", "cell_4", "battery_clamp", "battery_sense_board",
-                              "battery_heaters_wrap")]
+                              "battery_heaters_wrap", "battery_cell_retention") if n in mass]
     m_tot, mc, Ic = 0.0, np.zeros(3), np.zeros((3, 3))
     rows = []
     for n_ in pack_parts:
@@ -955,17 +956,19 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
     Vsh = sum(md.shells[k]["t"] * shell_area([k]) for k in frame_sh)
     Vb = sum(md.beams[k]["sec"]["A"] * np.linalg.norm(md.xyz[md.beams[k]["n"][1]] - md.xyz[md.beams[k]["n"][0]])
              for k in rails_b)
-    rho_f = 115.0e-3 / (Vsh + Vb)
+    m_frame = sum(v for n_, v in mass.items() if n_.startswith(("rail_", "endplate_", "shear_")))   # row 1
+    rho_f = m_frame * 1e-3 / (Vsh + Vb)
     for k in frame_sh:
         md.shells[k]["rho_override"] = rho_f
     for k in rails_b:
         md.beams[k]["rho"] = rho_f
-    rep["frame (row 1)"] = 115.0
+    rep["frame (row 1)"] = m_frame
     # body panels and cells on the shear panels
     for s_ in (1, -1):
         for g_, ax in (("shear_x", 0), ("shear_y", 1)):
             idx = [k for k in groups[g_] if np.sign(md.xyz[md.shells[k]["n"][0]][ax]) == s_]
-            nsm_to(idx, 40.0, "body panels (row 6)")
+            tg = ("p" if s_ > 0 else "m") + "xy"[ax]
+            nsm_to(idx, mass[f"body_panel_{tg}"] + mass[f"body_cells_{tg}"], "body panels (row 6)")
     nsm_to(groups["endplate_mz"], mass["AntS_housing"] + sum(mass[n] for n in mass if n.startswith("AntS_") and
                                                                n.endswith("_element")), "AntS (row 19)")
     for nm in ("EPS",):
@@ -994,8 +997,10 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
               "deck")
     lump_near(mass["rod_Y"] + mass["rod_clips"] / 3, [(W2, -16, -32.9), (W2, 16, -32.9)], "Y rod (clips on +X wall)",
               "shear_x")
-    lump_near((mass["rod_Z"] + mass["rod_clips"] / 3) / 2, [(-41.5, 0, -16)], "Z rod (deck clip)", "deck")
-    lump_near((mass["rod_Z"] + mass["rod_clips"] / 3) / 2, [(-W2, 0, -39)], "Z rod (wall clip)", "shear_x")
+    # Z rod tied to the -X shear panel only (two clips, z -39 and -8; through the deck and EPS notches without contact,
+    # P3S-12), so the deck's motion puts no load on it
+    zclip = [(-W2, 0, -39), (-W2, 0, -8)]
+    lump_near(mass["rod_Z"] + mass["rod_clips"] / 3, zclip, "Z rod (two wall clips)", "shear_x")
     lump_near(sum(mass[n] for n in mass if n.startswith("magnetometer")), [(24, 27, zpz)], "magnetometer board A2",
               "endplate_pz")
     lump_near(mass["GNSS_patch"] + mass["GNSS_patch_adapter"], [(sx * 15, sy * 15, zpz) for sx in (1, -1)
@@ -1031,6 +1036,8 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
             grp = "shear"
         elif c[2] > 43.0:
             grp = "endplate_pz"
+        elif -16.7 <= c[2] <= -4.0 and c[2] >= -15.0 and harness_tie == "eps":
+            grp = "EPS"                     # bounding case (C-15): all the harness under the EPS tied to the EPS
         elif -16.7 <= c[2] <= -4.0 and c[2] >= -15.0:
             # under the EPS: the connector halves on the EPS, the wire on the deck straps (SQSO-HAR-001 2.0 10.3:
             # tie-downs on the shear panels, end frames, deck straps and the battery clamp, none between boards)
@@ -1087,7 +1094,15 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
             pts.append((0, -21))
         supports[g_] = [md.node(x * mm, y * mm, z * mm) for x, y in pts]
         bnodes[g_] = sorted({i for k in groups[g_] for i in md.shells[k]["n"]})
-    special = dict(spiders=spider_count, iso_beams=iso_beams, ear_beams=ear_beams, battery_master=master, battery_mass=m_tot,
+    def nearest(pt_mm, group):
+        cand = [i for i in range(md.nn()) if nodegroup.get(i, "").startswith(group) and i not in md.mpc]
+        XYZ = np.array([md.xyz[i] for i in cand]) / mm
+        return cand[int(np.argmin(np.linalg.norm(XYZ - np.array(pt_mm), axis=1)))]
+    probes = {"GNSS receiver mounts (deck, piNAV corners)": [nearest((x, y, -16.0), "deck") for x, y in
+                                                             ((-17, -42), (27, -42), (-17, 2), (27, 2))],
+              "Z rod clips (-X shear panel)": [nearest(q, "shear_x") for q in zclip],
+              "battery CG (rigid body)": [master]}
+    special = dict(spiders=spider_count, probes=probes, iso_beams=iso_beams, ear_beams=ear_beams, battery_master=master, battery_mass=m_tot,
                    battery_I=Ic, colsec=colsec, isosec=isosec, ti_col_beams=ti_beams, wing_shells=wing_shells, mass_total_cad=sum(mass.values()),
                    gyro_nodes=gyro_nodes, board_t=special_t,
                    window_edge_nodes=sorted({i for k in groups["carrier"] for i in md.shells[k]["n"]
@@ -1316,6 +1331,31 @@ def stresses(res, verbose=True):
             var = np.einsum("ij,ij->i", rel @ Cs[ax], rel)
             rel3 = max(rel3, 3 * float(np.sqrt(np.maximum(var, 0)).max()))
     res["gyro_random"] = dict(grms=gacc, rel_window_3sigma_mm=rel3 * 1e3, input_grms=grms_test())
+    # probes: absolute acceleration (max over the probe's nodes) and, for the GNSS receiver, displacement relative to
+    # the deck supports and between its mounts (MCAD-12)
+    res["probes"] = {}
+    dsup = [i for i in sc.board_supports.get("deck", []) if i not in md.mpc]
+    for pname, pn in sc.special["probes"].items():
+        acc = {}
+        for ax in range(3):
+            Hq = H * (-sol.gamma[:, ax])[None, :]
+            for d in range(3):
+                vals = []
+                for i in pn:
+                    T = (1.0 if d == ax else 0.0) - (w ** 2) * (Hq @ PhiF[6 * i + d, :])
+                    vals.append(float(np.sqrt(np.sum(np.abs(T) ** 2 * G * df)) / G0))
+                acc[f"base{'xyz'[ax]}_resp{'xyz'[d]}"] = max(vals)
+        out_p = dict(grms=acc, grms_max=max(acc.values()), accel_3sigma_g_max=3 * max(acc.values()))
+        if pname.startswith("GNSS") and dsup:
+            rel_s, rel_m = 0.0, 0.0
+            for ax in range(3):
+                for d in range(3):
+                    rel = PhiF[[6 * i + d for i in pn], :] - PhiF[[6 * i + d for i in dsup], :].mean(axis=0)[None, :]
+                    rel_s = max(rel_s, 3 * float(np.sqrt(np.maximum(np.einsum("ij,ij->i", rel @ Cs[ax], rel), 0)).max()))
+                    rel2 = PhiF[[6 * i + d for i in pn], :] - PhiF[[6 * i + d for i in pn], :].mean(axis=0)[None, :]
+                    rel_m = max(rel_m, 3 * float(np.sqrt(np.maximum(np.einsum("ij,ij->i", rel2 @ Cs[ax], rel2), 0)).max()))
+            out_p.update(rel_to_deck_supports_3sigma_mm=rel_s * 1e3, rel_between_mounts_3sigma_mm=rel_m * 1e3)
+        res["probes"][pname] = out_p
     # --- hot spots and margins ---
     groups_shell = {}
     for g_, idx in sc.groups.items():
@@ -1440,6 +1480,9 @@ CASES = {
     "alt_1.6mm_carrier_framed_window": dict(_D, t_car=1.6, car_frame=True),
     "alt_1.6mm_carrier_window_no_frame": dict(_D, t_car=1.6),
     "reference_1.6mm_carrier_no_window": dict(_D, t_car=1.6, car_window=False),
+    "design_MEV": dict(_D, grown=True),                                   # P3S-02: every MEL row at its growth
+    "design_2.0mm_EPS_MEV": dict(_D, t_eps=2.0, grown=True),
+    "design_harness_on_EPS": dict(_D, harness_tie="eps"),               # C-15 bounding case (P3S-09)
 }
 NMODES = 450
 
@@ -1486,6 +1529,10 @@ def main():
         for k, v in r["holddown"].items():
             print(f"   {k}: normal QS {v['normal_qs_N']:.2f} N, 3s {v['normal_rand3s_N']:.2f} N")
         print("   gyro random:", {k: round(v, 2) if isinstance(v, float) else v for k, v in r["gyro_random"].items()})
+        for pk, pv in r.get("probes", {}).items():
+            print(f"   probe {pk}: Grms max {pv['grms_max']:.1f} (3s {pv['accel_3sigma_g_max']:.0f} g)",
+                  {k: round(v, 3) for k, v in pv.items() if k.startswith("rel")},
+                  {k: round(v, 1) for k, v in pv['grms'].items()})
     with open(args.json, "w") as f:
         json.dump(out, f, indent=1, default=lambda x: float(x) if isinstance(x, (np.floating, np.integer)) else str(x))
 

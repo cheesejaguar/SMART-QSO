@@ -1,7 +1,7 @@
 # Interface Control Document: OBC-EPS
 
 **Document Number**: SMART-QSO-ICD-001
-**Version**: 1.4
+**Version**: 1.5
 **Date**: 2026-10-27
 **Status**: Preliminary. Electrical values from the EPS board build-to design (`hardware/electrical/eps/EPS_BOARD_DESIGN.md`,
 SQSO-EPS-BRD-001) and pins from the master allocation (`hardware/electrical/INTERCONNECT.md`, SQSO-ICX-001);
@@ -132,7 +132,7 @@ Pins per SQSO-ICX-001 §3.1; switches, limits and loads per SQSO-EPS-BRD-001 §8
 |------|--------------------------|--------|------------|-------------------------|
 | OBC 3.3 V | none (always on) | SW10 TPS2553-Q1 | 0.040 A | 0.152 A (0.130–0.176 A) |
 | EPS controller | none (always on) | SW9 TPS2553-Q1 | 0.012 A | 0.075 A (0.050–0.100 A) |
-| Payload (Jetson) | PAYLOAD_EN (PB2, 9) on SW1 and JETSON_PWR (PA2, 29) on the eFuse; SW1 also shed-gated | SW1 TPS1H100B-Q1; eFuse TPS16630 | 0.93 A at VBAT | SW1 1.99 A; eFuse 1.20 A (1.10–1.30 A) |
+| Payload (Jetson) | PAYLOAD_EN (PB2, 9) on SW1 and JETSON_PWR (PA8, 29; SQSO-ICX-001 B) on the eFuse; SW1 and the eFuse both shed-gated (SQSO-EPS-BRD-001 D) | SW1 TPS1H100B-Q1; eFuse TPS16630 | 0.93 A at VBAT | SW1 1.99 A; eFuse 1.20 A (1.10–1.30 A) |
 | Radio (RX, TNC, exciter) | RADIO_EN (PB5, 10) | SW2 TPS2553-Q1 | 0.038 A at 3.3 V | 0.120 A (0.102–0.141 A) |
 | PA (hardware TX-OFF) | RF_TX_EN (PA3, 14), AND the hardware load shed | SW3 TPS2553-Q1 | 0.54 A at 5 V | 0.989 A (0.918–1.071 A) |
 | ADCS sensors (3V3_ADCS) | ADCS_EN (PB6, 11) | SW4 TPS2553-Q1 | 0.049 A at 3.3 V | 0.299 A (0.265–0.339 A) |
@@ -235,7 +235,7 @@ START | ADDR+W | REG | RESTART | ADDR+R | DATA[0] | ... | DATA[n] | STOP
 
 ---
 
-### 4.6 Extended Registers (added at CDR; the flight software reads CHG_INHIBIT, EOL_STATE and IMON_JET and writes LOCK_UNLOCK)
+### 4.6 Extended Registers (added at CDR; the flight software reads CHG_INHIBIT, EOL_STATE and IMON_JET and writes LOCK_UNLOCK and EOL_KEY)
 
 | Register | Address | R/W | Size | Description |
 |----------|---------|-----|------|-------------|
@@ -243,11 +243,18 @@ START | ADDR+W | REG | RESTART | ADDR+R | DATA[0] | ... | DATA[n] | STOP
 | TBATT2 | 0x78 | R | 2 | Second pack temperature (0.1 °C) |
 | CHG_INHIBIT | 0x7A | R | 1 | Charge-inhibit cause: bit 0 cold, 1 hot, 2 cell OV, 3 BMS fault, 4 secondary protector blown, 5 recharge lockout latched |
 | LOAD_SHED | 0x7B | R | 1 | Hardware low-voltage load shed active (bit 0), SW1/SW3 fault flags (bits 1–2) |
-| EOL_STATE | 0x7C | R | 1 | Passivation: bit 0 armed, bit 1 fired (charge path open), bit 2 fuse F1 intact (F1_SNS; SQSO-EPS-BRD-001 §19). Read every housekeeping frame and in the final passivation report (HK1 `PS`, HK2 `EOL`; SRS-F155) |
+| EOL_STATE | 0x7C | R | 1 | Passivation: bit 0 armed, bit 1 fired (charge path open), bit 2 fuse F1 intact (F1_SNS; SQSO-EPS-BRD-001 §19), bit 3 EOL key active (EOL_KEY high, see 0x7E). Read every housekeeping frame and in the final passivation report (HK1 `PS`, HK2 `EOL`; SRS-F155) |
 | LOCK_UNLOCK | 0x7D | W | 1 | Recharge-lockout unlock: writing 0xC5 raises UNLOCK, the second of the two conditions for a lockout clear (with LOCK_CLR; EPS_CLEAR_LOCKOUT 0x14, SRS-F129); any other value lowers it |
+| EOL_KEY | 0x7E | W | 1 | Passivation arm key (SQSO-EPS-BRD-001 D §7, §12; RID P3E-11): writing **0x3C then 0xC3** within 1 s, accepted only while EOL_STATE bit 0 = 0 (not armed) and bit 2 = 1 (F1 intact), makes the EPS controller raise EOL_KEY for 10 s (EOL_STATE bit 3 = 1); the arm latch sets only while EOL_KEY and the OBC's EOL_ARM (PF4, J3-32) are both high. Any other value, a write out of order, or the 10 s timeout lowers EOL_KEY; a refused sequence leaves bit 3 = 0 |
 | PTRACK1–4 | 0x80–0x87 | R | 4 × 2 | Tracker input power (mW) |
 | IHEATER | 0x88 | R | 2 | Heater current (mA) |
 | IMON_JET | 0x8A | R | 2 | Jetson rail current from the eFuse U19 IMON (0.84 V/A at the controller's ADC), mA, little-endian like the other words: the flight software's JPC (SQSO-JET-BRD-001 §13 item F3, RID JETB-03) |
+
+**Passivation sequence (OBC, SQSO-EPS-BRD-001 D §7).** On PASSIVATE_ARM (authenticated): (1) read EOL_STATE and
+require bit 0 = 0 and bit 2 = 1; (2) write 0x3C then 0xC3 to EOL_KEY (0x7E) within 1 s; (3) read EOL_STATE bit 3 = 1;
+(4) raise EOL_ARM (PF4) within 10 s of step 2, confirm EOL_STATE bit 0 = 1, lower PF4. On PASSIVATE_EXECUTE
+(authenticated, later, in sunlight): hold EOL_FIRE (PG1) high ≥ 60 s, then confirm EOL_STATE bit 1 = 1 and bit 2 = 0.
+The arm latch clears at every EPS power-up; a failed step leaves the latch clear and is reported.
 
 ## 5. Data Formats
 
@@ -463,3 +470,4 @@ When Alert GPIO is asserted:
 | 1.2 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: connector, pins and harness W3 per SQSO-ICX-001 (§1.3, §2.1); I²C addresses INA228 0x44 (pack) and 0x40 (array), EPS controller MSP430FR2355 0x48, no OBC device on I2C2 (§2.3); analog lines with the VBATT ×6 scaling (§2.4); rails and load switches per SQSO-EPS-BRD-001 §8.3, SW4 load 0.049 A, SW11 VBAT_MTQ, 3V3_RTC (§3.1, §3.2) |
 | 1.3 | 2026-10-27 | CDR flight software round 2 | §4.6: CHG_INHIBIT bit 5 (recharge lockout latched), LOCK_UNLOCK 0x7D (key 0xC5) for EPS_CLEAR_LOCKOUT; the flight software reads CHG_INHIBIT and EOL_STATE |
 | 1.4 | 2026-10-27 | CDR flight software round 3 | §4.6: EOL_STATE bit 2 fuse F1 intact; IMON_JET 0x8A (Jetson rail current, the JPC sensor) |
+| 1.5 | 2026-10-27 | CDR design (EPS board) | §3 payload row: JETSON_PWR on PA8 (PA2 is the spreader thermistor), both Jetson switches shed-gated; §4.6 (amended): EOL_KEY register 0x7E (key 0x3C, 0xC3), EOL_STATE bit 3, the OBC passivation sequence (RID P3E-11) |

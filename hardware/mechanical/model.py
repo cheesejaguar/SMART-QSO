@@ -495,6 +495,13 @@ def build_parts(p=P) -> List[Part]:
             for sx in (1, -1) for sy in (1, -1)]
     add(Part("battery_clamp", "battery", {"15": 34.0}, fuse(*(caps + bars + ears)), color=COL["al"],
              note="Al 6061-T6 end caps, side bars and four isolator ears"))
+    # cell retention (RID STR-08; SQSO-MECH-CAD-001 4.6): G-10CR locator plates 2 mm at each end, cells through
+    # 18.75 mm holes; the -X end cap floats on four Ti shoulder screws with disc-spring stacks (axial preload)
+    loc = [cut(B(sx * 30.5 if sx > 0 else -32.5, 32.5 if sx > 0 else -30.5, -37.0, 37.0, zbc - 10.0, zbc + 10.0),
+               *[C("x", (0, y, zbc), 9.375, -40, 40) for y in (-27.75, -9.25, 9.25, 27.75)]) for sx in (1, -1)]
+    add(Part("battery_cell_retention", "battery", {"37": 5.0}, fuse(*loc), color=COL["comp"],
+             note="G-10CR cell-locator plates (polyimide-lined holes), -X cap disc-spring stacks and Ti shoulder screws, "
+                  "polyimide end insulators, shims; no adhesive, no potting"))
     iso = [fuse(C("z", (sx * 38.5, sy * 31, 0), 3.0, zp["mz_in"], -38.9), C("z", (sx * 38.5, sy * 31, 0), 2.25,
                                                                               -36.4, -34.9))
            for sx in (1, -1) for sy in (1, -1)]
@@ -522,11 +529,13 @@ def build_parts(p=P) -> List[Part]:
              note="CubeSpace CR0002, 10.5 x 10.5 x 47 mm, 16.5 g (CubeSpace Gen 2 brochure)"))
     add(Part("rod_Y", "adcs", {"27r": 16.5}, C("y", (42.0, 0, -32.9), 5.25, -23.5, 23.5), color=COL["rod"]))
     add(Part("rod_Z", "adcs", {"27r": 16.5}, C("z", (-41.5, 0.0, 0), 5.25, -44.0, 3.0), color=COL["rod"],
-             note="through notches in the deck and the EPS board"))
+             note="tied to the -X shear panel only; passes the deck and EPS notches without contact"))
     clips = fuse(B(-20, -16, 30, 42, -15.5, -14.5), B(16, 20, 30, 42, -15.5, -14.5),
                  B(36.0, 48.0, -20, -16, -38.5, -27.0), B(36.0, 48.0, 14, 18, -38.5, -27.0),
-                 B(-48.0, -36.0, -7.0, 7.0, -40.0, -38.0))
-    add(Part("rod_clips", "adcs", {"28r": 8.0}, clips, color=COL["al"], ghost=True))
+                 B(-48.0, -36.0, -7.0, 7.0, -40.0, -38.0), B(-48.0, -36.0, -7.0, 7.0, -9.0, -7.0))
+    add(Part("rod_clips", "adcs", {"28r": 8.0}, clips, color=COL["al"], ghost=True,
+             note="X rod on the deck, Y rod on the +X shear panel, Z rod on the -X shear panel only (clips at z -39 and -8; "
+                  "no contact in the deck and EPS notches, 0.75 mm radial clearance; P3S-12)"))
     add(Part("GNSS_receiver", "gnss", {"29": 24.0}, B(-20, 30, -45, 5, -15.5, -6.5), color=COL["gnss"],
              note="SkyFox piNAV-NG/FM, 24 g; envelope allocation 50 x 50 x 9 mm (open: vendor drawing)"))
 
@@ -1424,15 +1433,20 @@ def main():
         v, c, _ = cache[(pt.name, False)] if (pt.name, False) in cache else solid_props(pt.stowed)
         out["parts"].append(dict(name=pt.name, group=pt.group, mel=pt.mel, mass_g=masses[pt.name], volume_mm3=v,
                                  centre_mm=c.tolist(), ghost=pt.ghost, moves=pt.moves, note=pt.note))
-    # one wing only (W1 deployed, W2 stowed) and wings stowed with antennas out
-    for lab, mv in (("W1_only_deployed", ("W1", "ANT")), ("antennas_only", ("ANT",))):
-        pp = []
-        for pt in parts:
-            q = copy.copy(pt)
-            if pt.moves and pt.moves not in mv:
-                q.deployed = None
-            pp.append(q)
-        mprops[lab] = mass_props(pp, masses, True, {}).summary()
+    # partial deployments (STR-27, the ADCS presets): one wing only (W1 or W2 deployed, the other stowed) and wings
+    # stowed with the antennas out ("antennas_only" = no wings), at CBE and MEV
+    for grown in (False, True):
+        mg = assign_masses(parts, grown)
+        sfx = "_mev" if grown else ""
+        for lab, mv in (("W1_only_deployed", ("W1", "ANT")), ("W2_only_deployed", ("W2", "ANT")),
+                        ("antennas_only", ("ANT",))):
+            pp = []
+            for pt in parts:
+                q = copy.copy(pt)
+                if pt.moves and pt.moves not in mv:
+                    q.deployed = None
+                pp.append(q)
+            mprops[lab + sfx] = mass_props(pp, mg, True, {}).summary()
     # MEL hybrid antenna case of MASS_BUDGET v3.0 (2 m +-X, 70 cm +-Y), for comparison with section 6.1
     out["mass_properties"] = mprops
     for k, v in mprops.items():
