@@ -289,6 +289,7 @@ RIDS = [
     ("RFB-09", 2, "SMA end-launch connectors J3-J6 with mated plugs and cable bends do not fit the 3.3 mm gap to the side walls", "IMP", "Connector and routing chosen with the CAD and the AntS interface before layout"),
     ("RFB-10", 3, "AntS RF port type and the connector mated heights not confirmed from the ISIS ICD and the Molex/Samtec drawings", "VI", "VI-RFB-12 (drawings, plating, cable attenuation and inner conductor) by 2026-11-13, before layout; VI-RFB-13 against the ISIS ICD (only the AntS-end plug changes if it differs)"),
     ("RFB-11", 2, "CAD models two AntS elements; the AntS and the RF board use four (2 m along ±X, 70 cm along ±Y): the deployed inertia ratio must be re-checked", "IMP", "Mechanical CAD: four elements, mass properties with growth"),
+    ("RFB-12", 3, "W10 coax top bend 7 mm is 5.1 × OD, below the 6 × OD workmanship rule", "CH", "Accepted by analysis: formed once and tied, 1.75 × the Taoglas PRT.001221 minimum static radius (4 mm), no RF effect at 436 MHz; conditions: procured cable minimum static radius ≤ 5 mm (VI-RFB-12), bend inspection (V-HAR-10), return loss after forming and vibration (VI-RFB-13)"),
     # ---- Raised by the EPS board design (EPSB) ----
     ("EPSB-01", 2, "Firmware fires driver A on both wings at once: 1.25 A at the pack", "IMP", "Chair: four independent burn lines, one resistor at a time (0.67 A); flight software and SIL"),
     ("EPSB-02", 3, "Uplink must avoid the synchronised converters' harmonics", "CH", "BASELINE §7 Uplink: 435.222-435.778 MHz, else 436.222-436.500 MHz"),

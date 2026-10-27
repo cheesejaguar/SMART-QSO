@@ -311,7 +311,6 @@ def connectors():
     # in gold (EEE_PARTS_LIST 2A.3 item 5: no tin contacts). Pico-Clasp: Molex 203556 (0.38 um Au mating, Au flash post),
     # mates the 501330 housings with gold 501334 terminals. Micro-Fit 3.0: 43045 right-angle, 0.76 um Au mating.
     def pico(n, ref, val, rating_use, note, zone):
-        mpn = f"20355600{n}07"[-10:]
         chk = {6: "Digi-Key: Active (Au 0.38 um)", 8: "Digi-Key: listed"}.get(n, "pattern (203556-xx07): confirm (V-HAR-3)")
         return place(CONN(f"PicoClasp_{n}", n), ref, val, f"2035560{n}07", "Molex", f"Pico-Clasp 1.0 mm {n} pos vertical SMT, bottom side",
                      "1 A/contact", rating_use, f"{note}; zone {zone}", "Au 0.38 um mating, Au flash post", chk)

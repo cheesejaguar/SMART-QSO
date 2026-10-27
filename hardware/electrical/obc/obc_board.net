@@ -2,7 +2,7 @@
   (version "D")
   (design
     (source "design.py")
-    (date "10/27/2026 08:49 AM")
+    (date "10/27/2026 10:34 AM")
     (tool "SKiDL (3.0.0)")
     (sheet
       (number 1)
@@ -3882,16 +3882,16 @@
       (ref "J1")
       (value "EPS")
       (description "")
-      (footprint "FTSH 1.27 mm 2x20 SMT")
+      (footprint "Tiger Eye TFM 1.27 mm 2x20 right-angle")
       (fields
         (field
-          (name "MPN") "FTSH-120-01-L-DV-K")
+          (name "MPN") "TFM-120-01-S-D-RA")
         (field
           (name "Manufacturer") "Samtec")
         (field
           (name "Description"))
         (field
-          (name "Footprint") "FTSH 1.27 mm 2x20 SMT")
+          (name "Footprint") "Tiger Eye TFM 1.27 mm 2x20 right-angle")
         (field
           (name "Datasheet"))
         (field
@@ -3900,7 +3900,7 @@
           (name "SKiDL Line") "design.py:78"))
       (libsource
         (lib "NO_LIB")
-        (part "FTSH_2x20"))
+        (part "TFM_2x20"))
       (sheetpath
         (names "/")
         (tstamps "/"))
@@ -3936,16 +3936,16 @@
       (ref "J2")
       (value "RF")
       (description "")
-      (footprint "FTSH 1.27 mm 2x8 SMT")
+      (footprint "Tiger Eye TFM 1.27 mm 2x8 right-angle")
       (fields
         (field
-          (name "MPN") "FTSH-108-01-L-DV-K")
+          (name "MPN") "TFM-108-01-S-D-RA")
         (field
           (name "Manufacturer") "Samtec")
         (field
           (name "Description"))
         (field
-          (name "Footprint") "FTSH 1.27 mm 2x8 SMT")
+          (name "Footprint") "Tiger Eye TFM 1.27 mm 2x8 right-angle")
         (field
           (name "Datasheet"))
         (field
@@ -3954,7 +3954,7 @@
           (name "SKiDL Line") "design.py:78"))
       (libsource
         (lib "NO_LIB")
-        (part "FTSH_2x8"))
+        (part "TFM_2x8"))
       (sheetpath
         (names "/")
         (tstamps "/"))
@@ -4098,16 +4098,16 @@
       (ref "J8")
       (value "SUN SENSORS")
       (description "")
-      (footprint "Pico-Clasp 1.0 mm 14 pos SMT")
+      (footprint "Pico-Clasp 1.0 mm 12 pos SMT")
       (fields
         (field
-          (name "MPN") "5013311407")
+          (name "MPN") "5013311207")
         (field
           (name "Manufacturer") "Molex")
         (field
           (name "Description"))
         (field
-          (name "Footprint") "Pico-Clasp 1.0 mm 14 pos SMT")
+          (name "Footprint") "Pico-Clasp 1.0 mm 12 pos SMT")
         (field
           (name "Datasheet"))
         (field
@@ -4116,7 +4116,7 @@
           (name "SKiDL Line") "design.py:78"))
       (libsource
         (lib "NO_LIB")
-        (part "PicoClasp_14"))
+        (part "PicoClasp_12"))
       (sheetpath
         (names "/")
         (tstamps "/"))
@@ -4125,16 +4125,16 @@
       (ref "J9")
       (value "ACCESS PORT")
       (description "")
-      (footprint "FTSH 1.27 mm 2x5 SMT")
+      (footprint "Tiger Eye TFM 1.27 mm 2x5 right-angle")
       (fields
         (field
-          (name "MPN") "FTSH-105-01-L-DV-K")
+          (name "MPN") "TFM-105-01-S-D-RA")
         (field
           (name "Manufacturer") "Samtec")
         (field
           (name "Description"))
         (field
-          (name "Footprint") "FTSH 1.27 mm 2x5 SMT")
+          (name "Footprint") "Tiger Eye TFM 1.27 mm 2x5 right-angle")
         (field
           (name "Datasheet"))
         (field
@@ -4143,7 +4143,7 @@
           (name "SKiDL Line") "design.py:78"))
       (libsource
         (lib "NO_LIB")
-        (part "FTSH_2x5"))
+        (part "TFM_2x5"))
       (sheetpath
         (names "/")
         (tstamps "/"))
@@ -11591,14 +11591,6 @@
       (node
         (ref "J8")
         (pin "12")
-        (pintype "PASSIVE"))
-      (node
-        (ref "J8")
-        (pin "13")
-        (pintype "PASSIVE"))
-      (node
-        (ref "J8")
-        (pin "14")
         (pintype "PASSIVE"))
       (node
         (ref "J8")

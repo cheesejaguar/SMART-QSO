@@ -156,13 +156,13 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-299 RIDs: severity 1: 29, severity 2: 162, severity 3: 108.
+300 RIDs: severity 1: 29, severity 2: 162, severity 3: 109.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 26 |
 | Closed by design change | 99 | 163 |
-| Closed by chair decision | 38 | 37 |
+| Closed by chair decision | 39 | 38 |
 | Verification item | 43 | 42 |
 | Decision point (dated) | 13 | 13 |
 | Implementation | 81 | 18 |
@@ -548,6 +548,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | RFB-09 | 2 | SMA end-launch connectors J3-J6 with mated plugs and cable bends do not fit the 3.3 mm gap to the side walls | IMP | Closed by design change | MMCX jacks (Molex 73415-1473, brass/BeCu, gold) at the −X edge; 1.37 mm coax with silver-plated copper inner conductor down the −X wall gap at \|y\| 20-24 mm; port-to-antenna 0.44 dB (146 MHz) and 0.62 dB (436 MHz); uplink system noise 548-598 K inside 650 K (SQSO-RF-BRD-001 C §4.3, §16) |
 | RFB-10 | 3 | AntS RF port type and the connector mated heights not confirmed from the ISIS ICD and the Molex/Samtec drawings | VI | Verification item | VI-RFB-12 (drawings, plating, cable attenuation and inner conductor) by 2026-11-13, before layout; VI-RFB-13 against the ISIS ICD (only the AntS-end plug changes if it differs) |
 | RFB-11 | 2 | CAD models two AntS elements; the AntS and the RF board use four (2 m along ±X, 70 cm along ±Y): the deployed inertia ratio must be re-checked | IMP | Closed by design change | Four AntS elements in the CAD; with the C-13 ballast the deployed ratio is 1.056 / 1.047, ≥ 1.03 with growth to 3.2 mm placement scatter (MECHANICAL_DESIGN B §5) |
+| RFB-12 | 3 | W10 coax top bend 7 mm is 5.1 × OD, below the 6 × OD workmanship rule | CH | Closed by chair decision | Accepted by analysis: formed once and tied, 1.75 × the Taoglas PRT.001221 minimum static radius (4 mm), no RF effect at 436 MHz; conditions: procured cable minimum static radius ≤ 5 mm (VI-RFB-12), bend inspection (V-HAR-10), return loss after forming and vibration (VI-RFB-13) |
 
 #### EPS board (round 2) (EPSB)
 

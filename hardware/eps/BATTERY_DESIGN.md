@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-BAT-001
-**Version:** 2.4
+**Version:** 2.5
 **Date:** 2026-10-27
 **Status:** Battery definition and cycle-life analysis for the baseline in `docs/BASELINE_PARAMETERS.md` §5 (finding TB-08). **Analysis, not measured; no cell has been bought or tested.**
 
@@ -179,7 +179,7 @@ BASELINE §5 nominal 10 %. Both documents now cite this section.
 
 | Protection | Implementation |
 |------------|----------------|
-| Fuse | Non-resettable pack fuse F2 (5 A, ≥ 100 A breaking at 32 VDC) plus resettable PTC (hold 2.5 A, trip ≤ 5 A) |
+| Fuse | **F0 on the sense board** in BAT_TOP at the cell-4 positive (5 A, protects the W1 pack leads, §7.2) and the EPS pack fuse F2 (5 A) in series, both non-resettable; tap fuses FT0–FT4 (0.5 A) at the sense board; resettable PTC RT1 on the EPS (hold 2.6 A, 1.92 A at 60 °C) |
 | Overcharge | Charger CV at 4.10 V/cell, BMS AFE at 4.25 V, secondary protector at 4.35 V with fuse (two-fault tolerant; SQSO-BSA-001 §3) |
 | Overdischarge | BMS + hardware comparator |
 | Overcurrent | PTC + electronic switch |
@@ -252,9 +252,34 @@ pin for it yet (RID EPS-06).
 
 ### 7.2 Wiring
 
-- 20 AWG for power paths, two wires per pole (W1 J1, Micro-Fit 2×4: power, NTC1 with its own return, heater pair)
-- Cell taps and NTC2 on a 6-way Pico-Clasp (W1 J2); NTC2 returns to the cell-1 negative tap inside the pack
-- Fused at the pack (one string of four: the pack fuse is the cell fuse)
+- Pack leads **22 AWG M22759/33**, two wires per pole, twisted quad (W1 to EPS J1, Micro-Fit 2×4 right-angle, gold:
+  power, NTC1 with its own return, heater pair; 24 AWG for NTC1 and the heater): 1.2 A per wire worst case (2.0 A
+  pack current, four burn drivers on, 60/40 split) against 2.50 A derated (SQSO-HAR-001 2.0 §5.2, §9.1)
+- Cell taps and NTC2 in 28 AWG on a 6-way Pico-Clasp (W1 to EPS J2, gold); NTC2 returns to the cell-1 negative tap
+  inside the pack
+- **All leads 0.12 m** from the sense board to the EPS bottom-side zone Z1 (service loop), **PTFE over-sleeve** on the
+  pack leads (double insulation: they are upstream of the EPS fuse F2), no metal clamps, tied to the sense board within
+  10 mm (SQSO-HAR-001 §7.2)
+- **Sense-board fuses (decision, this version).** W1 is upstream of every protection on the EPS: a BAT_TOP lead shorted
+  to BAT_BOT, or to the frame (the frame is at GND, which reaches the pack negative through DS2 and RS7 once released),
+  would see the cells' short-circuit current (≈ 80–100 A) with no fuse in the loop, and the AFE's short-circuit
+  detection opens FETs that are downstream of the fault. The construction controls (double insulation, routing, hipot)
+  are kept and a fuse is added:
+  - **F0**, Littelfuse **0451005.MRL** (Nano2 451, 5 A fast-acting, the same part as F2), in BAT_TOP on the sense board
+    within 10 mm of the cell-4 positive tab, before the W1 pads. Carrying: 1.40 A largest legitimate pack current,
+    2.0 A with four burn drivers on (software fault): 44 % of the 4.5 A 60 °C rerating (rule 50 %). Coordination: the
+    AFE (OCD1 3.6–4.4 A for 0.5 s, SCD 10 A in 15 µs, on the FETs) acts first on every fault downstream of its FETs;
+    F0 and F2 act on faults upstream of the FETs (W1, J1, F2 area) or if the AFE fails. F0 and F2 are in series and
+    either opening isolates the pack for good, so selectivity between them is not needed: the pair makes the fuse
+    function single-fault tolerant (a fuse that fails to open). Breaking capacity at the cell short-circuit current
+    is the same open item as F2 (300 A at 32 VDC from a datasheet excerpt; SQSO-EPS-BRD-001 §21)
+  - **FT0–FT4**, Littelfuse **0466.500NR** (Pico 466, 0.5 A, 1206), one in each cell tap at the sense board: they
+    protect the 28 AWG tap wires (0.90 A derated) against a tap-to-tap or tap-to-frame short. Balancing current
+    ≈ 18 mA through ≈ 0.4 Ω cold resistance: 7 mV on the reading taken while a cell balances (the AFE's
+    measurement-during-balancing behaviour to be set and checked with the OTP image, V-EPS-2); a blown tap fuse shows
+    as an open cell input (AFE open-wire check)
+  - Sense board (the pack's 15 g interconnect board): FR-4, conformal coated; F0 and FT0–FT4 under the coating; the
+    fuses' 125 V ratings exceed the 16.8 V pack by more than the 50 % rule
 - Strain relief at all connections
 - Conformal coating on BMS PCB
 
@@ -342,3 +367,4 @@ lot uniformity OCV < 1 %, mass < 2 %, capacity < 5 %, resistance < 15 %).
 | 2.2 | 2026-10-27 | CDR review (EPS): secondary over-voltage protector; no low-temperature discharge cut-off; pack over-temperature in hardware; fuse and PTC ratings (§4.1, §5.1); inhibits and passivation point to EPS_DESIGN v2.0 (§5.2, §5.3); heater set points +5/+9 °C recommended (§6.3); screening per SQSO-BSA-001 (§9.1); compliance (§10.1) |
 | 2.3 | 2026-10-27 | CDR design (EPS board) | BMS parts selected (BQ76952, BQ771806, ITV4030 fuse, INA228 gauge; §4.1, §4.2); heater protection as built (§6.3); cell retention bonded/potted with welded interconnects (§7.1, RID STR-08); W1 wiring (§7.2); SQSO-EPS-BRD-001 |
 | 2.4 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: §5.2 inhibit text, the array path has its third inhibit DS3 (SQSO-EPS-BRD-001 §6) |
+| 2.5 | 2026-10-27 | CDR design (EPS board): §7.2 wiring per SQSO-HAR-001 2.0 (B-1): pack leads 22 AWG, all leads 0.12 m, PTFE over-sleeve; sense-board fuse F0 (5 A) in BAT_TOP and tap fuses FT0–FT4 (0.5 A) added, with their coordination against F2 and the BMS; §5.1 fuse row |

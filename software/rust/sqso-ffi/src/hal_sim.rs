@@ -589,6 +589,10 @@ pub unsafe extern "C" fn hal_i2c_read(bus: u32, addr: u8, data: *mut u8, len: us
     })
 }
 
+/// One register that does not answer a read (`addr << 8 | reg`; 0: none):
+/// the unit tests' failed read of a single register
+pub(crate) static I2C_FAIL_REG: core::sync::atomic::AtomicU32 = core::sync::atomic::AtomicU32::new(0);
+
 /// Write the register address (first byte), then read from it
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn hal_i2c_write_read(
@@ -604,6 +608,9 @@ pub unsafe extern "C" fn hal_i2c_write_read(
     let (write, read) = unsafe { (ptr::bytes(write_data, write_len), ptr::bytes_mut(read_data, read_len)) };
     sim(rc::BUSY, |s| {
         let Some([reg, ..]) = write else { return rc::NULL_PTR };
+        if I2C_FAIL_REG.load(core::sync::atomic::Ordering::Relaxed) == (u32::from(addr) << 8 | u32::from(*reg)) {
+            return rc::ERROR;
+        }
         let Some(dev) = device(s, addr) else { return rc::ERROR };
         let Some(read) = read else { return rc::NULL_PTR };
         let start = reg_offset(dev.addr, *reg);

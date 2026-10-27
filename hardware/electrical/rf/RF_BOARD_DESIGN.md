@@ -1,7 +1,7 @@
 # SMART-QSO RF Board: Build-to Design
 
 **Document ID**: SQSO-RF-BRD-001
-**Version**: C
+**Version**: D
 **Date**: 2026-10-27
 **Status**: Build-to design for the engineering model (EM): schematic captured as code with selected, orderable parts,
 netlist, BOM, ERC, calculations and layout rules. Not built, not measured. Values follow
@@ -227,7 +227,7 @@ bend above the −Z end frame. That is 5.1 × OD, below the harness design's 6 �
 flexible coax.
 - **A larger top bend does not fit.** With the plug's cable axis at z +39.4, an 8.2 mm bend passes the board edge
   (x −45.1) with its centre line at z +36.3, inside the board corner. It would need a plug with the cable axis
-  ≥ 1.2 mm higher, or the jacks set back with the cable rising, which the 3.3 mm gap and the 12 mm above the board do
+  about 0.8 mm higher (for the same 0.7 mm edge clearance), or the jacks set back with the cable rising, which the 3.3 mm gap and the 12 mm above the board do
   not allow without a new plug.
 - **Accepted by analysis.** The maker's minimum governs over a generic multiple: Taoglas gives 4 mm minimum static
   bend radius for PRT.001221, so the 7 mm bends are 1.75 × that minimum. Both bends are formed once at integration
@@ -277,8 +277,17 @@ The link-budget terms:
 | +5V_PA_A | +5V_PA through FB804 | PCM1808 VCC | Analog supply; sets the deviation scale (§7.1) |
 | +3V3_LMX | TPS22918 from +3V3_RAD, ON from a PA_5V divider | LMX2571, MICROWIRE buffer | LMX2571 needs 3.15–3.45 V (the rail is 3.19–3.40 V at the board); powered only when the PA rail is present |
 
-The minimum RADIO_3V3 at the board is 3.189 V (3V3_AO −3 %, SW2, harness and ferrite drops at 80 mA): 39 mV above
-the LMX2571's 3.15 V minimum. That margin depends on the EPS 3V3_AO tolerance (±3 %); a ±2 % set point would double it.
+The minimum supply at the LMX2571 while keyed is 3.198 V (`rf_calcs.json` rx_power.rail_min_at_board, D), 48 mV
+above its 3.15 V minimum, at 0.089 A from 3V3_AO at −2 % (EPS_DESIGN 2.0 §4 now gives ±2 %). The drops are:
+
+| Drop | mV |
+|------|---:|
+| SW2, TPS2553-Q1 (0.12 Ω assumed) | 10.7 |
+| W4B, 28 AWG (SQSO-HAR-001 §9.2) | 13.7 |
+| FB801 (0.10 Ω maximum) | 8.9 |
+| TPS22918 | 2.4 |
+
+The power figures of §5.2 stay at the conservative +3 %.
 
 ### 5.2 DC power (from `rf_calcs.json`)
 
@@ -599,7 +608,7 @@ flight-like body (VI-RF-17). If ISIS supplies the phasing on the AntS, the board
 
 | Item | Rule |
 |------|------|
-| Outline and mounting | PC/104 form 90.17 × 95.89 mm, 1.6 mm, four stack columns Ø 5.8 mm at (±40.0, ±43.0) mm from the board centre, at z = +34.8 mm in layout B (values of the CDR mechanical model, to be confirmed against its drawing); board centre support per [STRUCTURAL_ANALYSIS.md](../../../docs/environment/STRUCTURAL_ANALYSIS.md) (PCB fatigue). Component height ≤ 7 mm under the 84 × 54 × 7 mm shield frame at x −42 … +42, y −40 … +14 mm that the mechanical model carries ([MECHANICAL_DESIGN.md](../../mechanical/MECHANICAL_DESIGN.md) §11 item 4), notched at the (+X, −Y) corner for J1 (x > +37.0, y < −26.0) and at the −X edge for J3/J4 (x < −30.0, y −28.0 … −16.0); ≤ 2 mm outside it except J1–J6 (envelopes in §4.3). Nothing at x < −42 in y ±(16 … 28), where the cables pass over the board edge |
+| Outline and mounting | PC/104 form 90.17 × 95.89 mm, 1.6 mm, four stack columns Ø 5.8 mm at (±40.0, ±43.0) mm from the board centre, at z = +34.8 mm in layout B (values of the CDR mechanical model, to be confirmed against its drawing); board centre support per [STRUCTURAL_ANALYSIS.md](../../../docs/environment/STRUCTURAL_ANALYSIS.md) (PCB fatigue). Component height ≤ 7 mm under the 84 × 54 × 7 mm shield frame at x −42 … +42, y −40 … +14 mm that the mechanical model carries ([MECHANICAL_DESIGN.md](../../mechanical/MECHANICAL_DESIGN.md) §11 item 4), notched at the (+X, −Y) corner for J1 (x > +30.0, y < −26.0; right-angle TFM-108, D) and at the −X edge for J3/J4 (x < −30.0, y −28.0 … −16.0); ≤ 2 mm outside it except J1–J6 (envelopes in §4.3). Nothing at x < −42 in y ±(16 … 28), where the cables pass over the board edge |
 | Stack-up | 6 layers, 1.6 mm, high-Tg FR-4 (IS410 or 370HR class): L1 RF and components (35 µm), 0.20 mm prepreg, L2 solid ground, L3 signals, L4 power planes split by domain (+3V0_RX, +3V1_DIG, +5V_PA, +3V3_PA), L5 solid ground (L4–L5 dielectric ≤ 0.30 mm: the PA supply on L4 and its return on L5 form the pair of §10.1), L6 components (digital). 50 Ω microstrip on L1: 0.37 mm (εr 4.2, h 0.20 mm; confirm with the fabricator's field solver); coplanar ground with via fence |
 | Placement (B, amended for C16) | Three shielded cavities on L1 under one frame with internal walls: (a) receive, at the frame's (−X, +Y) end (x −42 … −5, y −8 … +14): balun (to J5/J6 just outside the +Y wall), FL1, LNA, SAW, CC1200, TCXO, with the SAW and TCXO at x ≤ −15 (≥ 40 mm from the magnetometer); (b) transmit, at the (−X, −Y) end (x −42 … −5, y −40 … −8): LMX2571, PCM1808, PA, match, LPF, sense line, VHF balun (to J3/J4 in the −X notch); PA and LPF at the (−X, −Y) corner, close to the (−40, −43) column (heat path); (c) digital/audio, the +X half (x −5 … +42) less the J1 notch: MCU, CMX138A, logic, with the 3.6864 MHz crystal Y451 and FB802 at y ≤ −15. Nothing in zone M1 (§10.1), which takes the frame's strip y > +7 between x +9 and +39. FL1 input and output on opposite sides of a cavity wall; ≥ 25 mm between the PA output and the LNA input (LPF and sense line toward −Y, LNA input at y ≥ +2). Connectors: J1 (+X, −Y) corner (§4.1), J2 at (−26, −44) (§4.2), J3–J6 at x −34.5 (§4.3) |
 | Isolation | ≥ 85 dB at 146 MHz from the PA output to the LNA input (§6.3); harmonic leakage around the LPF ≤ −90 dBc (§7.4). Shield walls soldered every ≤ 5 mm (λ/20 at 3 GHz is 5 mm), via fence every 2 mm along RF traces and walls |
@@ -681,7 +690,8 @@ the ordering scheme, Murata X7R suffixes to confirm in SimSurfing).
 Finishes (SYS-915; EEE_PARTS_LIST §2A.3): NiPdAu on most TI parts; SN (matte tin) on TPS73101, LMX2571 (QFN),
 TLV9001, some LVC logic and TMP235 options, chip passives, connector tails: re-tin leaded and chip parts with Sn63Pb37;
 conformal-coat the QFN/DSBGA parts (LMX2571, CC1200 is NiPdAu). Coilcraft inductors with the tin-lead termination
-option. Shields and connector contacts not tin-plated.
+option. Shields and connector contacts not tin-plated. Connectors (D, SQSO-HAR-001 P-1): J1 Samtec TFM gold
+contacts, J2 Molex Pico-Clasp 0.38 µm gold (203556), J3–J6 MMCX gold; any tin tails re-tinned with Sn63Pb37.
 
 Radiation (BASELINE §6: 10 krad design): no part has published TID data except as noted; CMOS RF ICs of this class
 (CC1200, LMX2571) typically survive tens of krad, but that is an expectation, not data: lot sample test RAD-V3 at
@@ -715,7 +725,7 @@ scrubbing; TONE_OK relay from CMX138A IRQN; frequency trims from flash; independ
 | VI-RFB-08 | TX permit: with PA_5V removed, no emission > −60 dBm at J3/J4 with TNC_PTT and XPDR_KEY forced high; with U406 output forced high and PA_5V removed, the same | §8.5, VI-RF-12 | EM |
 | VI-RFB-10 | Receiver supervision: RX_CD follows a carrier 3 dB above the threshold and stays low on noise (< 1 false alarm per hour); RX_FAULT goes high 0.36–0.62 s after each injected fault of §8.6 (CC1200 held in reset, SPI line open, TCXO removed, TNC halted) and low after recovery; with RADIO_3V3 off both lines read low at the OBC and no current flows into the board | RID RFB-07, SRS-F115–F117 | EM |
 | VI-RFB-11 | Magnetic cleanliness (C16): with the RF board in the stack and A2 fitted (or a reference fluxgate at the A2 sensor position), the field step between transmitter off and keyed at 1 W is < 15 nT on each axis, and the RF board's static field at the sensor (board in and out, as received and after a 5 mT exposure on each axis) is recorded for the ADCS calibration; first-article inspection of the shield for permeability (no attraction to a 0.1 T test magnet) | OBC item C16, OBC_BOARD_DESIGN §9.4 | EM |
-| VI-RFB-12 | Mated heights and footprints from the manufacturers' drawings, **due 2026-11-13 (before layout starts)**: J1 Samtec FTSH-108-01-L-DV-K with its FFSD-08 cable socket (allocation 10.0 mm), J2 Molex 501331-0607 with its housing (8.0 mm), J3–J6 Molex 73415-1473 (SD-73415-147-001) with the 73414-0351 plug (6.0 mm; cable axis z +39.4); confirm 73415-1473 is non-magnetic with no nickel underplate and the plug's plating; the 1.37 mm cable's attenuation (≤ 1.33 dB/m at 436 MHz hot), inner conductor (silver-plated copper) and outgassing | §4.3, §10, OBC item C16 | Analysis (drawings) |
+| VI-RFB-12 | Mated heights and footprints from the manufacturers' drawings, **due 2026-11-13 (before layout starts)**: J1 Samtec TFM-108-01-S-D-RA with the SFSDT socket (≤ 7.0 mm, plug's back at x ≤ +43.1; tail finish; with SQSO-HAR-001 V-HAR-3), J2 Molex 203556-0607 (gold; the 6-circuit code, lock style and mating with 501330-0600) with its housing (8.0 mm), J3–J6 Molex 73415-1473 (SD-73415-147-001) with the 73414-0351 plug (6.0 mm; cable axis z +39.4); confirm 73415-1473 is non-magnetic with no nickel underplate and the plug's plating; the 1.37 mm cable's attenuation (≤ 1.33 dB/m at 436 MHz hot), inner conductor (silver-plated copper), minimum static bend radius ≤ 5 mm (candidate Taoglas PRT.001221: 4 mm, 1.6 dB/m at 1 GHz) and outgassing (E595 of the FEP and the Cu-plastic tape) | §4.3, §10, OBC item C16 | Analysis (drawings) |
 | VI-RFB-13 | AntS RF interface against the ISIS ICD: connector type (MMCX jack assumed), number of ports (four, or two if ISIS phases the pairs), their positions on the AntS's inner face, and the clearance of the mated right-angle plugs under the battery (z −48.5 … −42.2 under the cells, −48.5 … −44.9 under the clamp end caps); then the cable cut lengths. Also: fit check of the four cables in the −X wall-gap bands on the EM structure; return loss port to antenna ≥ 13.6 dB with the AntS replaced by 50 Ω loads | ANT-3, ANT-8; §4.3 | Analysis (ICD), EM |
 | VI-RFB-09 | Sense-line coupling and directivity (≥ 15 dB); detector calibration ±0.5 dB −20 to +60 °C | §7.6 | EM |
 
@@ -726,7 +736,7 @@ VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 s
 | # | Change | Owner | Recommended text or action |
 |---|--------|-------|----------------------------|
 | 1 | OBC inputs for the three readbacks (RID RF-21 / AV-05): TONE_OK on W4 J1-8, XPDR_KEY on J1-9, PTT_EXCITER on J1-10; 3.1 V CMOS push-pull through 1 kΩ, active high, valid while RADIO_3V3 is on; three GPIO inputs with pull-down, PTT_EXCITER preferably on a timer input-capture pin | OBC designer (pins), AV (firmware) | Allocate three STM32 pins; firmware reads them into the transponder statistics and checks keyed time against TX_FWD |
-| 2 | W4 signal connector 10 → 16 positions (FTSH-108): XPDR_EN (missing from W4), readbacks J1-8/9/10, and (B) RX_CD J1-15, RX_FAULT J1-16 | OBC designer | OBC J-RF pinout per §4.1; two more OBC inputs with pull-downs for RX_CD and RX_FAULT (RID RFB-07) |
+| 2 | W4 signal connector 10 → 16 positions (FTSH-108 in B; TFM-108 right-angle from D): XPDR_EN (missing from W4), readbacks J1-8/9/10, and (B) RX_CD J1-15, RX_FAULT J1-16 | OBC designer | OBC J-RF pinout per §4.1; two more OBC inputs with pull-downs for RX_CD and RX_FAULT (RID RFB-07) |
 | 3 | OBC SPI2 (PB13–PB15, PD0, "RF transceiver" in `spi.rs`) is no longer used by the radio | OBC designer, AV | Free the pins |
 | 4 | SW2 trip current 0.25 A does not detect latch-up of a 38 mA load | EPS designer | SW2 current limit ≈ 0.12 A, or OBC monitoring of the RADIO rail current with a power cycle of RADIO_EN |
 | 5 | 3V3_AO tolerance ±3 % leaves 39 mV for the LMX2571's 3.15 V minimum | EPS designer | ±2 % set point, or confirm ±3 % includes load and temperature |
@@ -738,7 +748,7 @@ VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 s
 | 11 | ±1.0 ppm over 2 years needs a re-trim | Chair, AV | Optional KISS SetHardware frequency-trim command, or ground-side correction |
 | 12 | ICD-003 §4.2/§4.3/§6/§8: readbacks wired, TONE_OK etc. levels, RADIO_EN-to-ready ≤ 50 ms (MCU boot ≈ 5 ms, CC1200 set-up ≈ 10 ms, TCXO ≤ 2 ms), connector part, ADC scalings confirmed | Chair (ICD owner) | Update from §4 |
 | 13 | VI-RF-11 "unkeys within 100 ms in every case": a stalled main loop takes up to 118 ms (60 ms lease + 58 ms) | AV / chair | Measure from the last edge (≤ 59 ms), or shorten the lease to ≤ 40 ms |
-| 14 | (B, amended) C16 layout constraints: J1 top side at (+41.0, −33.5) with the pin field along Y; J2 top side at (−26, −44); shield frame notched at x > +37.0, y < −26.0; top-side connectors exceed the 2 mm outside-shield envelope (mated heights open, Samtec and Molex drawings); zone M1 on the RF board | Mechanical designer, harness designer (W4A, W4B) | Carry the notch and the two connector envelopes in the CAD model; W4A ribbon from J1 into the +X wall gap at y −28 … −39 (it shares the bundle band y −24 … −34 with the harness: fold 45° or move the −Y bundle, as in OBC_BOARD_DESIGN §21); W4B twisted PA_5V/GND pairs |
+| 14 | (B, amended; D) C16 layout constraints: J1 right-angle TFM-108 on the top side, pin field y −39.3 … −27.7, header and plug in x +30.0 … +43.1, cable toward +X (SQSO-HAR-001 R-1); J2 gold Pico-Clasp at (−26, −44); shield frame notched at x > +30.0, y < −26.0; top-side connectors exceed the 2 mm outside-shield envelope (mated heights open, Samtec and Molex drawings, VI-RFB-12); zone M1 on the RF board | Mechanical designer | Carry the notch and the connector envelopes in the CAD model. W4A (flat SFSDT on the +X shear panel) and W4B (28 AWG twisted pairs) are as SQSO-HAR-001 2.0 routes them |
 | 15 | (C) RF connectors and antenna cables, **settled**: MMCX jacks J3–J6 on the top side at x −34.5 (J3/J4 in a −X notch of the shield frame, x < −30.0, y −28.0 … −16.0), 1.37 mm cables with right-angle MMCX plugs, down the −X wall gap in the bands y ±(20.0 … 24.0), to the AntS's MMCX ports (assumed). Envelopes, the cable path and the bends in §4.3 | Mechanical designer (CAD envelopes, shield notch); harness designer (W10 v3, ties in the gap; HARNESS_DESIGN §4.7 H7 still says RG-316 and SMA); chair (TRANSMITTER_DESIGN §11 and RF_ELECTRICAL_DESIGN connector rows still say SMA end launch) | Put the §4.3 envelopes in the CAD model in one pass; keep the −X bands y ±(20 … 24) free of harness; update H7 to W10 v3. The CAD model's AntS has two elements (option A: 2 m +X, 70 cm −X); this board and ANTENNA_DESIGN 2.1 use four (2 m ±X, 70 cm ±Y): the model needs the four-element case for the port count |
 
 ## 16. Not Verified
@@ -771,3 +781,4 @@ VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 s
 | B | 2026-10-27 | CDR design completion, RF board (RID RFB-07) | Receiver supervision lines to the OBC: RX_CD (CC1200 carrier sense, J1-15) and RX_FAULT (hardware health monostable on the TNC's RX_ALIVE pulses, J1-16), fault criteria (§8.6), TNC firmware duties (§13), VI-RFB-10; J1/W4 16 positions (W4 v3); power, part counts and ERC re-run; BASELINE cited at Rev E |
 | B (amended) | 2026-10-27 | CDR design completion, RF board (OBC item C16) | Magnetometer moved to board A2 above (+24, +27): magnetic-cleanliness rules (§10.1: zone M1 with no parts, zone M2 with no ferromagnetic parts, PA supply and return paired on L4/L5 and kept in the (−X, −Y) corner, field computed in `rf_calcs.py` §15); shield specified as unplated nickel-silver with soldered lids and no clips (BOM SH1–SH4); cavities re-placed (receive cavity to the frame's (−X, +Y) end); J1 in the (+X, −Y) corner with a shield notch, J2 by the PA; VI-RFB-11; §15 items 14 and 15 (connector envelopes, coax connectors versus the wall gaps) |
 | C | 2026-10-27 | CDR design completion, RF board (§15 item 15) | Antenna ports settled (§4.3): SMA end launch replaced by Molex 73415-1473 MMCX jacks (non-magnetic) at x −34.5, J3/J4 in a −X shield notch; 1.37 mm cables with Molex 73414-0351 right-angle MMCX plugs down the −X wall gap in the free bands y ±(20 … 24) to the AntS (MMCX assumed); positions, envelopes and cable path for the CAD; J1/J2/J3–J6 mated-height allocations; loss and return loss computed (`rf_calcs.py` §16): 0.44 dB at 146 MHz (0.56 dB inside the LBA's 1.0 dB), 0.62 dB at 436 MHz, T_sys 548–598 K (requirement 650 K); W10 v3; VI-RFB-12 (drawings, due 2026-11-13), VI-RFB-13 (AntS ICD) |
+| D | 2026-10-27 | CDR design completion, RF board (SQSO-HAR-001 2.0 §15 R-1 to R-3) | J1 to Samtec TFM-108-01-S-D-RA right-angle (gold), cable toward +X, plug's back ≤ x +43.1, shield notch x > +30.0 (§4.1); J2 to the gold Pico-Clasp 203556-0607 (§4.2); W4B 28 AWG in three twisted pairs, LMX2571 supply minimum recomputed with the harness drops and EPS ±2 %: 3.198 V, 48 mV margin (§5.1); W10 cable candidate Taoglas PRT.001221 (4 mm minimum static bend), the 7 mm bends accepted by analysis against the 6 × OD rule (§4.3); finishes (§12); VI-RFB-12 extended |

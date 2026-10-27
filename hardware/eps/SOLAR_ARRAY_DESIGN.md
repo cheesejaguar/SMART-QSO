@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-SA-001
-**Version:** 2.1
+**Version:** 2.2
 **Date:** 2026-10-27
 **Status:** Controlled array layout and power-versus-attitude table for the baseline in `docs/BASELINE_PARAMETERS.md` §5 (finding TB-14). **Analysis, not measured.** Other documents that state array power should cite §3 and §9 of this document.
 
@@ -145,7 +145,7 @@ Sections 4–8 and 10 carry Version 1.0 design values that have no source yet, e
 
 ### 4.2 String Wiring
 
-- 24 AWG radiation-resistant wire (PTFE/Kapton): a string's Isc reaches 0.55 A (1414 W/m², hot), above the 0.5 A that 26 AWG carries with the 50 % derating of SQSO-HAR-001 §5.2
+- **28 AWG M22759/33** (ETFE, 200 °C) wire, **two wires per pole** on the EPS's Pico-Clasp headers (the Pico-Clasp terminal takes 28–32 AWG only): a string's Isc reaches 0.55 A (1414 W/m², hot), 0.28 A per wire, within the EEE-INST-002 bundle-derated 0.90 A of SQSO-HAR-001 2.0 §5.2 (its §9.1 gives 37 % at the 0.33 A worst wire); harnesses W2PX–W2MY and W2W1, W2W2 (SQSO-HAR-001 §4), gold contacts
 - Strain relief at all connection points
 - Harness routing per ICD
 
@@ -357,3 +357,4 @@ Findings for the power budget (TB-02), reported rather than changed here:
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 2.0 | 2026-10-16 | Funding audit (TB-14): one array layout (§3.1), cell data from the AZUR SPACE datasheet, power-versus-attitude table with the calculation shown (§9); the 19.4 W all-cells total withdrawn |
 | 2.1 | 2026-10-27 | CDR review (EPS): bus at the 4.10 V/cell set point (§1.1); four trackers (§3.2); 24 AWG string wire (§4.2); predicted panel temperatures (§7.1); simulated generation and the tumbling margin closed (§9.5) |
+| 2.2 | 2026-10-27 | CDR design (EPS board): §4.2 string wire per SQSO-HAR-001 2.0 (S-1): 28 AWG M22759/33, two wires per pole (was 24 AWG) |
