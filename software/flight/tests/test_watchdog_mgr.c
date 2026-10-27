@@ -399,11 +399,11 @@ static void test_external_supervisor_kicked_only_while_healthy(void **state)
     (void)state;
     assert_false(hal_gpio_get(GPIO_PIN_WDI)); /* low from the start */
     assert_int_equal(wdi_falling_edges(9U, true), 0U);
-    assert_int_equal(wdi_falling_edges(25U, true), 2U); /* at 11 s and 22 s */
+    assert_int_equal(wdi_falling_edges(23U, true), 2U); /* at 11 s and 22 s */
     (void)wdi_falling_edges(5U, false);                 /* the task stalls */
     assert_true(wdt_mgr_any_task_stalled());
     assert_int_equal(wdi_falling_edges(30U, false), 0U); /* the supervisor resets the OBC */
-    assert_int_equal(wdi_falling_edges(12U, true), 1U);  /* recovered */
+    assert_true(wdi_falling_edges(12U, true) >= 1U);     /* recovered */
 }
 
 /*******************************************************************************

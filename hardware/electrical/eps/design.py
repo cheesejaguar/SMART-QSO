@@ -307,66 +307,78 @@ def TP(net, ref=None):
 
 # ================================================================================================= 1 connectors
 def connectors():
-    j = place(CONN("MicroFit_2x4", 8), "J1", "BATTERY", "0430450812", "Molex", "Micro-Fit 3.0 2x4 vertical",
-              "5 A/contact (20 AWG), 600 V", "1.3 A max on 2 contacts per pole: 13 %", "W1 P1/J1", "Sn; mates Sn", "Digi-Key: Active")
+    # Every harness connector on the bottom side in the SQSO-HAR-001 2.0 section 10.1 zones (Z1-Z5, +X edge); headers
+    # in gold (EEE_PARTS_LIST 2A.3 item 5: no tin contacts). Pico-Clasp: Molex 203556 (0.38 um Au mating, Au flash post),
+    # mates the 501330 housings with gold 501334 terminals. Micro-Fit 3.0: 43045 right-angle, 0.76 um Au mating.
+    def pico(n, ref, val, rating_use, note, zone):
+        mpn = f"20355600{n}07"[-10:]
+        chk = {6: "Digi-Key: Active (Au 0.38 um)", 8: "Digi-Key: listed"}.get(n, "pattern (203556-xx07): confirm (V-HAR-3)")
+        return place(CONN(f"PicoClasp_{n}", n), ref, val, f"2035560{n}07", "Molex", f"Pico-Clasp 1.0 mm {n} pos vertical SMT, bottom side",
+                     "1 A/contact", rating_use, f"{note}; zone {zone}", "Au 0.38 um mating, Au flash post", chk)
+
+    def mfit(n, ref, val, rating_use, note, zone, chk):
+        return place(CONN(f"MicroFit_2x{n // 2}", n), ref, val, f"043045{n:02d}02", "Molex",
+                     f"Micro-Fit 3.0 2x{n // 2} right-angle THT, bottom side", "5 A/contact", rating_use, f"{note}; zone {zone}",
+                     "Au 0.76 um mating; Sn post (soldered: SnPb assembly, coat)", chk)
+
+    j = mfit(8, "J1", "BATTERY", "1.71 A max (fault) on 2 contacts per pole: 17 %", "W1 (pack leads, NTC1 and return, heater)",
+             "Z1 (PACK corner, -X +Y)", "Digi-Key 0430450802: Active (R/A, Au 30 uin)")
     conn(j, {"P1": "BAT_TOP", "P2": "BAT_TOP", "P3": "BAT_BOT", "P4": "BAT_BOT", "P5": "NTC1", "P6": "GND",
              "P7": "HTR_P", "P8": "HTR_N"})
-    j = place(CONN("PicoClasp_6", 6), "J2", "CELL TAPS", "5013310607", "Molex", "Pico-Clasp 1.0 mm 6 pos SMT",
-              "1 A/contact", "< 1 mA", "W1 P2/J2: cell taps and NTC2", "Sn", "Digi-Key: Active")
+    j = pico(6, "J2", "CELL TAPS", "< 20 mA", "W1: cell taps and NTC2", "Z1")
     conn(j, {"P1": "TAP0", "P2": "TAP1", "P3": "TAP2", "P4": "TAP3", "P5": "TAP4", "P6": "NTC2"})
-    # J3 OBC: W3 per SQSO-ICX-001 section 3.1 (40 positions; pins 21 and 27 are the analog return, joined to GND at
-    # the board's analog star point at layout)
+    # J3 OBC: W3 per SQSO-ICX-001 section 3.1 (40 positions; pins 21 and 27 are the analog return AGND, joined to GND at
+    # the board's analog star point at layout); Samtec TFM vertical SMT on the bottom side for the SFSDT cable (HAR-001)
     pins = ["3V3_OBC", "3V3_OBC", "GND", "GND", "I2C2_SCL", "I2C2_SDA", "GND", "EPS_ALERT_N", "PAYLOAD_EN", "RADIO_EN",
             "ADCS_EN", "HEATER_EN", "DEPLOY_EN", "RF_TX_EN", "GNSS_EN", "DEPLOY_SENSE", "BURN_W2A", "BURN_W1A",
             "VJET_RB", "SOLAR_SENSE", "GND", "VBATT_SNS", "IBATT_SNS", "VSOLAR_SNS", "ISOLAR_SNS", "VBUS_SNS",
             "GND", "GND", "JETSON_PWR", "BURN_W1B", "BURN_W2B", "EOL_ARM", "EOL_FIRE", "LOCK_CLR", "GND", "VBAT_MTQ",
             "VSW1_RB", "3V3_RTC", "VBAT_MTQ", "GND"]
-    j = place(CONN("FTSH_2x20", 40), "J3", "OBC", "FTSH-120-01-L-DV-K", "Samtec", "FTSH 1.27 mm 2x20",
-              "2.4 A/contact (Samtec rating)", "3V3_OBC 0.18 A and VBAT_MTQ 0.40 A (SW11 limit max) on 2 pins each: 8 %",
-              "W3 per SQSO-ICX-001 3.1 (40 pins)", "Au 10 uin", "not checked")
+    j = place(CONN("TFM_2x20", 40), "J3", "OBC", "TFM-120-02-S-D-A", "Samtec", "Tiger Eye TFM 1.27 mm 2x20 vertical SMT, bottom side",
+              "Samtec rating per contact (SFSDT 30 AWG: 0.5 A derated, SQSO-HAR-001)",
+              "3V3_OBC 0.18 A and VBAT_MTQ 0.40 A (SW11 limit max) on 2 pins each",
+              "W3 (SFSDT discrete-wire cable) per SQSO-ICX-001 3.1; +X edge, |y| < 15.5 mm", "Au (code -S, 30 uin)",
+              "pattern from the Samtec TFM series: lead style -02 (SMT), plating -S and latching option to confirm with Samtec (V-HAR-3)")
     for i, nm in enumerate(pins, 1):
         link(nm, j[f"P{i}"])
     # solar strings: body J4 PX, J5 MX, J6 PY, J7 MY (SA+, SA-, TEMP); wings J8 W1, J9 W2 (SA1+ front, SA2+ back, SA-, SA-, TEMP)
-    for ref, name in (("J4", "PX"), ("J5", "MX"), ("J6", "PY"), ("J7", "MY")):
-        j = place(CONN("PicoClasp_5", 5), ref, f"STRING {name}", "5013310507", "Molex", "Pico-Clasp 1.0 mm 5 pos SMT",
-                  "1 A/contact", "0.55 A Isc on two contacts and two 26 AWG wires per pole: 0.28 A each (55 % of the 26 AWG "
-                  "0.5 A derated rating)", "W2 PB/JB", "Sn", "pattern (501331-xx07)")
+    for ref, name, zone in (("J4", "PX", "Z4"), ("J5", "MX", "Z2"), ("J6", "PY", "Z1"), ("J7", "MY", "Z2")):
+        j = pico(5, ref, f"STRING {name}", "0.55 A Isc on two contacts and two 28 AWG wires per pole: 0.28 A each "
+                 "(28 % of the contact, 37 % of the 28 AWG derated 0.90 A, SQSO-HAR-001 5.2)", f"W2{name}", zone)
         conn(j, {"P1": f"S_{name}", "P2": f"S_{name}", "P3": "GND", "P4": "GND", "P5": f"TPNL_{name}"})
-    for ref, w in (("J8", "W1"), ("J9", "W2")):
-        j = place(CONN("PicoClasp_8", 8), ref, f"WING {w}", "5013310807", "Molex", "Pico-Clasp 1.0 mm 8 pos SMT",
-                  "1 A/contact", "0.55 A per string on two contacts; 1.1 A return on three", "W2 PW/JW", "Sn", "pattern (501331-xx07)")
+    for ref, w, zone in (("J8", "W1", "Z3"), ("J9", "W2", "Z5")):
+        j = pico(8, ref, f"WING {w}", "0.55 A per string on two contacts; 1.1 A return on three", f"W2{w}", zone)
         conn(j, {"P1": f"S_{w}F", "P2": f"S_{w}F", "P3": f"S_{w}B", "P4": f"S_{w}B", "P5": "GND", "P6": "GND", "P7": "GND",
                  "P8": f"TPNL_{w}"})
     # wing burn resistors (two per wing) and hinge sense, J10 W1, J11 W2
-    for ref, w, s_in, s_out in (("J10", "W1", "SA_SENSE_PU", "SA_SENSE_MID"), ("J11", "W2", "SA_SENSE_MID", "GND")):
-        j = place(CONN("MicroFit_2x3", 6), ref, f"BURN {w}", "0430450612", "Molex", "Micro-Fit 3.0 2x3 vertical",
-                  "5 A/contact", "0.88 A: 18 %", "W7: R_A+, R_A-, R_B+, R_B-, sense in, sense out", "Sn", "pattern (43045-xx12)")
+    for ref, w, s_in, s_out, hz, zone in (("J10", "W1", "SA_SENSE_PU", "SA_SENSE_MID", "W7A", "Z3 (plug toward +X)"),
+                                          ("J11", "W2", "SA_SENSE_MID", "GND", "W7B", "Z2")):
+        j = mfit(6, ref, f"BURN {w}", "0.88 A: 18 %", f"{hz}: R_A+, R_A-, R_B+, R_B-, sense in, sense out", zone,
+                 "Digi-Key 0430450602: Active (R/A, Au 30 uin)")
         conn(j, {"P1": "V_BURN", "P2": f"BRET_{w}A", "P3": "V_BURN", "P4": f"BRET_{w}B", "P5": s_in, "P6": s_out})
-    j = place(CONN("PicoClasp_4", 4), "J12", "AntS", "5013310407", "Molex", "Pico-Clasp 1.0 mm 4 pos SMT", "1 A/contact",
-              "0.61 A AntS peak: 61 %, two contacts recommended at layout (HAR-001)", "W7: AntS supply and I2C (pinout to the AntS ICD)", "Sn", "Digi-Key: Active")
-    conn(j, {"P1": "3V3_ANTS", "P2": "GND", "P3": "ANTS_SDA", "P4": "ANTS_SCL"})
-    j = place(CONN("MicroFit_2x3", 6), "J13", "UMBILICAL", "0430450612", "Molex", "Micro-Fit 3.0 2x3 vertical",
-              "5 A/contact", "0.5 A charge: 10 %", "EPS access-port harness (new, W11 proposed): charge in, return, pack monitor, AFE shutdown", "Sn", "pattern")
+    j = pico(6, "J12", "AntS", "0.61 A AntS peak on two contacts: 31 %", "W7C: AntS supply and I2C (SQSO-HAR-001 pinout)", "Z5")
+    conn(j, {"P1": "3V3_ANTS", "P2": "3V3_ANTS", "P3": "GND", "P4": "GND", "P5": "ANTS_SDA", "P6": "ANTS_SCL"})
+    j = mfit(6, "J13", "UMBILICAL", "0.5 A charge: 10 %", "W11 to the access-port board A3: charge in, return, pack monitor, AFE shutdown",
+             "Z5", "Digi-Key 0430450602: Active (R/A, Au 30 uin)")
     conn(j, {"P1": "UMB_CHG", "P2": "UMB_CHG", "P3": "PACK_N", "P4": "PACK_N", "P5": "UMB_VMON", "P6": "UMB_SHUT"})
-    j = place(CONN("PicoClasp_4", 4), "J14", "RBF", "5013310407", "Molex", "Pico-Clasp 1.0 mm 4 pos SMT", "1 A/contact", "uA",
-              "RBF switch, two poles: A opens DS2's drive, B clamps the tracker enables", "Sn", "Digi-Key: Active")
+    j = pico(4, "J14", "RBF", "uA", "W12D: RBF switch, two poles: A opens DS2's drive, B clamps the tracker enables", "Z4 (-Y edge)")
     conn(j, {"P1": "S2N", "P2": "S2R", "P3": "TRK_EN", "P4": "GND"})
-    for ref, ds, c, nc, no in (("J15", "DS1", "DS1_C", "S1N", None), ("J16", "DS2", "DS2_C", "S2N", None),
-                               ("J17", "DS3", "GND", "S3N", "TRK_EN")):
-        j = place(CONN("PicoClasp_3", 3), ref, ds, "5013310307", "Molex", "Pico-Clasp 1.0 mm 3 pos SMT", "1 A/contact", "uA",
-                  f"{ds} deployment switch (C, NC = closed when released, NO = closed when stowed); own harness on its own rail",
-                  "Sn", "Digi-Key: Active")
+    for ref, ds, c, nc, no, hz, zone in (("J15", "DS1", "DS1_C", "S1N", None, "W12A", "Z3"),
+                                         ("J16", "DS2", "DS2_C", "S2N", None, "W12B", "Z2"),
+                                         ("J17", "DS3", "GND", "S3N", "TRK_EN", "W12C", "Z4")):
+        j = pico(3, ref, ds, "uA", f"{hz}: {ds} deployment switch (C, NC = closed when released, NO = closed when stowed); "
+                 "own harness on its own rail", zone)
         conn(j, {"P1": c, "P2": nc, "P3": no})
-    j = place(CONN("MicroFit_2x2", 4), "J18", "JETSON PWR", "0430450412", "Molex", "Micro-Fit 3.0 2x2 vertical", "5 A/contact",
-              "0.93 A on 2 contacts: 9 %", "W5: VBAT_JET (was +5V_JET), 2 x 22 AWG", "Sn", "pattern")
+    j = mfit(4, "J18", "JETSON PWR", "0.93 A on 2 contacts: 9 %", "W5A: VBAT_JET, 2 x 24 AWG twisted quad", "Z2",
+             "Digi-Key: 0430450402 listed (R/A 4 pos); finish and status to confirm")
     conn(j, {"P1": "VBAT_JET", "P2": "VBAT_JET", "P3": "GND", "P4": "GND"})
-    j = place(CONN("MicroFit_2x3", 6), "J19", "RF PWR", "0430450612", "Molex", "Micro-Fit 3.0 2x3 vertical", "5 A/contact",
-              "0.54 A: 11 %", "W4: PA 5 V (switched, TX-OFF), receiver 3.3 V (switched)", "Sn", "pattern")
-    conn(j, {"P1": "5V_PA_SW", "P2": "5V_PA_SW", "P3": "GND", "P4": "GND", "P5": "3V3_RADIO", "P6": "GND"})
-    for ref, net, what, hz in (("J20", "3V3_ADCS", "ADCS", "W6B to OBC J6 (ADCS sensor supply)"),
-                               ("J21", "3V3_GNSS", "GNSS", "W9B to OBC J4 (GNSS receiver supply via the OBC)")):
-        j = place(CONN("PicoClasp_2", 2), ref, f"{what} PWR", "5013310207", "Molex", "Pico-Clasp 1.0 mm 2 pos SMT",
-                  "1 A/contact", "<= 0.34 A at the trip", f"{hz}: {what} 3.3 V switched", "Sn", "Digi-Key: Active")
+    # J19 RF power: Pico-Clasp 6 with the pinout of RF J2 (SQSO-HAR-001 E-3)
+    j = pico(6, "J19", "RF PWR", "PA 0.55 A on 2 contacts: 28 %", "W4B: radio 3.3 V (switched), PA 5 V (switched, TX-OFF)", "Z2")
+    conn(j, {"P1": "3V3_RADIO", "P2": "GND", "P3": "5V_PA_SW", "P4": "5V_PA_SW", "P5": "GND", "P6": "GND"})
+    for ref, net, what, hz, zone in (("J20", "3V3_ADCS", "ADCS", "W6B to OBC J6 (ADCS sensor supply)", "Z1 (-X edge, +Y side)"),
+                                     ("J21", "3V3_GNSS", "GNSS", "W9B to OBC J4 (GNSS receiver supply via the OBC)",
+                                      "Z3 (+X edge, +Y side)")):
+        j = pico(2, ref, f"{what} PWR", "<= 0.34 A at the trip", f"{hz}: {what} 3.3 V switched", zone)
         conn(j, {"P1": net, "P2": "GND"})
     j = place(CONN("Header_1x4", 4), "J22", "SBW", "FTSH-102-01-L-DV-K", "Samtec", "FTSH 1.27 mm 2x2", "", "",
               "MSP430 Spy-Bi-Wire programming (ground use only)", "Au", "not checked")

@@ -206,7 +206,7 @@ space in the gaps ([MECHANICAL_DESIGN.md](../../mechanical/MECHANICAL_DESIGN.md)
 | Item | Part | Why |
 |------|------|-----|
 | Board jacks J3–J6 | **Molex 73415-1473**, MMCX straight jack, through-hole, brass body and BeCu contact, gold, listed **non-magnetic** (distributor listing, Active, read 2026-10-27) | Vertical on the top side: the plug turns the cable toward the gap. MMCX snap-on with 360° rotation, 500 cycles, DC–6 GHz. Legs trimmed to ≤ 1.0 mm below the board (the spreader is 2.0 mm below) |
-| Cable | **1.37 mm 50 Ω micro-coax**: silver-plated copper inner conductor (no copper-clad steel: ANT-8), FEP or PFA jacket, outgassing TML ≤ 1 %, CVCM ≤ 0.1 % | Two per band: 2.74 mm of the 4.0 mm band. The MIL-DTL-17 RG-178 and RG-316 have silver-plated copper-covered steel inner conductors (ferromagnetic, ANT-8). Bend radius 7 mm (≥ 5 × OD) |
+| Cable | **1.37 mm 50 Ω micro-coax**: silver-plated copper inner conductor (no copper-clad steel: ANT-8), FEP or PFA jacket, outgassing TML ≤ 1 %, CVCM ≤ 0.1 % | Two per band: 2.74 mm of the 4.0 mm band. The MIL-DTL-17 RG-178 and RG-316 have silver-plated copper-covered steel inner conductors (ferromagnetic, ANT-8). **Candidate (D): Taoglas PRT.001221** (data sheet SPE-25-8-227-A, read 2026-10-27). It has a silver-plated copper 7/0.105 mm inner, FEP insulation and jacket, a Cu-plastic tape and a 90 % silver-plated copper braid. It weighs 5 g/m, is rated −55 … +125 °C, and loses 1.6 dB/m at 1 GHz, which is inside the 1.68 dB/m that §16 assumes. Its minimum static bend radius is 4 mm. Bends 7 mm (below) |
 | Cable plugs, both ends | **Molex 73414-0351**, MMCX right-angle plug, crimp, for 1.37 mm cable, brass, gold | Nickel underplate likely (not stated): ≥ 58 mm from A2 at the board end, ≈ 90 mm at the AntS end (below 1 nT per µA·m², §10.1) |
 | AntS ports | **MMCX jacks assumed**: the ISIS antenna brochure lists MMCX female RF ports. The 1U/3U ICD and connector positions are not in the repository | **VI-RFB-13** against the ISIS ICD; if ISIS fits another type (SSMCX or U.FL), only the AntS-end plug changes |
 
@@ -219,8 +219,25 @@ space in the gaps ([MECHANICAL_DESIGN.md](../../mechanical/MECHANICAL_DESIGN.md)
 | Cable exit and top bend | plug exit x −39.9, cable axis z +39.4 | R 7 bend to vertical at x −46.9, z +32.4; clears the board edge (x −45.1) by 0.7 mm | Pair side by side, centres y ±21.3 and ±22.7 |
 | Wall-gap run | x −45.4 … −48.4, y +20.0 … +24.0 (70 cm pair) and −20.0 … −24.0 (2 m pair) | z +32.4 … −39.2 | Tied to the shear-panel side every 30 mm (harness design) |
 | Bottom bend and AntS run | from x −46.9, z −39.2, R 7 inboard to z −46.2 | under the battery end caps (bottom z −44.9, 0.6 mm clear) and over the −Z end frame (inner face −46.9), into the 70 × 70 mm cut-out to the AntS ports (z −48.5) | Last 5–75 mm depends on the AntS port positions (VI-RFB-13) |
-| J1 (W4A) | §4.1 | **10.0 mm allocation** for the FTSH-108 header, the FFSD socket and the ribbon bend; 12.0 mm is free to the +Z end frame | Mated height from the Samtec drawing: VI-RFB-12 |
-| J2 (W4B) | §4.2 | **8.0 mm allocation** for the Pico-Clasp header, housing and wire bend | Mated height from the Molex drawing: VI-RFB-12 |
+| J1 (W4A) | §4.1: right-angle TFM-108, pin field y −39.3 … −27.7, header and plug in x +30.0 … +43.1 | ≤ 7.0 mm (SQSO-HAR-001 §10); **10.0 mm allocation** kept; 12.0 mm is free to the +Z end frame. The SFSDT cable leaves toward +X, with no bend over the top | Mated geometry from the Samtec drawing: VI-RFB-12 |
+| J2 (W4B) | §4.2 | **8.0 mm allocation** for the Pico-Clasp header, housing and the 28 AWG twisted-pair bend | Mated height from the Molex drawing: VI-RFB-12 |
+
+**Bend radius (D, SQSO-HAR-001 item R-3).** Both bends are 7 mm: the top bend over the board edge and the bottom
+bend above the −Z end frame. That is 5.1 × OD, below the harness design's 6 × OD (8.2 mm) workmanship rule for
+flexible coax.
+- **A larger top bend does not fit.** With the plug's cable axis at z +39.4, an 8.2 mm bend passes the board edge
+  (x −45.1) with its centre line at z +36.3, inside the board corner. It would need a plug with the cable axis
+  ≥ 1.2 mm higher, or the jacks set back with the cable rising, which the 3.3 mm gap and the 12 mm above the board do
+  not allow without a new plug.
+- **Accepted by analysis.** The maker's minimum governs over a generic multiple: Taoglas gives 4 mm minimum static
+  bend radius for PRT.001221, so the 7 mm bends are 1.75 × that minimum. Both bends are formed once at integration
+  and tied, and are not flexed in service; the cable's only motion is launch vibration, restrained by the ties every
+  30 mm.
+- **Electrically**, a 7 mm bend in a 1.37 mm 50 Ω cable at ≤ 436 MHz changes the impedance negligibly (λ/100 is
+  7 mm at 436 MHz).
+- **Conditions.** The harness/workmanship authority concurs (SQSO-HAR-001 V-HAR-10). The procured cable is PRT.001221
+  or another with a minimum static radius ≤ 5 mm (VI-RFB-12). Return loss and continuity of each assembly are
+  measured after forming and after protoflight vibration (VI-RFB-13).
 
 **Cable length.** The route needs 109–179 mm, depending on where the AntS ports are. The loss budget carries
 0.22 m, and each pair is cut to the measured route, matched within 2 mm.
