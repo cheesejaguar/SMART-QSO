@@ -1,5 +1,5 @@
 //! The GNSS state frame (RID LV-04; `docs/operations/TELEMETRY_DICTIONARY.md`
-//! §3.6): after each GNSS session that ended with a fix, and again on
+//! §4.4.2, SQSO-TLM-001 1.3): after each GNSS session that ended with a fix, and again on
 //! GET_HOUSEKEEPING, one plain-ASCII UI frame
 //!
 //! ```text
@@ -9,7 +9,8 @@
 //! - `N`: the GNSS session that took the fix (HK1 `GS`, first number); a
 //!   frame sent again on GET_HOUSEKEEPING keeps it, so the ground can drop
 //!   the repeat.
-//! - `WK`, `TOW`: the GPS week as the receiver reports it and the GPS time
+//! - `WK`, `TOW`: the GPS week as the receiver reports it (10 bits, the
+//!   ground resolves the rollover) and the GPS time
 //!   of week of the fix, ms (the `$PSLSP` record's epoch).
 //! - `X`, `Y`, `Z`: the receiver's ECEF position at that epoch, m (WGS-84).
 //! - `VX`, `VY`, `VZ`: ECEF velocity at the same epoch, mm/s. The piNAV-NG

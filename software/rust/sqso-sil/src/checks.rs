@@ -150,6 +150,19 @@ pub struct Totals {
     pub dump_frames: u64,
     /// Records in the dump frames
     pub dump_records: u64,
+    /// GNSS sessions that ended with a fix, GNSS state frames radiated, and
+    /// those with a velocity
+    pub gnss_fix_sessions: u64,
+    /// GNSS state frames radiated
+    pub gnss_frames: u64,
+    /// Those with a velocity
+    pub gnss_vel_frames: u64,
+    /// Largest position error of a frame against the receiver's record, m
+    pub gnss_pos_err_max_m: f64,
+    /// Largest and summed velocity error against the truth, m/s
+    pub gnss_vel_err_max: f64,
+    /// Summed velocity error, m/s
+    pub gnss_vel_err_sum: f64,
     /// The next five-minute record number the last HK1 frame showed
     pub store_next: Option<u32>,
     /// Command receiver hangs, and those its power cycle cleared
@@ -306,7 +319,7 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
     ));
     c.push(check(
         "load-shed",
-        "Hardware load sheds of SW1, U19 and SW3 (VBAT below 13.6 V for 5 s), before passivation",
+        "Hardware load sheds of SW1 and U19 (VBAT below 13.6 V for 5 s), before passivation",
         t.sheds.to_string(),
         "0 (a stuck-on payload contingency shows it acting)",
         if t.sheds == 0 { Pass } else { Warning },
@@ -657,6 +670,23 @@ fn operations_cdr(c: &mut Vec<Check>, t: &Totals) {
         format!("{} for {} ({:.1} %)", t.acks, t.commands_executed, acked * 100.0),
         ">= 90 %",
         if t.commands_executed == 0 || acked >= 0.9 { Pass } else { Warning },
+    ));
+    let vel_mean = if t.gnss_vel_frames > 0 { t.gnss_vel_err_sum / t.gnss_vel_frames as f64 } else { 0.0 };
+    c.push(check(
+        "gnss-frame",
+        "GNSS state frames (SRS-F158) against the truth: position as recorded, the derived ECEF velocity (the SIL's orbit has no J2: about 0.1 m/s of the error is the model's)",
+        format!(
+            "{} frames for {} fix sessions, {} with a velocity; position {:.2} m, velocity mean {:.3} max {:.3} m/s",
+            t.gnss_frames, t.gnss_fix_sessions, t.gnss_vel_frames, t.gnss_pos_err_max_m, vel_mean, t.gnss_vel_err_max
+        ),
+        "a frame per fix session; position <= 1 m; velocity <= 0.5 m/s",
+        if t.gnss_pos_err_max_m > 1.0 || t.gnss_vel_err_max > 0.5 {
+            Anomaly
+        } else if t.gnss_fix_sessions > 0 && t.gnss_frames == 0 {
+            Warning
+        } else {
+            Pass
+        },
     ));
     c.push(check(
         "dumps",

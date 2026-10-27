@@ -30,7 +30,7 @@ numpy/scipy). Outputs are in the same directory: `results.json`, `fem_results.js
 | AntS tapes to the stowed wings (STR-16) | 6.5 mm (tape band to the wing's −Z edge, wing shortened and moved +3 mm); 0.5 mm with the 98 mm wing centred; deployed 2 m tape to the deployed wing 37.8 mm | ≥ 10 mm or wings first | §6.7 |
 | Wing hinge and deployment springs (MCAD-01, STR-13) | Version A springs do not fit; **Version B design fits**: two 17-7PH torsion springs on the hinge axis (primary below the wing, secondary at +Z), clock-spring flex at R 1.0–1.6 mm. Torque margin (5017B, analysis factors) **+0.14** at the cold end of travel, one spring out +0.13; spring stress MS +0.12 / **+0.04** (yield); damped soft stop 0.157 N·m (214 µε); no latch, holding margin +17 | TM ≥ 0 (5017B Eq. 4-1); Table 4; DDMR 14, 53; ≤ 0.3 N·m (STR-14) | §6.8; SQSO-MECH-001 B |
 | Mass, CG | 1,519.4 g CBE / 1,754.2 g MEV (= MEL, with the 20 g inertia ballast of row 36, chair decision C-13; rows 32 (76.1 g) and 26 to the harness design, D-2; row 37, the 5 g battery cell retention of §4.6; row 23 at 66.6 g with the SoC pedestal; row 5 re-split for the skeleton deck, MCAD-02); stowed CG (+0.1, −0.4, −1.4) mm CBE | ≤ 2.00 kg; ±20 mm (5 mm baseline) | §5 |
-| Deployed inertia (STR-01) | Iyy/max(Ixx, Izz) **1.056 CBE / 1.047 MEV** (four AntS elements, 2 × 10 g Z-axis ballast, C-13, harness zones; 1.045 / 1.037 without the ballast); 5th percentile with 2 mm placement scatter 1.045 / 1.037; major axis **1.2° / 0.7°** from +Y | ≥ 1.03; ≤ 5° (BASELINE §4) | §5 |
+| Deployed inertia (STR-01) | Iyy/max(Ixx, Izz) **1.056 CBE / 1.047 MEV** (four AntS elements, 2 × 10 g Z-axis ballast, C-13, harness zones; 1.045 / 1.037 without the ballast); 5th percentile with 2 mm placement scatter 1.045 / 1.037; major axis **1.1° / 0.7°** from +Y | ≥ 1.03; ≤ 5° (BASELINE §4) | §5 |
 | First natural frequency, stowed (FE) | **170 Hz** (stowed wings, out of plane; 162 Hz at MEV); deck 247, RF 385, +Z end frame with the ballast 387, carrier 480, EPS 560 (2.0 mm), OBC 575, battery 1,087–1,273 Hz | > 40 Hz (UG v11 §4.1.1) | §8.2 |
 | Margins of safety at the design limit load (larger of the quasi-static 10 g / 17 g and the 3σ random response at 8.18 Grms), NASA-STD-5001B protoflight factors | All positive at CBE and MEV. Lowest: **+0.96** yield (+0.85 MEV; −Z end frame at the battery isolators), +1.21 (end frames at the rail corners), +1.59 (centre support), +1.80 (deck), +2.37 (stack columns), +2.64 (rails); with the ballast (C-13), the harness design's distribution, the cell retention and the 2.0 mm EPS; Ti-6Al-4V stud of the (+40, +43) column +27; G-10CR isolator +4.1 (FS 2.0) | MS ≥ 0 | §8.5 |
 | PCB fatigue (Steinberg, FE relative displacement, 3σ at 8.18 Grms) | **+0.42 to +0.71** at CBE and **+0.14 to +0.50 at MEV** with the two centre supports (D-7), the 2.0 mm carrier with its gyro window (D-11) and the **2.0 mm EPS** (D-14, P3S-02: with the 1.6 mm EPS the carrier was −0.07 at MEV); one support: carrier −0.28 | MS ≥ 0 | §8.5 |
@@ -325,13 +325,13 @@ which the ballast pair's y offset cancels (§5.3).
 
 | Case | CG (mm) | Ixx | Iyy | Izz | Ixy | Ixz | Iyz | Iyy/max(Ixx, Izz) | Major axis from +Y |
 |------|---------|-----|-----|-----|-----|-----|-----|-------------------|--------------------|
-| Stowed, CBE | (+0.06, −0.36, −1.40) | 2.753 | 3.062 | 2.741 | +0.011 | −0.011 | +0.032 | 1.112 | 5.8° |
-| Stowed, MEV | (+0.11, −0.48, −0.36) | 3.166 | 3.522 | 3.199 | +0.012 | −0.020 | +0.037 | 1.101 | 6.6° |
-| **Deployed, CBE** (four AntS elements: 2 m ±X, 70 cm ±Y; ballast row 36; harness zones; row 37; EPS 2.0 mm) | (+0.06, +1.76, −1.40) | **2.853** | **4.200** | **3.978** | +0.011 | −0.011 | −0.004 | **1.056** | **1.2°** |
-| **Deployed, MEV** | (+0.11, +1.57, −0.36) | **3.276** | **4.758** | **4.545** | +0.012 | −0.020 | +0.002 | **1.047** | **0.7°** |
-| W1 deployed only, CBE / MEV | (+1.26, +0.59, −1.40) | 2.818 / 3.236 | 3.903 / 4.427 | 3.646 / 4.175 | −0.152 / −0.170 | −0.021 / −0.029 | +0.006 / +0.011 | 1.071 / 1.060 | 8.1° / 8.6° |
-| W2 deployed only, CBE / MEV (STR-27) | (−1.13, +0.59, −1.40) | 2.818 / 3.236 | 3.903 / 4.428 | 3.646 / 4.176 | +0.175 / +0.194 | −0.001 / −0.011 | +0.006 / +0.011 | 1.071 / 1.060 | 9.0° / 9.2° |
-| Antennas out, wings stowed (no wings), CBE / MEV | (+0.06, −0.57, −1.40) | 2.778 / 3.192 | 3.610 / 4.102 | 3.314 / 3.806 | +0.011 / +0.012 | −0.011 / −0.020 | +0.015 / +0.019 | 1.089 / 1.078 | 2.9° / 3.7° |
+| Stowed, CBE | (+0.04, −0.35, −1.40) | 2.752 | 3.061 | 2.739 | +0.010 | −0.012 | +0.032 | 1.112 | 5.8° |
+| Stowed, MEV | (+0.09, −0.47, −0.36) | 3.165 | 3.520 | 3.197 | +0.011 | −0.020 | +0.037 | 1.101 | 6.6° |
+| **Deployed, CBE** (four AntS elements: 2 m ±X, 70 cm ±Y; ballast row 36; harness zones; row 37; EPS 2.0 mm) | (+0.04, +1.76, −1.40) | **2.852** | **4.199** | **3.977** | +0.011 | −0.012 | −0.004 | **1.056** | **1.1°** |
+| **Deployed, MEV** | (+0.09, +1.57, −0.36) | **3.274** | **4.756** | **4.543** | +0.011 | −0.020 | +0.002 | **1.047** | **0.7°** |
+| W1 deployed only, CBE / MEV | (+1.24, +0.60, −1.40) | 2.816 / 3.235 | 3.901 / 4.426 | 3.644 / 4.173 | −0.153 / −0.171 | −0.021 / −0.029 | +0.006 / +0.011 | 1.071 / 1.061 | 8.1° / 8.6° |
+| W2 deployed only, CBE / MEV (STR-27) | (−1.15, +0.60, −1.40) | 2.816 / 3.235 | 3.902 / 4.427 | 3.644 / 4.174 | +0.174 / +0.193 | −0.002 / −0.011 | +0.006 / +0.011 | 1.071 / 1.061 | 9.0° / 9.1° |
+| Antennas out, wings stowed (no wings), CBE / MEV | (+0.04, −0.57, −1.40) | 2.777 / 3.191 | 3.609 / 4.101 | 3.312 / 3.804 | +0.010 / +0.011 | −0.012 / −0.020 | +0.015 / +0.019 | 1.090 / 1.078 | 2.9° / 3.7° |
 | Deployed, CBE, ballast, four symmetric harness bundles (C-13 issue) | (−0.03, +2.23, −1.23) | 2.861 | 4.268 | 4.043 | −0.010 | +0.017 | −0.003 | 1.056 | 0.9° |
 | Deployed, MEV, same | (+0.01, +2.09, −0.18) | 3.286 | 4.843 | 4.627 | −0.013 | +0.016 | +0.003 | 1.047 | 0.8° |
 | Deployed, CBE, without the ballast (Version B before C-13) | (+0.19, +2.26, −1.87) | 2.813 | 4.215 | 4.035 | −0.009 | +0.001 | −0.005 | 1.045 | 1.7° |
@@ -342,10 +342,10 @@ which the ballast pair's y offset cancels (§5.3).
 Final deployed tensors about the CG (four AntS elements, ballast, harness zones; kg·m², tensor convention,
 `results.json`):
 
-- CBE (1,519.4 g): Ixx 2.853 × 10⁻³, Iyy 4.200 × 10⁻³, Izz 3.978 × 10⁻³; Ixy +11.4 × 10⁻⁶, Ixz −11.0 × 10⁻⁶,
-  Iyz −4.0 × 10⁻⁶; principal 2.853, 3.979, 4.200 × 10⁻³.
-- MEV (1,754.2 g): Ixx 3.276 × 10⁻³, Iyy 4.758 × 10⁻³, Izz 4.545 × 10⁻³; Ixy +12.2 × 10⁻⁶, Ixz −19.6 × 10⁻⁶,
-  Iyz +1.9 × 10⁻⁶; principal 3.275, 4.546, 4.758 × 10⁻³.
+- CBE (1,519.4 g): Ixx 2.852 × 10⁻³, Iyy 4.199 × 10⁻³, Izz 3.977 × 10⁻³; Ixy +10.6 × 10⁻⁶, Ixz −11.5 × 10⁻⁶,
+  Iyz −3.9 × 10⁻⁶; principal 2.852, 3.977, 4.199 × 10⁻³.
+- MEV (1,754.2 g): Ixx 3.274 × 10⁻³, Iyy 4.756 × 10⁻³, Izz 4.543 × 10⁻³; Ixy +11.3 × 10⁻⁶, Ixz −20.3 × 10⁻⁶,
+  Iyz +2.0 × 10⁻⁶; principal 3.274, 4.544, 4.757 × 10⁻³.
 - One-wing and no-wing tensors (STR-27, for the ADCS presets): the rows above and MASS_BUDGET v3.1 §6.5.
 
 **Antennas (four elements).** The ISIS AntS 1U–3U deploys up to four tape springs, one from each side of its box (ISIS
@@ -367,7 +367,7 @@ and the cell retention, the MEV 5th percentile **1.041 at σ = 1 mm and 1.037 at
 inside); two at one end give the same Iyy as one at each end and move the CG +0.6 mm in Z (stowed CG −1.4 mm, inside
 the 5 mm baseline). The pair's centre is at y = +8 mm, not 0: with the harness distribution the deployed Iyz was
 +4.6 (CBE) / +10.8 (MEV) × 10⁻⁶ kg·m² (axis 1.3° / 2.9°), and the 8 mm offset supplies −7.7 × 10⁻⁶ at no mass cost
-(axis 1.2° / 0.7° now). The x offset (−17 mm) clears the GNSS patch adapter at the centre by 5.0 mm and keeps the discs
+(axis 1.1° / 0.7° now). The x offset (−17 mm) clears the GNSS patch adapter at the centre by 5.0 mm and keeps the discs
 22 mm from A2; the discs are 1.4 mm above the RF board's shield-lid allocation (7.0 mm; the RF board's 3σ random
 displacement is 0.14 mm, §8.5) and 1.6 mm (the end-frame plate) from the GNSS patch outside. **Integration adjustment
 (VI-MCAD-03):** the measured stowed tensor plus the weighed wings sets the disc mass, from 10 g each (nominal) down to
@@ -379,7 +379,7 @@ means of meeting the requirement. The ADCS Monte Carlo of BASELINE §8 gives the
 Against MASS_BUDGET v3.0 §5–§6 (reference layout B): the stowed CG is 3.3 mm higher in Z (−1.4 against −4.7 mm: the CAD
 battery centre is −32.9 mm, not −35, the boards sit higher, and the ballast adds +0.6 mm), the deployed moments are within
 3 % on every axis, and without the ballast the ratio agrees (four elements: 1.045 CAD against 1.041; two elements:
-1.058 against 1.054). The difference that matters is the principal axis: 0.7–1.2° here against 13–15° there (§5.3). The
+1.058 against 1.054). The difference that matters is the principal axis: 0.7–1.1° here against 13–15° there (§5.3). The
 baseline requirement (Iyy ≥ 1.03 × max, axis within 5°) is **met** at CBE and MEV for the full deployment; with one wing
 out the axis is 8.1° (W1) or 9.0° (W2) off (8.6° / 9.2° at MEV; MECHANISMS_ANALYSIS §8, a degraded mode with its own
 ADCS preset), and with the antennas out and both wings stowed 2.9° (3.7°).
@@ -403,10 +403,10 @@ distribution and four antenna elements:
 
 | σ per axis | Mean angle CBE / MEV | 95th percentile CBE / MEV | Within 5°, CBE / MEV | Iyy/max(Ixx, Izz), 5th percentile CBE / MEV |
 |------------|----------------------|---------------------------|----------------------|---------------------------------------------|
-| 1 mm | 1.7° / 1.7° | 3.9° / 3.9° | 98.9 % / 98.8 % | 1.050 / 1.041 |
-| 2 mm | 2.8° / 3.1° | 6.4° / 7.6° | 85.7 % / 80.5 % | 1.045 / 1.037 |
-| 3 mm | 4.2° / 4.8° | 10.4° / 11.8° | 66.3 % / 60.7 % | 1.040 / 1.031 |
-| 5 mm | 7.0° / 8.2° | 17.0° / 20.1° | 44.0 % / 38.4 % | 1.030 / 1.022 |
+| 1 mm | 1.7° / 1.7° | 3.8° / 3.9° | 98.9 % / 98.8 % | 1.050 / 1.042 |
+| 2 mm | 2.8° / 3.1° | 6.4° / 7.6° | 85.9 % / 80.5 % | 1.045 / 1.037 |
+| 3 mm | 4.2° / 4.8° | 10.4° / 11.7° | 66.6 % / 60.9 % | 1.040 / 1.031 |
+| 5 mm | 6.9° / 8.1° | 16.9° / 20.0° | 44.0 % / 38.3 % | 1.030 / 1.022 |
 
 Reproduce with `hardware/mechanical/placement_mc.py` (2,000 trials per case, seed 1; P3S-09).
 
@@ -415,9 +415,9 @@ Reproduce with `hardware/mechanical/placement_mc.py` (2,000 trials per case, see
 two 5 g trim masses at (0, ±45, +44) mm on the +Z end frame; each changes Iyz by 1.1 × 10⁻⁵ kg·m² (about 3° of tilt),
 set from the measured stowed tensor (VI-MCAD-03), with the ballast discs machined to the masses that tensor calls for
 (§5.2). Proposed flight constant `INERTIA` (diagonal, mean of CBE and MEV, four AntS elements, ballast, harness zones):
-**(0.0031, 0.0045, 0.0043) kg·m²**, to four figures (3.064, 4.479, 4.262) × 10⁻³ with mean products Ixy +1.2 × 10⁻⁵,
-Ixz −1.5 × 10⁻⁵, Iyz −0.1 × 10⁻⁵ kg·m² (MASS_BUDGET v3.1 §6.5; the flight software's (3.057, 4.468, 4.253) is within
-0.3 %). ADCS Monte Carlo plant rows: CBE (2.853, 4.200, 3.978) × 10⁻³, ratio 1.056; MEV (3.276, 4.758, 4.545) × 10⁻³,
+**(0.0031, 0.0045, 0.0043) kg·m²**, to four figures (3.063, 4.478, 4.260) × 10⁻³ with mean products Ixy +1.1 × 10⁻⁵,
+Ixz −1.6 × 10⁻⁵, Iyz −0.1 × 10⁻⁵ kg·m² (MASS_BUDGET v3.1 §6.5; the flight software's (3.057, 4.468, 4.253) is within
+0.3 %). ADCS Monte Carlo plant rows: CBE (2.852, 4.199, 3.977) × 10⁻³, ratio 1.056; MEV (3.274, 4.756, 4.543) × 10⁻³,
 ratio 1.047 (products as in §5.2). The one-wing and no-wing presets: MASS_BUDGET v3.1 §6.5.
 
 ## 6. Envelope, Interference and Clearance Checks
@@ -496,8 +496,8 @@ frame vendor's switch provision must confirm (the CAD puts the switch in a plain
 
 ### 6.5 Interference
 
-Boolean intersection of every pair of solids whose bounding boxes overlap: none stowed (492 pairs) and none deployed
-(486 pairs). The only exclusions are the stowed tapes wound inside the AntS housing (by design), the distributed-mass
+Boolean intersection of every pair of solids whose bounding boxes overlap: none stowed (508 pairs) and none deployed
+(502 pairs). The only exclusions are the stowed tapes wound inside the AntS housing (by design), the distributed-mass
 allocations (fasteners, staking, thermal materials, rod clips, heater film), which have no geometry of their own, and
 pairs of harness items (the zones of §6.11, A3, the tabs and the EPS connector envelope), which meet where wires end
 by design; the W10 coax and the W4A assembly are checked against the zones like any solid. The
@@ -511,6 +511,18 @@ body-panel coverglass); 0.97 mm at 1°, 0.80 mm at 90°. Positive, but inside th
 **action for the panel vendor drawing**: keep the body-panel cell edge ≥ 1 mm from the hinge-side panel edge (cell
 block offset 1 mm toward −Y) to raise it to about 1 mm. Deployed: the wing lies in y = 37.1–39.4 mm, x = 52.3–133.9 mm,
 0.8 mm outboard of the body panel and clear of the rail.
+
+**Hold-down line series spring (SQSO-MECH-001 E §6; check SWP-2).** Part `W1_line_spring` (W2 mirrored), MEL row 10 / 11
+(0.6 g, from the burn board's allocation, now 0.9 g): a 17-7PH compression spring OD 5.0 × 8.5 mm installed on the burn
+board, axis along z at (x ±45.4, y −37.5), z −32.2 … −23.7 (washer and knot to −22.7), on the seat plate of a 0.8 mm
+Ti-6Al-4V angle (z −33.0 … −32.2) whose leg sits on the board's top edge (z −35.5) under the board's upper screw. It
+stands above the corner strip because the board's inboard face is 0.1 mm from CS_PXMY / CS_MXMY. Clearances: **1.0 mm**
+to CS_PXMY and CS_MXMY (the seat above the strips' top at z −34.0), **1.1 mm** to PXMY_LO and MXMY, 1.02 mm to S_MXMY,
+2.3 mm to the stack column, 2.5 mm to the rail, 3.9 mm to the battery clamp; the swept wing (0–90°) **3.95 mm** away
+(outside the shear and body panels); no interference stowed or deployed (§6.5) and no harness zone against any solid
+(`harness_calcs.py --cad`). The seat angle bears on the shear panel and the board by design. Mass properties: CG +0.01 mm
+in Z, moments −1.2 × 10⁻⁶ kg·m² at most (inside the ±0.5 % of VI-MCAD-03); FE unchanged (the 1.5 g stays in the wing
+hardware lumped on the shear panel).
 
 ### 6.7 AntS Tapes against the Wings (STR-16)
 
@@ -840,7 +852,7 @@ Findings from the FE:
 |-----|--------|----------|
 | SE-01 (mechanical part) | **Mechanical build-to design at envelope level: done.** Parametric CAD of every MEL item, interference-free, with STEP and layout drawings; the remaining steps to a manufacturing package are listed in §7 and §12 | This document; `model.py`; STEP; SVG |
 | SE-12 | **Structural model: closed by analysis.** Verified beam-shell FE model (§8.1), modes with effective mass, quasi-static and random stresses with NASA-STD-5001B factors, Steinberg margins | §8; `fem.py`; SQSO-SA-001 B §5A |
-| STR-01 (check) | **Confirmed and closed by design**: CAD gives Iyy/max 1.056 / 1.047 with the four AntS elements, the 2 × 10 g Z-axis ballast (chair decision C-13; 1.045 / 1.037 without it) and the harness design's mass distribution, and the major axis within 1.2° / 0.7° of +Y (the reference layout gave 13–15°, outside the 5° baseline); placement sensitivity and the trim provision are verification items (VI-MCAD-03) | §5 |
+| STR-01 (check) | **Confirmed and closed by design**: CAD gives Iyy/max 1.056 / 1.047 with the four AntS elements, the 2 × 10 g Z-axis ballast (chair decision C-13; 1.045 / 1.037 without it) and the harness design's mass distribution, and the major axis within 1.1° / 0.7° of +Y (the reference layout gave 13–15°, outside the 5° baseline); placement sensitivity and the trim provision are verification items (VI-MCAD-03) | §5 |
 | STR-10 | **Closed by design** (Version B): hinge springs 6.10 mm nominal, 6.38 mm worst case, 6.25 mm RSS against 6.5 (D-2 recess, frame-located springs and post); spring OD ≤ 4.00 mm on the drawing; VI-MCAD-02 | §6.2 |
 | STR-11 | **Closed by design** (frame RFQ: −Z face recessed ≥ 0.8 mm; 1.5 mm modelled): 1.25 mm nominal, 0.90 mm worst case | §6.3 |
 | STR-16 | **Closed for the nominal sequence** (wings first: 37.8 mm); **verification item** for the wing-stuck contingency (6.5 mm against 10 mm) and the ISIS sweep | §6.7 |
@@ -873,7 +885,7 @@ Findings from the FE:
    (−20, +30.5), through the carrier window (item 9); carrier: SO-DIMM on the −Y edge, module centred at y = −6,
    no top-side parts within the module footprint.
 6. **ADCS:** rod positions and the flight inertia constant (§5.4: (0.0031, 0.0045, 0.0043) kg·m² with the ballast and
-   the harness zones; the ADCS Monte Carlo plant rows CBE (2.853, 4.200, 3.978) × 10⁻³ and MEV (3.276, 4.758, 4.545) ×
+   the harness zones; the ADCS Monte Carlo plant rows CBE (2.852, 4.199, 3.977) × 10⁻³ and MEV (3.274, 4.756, 4.543) ×
    10⁻³ kg·m²; the one-wing and no-wing presets of MASS_BUDGET §6.5); the ±Z sun-sensor normals and the −Z sensor's mask (§6.11); the magnetometer at the +Z end, 60–85 mm from the rods.
    The RM3100 is on board A2 at that slot (OBC item C13): 54.7 mm from the nearest rod end (the X rod's +X end),
    830 nT per mA·m² of rod remanence (OBC design §9.4), with the 20 mm non-ferromagnetic zone of §4.4.
@@ -924,7 +936,7 @@ Findings from the FE:
     face unchanged at −1.4), bottom-side parts ≤ 0.6 mm over the X rod (x −24.5 … +24.5, y +29.75 … +42.25), bottom-side
     harness connectors to z −12.4 (9.0 mm); stack-up and impedances to be re-done; (b) **harness designer, H-11:** the
     zones under the EPS (U_*) end at z −4.45 (they ended at −4.05), and the EPS connector envelope moves 0.4 mm down;
-    `harness_calcs.py --cad` reports those zones against the EPS parts until the zone table is updated; DS2 is a DPDT
+    done in the harness design's zone table (`harness_calcs.py --cad`: no zone against any solid); DS2 is a DPDT
     switch with five leads into CS_MXMY (M-10, §6.4); (c) **frame RFQ:** the (−X, −Y) −Z standoff bore Ø4.7 × 12 mm takes
     the DPDT DS2 (body ≤ Ø4.5 mm, flush when actuated, leads out of the inner end); two Z-rod clip inserts on the −X shear
     panel at (y 0, z −39) and (y 0, z −8) (D-16); (d) **EPS / battery designer:** BATTERY_DESIGN §7.1 cell retention as
@@ -932,6 +944,13 @@ Findings from the FE:
     §8.5 (due 2027-01-15); (f) **flight software:** the geometry presets from the CAD (MASS_BUDGET §6.5, STR-27);
     (g) **test plan / workmanship:** the MoS₂ ground controls of SQSO-MECH-001 E §5A (humidity, dry N₂, cycle budget,
     film inspection) and the −55 °C cold point of the mechanism tests.
+17. **Burn board and hold-down line (SQSO-MECH-001 E §6, §6.6 above):** each burn board carries the line's series
+    spring (17-7PH CH900, wire 1.0, mean Ø4.0, 4 active + 2 closed coils, OD 5.0, 8.5 mm installed, 38.6 N/mm) on a
+    Ti-6Al-4V seat angle under its upper screw, above the corner strip; the board's upper screw and its top edge take
+    the line load (30 N preload, 34.9 N limit); the line path on the inboard face (over both resistors, then up through
+    the seat) stays inside the 2.0 mm board envelope; PTFE-lined guide at the board's top edge and the seat. **Data item
+    DI-MECH-01** (owner mechanical lead, due before the EM line order 2027-01-15): the line maker's EA (+20 / −80 °C)
+    and 30-day creep data for the selected braid, to re-run `hinge.py` `line_cold` and confirm the spring rate.
 
 ## 12. Verification Items
 
@@ -949,6 +968,7 @@ Findings from the FE:
 | VI-MECH-01, VI-MECH-02 (SQSO-MECH-001 B) | Spring lot: torque–angle at −40/+20/+60 °C and relaxation (30 days at the stowed angle, +60 °C); flex: 50 deployment cycles at −40 °C, continuity and insulation monitored | Rate and torque within ±10 %, relaxation ≤ 5 %, no set; flex: no open or short, torque ≤ 0.50 mN·m | MCAD-01 | Spring lot; EM |
 | VI-MCAD-10 | Battery cell retention (§4.6): cell lengths measured and shims set; disc-spring deflection measured at assembly (140 N ± 10 N per cell); the cell maker's axial-load limit confirmed; pack OCV, impedance and visual (no marks on the cans) before and after the protoflight random | Preload within ±10 N; no change in OCV (> 5 mV) or impedance (> 5 %); no can damage | D-15, RID STR-08 | EM pack, then flight pack |
 | VI-MCAD-09 | Insulation resistance of the AntS housing, the GNSS patch and A2 to the frame after mounting (megohmmeter at 50 V DC), and the −Z sun sensor's mask against the AntS ICD (element exit positions, housing outline) | ≥ 1 MΩ each (SQSO-HAR-001 2.0 M-9); no element path within 1 mm of the MZ carrier | D-13, §6.11 | EM and flight integration |
+| VI-STR-07 (SQSO-MECH-001 E) | Hold-down line with its series spring, seat and guides (§6.6) cycled to −81 °C, tension measured; spring inspected after the cycle; inputs from DI-MECH-01 (line EA and creep, 2027-01-15) | Tension ≥ 10 N at −81 °C; no failure; preload loss ≤ 30 % at ambient | SQSO-MECH-001 E §6 | EM; each flight line |
 | VI-STR-10 (existing) | CAD sweep (done, §6.6–§6.7) and the deployment test with the AntS, in the flight order and with a wing still stowed | Flight order (wings, then AntS): every element ≥ 10 mm from both deployed wings over its whole sweep; contingency (a wing still stowed): ≥ 5 mm from the stowed wing (CAD 6.5 mm); the same criterion as SQSO-MECH-001 E §10 | STR-16 | EM |
 
 ## 13. Limits of This Model
@@ -965,4 +985,4 @@ Findings from the FE:
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | A | 2026-10-27 | Mechanical design (CDR design completion) | Initial issue: parametric CAD of layout B with MEL masses; mass properties and principal-axis balancing; CDS envelope, tolerance-stack, standoff, interference, sweep and clearance checks; STEP (full and outer mould line) and SVG drawings; beam-shell FE model with modes, effective masses, quasi-static and random stresses and margins; L-8 M deliverable statement; RIDs SE-01 (mechanical), SE-12, STR-01, STR-10, STR-11, STR-16; findings MCAD-01 to MCAD-03 |
-| B | 2026-10-27 | Mechanical design (CDR design completion) | Chair follow-up: wing hinge designed (two OD 4.0 mm torsion springs, clock-spring flex in the −Z knuckle, damped stop, no latch; `hinge.py`), MCAD-01 and STR-13 closed by design with verification items; protrusion stack now governed by the springs (6.10 / 6.38 mm); skeleton torquer deck and row-5 re-split (MCAD-02 closed by reallocation); two centre supports at (0, ±21) mm adopted (chair decision) with 1.6 mm boards; Jetson to y = −6 mm; carrier 2.0 mm with the gyro window and no frame (the bonded frame withdrawn, §4.3.3); four AntS elements (2 m ±X, 70 cm ±Y; ratio 1.045 / 1.037 without ballast; chair decision C-13: 2 × 10 g W-Ni-Cu Z-axis ballast on the +Z end frame adopted, MEL row 36, ratio 1.056 / 1.047, D-9, §5.2); harness bundle (+X, −Y), W4A, RF connectors and W10 coax (ICX E12, RF C §4; §6.9); Ti stud at (+40, +43); FE re-run (§8); magnetometer board A2 in the +Z slot with its 20 mm non-ferromagnetic zone, W6E/W8A routing, no OBC frame bond (OBC item C13; §4.4, §6.9, VI-MCAD-07); window-frame screws H10–H13 amended into tapped pads (§4.3.3); Jetson carrier item M1 (spreader pedestal, gap pads, module standoffs, (0, −21) fastener, shims and thermal path; §4.5, VI-MCAD-06; gyro and window moved 3 mm toward +Y to clear the module standoff); gyro (OBC item C3) through a framed window in the carrier (§4.3, D-11) after the carrier raise and the bracket were shown not to fit, OBC placement constraints recorded (§4.4), gyro alignment item VI-MCAD-05; Steinberg allowable made thickness-dependent (2.0 mm reserve +0.41 to +0.58); mass properties, interference and FE results recomputed (with the C-13 ballast and the coax, ribbon and hinge springs lumped: FE mass = CAD 1,514.3 g, lowest MS +0.72, Steinberg +0.08 to +0.40, +Z end frame 402 Hz); **harness design SQSO-HAR-001 2.0 §15 M-1 to M-9 and D-2** (§6.11, D-12, D-13): harness zones with their routed mass, EPS bottom-side connector envelope, four grommeted shear-panel slots, A3 and its Micro-D 21 with the −Y window, tabs TB-W1/TB-W2, ±Z sun sensors (the −Z one beside the AntS on the −X body panel, field of view stated), W4A flat, isolated AntS and patch mounts (VI-MCAD-09); RF J1 TFM-108 right-angle and the shield notch x > +30 (RF D §4.3); MEL rows 32 (75.6 g) and 26 (9.0 g): CBE 1,513.9 g, MEV 1,747.8 g; ballast pair moved to y +15.5 / +0.5 to cancel the distribution's Iyz (ratio 1.055 / 1.046, axis 1.0° / 1.0°); FE re-run (first mode 169 Hz, the deck with the harness dress; lowest MS +1.00; Steinberg +0.08 to +0.37, the EPS +0.23 with the tie-down rule of §8.5); **review round 3** (P3S, STR, MCAD items): EPS 2.0 mm for the MEV Steinberg margins (D-14; carrier −0.07 at MEV with 1.6 mm, now +0.14), battery cell retention without adhesive (§4.6, D-15, MEL row 37, MS_sep +0.19 at 142 g), Z rod tied to the −X wall only (D-16, clip loads 19–21 N), GNSS receiver mount responses with the qualification action (MCAD-12), one mass-properties accuracy with the uncertainty in the pass criterion (VI-MCAD-03, STR-04), W2-only and no-wing tensors with growth (STR-27), `placement_mc.py` and the FE cases `design_MEV` and `design_harness_on_EPS` (P3S-09), W-Ni-Cu or pure W trim masses (P3S-11), one VI-STR-10 criterion (P3S-08), DS2 as a DPDT switch (M-10), row 32 at 76.1 g; CBE 1,519.4 g, MEV 1,754.2 g, ratio 1.056 / 1.047, axis 1.2° / 0.7°; FE lowest MS +0.96 (MEV +0.85), Steinberg +0.42 to +0.71 (MEV +0.14 to +0.50) |
+| B | 2026-10-27 | Mechanical design (CDR design completion) | Chair follow-up: wing hinge designed (two OD 4.0 mm torsion springs, clock-spring flex in the −Z knuckle, damped stop, no latch; `hinge.py`), MCAD-01 and STR-13 closed by design with verification items; protrusion stack now governed by the springs (6.10 / 6.38 mm); skeleton torquer deck and row-5 re-split (MCAD-02 closed by reallocation); two centre supports at (0, ±21) mm adopted (chair decision) with 1.6 mm boards; Jetson to y = −6 mm; carrier 2.0 mm with the gyro window and no frame (the bonded frame withdrawn, §4.3.3); four AntS elements (2 m ±X, 70 cm ±Y; ratio 1.045 / 1.037 without ballast; chair decision C-13: 2 × 10 g W-Ni-Cu Z-axis ballast on the +Z end frame adopted, MEL row 36, ratio 1.056 / 1.047, D-9, §5.2); harness bundle (+X, −Y), W4A, RF connectors and W10 coax (ICX E12, RF C §4; §6.9); Ti stud at (+40, +43); FE re-run (§8); magnetometer board A2 in the +Z slot with its 20 mm non-ferromagnetic zone, W6E/W8A routing, no OBC frame bond (OBC item C13; §4.4, §6.9, VI-MCAD-07); window-frame screws H10–H13 amended into tapped pads (§4.3.3); Jetson carrier item M1 (spreader pedestal, gap pads, module standoffs, (0, −21) fastener, shims and thermal path; §4.5, VI-MCAD-06; gyro and window moved 3 mm toward +Y to clear the module standoff); gyro (OBC item C3) through a framed window in the carrier (§4.3, D-11) after the carrier raise and the bracket were shown not to fit, OBC placement constraints recorded (§4.4), gyro alignment item VI-MCAD-05; Steinberg allowable made thickness-dependent (2.0 mm reserve +0.41 to +0.58); mass properties, interference and FE results recomputed (with the C-13 ballast and the coax, ribbon and hinge springs lumped: FE mass = CAD 1,514.3 g, lowest MS +0.72, Steinberg +0.08 to +0.40, +Z end frame 402 Hz); **harness design SQSO-HAR-001 2.0 §15 M-1 to M-9 and D-2** (§6.11, D-12, D-13): harness zones with their routed mass, EPS bottom-side connector envelope, four grommeted shear-panel slots, A3 and its Micro-D 21 with the −Y window, tabs TB-W1/TB-W2, ±Z sun sensors (the −Z one beside the AntS on the −X body panel, field of view stated), W4A flat, isolated AntS and patch mounts (VI-MCAD-09); RF J1 TFM-108 right-angle and the shield notch x > +30 (RF D §4.3); MEL rows 32 (75.6 g) and 26 (9.0 g): CBE 1,513.9 g, MEV 1,747.8 g; ballast pair moved to y +15.5 / +0.5 to cancel the distribution's Iyz (ratio 1.055 / 1.046, axis 1.0° / 1.0°); FE re-run (first mode 169 Hz, the deck with the harness dress; lowest MS +1.00; Steinberg +0.08 to +0.37, the EPS +0.23 with the tie-down rule of §8.5); **review round 3** (P3S, STR, MCAD items): EPS 2.0 mm for the MEV Steinberg margins (D-14; carrier −0.07 at MEV with 1.6 mm, now +0.14), battery cell retention without adhesive (§4.6, D-15, MEL row 37, MS_sep +0.19 at 142 g), Z rod tied to the −X wall only (D-16, clip loads 19–21 N), GNSS receiver mount responses with the qualification action (MCAD-12), one mass-properties accuracy with the uncertainty in the pass criterion (VI-MCAD-03, STR-04), W2-only and no-wing tensors with growth (STR-27), `placement_mc.py` and the FE cases `design_MEV` and `design_harness_on_EPS` (P3S-09), W-Ni-Cu or pure W trim masses (P3S-11), one VI-STR-10 criterion (P3S-08), DS2 as a DPDT switch (M-10), row 32 at 76.1 g; CBE 1,519.4 g, MEV 1,754.2 g, ratio 1.056 / 1.047, axis 1.1° / 0.7°; FE lowest MS +0.96 (MEV +0.85), Steinberg +0.42 to +0.71 (MEV +0.14 to +0.50); hold-down line series spring placed on each burn board (§6.6, check SWP-2: 1.0 mm to the corner strip, 3.95 mm to the wing sweep; §11 item 17, VI-STR-07, data item DI-MECH-01), mass properties refreshed with the harness design's zone table after H-11 |

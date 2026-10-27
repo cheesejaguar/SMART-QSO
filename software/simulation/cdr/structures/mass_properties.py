@@ -156,7 +156,8 @@ def items() -> List[Item]:
         hx, hy = HINGE
         a(Item("10" if w == "W1" else "11", f"Wing {w} hinges (2), torsion springs, hold-down, stop, "
                "deployed-state sensor, hinge flex harness", "1", 14.0, "E1",
-               "Bottom-up: hinges 6 g, springs 1 g, hold-down 3 g, bumpers 1 g, sensor 1 g, flex 2 g",
+               "Bottom-up: hinges 6 g, springs 1 g, hold-down 3 g (line 0.5, post 1.0, burn board 0.9, line series "
+               "spring 0.6: 17-7PH spring, washer, Ti seat; SQSO-MECH-001 E 6), bumpers 1 g, sensor 1 g, flex 2 g",
                [box(8 / 14, (s * hx, hy, 0.0), (4, 4, 98)), box(6 / 14, (s * 54.0, -38.0, 0.0), (3, 6, 30))],
                deployed_prims=[box(8 / 14, (s * hx, hy, 0.0), (4, 4, 98)),
                                box(6 / 14, (s * (hx + 77.5), hy, 0.0), (6, 3, 30))]))

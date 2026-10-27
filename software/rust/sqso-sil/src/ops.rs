@@ -198,6 +198,8 @@ pub enum FrameKind {
     Ack,
     /// A stored-housekeeping dump frame (`HKD`)
     Dump,
+    /// The GNSS state frame (`GNS ...`, SRS-F158)
+    Gnss,
 }
 
 /// Decode a frame the OBC handed to the TNC (addresses, control, PID,
@@ -212,8 +214,10 @@ pub fn decode_beacon(frame: &[u8]) -> Option<Beacon> {
             .find_map(|w| w.strip_prefix(key))
             .and_then(|v| v.trim_end_matches(|c: char| !c.is_ascii_digit()).parse::<f64>().ok())
     };
-    let kind = if info.starts_with(b"HK1 ") {
+    let kind = if info.starts_with(b"HK1 ") || info.starts_with(b"HK2 ") {
         FrameKind::Housekeeping
+    } else if info.starts_with(b"GNS ") {
+        FrameKind::Gnss
     } else if info.starts_with(b"ack ") {
         FrameKind::Ack
     } else if info.starts_with(sqso_fsw::hk_store::DUMP_PREFIX) {

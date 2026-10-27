@@ -114,6 +114,8 @@ unsafe extern "C" {
     pub(crate) fn hal_reset_cause() -> u32;
     pub(crate) fn hal_radio_init() -> i32;
     pub(crate) fn hal_radio_receive(frame: *mut u8, max_len: usize, len: *mut usize) -> i32;
+    pub(crate) fn hal_radio_status_query() -> i32;
+    pub(crate) fn hal_radio_take_status(data: *mut u8, max_len: usize, len: *mut usize) -> i32;
     pub(crate) fn hal_gpio_config(pin: u32, direction: u32, pull: u32) -> i32;
     pub(crate) fn hal_gpio_get(pin: u32) -> bool;
     pub(crate) fn hal_uart_init(port: u32, config: *const core::ffi::c_void) -> i32;

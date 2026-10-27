@@ -194,6 +194,12 @@ pub struct Housekeeping2 {
     /// EPS_SUPV (`None`: no answer) and the heartbeats the controller
     /// refused (`SV`, RID SMA-B09)
     pub supv: (Option<u8>, u32),
+    /// The TNC's last STATUS answer (`TS`: version / criteria / floor /
+    /// calibrated floor / carrier count / frames / uptime; `-` none yet)
+    pub tnc: Option<sqso_protocol::kiss::TncStatus>,
+    /// `RL`: RX_FAULT passed its power-on self-test / the STATUS loop query
+    /// unanswered for a day (RID SMA-B11)
+    pub rx_lines: (bool, bool),
 }
 
 struct Out<'a> {
@@ -350,7 +356,16 @@ pub fn format2(hk: &Housekeeping2, out: &mut [u8]) -> usize {
     .and_then(|()| write!(w, " SEP={}/{}", u8::from(hk.separation.0), hk.separation.1))
     .and_then(|()| write!(w, " PT={}/{} SV=", u8::from(hk.pa_sensor.0), hk.pa_sensor.1))
     .and_then(|()| opt_u(&mut w, hk.supv.0.map(u32::from)))
-    .and_then(|()| write!(w, "/{}", hk.supv.1))
+    .and_then(|()| write!(w, "/{} TS=", hk.supv.1))
+    .and_then(|()| match hk.tnc {
+        Some(t) => write!(
+            w,
+            "{}/{}/{}/{}/{}/{}/{}",
+            t.version, t.criteria, t.floor_dbm, t.floor_cal_dbm, t.carrier_count, t.frames, t.uptime_s
+        ),
+        None => w.write_str("-"),
+    })
+    .and_then(|()| write!(w, " RL={}/{}", u8::from(hk.rx_lines.0), u8::from(hk.rx_lines.1)))
     .is_ok();
     if ok { w.len } else { 0 }
 }
@@ -527,14 +542,19 @@ mod tests {
             separation: (true, 1),
             pa_sensor: (false, 2),
             supv: (Some(0x21), 0),
+            rx_lines: (true, false),
             ..Housekeeping2::default()
         };
         assert_eq!(
             text2(&hk),
             "HK2 N=7 CA=12/3/1 WD=2 XE=4/3600/4100 IA=412 HL=0 JB=6/1210/10/0 JP=5/1/0/0 EOL=4/0 \
-             RT=1900000000/- CK=-12 TR=1/0/0/0 GY=0/37 MF=0/0 PE=1 SEP=1/1 PT=0/2 SV=33/0"
+             RT=1900000000/- CK=-12 TR=1/0/0/0 GY=0/37 MF=0/0 PE=1 SEP=1/1 PT=0/2 SV=33/0 TS=- RL=1/0"
         );
-        let worst = Housekeeping2 {
+    }
+
+    /// Every field at its widest
+    fn worst2() -> Housekeeping2 {
+        Housekeeping2 {
             seq: u16::MAX,
             commands: (u32::MAX, u32::MAX, u32::MAX),
             wdt_resets: u32::MAX,
@@ -553,12 +573,27 @@ mod tests {
             separation: (true, u32::MAX),
             pa_sensor: (true, u32::MAX),
             supv: (Some(255), u32::MAX),
-        };
+            tnc: Some(sqso_protocol::kiss::TncStatus {
+                version: 255,
+                criteria: 63,
+                floor_dbm: -128,
+                floor_cal_dbm: -128,
+                carrier_count: u16::MAX,
+                frames: u16::MAX,
+                uptime_s: u32::MAX,
+            }),
+            rx_lines: (true, true),
+        }
+    }
+
+    #[test]
+    fn the_second_frame_at_its_widest_and_empty() {
+        let worst = worst2();
         assert!(text2(&worst).len() <= MAX_LEN, "{}", text2(&worst).len());
         let none = text2(&Housekeeping2::default());
         assert!(none.contains("IA=- "), "{none}");
         assert!(none.contains("EOL=-/0"), "{none}");
-        assert!(none.ends_with("PE=- SEP=0/0 PT=0/0 SV=-/0"), "{none}");
+        assert!(none.ends_with("PE=- SEP=0/0 PT=0/0 SV=-/0 TS=- RL=0/0"), "{none}");
         assert_eq!(format2(&worst, &mut [0u8; 20]), 0);
     }
 

@@ -64,6 +64,12 @@ void hal_sim_flash_fail_writes_after(int32_t writes);
  */
 void hal_sim_gpio_drive_input(HalGpioPin_t pin, bool state);
 
+/** @brief Cut (true) or restore the simulated TNC's STATUS answers */
+void hal_sim_tnc_mute(bool mute);
+
+/** @brief STATUS queries the simulated TNC has seen */
+uint32_t hal_sim_tnc_queries(void);
+
 /**
  * @brief The internal pull a pin was last configured with (HalGpioPull_t)
  *

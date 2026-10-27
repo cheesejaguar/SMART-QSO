@@ -137,6 +137,48 @@ static void test_known_failed_keeps_the_beacon(void **state)
     assert_false(rf_control_tx_permitted());
 }
 
+/** RID SMA-B11: a carrier detect stuck high counts as activity for its
+ *  first hour only; the recovery cycle comes a day after that */
+static void test_stuck_carrier_is_not_activity(void **state)
+{
+    (void)state;
+    serve_silence();
+    hal_sim_gpio_drive_input(GPIO_PIN_RX_CD, true);
+    pass_for(24U * HOUR_MS, HOUR_MS / 4U, false);
+    assert_int_equal(receiver_cycles(), 0U);
+    pass_for(2U * HOUR_MS, HOUR_MS / 4U, false);
+    assert_int_equal(receiver_cycles(), 1U);
+    assert_true(hal_gpio_get(GPIO_PIN_RADIO_EN)); /* the cycle is over */
+    hal_sim_gpio_drive_input(GPIO_PIN_RX_CD, false);
+}
+
+/** The STATUS loop query every 10 min with the radio on; a TNC that stops
+ *  answering for a day is a receiver-path fault: with the contact lost and
+ *  a recovery cycle tried, known failed although RX_FAULT reads healthy */
+static void test_loop_query_and_the_path_fault(void **state)
+{
+    (void)state;
+    serve_silence();
+    uint32_t q0 = hal_sim_tnc_queries();
+    pass_for(RECEIVER_QUERY_PERIOD_MS * 3U, 60000U, false);
+    assert_true(hal_sim_tnc_queries() - q0 >= 3U);
+    assert_int_equal(contact_monitor_set_timeout_days(2U), SMART_QSO_OK);
+    hal_sim_tnc_mute(true);
+    for (int h = 0; h < 50; h++) {
+        smart_qso_sim_advance_ms(HOUR_MS);
+        receiver_step(false);
+        contact_monitor_tick(HOUR_MS);
+        smart_qso_sim_advance_ms(RECEIVER_CYCLE_OFF_MS);
+        receiver_step(false);
+    }
+    assert_true(contact_monitor_inhibited());
+    assert_true(receiver_failed());
+    /* The TNC answers again: within a query period, not failed */
+    hal_sim_tnc_mute(false);
+    pass_for(RECEIVER_QUERY_PERIOD_MS + 60000U, 60000U, false);
+    assert_false(receiver_failed());
+}
+
 /** EPS-12: the code, the I2C unlock and the LOCK_CLR pulse */
 static void test_lockout_clear(void **state)
 {
@@ -170,6 +212,8 @@ int main(void)
     const struct CMUnitTest tests[] = {
         cmocka_unit_test_setup(test_recovery_cycle, setup),
         cmocka_unit_test_setup(test_known_failed_keeps_the_beacon, setup),
+        cmocka_unit_test_setup(test_stuck_carrier_is_not_activity, setup),
+        cmocka_unit_test_setup(test_loop_query_and_the_path_fault, setup),
         cmocka_unit_test_setup(test_lockout_clear, setup),
     };
     return cmocka_run_group_tests(tests, NULL, NULL);

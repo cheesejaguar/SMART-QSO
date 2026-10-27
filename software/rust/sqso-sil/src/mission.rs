@@ -58,9 +58,10 @@ pub const EOL_FIRE_WINDOW_W: (f64, f64) = (6.0, 35.0);
 /// window, s (the data sheet's cut within 1 min; inside the flight
 /// software's 60 s minimum hold)
 const EOL_OPEN_S: f64 = 30.0;
-/// The hardware load shed (SQSO-EPS-BRD-001 D §8.4): SHED_N low after
-/// VBAT below 13.6 V for 5 s, high again above 14.4 V; it gates SW1, the
-/// Jetson eFuse U19 and the PA's SW3, independent of the flight software
+/// The hardware load shed (SQSO-EPS-BRD-001 E §8.4, SQSO-ICD-001 1.6):
+/// SHED_N low after VBAT below 13.6 V for 5 s, high again above 14.4 V; it
+/// gates SW1 and the Jetson eFuse U19 (not the PA: RID SMA-B05),
+/// independent of the flight software
 pub const SHED_V: (f64, f64) = (13.6, 14.4);
 const SHED_DELAY_S: f64 = 5.0;
 
@@ -245,6 +246,9 @@ pub struct Mission {
     last_record_s: f64,
     /// Keyed seconds in each of the last 60 s (duty check)
     keyed_hist: std::collections::VecDeque<(f64, f64)>,
+    /// The GNSS receiver's records: GPS time of week, ms, and the true ECEF
+    /// position, m, and velocity, m/s (the GNSS state frame's check)
+    gnss_truth: std::collections::VecDeque<(i64, V3, V3)>,
     last_frame_s: Option<f64>,
     /// The last beacon while the receiver was known failed, s
     rx_failed_last_beacon_s: Option<f64>,
@@ -388,6 +392,7 @@ impl Mission {
             prev: Snapshot::default(),
             last_record_s: f64::NEG_INFINITY,
             keyed_hist: Default::default(),
+            gnss_truth: Default::default(),
             last_frame_s: None,
             rx_failed_last_beacon_s: None,
             below_rate_since: None,
@@ -595,7 +600,7 @@ impl Mission {
                 if self.totals.passivated_s.is_none() {
                     self.totals.sheds += 1;
                 }
-                self.event("eps", &format!("hardware load shed: VBAT {vbat:.2} V (SW1, U19 and SW3 off)"));
+                self.event("eps", &format!("hardware load shed: VBAT {vbat:.2} V (SW1 and U19 off)"));
             }
         } else {
             self.shed_below_s = 0.0;
@@ -768,9 +773,8 @@ impl Mission {
         // gates them, SQSO-EPS-BRD-001 D §8.4)
         let stuck = self.cfg.payload_stuck_on && self.rel() > 0.0;
         let jet_rail = (p(pin::PAYLOAD_EN) || stuck) && (p(pin::JETSON_PWR) || stuck) && !self.shed;
-        let pa_on = pa_on && !self.shed;
         // The transponder enable is the heartbeat detector's, not the pin's level
-        self.gnss_receiver(dt, r);
+        self.gnss_receiver(dt, r, v_rel);
         let xpdr_en = radio::heartbeat_enable(self.fsw.xpdr_heartbeat());
         self.update_carrier(dt, r);
         self.radio.xpdr = xpdr_en && self.carrier;
@@ -1085,7 +1089,7 @@ impl Mission {
     /// The GNSS receiver (piNAV-NG, decision D6): powered by the flight
     /// software's load switch; after an 80 s cold start it sends a GGA with a
     /// GPS fix and a `$PSLSP` state record of the true position every 10 s
-    fn gnss_receiver(&mut self, dt: f64, r: V3) {
+    fn gnss_receiver(&mut self, dt: f64, r: V3, v_rel: V3) {
         if !self.fsw.pin(pin::GNSS_EN) {
             self.gnss_on_s = 0.0;
             return;
@@ -1100,6 +1104,10 @@ impl Mission {
         let tow = (self.t + 43_200.0 - 1_198_800.0 + 13.0).rem_euclid(604_800.0); // GPS time of week, near enough
         let gga = format!("GPGGA,{:06.0},0000.000,N,00000.000,E,1,08,1.1,500000.0,M,0.0,M,,", tow % 86_400.0);
         let pslsp = format!("PSLSP,{tow:.3},2400,{:.3},{:.3},{:.3},8,1.6", x.x, x.y, x.z);
+        self.gnss_truth.push_back(((tow * 1000.0).round() as i64, x, earth::eci_to_ecef(v_rel, self.t)));
+        if self.gnss_truth.len() > 64 {
+            self.gnss_truth.pop_front();
+        }
         for body in [gga, pslsp] {
             let sum = body.bytes().fold(0u8, |a, b| a ^ b);
             let _ = self.fsw.gnss_bytes(format!("${body}*{sum:02X}\r\n").as_bytes());
@@ -1146,6 +1154,7 @@ impl Mission {
                 self.totals.dump_records +=
                     u64::from(f.get(f.iter().position(|b| b & 1 == 1).unwrap_or(0) + 7).copied().unwrap_or(0));
             }
+            ops::FrameKind::Gnss => self.gnss_frame(b.as_ref().map_or("", |b| b.text.as_str())),
             ops::FrameKind::Housekeeping | ops::FrameKind::Beacon => {}
         }
         if kind == ops::FrameKind::Housekeeping
@@ -1201,11 +1210,36 @@ impl Mission {
         }
     }
 
+    /// A GNSS state frame against the receiver's records (SRS-F158): the
+    /// position as reported, the velocity the flight software derived
+    fn gnss_frame(&mut self, text: &str) {
+        let field = |k: &str| {
+            text.split(' ').find_map(|w| w.strip_prefix(k).and_then(|v| v.strip_prefix('='))).and_then(|v| v.parse::<f64>().ok())
+        };
+        self.totals.gnss_frames += 1;
+        let (Some(tow), Some(x), Some(y), Some(z)) = (field("TOW"), field("X"), field("Y"), field("Z")) else {
+            self.event("anomaly", &format!("GNSS frame without time or position: {text}"));
+            return;
+        };
+        let Some(&(_, rt, vt)) = self.gnss_truth.iter().find(|(t, _, _)| *t == tow as i64) else { return };
+        let pos_err = (V3::new(x, y, z) - rt).norm();
+        self.totals.gnss_pos_err_max_m = self.totals.gnss_pos_err_max_m.max(pos_err);
+        if let (Some(vx), Some(vy), Some(vz)) = (field("VX"), field("VY"), field("VZ")) {
+            let vel_err = (V3::new(vx, vy, vz) * 1e-3 - vt).norm();
+            self.totals.gnss_vel_frames += 1;
+            self.totals.gnss_vel_err_max = self.totals.gnss_vel_err_max.max(vel_err);
+            self.totals.gnss_vel_err_sum += vel_err;
+        }
+    }
+
     fn consume_console(&mut self) {
         let rel = self.rel();
         for l in self.fsw.drain_console() {
             if l.starts_with("[READ]") || l.starts_with("[UART] Sent") || l.starts_with("SQGR") {
                 continue;
+            }
+            if l.contains("[GNSS] Session off: fix") {
+                self.totals.gnss_fix_sessions += 1;
             }
             if let Some(rest) = l.strip_prefix("[FAULT] Type=")
                 && let Some((_, text)) = rest.split_once(": ")

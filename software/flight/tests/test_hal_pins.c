@@ -126,6 +126,12 @@ static void test_contract_500(void **state)
         {RUST_CONST_FRAM_FAILURES_TO_DECLARE, (double)FRAM_FAILURES_TO_DECLARE},
         {RUST_CONST_FRAM_READS_TO_RECOVER, (double)FRAM_READS_TO_RECOVER},
         {RUST_CONST_FRAM_STATE_DEGRADED, (double)FRAM_STATE_DEGRADED},
+        {RUST_CONST_RECEIVER_FAULT_BLANK_MS, (double)RECEIVER_FAULT_BLANK_MS},
+        {RUST_CONST_RECEIVER_CARRIER_MAX_MS, (double)RECEIVER_CARRIER_MAX_MS},
+        {RUST_CONST_RECEIVER_QUERY_PERIOD_MS, (double)RECEIVER_QUERY_PERIOD_MS},
+        {RUST_CONST_RECEIVER_NO_ANSWER_MS, (double)RECEIVER_NO_ANSWER_MS},
+        {RUST_CONST_RECEIVER_POST_FROM_MS, (double)RECEIVER_POST_FROM_MS},
+        {RUST_CONST_RECEIVER_POST_TO_MS, (double)RECEIVER_POST_TO_MS},
     };
     for (size_t i = 0U; i < (sizeof(k) / sizeof(k[0])); i++) {
         assert_true(fabs(sqso_rust_constant((RustConst_t)k[i].id) - k[i].value) < 0.5);

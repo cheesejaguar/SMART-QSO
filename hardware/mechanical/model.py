@@ -413,6 +413,13 @@ def build_parts(p=P) -> List[Part]:
         post = C("x", (0, p["holddown_y"], p["holddown_z"]), 1.5, wx["bp1"], wx["wf1"])
         sensor = B(wx["bp1"], wx["wb1"] - 0.2, 33.5, 36.3, kz[0][0], kz[0][1])
         burn = B(wx["shear_in"] - 2.0, wx["shear_in"], -41.0, -34.0, -45.0, -35.5)
+        # hold-down line series spring (MECHANISMS_ANALYSIS E section 6): compression spring, line through its bore,
+        # knotted on a washer at the top; axis along z above the board, clear of the corner strip CS_PXMY
+        # (z <= -34.0) and PXMY_LO (y >= -33.9); seat plate on a Ti angle whose leg sits on the board's top edge
+        ls_x, ls_y = wx["shear_in"] - 3.1, -37.5
+        lspring = fuse(C("z", (ls_x, ls_y, 0), 2.5, -32.2, -22.7),     # OD 5 x 8.5 installed + washer and knot 1.0
+                       B(ls_x - 2.0, wx["shear_in"], ls_y - 1.5, ls_y + 1.5, -33.0, -32.2),  # seat plate
+                       B(wx["shear_in"] - 0.8, wx["shear_in"], ls_y - 1.5, ls_y + 1.5, -35.5, -33.0))  # leg
         doubl = [B(wx["shear_in"] - 1.0, wx["shear_in"], 35.0, 41.0, z0, z1) for z0, z1 in ((-46.8, -42.0),
                                                                                            (44.0, 48.4))]
         moving = dict(substrate=sub, back=back, front=front, line=line, snub=snub)
@@ -438,7 +445,12 @@ def build_parts(p=P) -> List[Part]:
             (f"{tag}_holddown_post", "wing", {rows[1]: 1.0}, post, False, COL["mech"], "cup/cone post"),
             (f"{tag}_deploy_sensor_stop", "wing", {rows[1]: 1.0}, sensor, False, COL["mech"],
              "non-contact deployed-state sensor and soft stop"),
-            (f"{tag}_burn_board", "wing", {rows[1]: 1.5}, burn, False, COL["pcb"], "two burn resistors, line tie"),
+            (f"{tag}_burn_board", "wing", {rows[1]: 0.9}, burn, False, COL["pcb"],
+             "two burn resistors, fixed line tie; the line's other end runs over the resistors to the series spring"),
+            (f"{tag}_line_spring", "wing", {rows[1]: 0.6}, lspring, False, COL["rod"],
+             "hold-down line series spring: 17-7PH CH900 compression spring, wire 1.0, mean D 4.0, 4 active + 2 "
+             "closed coils, OD 5.0 x 8.5 installed (free 9.3, solid 6.0), 38.6 N/mm; line through the bore, knotted on "
+             "a washer at z -22.7; seat on a Ti-6Al-4V angle under the board's upper screw (0.46 + 0.07 + 0.09 g)"),
         ]
         for i, d in enumerate(doubl):
             spec.append((f"{tag}_hinge_doubler_{i}", "frame", {"5": 1.0}, d, False, COL["al"], "inside shear panel"))
@@ -1042,6 +1054,16 @@ def run_checks(parts: List[Part], p=P, interference=True) -> Dict:
     mn = min(sweep, key=lambda x: x[1])
     item("SWP-1", "Wing W1 swept volume clear of the body panels, cells and rails (0-90 deg)", dict(
         min_clearance_mm=mn[1], at_deg=mn[0], samples=sweep), "> 0.3 (tolerance allowance)", mn[1] > 0.3)
+    # hold-down line series spring (W1; W2 is the mirror): harness zones and the wing's swept volume
+    ls = byname["W1_line_spring"].stowed
+    zd = sorted((round(min_dist(ls, B(*z[:6])), 2), zn) for zn, z in HAR.ZONES.items()
+                if z[0] < 52 and z[1] > 36 and z[2] < -20 and z[3] > -50 and z[4] < -18 and z[5] > -40)
+    wsw = min(min_dist(ls, fuse(*[wp.stowed.rotate(ax0, ax1, ang) for wp in wingparts])) for ang in
+              (0, 5, 10, 20, 30, 45, 60, 75, 90))
+    item("SWP-2", "Line series spring (W1_line_spring) clear of the harness zones and of the wing sweep (0-90 deg)",
+         dict(zones_mm=zd[:4], wing_sweep_mm=round(wsw, 2)),
+         ">= 1.0 to each harness zone; > 0.3 to the sweep (the seat angle bears on the shear panel by design)",
+         bool(zd) and zd[0][0] >= 1.0 and wsw > 0.3)
     # AntS tapes vs wings
     zt = z_planes(p)["mz_out"] - p["ants_t"] / 2.0
     band_top = zt + p["tape_w"] / 2.0

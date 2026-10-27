@@ -1,7 +1,7 @@
 # SMART-QSO Telemetry Dictionary
 
 **Document ID**: SQSO-TLM-001
-**Version**: 1.2
+**Version**: 1.3
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -229,9 +229,10 @@ bytes (`software/rust/sqso-fsw/src/housekeeping.rs`, SRS-F085, SRS-F126):
 | `RX` | Command-receiver recovery cycles since boot / known failed 1/0 (`receiver.h`) | |
 | `CN` | Authenticated commands counted as contact since boot | |
 | `ST` | Stored housekeeping: next five-minute / sixty-second record number (`DUMP_TLM`) | |
+| `FR` | FRAM: 0 working, 1 declared failed (safe defaults kept; `FRAM_BYPASS` accepted), 2 the degraded mode (RAM copies under CRC) / failed one-minute checks since boot (RID SMA-B10, SRS-F160) | |
 
 Example: `HK1 N=7 UP=3600 BOOT=3 RST=2 MODE=3 HOLD=1 XP=0 TX=1 SOC=873 VB=15812 IB=-120 PA=2410 TB=123 TO=215 TP=301
-TJ=- DEP=8/15/1 RFS=3/2700 CT=30 CS=2 FC=4 FL=17/2 W=12/-5/600 AM=2 MR=0 GF=1200/7 GS=5/4 PS=1/4/0 RX=2/0 CN=3 ST=12/60`
+TJ=- DEP=8/15/1 RFS=3/2700 CT=30 CS=2 FC=4 FL=17/2 W=12/-5/600 AM=2 MR=0 GF=1200/7 GS=5/4 PS=1/4/0 RX=2/0 CN=3 ST=12/60 FR=0/0`
 (one line on the air).
 
 ### 4.4.1 Second Housekeeping Frame (HK2)
@@ -252,12 +253,44 @@ criteria need (SQSO-MSC-001 §7, RID SMA-15) and the OBC board's supervision (`h
 | `EOL` | EPS `EOL_STATE` (as in `PS`; `-` no answer) / fire attempts | |
 | `RT` | Mission clock (RV-3028) UNIX time / the last reset's time stamp | s / s |
 | `CK` | The MCU clock against the mission clock's 1 Hz | ppm |
-| `TR` | Latch-up trips of the gyro, BMI088 and sensor rails since boot | |
+| `TR` | Latch-up trips of the gyro, BMI088, sun-sensor and magnetometer rails since boot (four numbers) | |
 | `GY` | Gyro in use (0 M-G370, 1 BMI088, 2 none) / magnetometer samples gated (Jetson, exciter) | |
 | `MF` | Magnetorquer bridge faults / off-timer expiries seen | |
 | `PE` | SRAM2 parity on 1/0 (`-` not known) | |
+| `SEP` | Separation latched on this boot 1/0 (DEPLOY_SENSE released for 10 s) / stowed readings since the latch (an open line; RID SMA-B02, SRS-F159) | |
+| `PT` | TX_TEMP sensor faulted now 1/0 (the downlink then uses the board temperature + 15 °C) / faults since boot (RID SMA-B19, SRS-F161) | |
+| `SV` | The EPS controller's `EPS_SUPV` (bits 0–3 trackers disabled, bit 4 AntS supply from the controller, bits 5–6 OBC power cycles in 24 h, bit 7 heartbeat supervision stopped; `-` no answer) / heartbeats the controller refused since boot (SRS-F162) | |
 
 During the final passivation report (SRS-F155) HK1 and HK2 are sent three times, 60 s apart, before TX-OFF.
+
+### 4.4.2 GNSS State Frame (GNS)
+
+After each GNSS session that ended with a fix, and after HK2 on `GET_HOUSEKEEPING` (the latest fix again), one UI frame
+whose information field starts `GNS ` (`software/rust/sqso-fsw/src/gnss_frame.rs`, SRS-F158, RID LV-04), through the
+downlink's inhibits and duty limit (a frame the downlink refuses is not queued; `GET_HOUSEKEEPING` sends it again).
+Plain ASCII, keys in this order, integers only, `-` for a value not available, at most 160 bytes:
+
+```
+GNS N=<session> WK=<week> TOW=<ms> X=<m> Y=<m> Z=<m> VX=<mm/s> VY=<mm/s> VZ=<mm/s> VDT=<s> Q=<quality> SV=<sats> PD=<PDOP x 10> AGE=<s>
+```
+
+| Key | Value | Unit |
+|-----|-------|------|
+| `N` | The GNSS session that took the fix (HK1 `GS`, first number); the repeat on `GET_HOUSEKEEPING` keeps it, so the ground drops duplicates by `N` | |
+| `WK` | GPS week as the receiver reports it: the piNAV-NG's `$PSLSP` week, **10 bits** (0–1023, rolled over 1999-08-22 and 2019-04-07). The full week is the one of the form `WK` + 1024 k nearest the ground's clock (in 2028–2033: `WK` + 2048) | week |
+| `TOW` | GPS time of week of the fix (the `$PSLSP` record's epoch), GPS time (not UTC: GPS − UTC = 18 s since 2017) | ms |
+| `X`, `Y`, `Z` | Receiver antenna position at `TOW`, ECEF, WGS-84 | m |
+| `VX`, `VY`, `VZ` | ECEF velocity at the same epoch (in the Earth-fixed, rotating frame). Derived on board: the receiver reports no velocity. The mean velocity over the chord from the session's first accepted fix to this one (`VDT` seconds) carried to the fix epoch with the Earth-fixed acceleration (point mass, J2, Coriolis, centrifugal) by Simpson's rule; method error below 0.01 m/s for chords up to 120 s; with position noise σ the velocity noise is about √2 σ / `VDT` (0.5 m/s for 10 m over 30 s). `-` when the session had no chord of 10 to 120 s | mm/s |
+| `VDT` | The chord the velocity comes from (the session runs 30 s past its first fix, so normally 20–30 s) | s |
+| `Q` | GGA fix quality with the fix: 1 GPS, 2 differential (the only ones the driver accepts) | |
+| `SV` | Satellites used | |
+| `PD` | PDOP × 10 | |
+| `AGE` | Seconds from the fix to this frame: 0 after the session, larger on the repeat | s |
+
+Example: `GNS N=17 WK=452 TOW=345600000 X=-4349115 Y=4803225 Z=2239564 VX=-4581234 VY=-1912078 VZ=5870431 VDT=30 Q=1
+SV=8 PD=18 AGE=0` (one line on the air). Decoder: `software/ground/tools/gnss_frame.py` (SQSO-GND-002); unknown keys are
+ignored. The stored housekeeping records (§4.6) do not carry the fix: their 44-byte layout and FRAM regions are full; HK1
+`GF` carries its age and satellites.
 
 ### 4.5 Command Acknowledgement
 
@@ -353,3 +386,4 @@ SQSO_SUMMARY_YYYYMM.csv
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 2) | §4.3 beacon interval jitter; §4.4 the HK1 housekeeping frame with its fields (new: `PS`, `RX`, `CN`, `ST`; `PA` from the bus-side array current); §4.5 the command acknowledgement; §4.6 the stored housekeeping records |
 | 1.2 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §4.4 `PS` carries the EPS `EOL_STATE` (fuse F1 intact, bit 2) and the fire attempts (RID REG-12, finding EOL-1); §4.4.1 new: the second housekeeping frame HK2 (RID SMA-15) |
+| 1.3 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, second part) | §4.4.2 new: the GNSS state frame `GNS` (RID LV-04, SRS-F158); HK1 `FR` (SMA-B10); HK2 `TR` with the magnetometer rail, `SEP`, `PT`, `SV` (SMA-B02, B19, B09) |

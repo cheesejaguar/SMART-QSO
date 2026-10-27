@@ -343,6 +343,12 @@ const CONSTANTS: &[(u32, f64)] = &[
     (506, (sqso_fsw::fram_health::FAILURES_TO_DECLARE) as f64),
     (507, (sqso_fsw::fram_health::READS_TO_RECOVER) as f64),
     (508, (sqso_fsw::fram_health::STATE_DEGRADED) as f64),
+    (509, (sqso_fsw::receiver::FAULT_BLANK_MS) as f64),
+    (510, (sqso_fsw::receiver::CARRIER_MAX_MS) as f64),
+    (511, (sqso_fsw::receiver::QUERY_PERIOD_MS) as f64),
+    (512, (sqso_fsw::receiver::NO_ANSWER_MS) as f64),
+    (513, (sqso_fsw::receiver::POST_FROM_MS) as f64),
+    (514, (sqso_fsw::receiver::POST_TO_MS) as f64),
 ];
 
 /// A constant this library keeps

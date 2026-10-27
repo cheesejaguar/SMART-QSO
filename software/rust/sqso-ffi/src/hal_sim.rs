@@ -195,11 +195,24 @@ struct Radio {
     lens: [usize; RADIO_QUEUE],
     head: usize,
     count: usize,
+    /// The simulated TNC answers STATUS queries (a test can cut its link)
+    tnc_mute: bool,
+    /// An answer is waiting
+    status: Option<sqso_protocol::kiss::TncStatus>,
+    /// Queries seen
+    queries: u32,
 }
 
 impl Radio {
-    const EMPTY: Radio =
-        Radio { frames: [[0; RADIO_MAX_FRAME]; RADIO_QUEUE], lens: [0; RADIO_QUEUE], head: 0, count: 0 };
+    const EMPTY: Radio = Radio {
+        frames: [[0; RADIO_MAX_FRAME]; RADIO_QUEUE],
+        lens: [0; RADIO_QUEUE],
+        head: 0,
+        count: 0,
+        tnc_mute: false,
+        status: None,
+        queries: 0,
+    };
 
     /// Append `frame`; when full, the oldest is dropped if `overwrite`,
     /// else nothing is stored
@@ -1484,6 +1497,64 @@ pub unsafe extern "C" fn hal_radio_receive(frame: *mut u8, max_len: usize, len: 
         }
         Err(e) => e,
     })
+}
+
+/// The TNC's STATUS query: the simulated TNC answers while the radio is
+/// powered (`RADIO_EN`) and its link is not cut (`hal_sim_tnc_mute`)
+#[unsafe(no_mangle)]
+pub extern "C" fn hal_radio_status_query() -> i32 {
+    let now_s = time_us() / 1_000_000;
+    sim(rc::BUSY, |s| {
+        s.radio.queries = s.radio.queries.wrapping_add(1);
+        let powered =
+            index(crate::pins::RADIO_EN, GPIO_PIN_COUNT).and_then(|i| s.gpio_state.get(i).copied()) == Some(true);
+        if powered && !s.radio.tnc_mute {
+            s.radio.status = Some(sqso_protocol::kiss::TncStatus {
+                version: 1,
+                criteria: 0x3F,
+                floor_dbm: -121,
+                floor_cal_dbm: -121,
+                carrier_count: 0,
+                frames: 0,
+                uptime_s: u32::try_from(now_s).unwrap_or(u32::MAX),
+            });
+        }
+        rc::OK
+    })
+}
+
+/// The TNC's latest STATUS answer, once
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn hal_radio_take_status(data: *mut u8, max_len: usize, len: *mut usize) -> i32 {
+    // SAFETY: the C contract: data points to max_len writable bytes, len to a size_t
+    let (buf, out) = unsafe { (ptr::bytes_mut(data, max_len), ptr::out(len)) };
+    let (Some(buf), Some(out)) = (buf, out) else { return rc::NULL_PTR };
+    *out = 0;
+    sim(rc::BUSY, |s| {
+        let Some(st) = s.radio.status.take() else { return rc::TIMEOUT };
+        let bytes = st.encode();
+        let Some(dst) = buf.get_mut(..bytes.len()) else { return rc::INVALID };
+        dst.copy_from_slice(&bytes);
+        *out = bytes.len();
+        rc::OK
+    })
+}
+
+/// Cut (true) or restore the simulated TNC's answers to STATUS queries
+#[unsafe(no_mangle)]
+pub extern "C" fn hal_sim_tnc_mute(mute: bool) {
+    sim((), |s| {
+        s.radio.tnc_mute = mute;
+        if mute {
+            s.radio.status = None;
+        }
+    });
+}
+
+/// STATUS queries the simulated TNC has seen
+#[unsafe(no_mangle)]
+pub extern "C" fn hal_sim_tnc_queries() -> u32 {
+    sim(0, |s| s.radio.queries)
 }
 
 /// What caused the last reset

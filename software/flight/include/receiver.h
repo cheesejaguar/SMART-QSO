@@ -36,6 +36,18 @@ extern "C" {
 /** Radio off this long in a recovery cycle, ms */
 #define RECEIVER_CYCLE_OFF_MS 2000U
 
+/** RX_FAULT ignored this long after RADIO_EN switches on, ms */
+#define RECEIVER_FAULT_BLANK_MS 1500U
+/** A carrier detect continuously high for longer is not activity, ms (RID SMA-B11) */
+#define RECEIVER_CARRIER_MAX_MS 3600000U
+/** The TNC STATUS loop query's period, ms (RF board E §8.6) */
+#define RECEIVER_QUERY_PERIOD_MS 600000U
+/** No STATUS answer this long with the radio on is a receiver-path fault, ms */
+#define RECEIVER_NO_ANSWER_MS 86400000ULL
+/** RX_FAULT's power-on self-test window after RADIO_EN rises, ms */
+#define RECEIVER_POST_FROM_MS 10U
+#define RECEIVER_POST_TO_MS 90U
+
 /** Start counting from now (boot) */
 void receiver_init(void);
 

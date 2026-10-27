@@ -278,7 +278,8 @@ def main():
         print(f"line {v['material']:22s} EA {v['EA20_N']/1e3:4.1f} kN spring {v['series_spring_N_per_mm']}: stretch "
               f"{v['preload_stretch_mm']:.3f} mm, thermal slack {v['thermal_slack_mm']:.3f} mm -> tension at -81 C "
               f"{v['tension_cold_N']:.1f} N after creep ({v['tension_cold_no_creep_N']:.1f} N without), slack {v['slack_mm']:.3f} mm")
-    # flight timing (sqso_fsw::deployment): 8 s per resistor, retries 50 min apart, so no heat is kept between attempts
+    # flight timing (sqso_fsw::deployment): 10 s per resistor (chair decision C-17; 8 s before), retries 50 min
+    # apart, so no heat is kept between attempts
     keep0 = MECH.KEEP
     MECH.KEEP = 0.0
     R["burn_release"] = {f"{t:+.0f}C_{b:.0f}s": MECH.burn_release(float(t), b) for t in (T_BURN, T_COLD) for b in (5.0, 8.0, 10.0)}
