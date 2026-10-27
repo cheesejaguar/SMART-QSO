@@ -1,6 +1,8 @@
 # SMART-QSO Critical Design Review (CDR)
 # Review Minutes and Findings
 
+**Document Number**: SQSO-REV-CDR-001
+
 > **Historical record (2026-01-02).** Superseded for current values by
 > [`docs/BASELINE_PARAMETERS.md`](../../BASELINE_PARAMETERS.md) and
 > [`docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`](CDR_2026_DESIGN_REVIEW.md). It is the self-assessed CDR record
@@ -18,7 +20,6 @@
 > to funders or regulators as review outcomes. See `docs/funding_audit/FUNDING_AUDIT_REPORT.md` and
 > finding PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
 
-**Document Number**: SQSO-REV-CDR-001
 **Review Date**: 2026-01-02
 **Classification**: Unclassified - Open Source Project
 **Review Type**: Critical Design Review per NPR 7123.1 Appendix G
