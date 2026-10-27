@@ -2,7 +2,7 @@
 ## SMART-QSO
 
 **Document Number:** SQSO-CRL-001
-**Revision:** D
+**Revision:** E
 **Date:** 2026-10-27
 **Reference:** `docs/project/CONFIGURATION_MANAGEMENT_PLAN.md` §4.3 to §4.4, §6.3
 
@@ -25,6 +25,7 @@ logged here; the Git history records them.
 | CR-2026-005 | 2026-10-25 | I | OBC–transmitter interface (`hardware/obc/OBC_DESIGN.md` §8.1 and A.5; SQSO-RF-TX-001 §10.1; SRS §5.3) | The downlink goes to a KISS TNC on USART2, shared with the uplink receiver; power select on one GPIO line (0.5 W / 1 W); three ADC monitors; SRS-I023 to SRS-I027 | Approved, PI | Implemented; verification of the TNC and transmitter pending (hardware) |
 | CR-2026-006 | 2026-10-26 | I | BASELINE §5 battery row, §8 ADCS row, §9 D8–D9; `sqso_fsw::adcs` gains | Battery charged to 4.10 V/cell (size kept); gyro Epson M-G370PDT0 with BMI088 backup; B-dot gain 10⁴; spin 6°/s with a spin-hold term | Approved, PI delegation | Implemented in the software and the simulation; hardware pending |
 | CR-2026-007 | 2026-10-27 | I | BASELINE §1, §3–§9 (Rev E); SQSO-LVR-001; mission requirements MO-1 to MO-5 | CDR 2026 chair dispositions: launch path, orbit 475 km target / 485 km cap, planning launch 2028-11, mass properties and layout B, third inhibit DS3, burn drivers and sequence, commissioning hold, spin 8 °/s, uplink windows, transponder 1.8 W DC, telecommand stations | Approved, design review chair; PI ratification pending | Implemented in documents; software in progress |
+| CR-2026-008 | 2026-10-27 | I | BASELINE §1, §3, §4, §5, §7 (Rev E, amended) | Inertia ballast 2 × 10 g (C-13; MEV 1.748 kg, +14.4 %); telecommand ≥ 64 dBm EIRP in two station variants (C-14); uplink ≥ 0.9 MHz below 3 × f_down; lifetimes, power and link values from the Rev E re-runs | Approved, design review chair; PI ratification pending | Implemented in documents |
 
 ## 3. Change Requests
 
@@ -426,6 +427,67 @@ Submitter: Design review chair (CDR 2026, SQSO-REV-CDR-002)
 
 ---
 
+### CR-2026-008: CDR 2026 round-2 baseline amendments
+
+```
+Change Request Number: CR-2026-008
+Date Submitted: 2026-10-27
+Submitter: Design review chair (CDR 2026, SQSO-REV-CDR-002)
+
+1. Configuration Item Affected:
+   CI ID: SQSO-BL-001 Rev E (amended) §1, §3, §4, §5, §7
+
+2. Description of Change:
+   - §4: 2 x 10 g W-Ni-Cu ballast on the +Z end frame (C-13); CBE
+     1.51 kg, MEV 1.75 kg, margin +14.4 %; deployed inertia ratio
+     1.055 / 1.046 with all four AntS elements.
+   - §7: telecommand stations radiate >= 64 dBm EIRP above 10 deg:
+     >= 100 W PEP into >= 15.5 dBic, or <= 50 W PEP into a >= 17.5
+     dBic stacked pair inside the 47 CFR 2.106 US270 areas (C-14);
+     uplink windows >= 0.9 MHz below 3 x f_down (was stated 2 MHz).
+   - §1, §3, §5, §7: contact statistics, lifetimes (ODAR Draft D,
+     deployment 2028-11-01), generation and margins (PBA 2.2) and the
+     beacon margin (LBA 3.4) from the Rev E re-runs.
+
+3. Reason for Change:
+   Round-2 RIDs RFB-11, MCAD-09 (inertia margin 0.007 with four AntS
+   elements), RF-23 (telecommand +3.8 dB at 10 deg with the receiver as
+   designed), SE-18 (uplink separation misstated), SE-16 (analyses at
+   superseded values).
+
+4. Impact Assessment:
+   - Technical: inertia ratio holds >= 1.03 to 3.1 mm placement
+     scatter; telecommand >= +8.8 dB at 10 deg in either variant.
+   - Schedule: none.
+   - Cost: ground stations about $6,650 (A) or $7,350 (B) each;
+     lifecycle $300k-$784k (SQSO-AUD-005 Rev E).
+   - Risk: none added.
+
+5. Affected Documents:
+   docs/BASELINE_PARAMETERS.md, hardware/mechanical/MECHANICAL_DESIGN.md,
+   docs/environment/MASS_BUDGET.md, docs/environment/LINK_BUDGET_ANALYSIS.md,
+   docs/ground/GROUND_STATION_DESIGN.md, docs/regulatory/filings/ODAR_SMART-QSO.md,
+   docs/environment/POWER_BUDGET_ANALYSIS.md.
+
+6. Verification Required:
+   Analysis: the mass properties, link budget and lifetime re-runs.
+   Test: measured inertia (VI-MCAD-03); station EIRP (VI-GND-01).
+
+7. CCB Decision:
+   [x] Approved
+   Reason: design review chair, 2026-10-27; to be ratified by the PI.
+
+8. Implementation:
+   Assigned to: Systems, mechanical, ground
+   Completed: 2026-10-27
+
+9. Verification:
+   Verified by: the review's closure panel; hardware pending
+   Date: —
+```
+
+---
+
 ## 4. Revision History
 
 | Rev | Date | Description | Author |
@@ -434,3 +496,4 @@ Submitter: Design review chair (CDR 2026, SQSO-REV-CDR-002)
 | B | 2026-10-25 | CR-2026-005: the downlink transmitter interface | SMART-QSO Team |
 | C | 2026-10-26 | CR-2026-006: battery charge voltage, gyro and ADCS gains | SMART-QSO Team |
 | D | 2026-10-27 | CR-2026-007: CDR 2026 chair dispositions | SMART-QSO Team |
+| E | 2026-10-27 | CR-2026-008: CDR 2026 round-2 baseline amendments | SMART-QSO Team |
