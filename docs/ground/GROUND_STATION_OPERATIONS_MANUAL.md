@@ -501,10 +501,15 @@ CHECK:
 4. □ Spacecraft in commandable mode?
 
 RETRY:
-- Check the uplink Doppler correction (must be within ±1 kHz at the spacecraft)
+- Check the uplink Doppler correction and the TCXO offset of §7.4 (together within ±1 kHz at the spacecraft)
 - Wait for higher elevation (≥ 10°; ≥ 12° in the degraded mode); variant A 100 W at the feed, variant B ≤ 50 W PEP (US270)
 - Rebuild with a new counter; never re-send a spent frame
-- If AUTH_FAIL is suspected (wrong key slot after a rotation, counter behind): check the counter file and key ID
+- If AUTH_FAIL is suspected (wrong key slot after a rotation, counter behind): check the key ID, and whether the
+  other station commanded after these frames were built (rebuild them); compare the newest acknowledged C, decoded
+  (C div 4 = seconds since 2028-01-01, C mod 4 = station index), with the UTC it was sent: more than 1 s apart, that
+  station's clock is wrong and it stops commanding until fixed (SQSO-ICD-013 §5.2.1)
+- Builder refuses: "clock not synchronised" or "maximum error": fix the time source, never bypass;
+  "N s behind the newest acknowledged counter (station k)": station k's clock ran fast, agree with it
 ```
 
 ## 9. Emergency Procedures
@@ -549,10 +554,14 @@ If telemetry indicates emergency:
 │ T-30  □ Start Gpredict, Direwolf        │
 │ T-15  □ Point antenna to AOS            │
 │ T-5   □ Configure radio, start decoder  │
+│       □ Clock ≤ 0.5 s; frames built (UTC) │
 │ AOS   □ Monitor for beacon              │
+│ CMD   □ ≥ 10° (12° degraded); TCXO      │
+│         offset applied; GNSS_REQUEST    │
 │ PASS  □ Log telemetry, monitor health   │
 │ LOS   □ Log end time, beacons received  │
 │ POST  □ Archive data, submit report     │
+│       □ Ephemeris run, upload (§5.3)    │
 └─────────────────────────────────────────┘
 ```
 
@@ -583,3 +592,4 @@ If telemetry indicates emergency:
 | 1.3 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Fade length from SQSO-LBA-001 v3.2 §5.2 (5 s every 22.5 s at 8°/s); TX-OFF wait 13.0 h from SQSO-GND-001 Rev D §5 (475 km) |
 | 1.4 | 2026-10-27 | CDR S&MA analysis (decision C-14) | Commanding only above 10° elevation (12° in the degraded mode); 100 W PEP at the antenna feed with the amplifier and sequencer, PTT gate check; US270 sites (§2.2, §5, troubleshooting) |
 | 1.5 | 2026-10-27 | CDR S&MA analysis (decision C-14 restated) | Station variants A (100 W into ≥ 15.5 dBic) and B (≤ 50 W PEP into a stacked pair at US270 sites), rotator accuracy ±2° for B, power checks; degraded mode above 12° |
+| 1.6 | 2026-10-27 | CDR round 3, ground software (RIDs GND-04, LV-04, RFB-05) | UTC-derived counters in the command procedure (§7.2), clock maximum error ≤ 0.5 s (§2.2, §3.4); the command acknowledgement used to verify (§7.2); quick reference with the whole dictionary, 0x08 to 0x0B, 0x14, 0x24 to 0x26, 0x34, 0x35, 0x50, 0x60, 0x70, 0x71 (§7.3); uplink frequency offset from the measured downlink (§7.4); orbit determination and the 24 h ephemeris procedure (§5.3, SQSO-GND-002); troubleshooting and the checklist card |
