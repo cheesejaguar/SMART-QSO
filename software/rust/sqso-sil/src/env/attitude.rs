@@ -54,14 +54,19 @@ pub const INITIAL_TUMBLE_RAD_S: f64 = 10.0 * core::f64::consts::PI / 180.0;
 const MAX_SUBSTEP_ANGLE: f64 = 0.1;
 
 /// Inertia about the CG, wings and antennas stowed (kg·m², body axes): the
-/// mean of the CAD's CBE (2.746, 3.052, 2.732) and MEV (3.158, 3.509, 3.189)
-/// × 10⁻³ (MASS_BUDGET v3.1 §6.1)
-pub const INERTIA_STOWED: V3 = V3::new(2.952e-3, 3.2805e-3, 2.9605e-3);
+/// mean of the CAD's CBE and MEV rows (MASS_BUDGET §6.1, final CAD of CDR
+/// round 3)
+pub const INERTIA_STOWED: V3 = V3::new(2.960e-3, 3.292e-3, 2.970e-3);
 /// Inertia about the CG, wings and antennas deployed (kg·m², body axes):
-/// the mean of the CAD's CBE (2.846, 4.190, 3.970) and MEV (3.267, 4.745,
-/// 4.535) × 10⁻³ (MASS_BUDGET v3.1 §6.1 and §6.5, with the C-13 ballast);
-/// Iyy/Izz 1.051. The same diagonal as `sqso_fsw::adcs::INERTIA`
-pub const INERTIA_DEPLOYED: V3 = V3::new(3.0565e-3, 4.4675e-3, 4.2525e-3);
+/// the mean of the CAD's CBE (2.853, 4.200, 3.978) and MEV (3.276, 4.758,
+/// 4.545) × 10⁻³ (MASS_BUDGET §6.1 and §6.5, with the C-13 ballast, final
+/// CAD of CDR round 3); Iyy/Izz 1.051. The same diagonal as
+/// `sqso_fsw::adcs::INERTIA`
+pub const INERTIA_DEPLOYED: V3 = V3::new(3.0645e-3, 4.479e-3, 4.2615e-3);
+/// One wing deployed (W1 or W2) and the AntS out: the diagonal of the
+/// CAD's one-wing tensors (STR-27; their products tilt the major axis 8.3°
+/// and 9.1° from +Y, which this principal-axis model leaves out)
+pub const INERTIA_ONE_WING: [V3; 2] = [V3::new(3.027e-3, 4.165e-3, 3.910e-3), V3::new(3.027e-3, 4.166e-3, 3.911e-3)];
 
 /// Principal inertia, wings stowed (kg·m²).
 pub fn inertia_stowed() -> V3 {

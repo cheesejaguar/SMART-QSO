@@ -5,9 +5,9 @@
 **Revision:** A
 **Date:** 2026-10-27
 **Owner:** Ground segment lead (SQSO-GND-001 §8)
-**Status:** CDR design. The ground tool is implemented and verified against a simulated orbit; the GNSS state
-frame it reads is an assumed layout until the telemetry dictionary defines it (§3); the end-to-end demonstration with
-the integrator and SpaceX (VI-LV-13) is open.
+**Status:** CDR design. The ground tool is implemented and verified against a simulated orbit, reading the GNSS state
+frame as the flight software writes it (§3); the end-to-end demonstration with the integrator and SpaceX (VI-LV-13) is
+open.
 
 ---
 
@@ -22,13 +22,13 @@ until the 18th SDS has catalogued the object (SpaceX Rideshare User's Guide v11 
 
 This document covers the ground half of that chain: decoding the GNSS fixes from the downlink, orbit determination,
 the products (CCSDS OEM and TLE), their quality flag, the accuracy verified in simulation, and the 24 h procedure.
-The onboard half (receiver sessions, the GNSS state frame) is in the flight software (`gnss_schedule.rs`, `gnss.rs`;
-SRS-F084) and the telemetry dictionary (SQSO-TLM-001).
+The onboard half (receiver sessions, the GNSS state frame) is in the flight software (`gnss_schedule.rs`, `gnss.rs`,
+`gnss_frame.rs`; SRS-F084, SRS-F158) and the telemetry dictionary (SQSO-TLM-001).
 
 | Item | Where |
 |------|-------|
 | Ground tool | `software/ground/tools/ephemeris_tool.py` (command line); `gnss_frame.py`, `orbit_frames.py`, `orbit_dynamics.py`, `orbit_determination.py`, `ephemeris_products.py`; simulation `gnss_simulation.py` |
-| Tests | `software/ground/tests/test_orbit_determination.py` (31 tests, run in CI by `.github/workflows/program-checks.yml`) |
+| Tests | `software/ground/tests/test_orbit_determination.py` (32 tests, run in CI by `.github/workflows/program-checks.yml`) |
 | Procedure | §7 here; the operator step in SQSO-GSOM-001 §5.3 |
 | Owner | Ground segment lead: the tool, its configuration (gravity file, drag area), the procedure and the uploads. The licensee (KK6GDB) is the operator contact on Space-Track and approves the first upload |
 
@@ -45,25 +45,27 @@ SRS-F084) and the telemetry dictionary (SQSO-TLM-001).
 
 ## 3. GNSS Fixes on the Ground
 
-### 3.1 The GNSS state frame (assumed layout)
+### 3.1 The GNSS state frame
 
-The flight software sends a GNSS state frame after each accepted fix and on `GNSS_REQUEST` (0x60). Its definition
-belongs in the telemetry dictionary (`docs/operations/TELEMETRY_DICTIONARY.md`, SQSO-TLM-001), which did not define it
-when this tool was written. The tool reads this **assumed** layout, in the style of the HK1 frame (plain ASCII
-`KEY=value`, integers, `-` for a value not measured):
+The flight software sends one GNSS state frame after each receiver session that ended with a fix, and repeats the
+latest on `GET_HOUSEKEEPING` (0x09) (`software/rust/sqso-fsw/src/gnss_frame.rs`, SRS-F158; SQSO-TLM-001). Plain
+ASCII `KEY=value`, integers, `-` for a value not available:
 
 ```
-GNS N=<seq> WK=<GPS week> TOW=<GPS time of week, ms> X=<m> Y=<m> Z=<m> VX=<mm/s> VY=<mm/s> VZ=<mm/s>
-    Q=<GGA fix quality> SV=<satellites used> PD=<PDOP x 10>
+GNS N=<session> WK=<GPS week> TOW=<GPS time of week, ms> X=<m> Y=<m> Z=<m> VX=<mm/s> VY=<mm/s> VZ=<mm/s> VDT=<s>
+    Q=<GGA fix quality> SV=<satellites used> PD=<PDOP x 10> AGE=<s>
 ```
 
-ECEF, WGS-84. `WK` as the receiver reports it (the piNAV-NG reports a 10-bit week: the tool resolves the rollover to
-the week nearest the reception time, or to the era that began 2019-04-07). `Q` 1 (GPS) or 2 (differential) is a real
-fix; anything else is refused. Unknown keys are ignored and decimals are accepted.
+ECEF, WGS-84. The receiver's state record carries no velocity: the flight software derives it from the session's first
+accepted fix and this one, `VDT` seconds apart (10–120 s), so its noise is about √2 × the position sigma / `VDT`
+(0.24 m/s per axis for 5 m over 30 s), and it is `-` when the session had no usable chord. `WK` as the receiver
+reports it (the piNAV-NG reports a 10-bit week: the tool resolves the rollover to the week nearest the reception time,
+or to the era that began 2019-04-07). `Q` 1 (GPS) or 2 (differential) is a real fix; anything else is refused. `AGE`
+is the fix's age when the frame was sent; the repeat on `GET_HOUSEKEEPING` keeps `N`, `WK` and `TOW` and is dropped as
+a duplicate.
 
-**Alignment.** One function knows the layout: `parse_gnss_frame()` in `gnss_frame.py`. When SQSO-TLM-001 defines the
-frame, that function and its test vectors (`TestGnssFrame`) change and nothing else. Everything downstream works on
-time-tagged ECEF positions with a PDOP; the velocity is optional (§4.4).
+**One decoder.** `parse_gnss_frame()` in `gnss_frame.py` is the only function that knows the layout; unknown keys are
+ignored and decimals accepted. Its test vectors (`TestGnssFrame`) use the flight software's own format.
 
 ### 3.2 Input
 
@@ -117,10 +119,11 @@ data. The EME2000 product does (`--dut1`, IERS Bulletin A; refused without it: u
 |------|------|
 | Estimated | TEME position and velocity at the epoch, and k |
 | Fix sigma | Per axis: 2.5 m × PDOP (piNAV-NG: 10 m 2σ horizontal), combined with a **force-model error floor**: 150 m (4 × 4 field), 100 m (to 8 × 8), 60 m (to 12 × 12), 30 m (finer) (`--model-sigma`). The gravity left out is correlated along the orbit, not white: without the floor the covariance is too small between and after sparse fixes (§6) |
-| Velocity | Not fitted by default: the piNAV-NG velocity accuracy is not confirmed (D6 research §6.2). It starts the iteration when present. `--use-velocity --sigma-vel` fits it |
-| Start | A fix's velocity; else two fixes of one session 2–600 s apart; else a prior TLE (`--prior-tle`, e.g. the launch provider's predicted elements). Otherwise the fit is refused |
+| Velocity | The frame's chord velocity is fitted, per axis with √(2 × (2.5 m × PDOP)² / VDT² + (0.01 m/s)² + (floor × n)²): its noise, the onboard method error (8 mm/s over 120 s), and the force-model floor times the mean motion. It is derived from the receiver's positions, so the D6 concern about the receiver's own velocity output does not arise. `--no-velocity` leaves it out of the fit |
+| Start | A fix's velocity; else two fixes of one session 2–600 s apart; else a prior TLE (`--prior-tle`, e.g. the launch provider's predicted elements: needed when the sessions had no usable chord, `VDT=-`). Otherwise the fit is refused |
+| Minimum | 9 measured values from at least 2 fixes: three position-only fixes, or two fixes with velocity |
 | Iteration | Levenberg-Marquardt; partials from finite-difference trajectories integrated with the nominal; without a measured velocity the arc is grown from the start outwards |
-| Editing | After convergence, a fix whose residual exceeds 5 × the robust residual scale is rejected (three rounds at most); dead-reckoned (`Q` ≠ 1, 2), < 4 satellites or implausible radius refused before the fit |
+| Editing | After convergence, a robust stage (Huber weights at 3σ per fix, until they settle) keeps one gross error from dragging a fit of few fixes; then a fix whose residual exceeds 5 × the robust residual scale is rejected and the rest refitted at full weight (three rounds at most). Dead-reckoned (`Q` ≠ 1, 2), < 4 satellites or implausible radius refused before the fit |
 | Covariance | Formal, scaled by the reduced chi-square when above 1, mapped forward with the state transition, plus a **drag forecast term**: a 20 % change of k from the last fix on (`--drag-forecast`), the density change after the fit that no fit can know (D6 research §6.2) |
 | Window | The last 48 h of fixes (`--window-h`) |
 
@@ -133,7 +136,7 @@ Decided on the 3D position 1σ at the last fix + 24 h (the time to the next upda
 | **GOOD** | Converged; 1σ(+24 h) ≤ 5 km; arc ≥ one orbit (90 min); RMS ≤ 50 m per axis; ≤ 20 % of fixes rejected | Upload |
 | **FAIR** | Converged; 1σ(+24 h) ≤ 20 km; RMS ≤ 200 m; ≤ 20 % rejected; below GOOD on one count (named in the report) | Upload; next update at the next pass |
 | **POOR** | Anything worse, or not converged | Written as `NOT-FOR-UPLOAD_…`; exit 2; not uploaded (§7) |
-| **FAIL** | < 3 usable fixes, no start, singular normal matrix | No products; exit 3 |
+| **FAIL** | Fewer than the minimum (§4.4), no start, singular normal matrix | No products; exit 3 |
 
 ## 5. Products
 
@@ -166,26 +169,29 @@ end, the TLE fit RMS and the file names.
 `test_orbit_determination.py` flies a simulated SMART-QSO: 475 km sun-synchronous (97.31°), LTAN 22:30
 (BASELINE §3), from 2028-11-02, integrated with **more than the fit models**: gravity to 20 × 20 (EGM96 to 4 × 4,
 then Kaula-rule coefficients standing in for the real higher-degree field), Sun and Moon, a ±30 % diurnal density
-bulge, and drag 1.4 times the nominal. Fixes get 5 m per axis noise (2.5 m × PDOP 2), pass through the GNSS frame
-encoder and decoder and the archive reader, and the command-line tool fits them; the OEM is read back and compared
-with the truth.
+bulge, and drag 1.4 times the nominal. Each session's fix gets 5 m per axis noise (2.5 m × PDOP 2) and the 30 s chord
+velocity its matching noise; it is written as the flight software's GNSS state frame, decoded through the archive
+reader, and fitted by the command-line tool; the OEM is read back and compared with the truth.
 
-| Case (fixes) | Field in the fit | Flag | 3D error / 1σ at last fix + 24 h | + 48 h | + 72 h | Largest error / 1σ |
-|--------------|------------------|------|------------------------------|--------|--------|-----------------|
-| Launch and early operations: one fix per orbit for 24 h (16) | 12 × 12 file | GOOD | 0.71 / 2.7 km | 1.8 / 10.9 km | 4.2 / 24.7 km | 2.7 |
-| Same | built-in 4 × 4 | FAIR (RMS 105 m) | 1.6 / 3.1 km | 4.8 / 12.2 km | 9.2 / 27.4 km | 2.3 |
-| **First-ephemeris deadline, own station only**: `GNSS_REQUEST` on 4 passes in two pass groups 12 h apart, 3 records each, no velocity (12) | 4 × 4 | FAIR | 3.2 / 5.3 km | 10.8 / 18.8 km | 23.9 / 40.8 km | 1.5 |
-| Same | 12 × 12 file | GOOD | 3.2 / 3.7 km | 10.6 / 14.1 km | 22.3 / 31.4 km | 1.8 |
-| Two passes 12 h apart, 3 records each (6) | 4 × 4 | FAIR (drag not observable: k 1.0 ± 1.0) | 7.6 / 15 km | 23 / 51 km | 46 / 107 km | 1.6 |
-| One 30 s session (30) | 4 × 4 | POOR | 14 / 810 km | | | < 0.1 |
+| Case (one frame per session) | Field in the fit | Flag | 3D error / 1σ at last fix + 24 h | + 48 h | + 72 h | Largest error / 1σ |
+|------------------------------|------------------|------|------------------------------|--------|--------|-----------------|
+| Launch and early operations: a session every orbit for 24 h (16 frames) | 12 × 12 file | GOOD | 0.60 / 2.8 km | 1.5 / 11.0 km | 3.6 / 24.7 km | 3.1 |
+| Same | built-in 4 × 4 | FAIR (RMS 117 m) | 1.8 / 3.1 km | 6.1 / 12.2 km | 11.5 / 27.5 km | 2.9 |
+| **First-ephemeris deadline, own station only**: `GNSS_REQUEST` on 4 passes in two pass groups 12 h apart (4 frames) | 4 × 4 | FAIR | 2.0 / 6.7 km | 6.7 / 23.0 km | 15.7 / 48.9 km | 1.3 |
+| Same | 12 × 12 file | GOOD | 2.6 / 4.3 km | 8.7 / 15.6 km | 18.5 / 34.3 km | 1.5 |
+| Two passes one orbit apart (2 frames) | 4 × 4 | FAIR (drag not observable: k 1.0 ± 1.0) | 5.4 / 11.3 km | 18.7 / 42.6 km | 39 / 95 km | 0.6 |
+| Two passes 12 h apart (2 frames) | 4 × 4 | FAIR (same) | 7.9 / 15.2 km | 23 / 51 km | 46 / 107 km | 1.4 |
+| Two sessions in one pass, 4 minutes apart (2 frames) | 4 × 4 | POOR | 34 / 60 km | 62 / 126 km | 80 / 202 km | 0.8 |
+| One frame | | FAIL (6 values) | | | | |
 
 **Stated accuracy** (asserted by the tests, with margin): launch and early operations with the 12 × 12 field,
 **≤ 1.5 km at the last fix + 24 h and ≤ 8 km at + 72 h**, GOOD; the deadline case, **≤ 5 km at + 24 h**, GOOD or FAIR;
-in every case the covariance is realistic (error within 3σ at 99 % of the epochs and within 4σ at all), a single pass
-is POOR and not uploaded, and too few fixes or no start is FAIL. The TLE agrees with the truth within 3 km at + 24 h.
-The tests also check the OEM keywords, 4,321 records over 72 h at 60 s, positive-definite covariances, the TLE format
-and checksums against python-sgp4, the refusal of a dead-reckoned record and the editing of an outlier, duplicates heard by
-two stations, and the EME2000 refusal without DUT1.
+in every case the covariance is realistic (error within 3σ at 99 % of the epochs and within 4σ at all); two sessions
+in one pass are POOR and not uploaded; one frame, or sessions without a chord and no prior, are FAIL; with a prior
+TLE the position-only case fits. The TLE agrees with the truth within 3 km at + 24 h. The tests also check the OEM
+keywords, 4,321 records over 72 h at 60 s, positive-definite covariances, the TLE format and checksums against
+python-sgp4, the refusal of a dead-reckoned record and the editing of an outlier among four fixes, the same frame
+heard by two stations and repeated on `GET_HOUSEKEEPING`, and the EME2000 refusal without DUT1.
 
 **What dominates.** Beyond a day, the drag forecast (20 % of k) dominates the error and the covariance, as the D6
 research expected. Within the arc, gravity left out of the field does: the built-in 4 × 4 field leaves 100 m-class
@@ -193,8 +199,7 @@ residuals, hence the 12 × 12 file in operations. The receiver's noise is neglig
 
 **Limits.** The simulation is not the real atmosphere: a geomagnetic storm in the prediction span can exceed the 20 %
 term, which is why the ephemeris is refitted after every pass (OD-R1). The drag area changes with attitude (the spin
-about +Y with the wings deployed; tumbling before detumble); k absorbs the mean. The assumed GNSS frame (§3.1) has
-to be aligned with SQSO-TLM-001. The real receiver's noise and its PDOP reporting are confirmed on the flatsat
+about +Y with the wings deployed; tumbling before detumble); k absorbs the mean. The real receiver's noise and its PDOP reporting are confirmed on the flatsat
 (VI-LV-13).
 
 ## 7. First-Ephemeris Procedure (24 h from First Contact)
@@ -207,7 +212,7 @@ report). Deadline T0 + 24 h (UG §9.5.7.2). Roles: ground segment lead (orbit de
 |------|------|-----|
 | Before launch | Space-Track operator account and SpaceX Space Traffic Coordination upload access tested with a simulated OEM (VI-LV-13); EGM2008 `.gfc` file and the tool installed on the orbit-determination machine; the launch provider's predicted elements saved as the prior TLE; the international designator, when published, set as `--object-id` | Ground segment lead |
 | T0 | Start the clock. Log the pass. Archive every frame (own station, SatNOGS, reports) to the mission database; the frames sent after each fix of the every-orbit sessions are heard by SatNOGS stations as well | Control operator |
-| Each own pass from T0 | After the first authenticated command (SQSO-GSOM-001 §7.2), send `GNSS_REQUEST` (0x60) early in the pass; the session (cold start ≈ 80 s, 30 s after the fix) ends inside a 7-minute pass and its frame is downlinked | Control operator |
+| Each own pass from T0 | After the first authenticated command (SQSO-GSOM-001 §7.2), send `GNSS_REQUEST` (0x60) early in the pass; the session (cold start ≈ 80 s, 30 s after the fix) ends inside a 7-minute pass and its frame is downlinked. `GET_HOUSEKEEPING` (0x09) repeats the latest frame if it was missed | Control operator |
 | After each pass | Export the GNSS frames of the last 48 h; run `ephemeris_tool.py` (SQSO-GSOM-001 §5.3); read the flag and the report | Ground segment lead |
 | First GOOD or FAIR product | Check with `read_oem()` (the tool does it) and by eye: radius ≈ 6,850 km, period ≈ 94 min, epoch after the last fix; licensee approves; upload the OEM to Space-Track and to SpaceX Space Traffic Coordination; send the TLE to the integrator and the 18th SDS; log the upload | Ground segment lead; licensee approves |
 | T0 + 12 h with no GOOD or FAIR product | Ask the second station and SatNOGS for priority on the next passes; `GNSS_REQUEST` on every commanding pass; check the receiver telemetry (`GF`, `GS` in HK1) | Ground segment lead |
@@ -221,7 +226,7 @@ large (§6): it is uploaded if nothing better exists before T0 + 24 h, with the 
 
 | Item | Closure |
 |------|---------|
-| GNSS state frame defined in SQSO-TLM-001; `parse_gnss_frame()` aligned | Flight software round 3; ground segment lead |
+| The GNSS state frame's entry in SQSO-TLM-001; the decoder already follows `gnss_frame.rs` | Flight software round 3 |
 | End-to-end demonstration: receiver fix on the flatsat, downlink, this tool, OEM accepted in writing by the integrator and SpaceX | VI-LV-13, ≤ L-2 M |
 | Space-Track file naming and upload interface (Spaceflight Safety Handbook for Operators) | Ground segment lead, with VI-LV-13 |
 | The third-party orbit-determination contingency contracted | Licensee, before integration |
@@ -232,4 +237,4 @@ large (§6): it is uploaded if nothing better exists before T0 + 24 h, with the 
 
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
-| A | 2026-10-27 | Initial release (RID LV-04): GNSS frame decoding (assumed layout), batch least-squares orbit determination with an estimated drag scale, CCSDS OEM with covariance, TLE, quality flag, simulated verification at 475 km SSO, the 24 h first-ephemeris procedure | CDR round 3, ground software |
+| A | 2026-10-27 | Initial release (RID LV-04): GNSS state frame decoding (`gnss_frame.rs` layout), batch least-squares orbit determination with an estimated drag scale, CCSDS OEM with covariance, TLE, quality flag, simulated verification at 475 km SSO, the 24 h first-ephemeris procedure | CDR round 3, ground software |

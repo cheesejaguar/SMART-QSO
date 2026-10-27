@@ -223,7 +223,7 @@ static void test_force_retry_cannot_bypass_wait(void **state)
 /*===========================================================================*/
 
 /** 30 minutes, then the wings one resistor at a time (wing 1 A, then wing
- *  2 A, 8 s each, never two at once), then the antenna only (the AntS),
+ *  2 A, 10 s each, never two at once), then the antenna only (the AntS),
  *  each confirmed by its own sense */
 static void test_full_sequence(void **state)
 {

@@ -131,6 +131,8 @@ NEW: list[tuple[str, int, str, str, str]] = [
 ]
 
 FINAL3: dict[str, tuple[str, str]] = {
+    "LV-04": ("CD", "GNSS state frame after each fix (SRS-F158) decoded by ephemeris_tool.py: batch least squares with drag, CCSDS OEM 3.0 with covariance and a TLE (SQSO-GND-002 A): 0.6 km at +24 h (fix every orbit), 2.0-2.6 km in the deadline case, covariance realistic, 32 tests in CI; 24 h procedure §7, owner ground segment lead; VI-LV-13 demonstration"),
+    "GND-04": ("CD", "ICD-013 §5.2.1 adopted; telecommand_builder.py --counter-from-utc with station index, per-station counter files, clock guard ≤ 0.5 s, monotonic guard, reserve-first; compatible with keys.rs; test_utc_counters.py (23 tests); key custody GND-R6; VI-GND-04 on the EM"),
     "THM-03": ("CH", "Accepted as a contingency: with the wings stowed the heater holds the pack at +2.6 °C at 1.47 W generation (+0.3 °C at the bound), charging refused in hardware below +1.1 °C (fail-safe, SYS-602); flight-software rule: SAFE rather than IDLE while the battery's orbit minimum is below +3 °C (THERMAL_ANALYSIS 2.2 §6.8)"),
     "THM-04": ("CD", "Per-unit allowables from the BOMs: −30 °C cold for every board, extended to −40 °C for the first orbit after separation, shown by a −40 °C cold start (V-THM-8; GEVS deviation in the ETP); worst new case L4 −27.6 / −28.6 / −28.9 °C (THERMAL_ANALYSIS 2.2 §6.6); SYS-600/601 by CR-2026-017; Y451 in its −40 °C grade"),
     "SMA-B01": ("CD", "DS2 gate drive from BAT_F or PACK_P through a dual diode (EPS_BOARD_DESIGN E); V-EPS-15"),

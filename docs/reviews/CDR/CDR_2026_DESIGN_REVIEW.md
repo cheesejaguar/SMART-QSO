@@ -183,15 +183,15 @@ ratings, outgassing data).
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 25 |
-| Closed by design change | 101 | 230 |
+| Closed by design change | 101 | 232 |
 | Closed by chair decision | 42 | 35 |
 | Verification item | 46 | 28 |
 | Decision point (dated) | 15 | 32 |
-| Implementation | 148 | 27 |
+| Implementation | 148 | 25 |
 
-Round 3 (independent closure verification) reopened 45 RIDs and raised 71 new findings; 42 of the reopened and 58 of the new are since closed.
+Round 3 (independent closure verification) reopened 45 RIDs and raised 71 new findings; 44 of the reopened and 58 of the new are since closed.
 
-Open implementation RIDs: LV-04, SE-21, GND-04, SMA-15, STR-27, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B02, SMA-B10, SMA-B11, SMA-B19, P3T-01.
+Open implementation RIDs: SE-21, SMA-15, STR-27, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, OBCB-01, OBCB-02, P3S-13, P3A-01, P3A-03, P3A-10, SMA-B02, SMA-B10, SMA-B11, SMA-B19, P3T-01.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -205,7 +205,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | LV-01 | 1 | No commissioning hold: ACTIVE, Jetson and transponder on at S+52.8 min before any ground contact | IMP | Closed by design change | Commissioning hold: FRAM region 11, COMMISSIONING_RELEASE 0x08; test_ops_state.c; SIL release at 132,811 s |
 | LV-02 | 2 | Magnetorquers driven 1 s after separation; UG v11 §3.3.4 allows none before 120 s | IMP | Closed by design change | No magnetorquer output before 120 s (SRS-F086); SIL first coil command at 121 s |
 | LV-03 | 3 | Hard-body radius not reported | CA | Closed by analysis | 0.55 m to the VHF tip, report 0.6 m (leop_feasibility.py §7; LVR-065) |
-| LV-04 | 2 | No GNSS ephemeris chain (gnss.rs never called; no schedule, telemetry or ground OD) | IMP | Implementation | Reopened in round 3: The GNSS fix never reaches the ground; no orbit-determination or ephemeris tool |
+| LV-04 | 2 | No GNSS ephemeris chain (gnss.rs never called; no schedule, telemetry or ground OD) | IMP | Closed by design change | GNSS state frame after each fix (SRS-F158) decoded by ephemeris_tool.py: batch least squares with drag, CCSDS OEM 3.0 with covariance and a TLE (SQSO-GND-002 A): 0.6 km at +24 h (fix every orbit), 2.0-2.6 km in the deadline case, covariance realistic, 32 tests in CI; 24 h procedure §7, owner ground segment lead; VI-LV-13 demonstration |
 | LV-05 | 1 | No inhibit schematic: third RF and deployable inhibit not designed | CD | Closed by design change | EPS_DESIGN 2.0 §8: DS1-DS3 on three rails (with SMA-01, EPS-04, RF-14) |
 | LV-06 | 2 | Integration SOC stated five ways; no storage limit or drain specification | CH | Closed by chair decision | BASELINE §4 Integration and storage row: 60 % ± 5 %, ≥ 40 % at separation, ≤ 20 µA |
 | LV-07 | 2 | A failed deployable cannot be retried from the ground; AntS is I2C-commanded, not a GPIO burn | IMP | Closed by design change | DEPLOY_RETRY 0x50, retries 50 min apart; AntS over I2C (ICD_OBC_ADCS §12.3) |
@@ -324,7 +324,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | GND-01 | 1 | No telecommand station agreed | DP | Decision point (dated) | DA-10 (licensee, 2027-01-05): station agreements |
 | GND-02 | 2 | Ground design incomplete (70 cm TX, keys, time, power) | CD | Closed by design change | SQSO-GND-001 Rev C |
 | GND-03 | 2 | No command response or contact count in the downlink | IMP | Closed by design change | Acknowledgement after each counted command; HK1 adds CN, PS, RX, ST (SRS-F125, F126); SIL 1,370 acks |
-| GND-04 | 2 | Shared counter file is a common-mode failure | CD | Implementation | Reopened in round 3: UTC-derived counters not adopted or implemented: two stations cannot each command alone |
+| GND-04 | 2 | Shared counter file is a common-mode failure | CD | Closed by design change | ICD-013 §5.2.1 adopted; telecommand_builder.py --counter-from-utc with station index, per-station counter files, clock guard ≤ 0.5 s, monotonic guard, reserve-first; compatible with keys.rs; test_utc_counters.py (23 tests); key custody GND-R6; VI-GND-04 on the EM |
 | GND-05 | 2 | Bay Area within 240 km of Beale AFB: 50 W PEP limit | CD | Closed by design change | GND-R3; FCC consultation item |
 | GND-06 | 3 | Operations manual did not match the dictionary | CD | Closed by design change | SQSO-GSOM-001 1.1 |
 | GND-07 | 3 | SatNOGS capability assumed | CA | Closed by analysis | LBA; SatNOGS station census |

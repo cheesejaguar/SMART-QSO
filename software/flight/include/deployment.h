@@ -74,8 +74,8 @@ extern "C" {
 /** Antenna deployment window (ms): the AntS deploys its four elements in turn, at most 10 s each */
 #define ANTENNA_DEPLOY_BURN_TIME_MS     45000U
 
-/** Solar wing burn time (ms): 8 s at 0.5-1 A per resistor (STR-15) */
-#define SOLAR_DEPLOY_BURN_TIME_MS       8000U
+/** Solar wing burn time (ms): 10 s at 0.8 A per resistor, 32 J (decision C-17), inside the EPS's 12 s one-shot */
+#define SOLAR_DEPLOY_BURN_TIME_MS       10000U
 
 /** Maximum deployment attempts per element (across resets) */
 #define DEPLOYMENT_MAX_RETRIES          3U

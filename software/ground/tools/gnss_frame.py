@@ -5,7 +5,7 @@ SMART-QSO GNSS state frames: decoding and GPS time (SQSO-GND-002 §3).
 The flight software downlinks a GNSS state frame after each receiver session
 that ended with a fix, and repeats the latest on GET_HOUSEKEEPING (0x09)
 (software/rust/sqso-fsw/src/gnss_frame.rs, SRS-F158; telemetry dictionary
-SQSO-TLM-001 §3.6). Plain ASCII KEY=value, integers, `-` for a value not
+SQSO-TLM-001). Plain ASCII KEY=value, integers, `-` for a value not
 available:
 
     GNS N=<session> WK=<GPS week> TOW=<GPS time of week, ms> X=<m> Y=<m> Z=<m>

@@ -50,9 +50,11 @@ pub const WAIT_TIME_S: u32 = WAIT_TIME_MS / 1000;
 /// turn, each for at most `ants::ELEMENT_LIMIT_S`, then the OBC cancels and
 /// disarms it
 pub const ANTENNA_BURN_TIME_MS: u32 = 45_000;
-/// Burn time of one wing resistor, ms (STR-15: 8 s at the 0.5–1 A per
-/// resistor the burn driver allows)
-pub const SOLAR_BURN_TIME_MS: u32 = 8000;
+/// Burn time of one wing resistor, ms: 10 s at the 0.8 A the burn driver
+/// allows, 32 J (decision C-17: at −55 °C 10 s gives a release-energy ratio
+/// of 1.90 against the 1.5 required, 8 s only 1.52); inside the EPS's 12 s
+/// one-shot
+pub const SOLAR_BURN_TIME_MS: u32 = 10_000;
 /// A wing attempt: wing 1's resistor, then wing 2's, one at a time, ms
 pub const WINGS_BURN_TIME_MS: u32 = 2 * SOLAR_BURN_TIME_MS;
 /// Attempts per element, across resets

@@ -229,8 +229,6 @@ pub struct Mission {
     qso_rng: Rng,
     /// A CTCSS-valid carrier is on the transponder's uplink
     carrier: bool,
-    /// The deployed inertia is in use
-    wings_inertia: bool,
     /// The ADCS sensors' errors
     sensors: crate::adcs_mc::Sensors,
     /// Their draws (kept apart, as the transponder users')
@@ -363,7 +361,6 @@ impl Mission {
             rng,
             qso_rng,
             carrier: false,
-            wings_inertia: false,
             sensors,
             sensor_rng,
             calling: 0.0,
@@ -661,13 +658,20 @@ impl Mission {
             + attitude::gravity_gradient(r, self.att.q, self.att.inertia)
             + self.dist.aero_torque(v_body, density, wings);
         self.att.step(dt, torque);
-        if self.deploy.wings_deployed() && !self.wings_inertia {
-            // The wings swing out: the body's angular momentum is kept
+        let out = self.deploy.wings.elements.map(|w| w.deployed);
+        let inertia = match out {
+            [true, true] => Some(attitude::inertia_deployed()),
+            [true, false] => Some(attitude::INERTIA_ONE_WING[0]),
+            [false, true] => Some(attitude::INERTIA_ONE_WING[1]),
+            [false, false] => None,
+        };
+        if let Some(i) = inertia
+            && i != self.att.inertia
+        {
+            // A wing swings out: the body's angular momentum is kept
             let h = self.att.w.hadamard(self.att.inertia);
-            let i = attitude::inertia_deployed();
             self.att.inertia = i;
             self.att.w = V3::new(h.x / i.x, h.y / i.y, h.z / i.z);
-            self.wings_inertia = true;
         }
 
         // Array and EPS

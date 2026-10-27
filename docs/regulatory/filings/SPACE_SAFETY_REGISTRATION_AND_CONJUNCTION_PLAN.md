@@ -68,11 +68,15 @@ GNSS receiver:
 Open: Space-Track operator file-naming rules (Spaceflight Safety Handbook for Operators), and SpaceX acceptance of a
 duty-cycled receiver.
 
-**Status at CDR (2026-10-27): the onboard part of this chain does not exist.** The NMEA parser
-(`software/rust/sqso-fsw/src/gnss.rs`) is not called by the executive; there is no receiver power schedule, no fix in
-the beacon or in any command response, no telecommand to start a session, and no ground orbit-determination code.
+**Status at CDR (2026-10-27, round 3): the chain is built end to end in software.** Onboard: receiver sessions on a
+schedule from 45 min after separation and on `GNSS_REQUEST` (0x60), and a GNSS state frame (ECEF position and velocity,
+GPS time, fix quality) after each fix (`software/rust/sqso-fsw/src/gnss_schedule.rs`, `gnss_frame.rs`; SRS-F158).
+Ground: `software/ground/tools/ephemeris_tool.py` decodes the frames, fits the orbit by batch least squares with an
+estimated drag scale factor, and writes a CCSDS OEM 3.0 with covariance and a TLE (SQSO-GND-002 Rev A; 0.6 km at +24 h
+in the 475 km simulation with a fix every orbit; 2.0–2.6 km in the first-24 h deadline case). Owner: the ground
+segment lead; the 24 h procedure is SQSO-GND-002 §7.
 The UG says that failing to demonstrate the capability may mean mandatory rebooking (§9.5.7.2). Until the chain is
-built and demonstrated end to end before integration (verification item VI-LV-13 in
+demonstrated end to end on hardware before integration (verification item VI-LV-13 in
 `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`), plan on the third-party contingency, contracted before integration
 (RID LV-04).
 

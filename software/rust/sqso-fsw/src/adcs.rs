@@ -74,7 +74,7 @@ pub const SUN_SENSOR_COUNT: usize = 6;
 pub const ECLIPSE_INTENSITY: f64 = 0.05;
 /// The axis held on the Sun: +Y, the normal of the deployed wings
 /// (hardware/eps/SOLAR_ARRAY_DESIGN.md §8.1). With the CAD tensor of
-/// [`Inertia::DEPLOYED`] the major axis is 0.7° from +Y (it was about 14°
+/// [`Inertia::DEPLOYED`] the major axis is 0.6° from +Y (it was about 14°
 /// with the reference layout's products); the spin is held about +Y by the
 /// nutation damping (Monte Carlo, ADCS_DESIGN §11.4; STR-01).
 /// [`Geometry::PRESETS`] (ADCS_SET_GEOMETRY) selects other axes
@@ -90,16 +90,15 @@ pub const SUN_AXIS: Vec3 = Vec3::new(0.0, 1.0, 0.0);
 /// axes are degenerate; the CAD value is 1.051
 pub const SPIN_RATE: f64 = 0.1396;
 /// Moments of inertia about the body axes with the wings and the AntS
-/// deployed, kg m^2: the CAD of `docs/environment/MASS_BUDGET.md` v3.1
-/// (MECHANICAL_DESIGN B §5; layout B, CubeSpace rods, all four AntS
-/// elements, the 2 × 10 g ballast of decision C-13 as re-placed, the harness
-/// with its bundles under the EPS), the mean of its CBE (1,513.9 g: 2.846,
-/// 4.190, 3.970 × 10⁻³) and MEV (1,747.8 g: 3.267, 4.745, 4.535 × 10⁻³)
-/// rows, as §6.5 directs: Iyy/Izz 1.051 (CBE 1.055, MEV 1.046; the major
-/// axis 1.0° from +Y in both). The products are in [`Inertia::DEPLOYED`]. To be
-/// replaced by the measured stowed inertia plus the weighed wings before
-/// flight
-pub const INERTIA: Vec3 = Vec3::new(0.003_056_5, 0.004_467_5, 0.004_252_5);
+/// deployed, kg m^2: the final CAD of CDR round 3 (`docs/environment/
+/// MASS_BUDGET.md` §6.1; MECHANICAL_DESIGN §5; layout B, CubeSpace rods, all
+/// four AntS elements, the 2 × 10 g ballast of decision C-13 as re-placed,
+/// the harness with its bundles under the EPS), the mean of its CBE (2.853,
+/// 4.200, 3.978 × 10⁻³) and MEV (3.276, 4.758, 4.545 × 10⁻³) rows, as §6.5
+/// directs: Iyy/Izz 1.051 (CBE 1.056, MEV 1.047; the major axis 0.6° from
+/// +Y). The products are in [`Inertia::DEPLOYED`]. To be replaced by the
+/// measured stowed inertia plus the weighed wings before flight
+pub const INERTIA: Vec3 = Vec3::new(0.003_064_5, 0.004_479, 0.004_261_5);
 /// Momentum gain of the spin law: torque per unit momentum error, 1/s
 pub const MOMENTUM_GAIN: f64 = 0.005;
 /// Nutation damping: torque per rad/s of rate across the spin axis, N m s
@@ -184,25 +183,26 @@ pub struct Inertia {
 impl Inertia {
     /// Both wings and the AntS deployed ([`INERTIA`] with its products, the
     /// tensor's off-diagonal elements −Σm·x·y and so on: the mean of the CAD
-    /// CBE (Ixy +12.6, Ixz −8.9, Iyz −3.0) and MEV (+13.7, −16.9, +3.1) ×
-    /// 10⁻⁶ kg m², MASS_BUDGET v3.1 §6.1)
+    /// CBE (Ixy +11.4, Ixz −11.0, Iyz −4.0) and MEV (+12.2, −19.6, +1.9) ×
+    /// 10⁻⁶ kg m², MASS_BUDGET §6.1, final CAD of CDR round 3)
     pub const DEPLOYED: Inertia = Inertia {
-        xx: 0.003_056_5,
-        yy: 0.004_467_5,
-        zz: 0.004_252_5,
-        xy: 0.000_013_15,
-        xz: -0.000_012_9,
-        yz: 0.000_000_05,
+        xx: 0.003_064_5,
+        yy: 0.004_479,
+        zz: 0.004_261_5,
+        xy: 0.000_011_8,
+        xz: -0.000_015_3,
+        yz: -0.000_001_05,
     };
-    /// Only wing W1 (+X hinge) deployed
+    /// Only wing W1 (+X hinge) deployed: the CAD's mean of CBE and MEV
+    /// (STR-27; major axis 8.3° from +Y)
     pub const WING_1_ONLY: Inertia =
-        Inertia { xx: 0.003_081, yy: 0.004_214, zz: 0.004_012, xy: -0.000_242, xz: -0.000_041, yz: -0.000_035 };
-    /// Only wing W2 (−X hinge) deployed
+        Inertia { xx: 0.003_027, yy: 0.004_165, zz: 0.003_910, xy: -0.000_161_0, xz: -0.000_024_8, yz: 0.000_008_0 };
+    /// Only wing W2 (−X hinge) deployed (STR-27; major axis 9.1° from +Y)
     pub const WING_2_ONLY: Inertia =
-        Inertia { xx: 0.003_081, yy: 0.004_207, zz: 0.004_005, xy: 0.000_186, xz: -0.000_021, yz: -0.000_035 };
-    /// Neither wing deployed (the AntS out)
+        Inertia { xx: 0.003_027, yy: 0.004_166, zz: 0.003_911, xy: 0.000_184_3, xz: -0.000_005_8, yz: 0.000_008_0 };
+    /// Neither wing deployed, the AntS out (STR-27; major axis 3.3° from +Y)
     pub const NO_WINGS: Inertia =
-        Inertia { xx: 0.003_036, yy: 0.003_827, zz: 0.003_580, xy: -0.000_026, xz: -0.000_031, yz: -0.000_026 };
+        Inertia { xx: 0.002_985, yy: 0.003_856, zz: 0.003_560, xy: 0.000_011_5, xz: -0.000_015_3, yz: 0.000_017_1 };
 
     /// A diagonal tensor
     pub const fn diagonal(d: Vec3) -> Inertia {
@@ -240,16 +240,17 @@ impl Geometry {
     pub const FLIGHT: Geometry = Geometry { sun_axis: SUN_AXIS, inertia: Inertia::DEPLOYED };
 
     /// The telecommand's presets: 0 both wings, 1 wing W1 only, 2 wing W2
-    /// only, 3 no wing. With one wing the array normal is still +Y but the
-    /// major axis tilts 13° toward the wing (`MASS_BUDGET.md` §6.1): the
-    /// spin is held about the major axis, so the Sun sits 13° off the
-    /// remaining wing's normal (cos 13° = 0.97 of its power) and the spin
-    /// needs no coil effort to stay about it
+    /// only, 3 no wing (the CAD's tensors, STR-27). With one wing the array
+    /// normal is still +Y but the major axis tilts 8.3° (W1) or 9.1° (W2)
+    /// toward the wing (`MASS_BUDGET.md` §6.1): the spin is held about the
+    /// major axis, so the Sun sits that far off the remaining wing's normal
+    /// (cos 9.1° = 0.99 of its power) and the spin needs no coil effort to
+    /// stay about it
     pub const PRESETS: [Geometry; 4] = [
         Geometry::FLIGHT,
-        Geometry { sun_axis: Vec3::new(-0.1955, 0.9751, -0.1046), inertia: Inertia::WING_1_ONLY },
-        Geometry { sun_axis: Vec3::new(0.1593, 0.9743, -0.1593), inertia: Inertia::WING_2_ONLY },
-        Geometry { sun_axis: Vec3::new(-0.0287, 0.9947, -0.0991), inertia: Inertia::NO_WINGS },
+        Geometry { sun_axis: Vec3::new(-0.1381, 0.9896, 0.0410), inertia: Inertia::WING_1_ONLY },
+        Geometry { sun_axis: Vec3::new(0.1557, 0.9875, 0.0247), inertia: Inertia::WING_2_ONLY },
+        Geometry { sun_axis: Vec3::new(0.0121, 0.9983, 0.0568), inertia: Inertia::NO_WINGS },
     ];
 
     /// A preset by its telecommand number
