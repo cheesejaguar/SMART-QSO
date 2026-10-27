@@ -1,7 +1,7 @@
 # SMART-QSO Telemetry Dictionary
 
 **Document ID**: SQSO-TLM-001
-**Version**: 1.1
+**Version**: 1.2
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -225,14 +225,39 @@ bytes (`software/rust/sqso-fsw/src/housekeeping.rs`, SRS-F085, SRS-F126):
 | `MR` | Magnetometer samples rejected (coils on) | |
 | `GF` | GNSS: age of the latest fix / satellites used | s |
 | `GS` | GNSS sessions run / with a fix | |
-| `PS` | Passivation: 0 idle, 1 armed, 2 firing, 3 passivated (`passivation.h`) | |
+| `PS` | Passivation: phase 0 idle, 1 armed, 2 firing, 3 passivated, 4 final report (`passivation.h`) / the EPS `EOL_STATE` register (bit 0 armed, bit 1 fired: charge path open, bit 2 fuse F1 intact; `-` no answer) / fire attempts (RID REG-12, finding EOL-1) | |
 | `RX` | Command-receiver recovery cycles since boot / known failed 1/0 (`receiver.h`) | |
 | `CN` | Authenticated commands counted as contact since boot | |
 | `ST` | Stored housekeeping: next five-minute / sixty-second record number (`DUMP_TLM`) | |
 
 Example: `HK1 N=7 UP=3600 BOOT=3 RST=2 MODE=3 HOLD=1 XP=0 TX=1 SOC=873 VB=15812 IB=-120 PA=2410 TB=123 TO=215 TP=301
-TJ=- DEP=8/15/1 RFS=3/2700 CT=30 CS=2 FC=4 FL=17/2 W=12/-5/600 AM=2 MR=0 GF=1200/7 GS=5/4 PS=1 RX=2/0 CN=3 ST=12/60`
+TJ=- DEP=8/15/1 RFS=3/2700 CT=30 CS=2 FC=4 FL=17/2 W=12/-5/600 AM=2 MR=0 GF=1200/7 GS=5/4 PS=1/4/0 RX=2/0 CN=3 ST=12/60`
 (one line on the air).
+
+### 4.4.1 Second Housekeeping Frame (HK2)
+
+Each HK1 is followed, 5 s later, by a frame starting `HK2 ` in the same format: the counters the mission success
+criteria need (SQSO-MSC-001 §7, RID SMA-15) and the OBC board's supervision (`housekeeping.rs`, SRS-F156):
+
+| Key | Value | Unit |
+|-----|-------|------|
+| `N` | The HK1 sequence it follows | |
+| `CA` | Telecommands executed / refused / failed authentication since boot | |
+| `WD` | Resets by the watchdog (kept across resets) | |
+| `XE` | Transponder enables since boot / repeater keyed (XPDR_KEY) / exciter keyed (PTT_EXCITER) | — / s / s |
+| `IA` | Array current (INA228 at 0x40, else the EPS controller's) | mA |
+| `HL` | Hard-limit violations since boot (Jetson on outside ACTIVE, sunlight or SOC ≥ 55 %, or past its burst limit) | |
+| `JB` | Jetson bursts since boot / last burst's energy / its lines / bursts ended by the energy gate | — / J / — / — |
+| `JP` | Jetson switch-offs clean / cut after the 5 s wait / power-good faults / readback faults | |
+| `EOL` | EPS `EOL_STATE` (as in `PS`; `-` no answer) / fire attempts | |
+| `RT` | Mission clock (RV-3028) UNIX time / the last reset's time stamp | s / s |
+| `CK` | The MCU clock against the mission clock's 1 Hz | ppm |
+| `TR` | Latch-up trips of the gyro, BMI088 and sensor rails since boot | |
+| `GY` | Gyro in use (0 M-G370, 1 BMI088, 2 none) / magnetometer samples gated (Jetson, exciter) | |
+| `MF` | Magnetorquer bridge faults / off-timer expiries seen | |
+| `PE` | SRAM2 parity on 1/0 (`-` not known) | |
+
+During the final passivation report (SRS-F155) HK1 and HK2 are sent three times, 60 s apart, before TX-OFF.
 
 ### 4.5 Command Acknowledgement
 
@@ -327,3 +352,4 @@ SQSO_SUMMARY_YYYYMM.csv
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 2) | §4.3 beacon interval jitter; §4.4 the HK1 housekeeping frame with its fields (new: `PS`, `RX`, `CN`, `ST`; `PA` from the bus-side array current); §4.5 the command acknowledgement; §4.6 the stored housekeeping records |
+| 1.2 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §4.4 `PS` carries the EPS `EOL_STATE` (fuse F1 intact, bit 2) and the fire attempts (RID REG-12, finding EOL-1); §4.4.1 new: the second housekeeping frame HK2 (RID SMA-15) |

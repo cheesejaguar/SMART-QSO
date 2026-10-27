@@ -110,11 +110,11 @@ L-2 M licences and ephemeris demonstration).
 | Quantity | Requirement | Predicted | Margin | Source |
 |----------|-------------|-----------|--------|--------|
 | Mass | ≤ 2.00 kg (design), 2.5 kg Nova | MEV 1.748 kg (with the C-13 ballast) | +14.4 % (+43.0 % to the Nova) | MASS_BUDGET 3.1 |
-| CG, stowed | ±20 mm | (−0.03, +0.10, −1.23) mm CBE, (+0.01, +0.04, −0.18) mm MEV (CAD) | > 18 mm | MECHANICAL_DESIGN |
-| Deployed inertia | Iyy ≥ 1.03 × max, axis within 5° of +Y | 1.056 / 1.047 (CBE / MEV, four AntS elements, C-13 ballast), 0.9° / 0.8°; ≥ 1.03 to 3.2 mm placement scatter | Met | MECHANICAL_DESIGN §5 |
-| First mode, stowed | > 40 Hz | 170 Hz (FE), ≈ 140 Hz (analytic) | × 3.5–4.2 | STRUCTURAL_ANALYSIS B |
-| Strength | MS ≥ 0 (NASA-STD-5001B protoflight factors at MPE + 3 dB) | Lowest +0.72 (−Z end frame at the battery isolators) | Positive | STRUCTURAL_ANALYSIS B |
-| PCB fatigue (Steinberg) | MS ≥ 0 | +0.08 (2.0 mm carrier) to +0.40 (RF) with two supports | Positive | STRUCTURAL_ANALYSIS B |
+| CG, stowed | ±20 mm | (+0.1, −0.3, −1.3) mm CBE (CAD, with the harness distribution) | > 18 mm | MECHANICAL_DESIGN |
+| Deployed inertia | Iyy ≥ 1.03 × max, axis within 5° of +Y | 1.055 / 1.046 (CBE / MEV, four AntS elements, C-13 ballast, harness distribution), 1.0° / 1.0°; ≥ 1.03 to 3.1 mm placement scatter | Met | MECHANICAL_DESIGN §5 |
+| First mode, stowed | > 40 Hz | 169 Hz (FE, deck with harness), ≈ 140 Hz (analytic) | × 3.5–4.2 | STRUCTURAL_ANALYSIS B |
+| Strength | MS ≥ 0 (NASA-STD-5001B protoflight factors at MPE + 3 dB) | Lowest +1.00 (FE, eight cases) | Positive | STRUCTURAL_ANALYSIS B |
+| PCB fatigue (Steinberg) | MS ≥ 0 | +0.08 (2.0 mm carrier) to +0.37, EPS +0.23 with the harness tied to the deck (C-15) | Positive | STRUCTURAL_ANALYSIS B |
 | Wing deployment torque | NASA-STD-5017B torque margin ≥ 0 at end of travel | +0.14 cold, +0.13 one spring out | Positive | MECHANISMS_ANALYSIS B §4A |
 | Power, EOL, sun-pointed | ≥ 20 % | 3.92 W against 2.24 W (allocation) | +75 % | BASELINE §5; POWER_BUDGET_ANALYSIS 2.2 |
 | Power, EOL, tumbling | ≥ 20 % | 2.48 W against 1.84 W (allocation) | +35 % | BASELINE §5; POWER_BUDGET_ANALYSIS 2.2 |
@@ -148,6 +148,7 @@ L-2 M licences and ephemeris demonstration).
 | C-12 | Two centre supports on the EPS, OBC and carrier boards | STR-05, MECHANICAL_DESIGN |
 | C-13 | 2 × 10 g non-ferromagnetic ballast on the Z axis at the end frames, so the deployed inertia ratio keeps margin with all four AntS elements | MCAD-09, RFB-11 |
 | C-14 | Telecommand stations radiate ≥ 64 dBm EIRP above 10° elevation: ≥ 100 W PEP into ≥ 15.5 dBic outside the 47 CFR 2.106 US270 areas (variant A), ≤ 50 W PEP into a ≥ 17.5 dBic stacked pair inside them (variant B); commands only above 10° | RF-23 |
+| C-15 | Harness wire under the EPS tied to the deck straps and shear panels; only connector strain-relief ties on the EPS board (EPS Steinberg +0.23, −0.52 otherwise) | MCAD-11 |
 
 ## 5. Design completion (round 2)
 
@@ -156,14 +157,14 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-303 RIDs: severity 1: 29, severity 2: 163, severity 3: 111.
+305 RIDs: severity 1: 29, severity 2: 164, severity 3: 112.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 26 |
 | Closed by design change | 100 | 164 |
-| Closed by chair decision | 40 | 39 |
-| Verification item | 44 | 43 |
+| Closed by chair decision | 41 | 40 |
+| Verification item | 45 | 44 |
 | Decision point (dated) | 13 | 13 |
 | Implementation | 81 | 18 |
 
@@ -418,6 +419,8 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | MCAD-08 | 3 | Window-frame screws: 0.45 mm walls at the proposed positions; frame adhesive weakens above 60 °C | IMP | Closed by design change | Bonded frame withdrawn (thermal shear at −40 °C near adhesive strength; no adhesive strong hot within the 1.0 % TML limit): carrier 2.0 mm with the window, fatigue +0.07, carrier mode 479 Hz; FE re-run lowest strength +0.74; materials list C: no structural adhesive |
 | MCAD-09 | 2 | With all four AntS elements the deployed inertia ratio is 1.045 / 1.037 (CBE / MEV): 0.007 above the 1.03 requirement, gone at 1.5-2 mm placement scatter | CH | Closed by chair decision | Chair C-13: 2 × 10 g non-ferromagnetic ballast on the Z axis at the end frames in the baseline (ratio about 1.057 / 1.048); trimmed at integration (VI-MCAD-03) |
 | MCAD-10 | 3 | A286 hinge pins are softer than 440C and gall on titanium if the MoS₂ film wears through (friction 0.26 zeroes the torque margin) | VI | Verification item | VI-MECH-03: pin friction and galling with A286 over the deployment and test cycles |
+| MCAD-11 | 2 | EPS fatigue margin depends on where the ~25 g of harness under the EPS is tied: −0.52 if tied to the EPS | CH | Closed by chair decision | Chair C-15: wire tied to the deck straps and shear panels, only connector strain relief on the EPS (+0.23); harness design §10 and workmanship |
+| MCAD-12 | 3 | MZ sun sensor beside the AntS: the −X 2 m tape exit may overlap the diode's lowest 0.5 mm; deck displacement 0.46 mm (3σ) against the GNSS receiver's random qualification | VI | Verification item | VI-MCAD-09 against the ISIS AntS ICD; GNSS receiver random-vibration qualification review (STRUCTURAL_ANALYSIS finding 3) before the EM |
 
 #### Electrical power (EPS)
 

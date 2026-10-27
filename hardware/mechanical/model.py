@@ -213,6 +213,7 @@ def harness_distribution():
                 w10e_z[zn] += m * l / L
         for ref, pin, zn in ((w["from_ref"], w["from_pin"], segs[0][0]), (w["to_ref"], w["to_pin"], segs[-1][0])):
             ends.setdefault((w["harness"], ref), [zn, set()])[1].add(pin)
+    conn_z = defaultdict(float)
     for (h, ref), (zn, pins) in ends.items():
         fam = HAR.FAMILY[HAR.family(ref)]
         if HAR.family(ref) == "MMCX":
@@ -220,6 +221,8 @@ def harness_distribution():
         else:
             m = fam[2] + fam[3] * len(pins) if (fam[2] or fam[3]) else 0.0
         zm[zn]["31" if ref in ("GNSS-RF", "PATCH") else HAR.MEL_ROW.get(h, "32")] += m
+        conn_z[zn] += m
+    harness_distribution.connectors = dict(conn_z)           # connector halves by zone (for the FE ties)
     wt, w1t = sum(wire_z.values()), sum(w1_z.values())
     for k, g in res["extras"].items():
         if k.startswith("access-port"):

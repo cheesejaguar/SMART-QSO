@@ -1,7 +1,7 @@
 # Interface Control Document: OBC to ADCS Subsystem
 
 **Document ID**: SQSO-ICD-004
-**Version**: 1.2
+**Version**: 1.3
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -380,32 +380,44 @@ disagree, this section, the board design and the baseline govern.
 
 ### 12.1 Interface Status
 
-Pins are the master allocation of SQSO-ICX-001 §4 (from the OBC schematic); where they differ from the firmware's
-provisional map (`software/rust/firmware/src/`), SQSO-ICX-001 §6 lists the change for the flight software.
+Pins are the master allocation of SQSO-ICX-001 §4 (from the OBC schematic). Since Version 1.3 the firmware
+(`software/rust/firmware/src/`) follows it: every row of SQSO-ICX-001 §6 is implemented (flight software round 3), and
+the drivers are built against the data sheets and tested with register-level mocks (`software/rust/sqso-fsw/src/`:
+`mg370.rs`, `bmi088.rs`, `rm3100.rs`, `ads7138.rs`, `mtq.rs`, `rv3028.rs`; the sequencing in `adcs_sensors.rs`). No
+driver has run on hardware: AV-V1 to AV-V5 verify them on the EM.
 
 | Interface | Bus / pins | Part | Driver (firmware) | Flight software | Status |
 |-----------|-----------|------|-------------------|-----------------|--------|
-| Gyro, primary | SPI3 (PC10 SCK / PC11 MISO / PC12 MOSI, CS PD1; `hal_spi` bus 1), DRDY PD10, /RST PD14, rail GYRO_EN PF6 (readback PF10) | Epson M-G370PDT0, 3.3 V, SPI mode 3 ≤ 1 MHz, burst read of the 16-bit rate words | none (generic `hal_spi` only) | `adcs_control` takes the rate as `Option<Vec3>`; the simulated HAL supplies it | Pins designed; **driver open** (RID AV-03) |
-| Gyro, backup | SPI2 (PB13 SCK / PB14 MISO / PB15 MOSI; `hal_spi` bus 0), gyro CS PD0, accelerometer CS PD4, INT3 PD15, rail IMU2_EN PF7 (readback PF11) | Bosch BMI088, cold spare | none | as above; the calibrated-bias assumption (≤ 0.1°/s) is in the Monte Carlo | Pins designed; **driver open** (AV-03) |
-| Magnetometer | I2C4 (PD12 SCL / PD13 SDA; `hal_i2c` bus 1) through U14, address 0x20, MAG_DRDY PD11, rail SNS_EN PF8 (readback PF12) | PNI RM3100 on the OBC board (SQSO-OBC-BRD-001 §9.4); a bought module fits J10 if AV-V4 fails | none | `adcs_control` takes the field; sampled in the coils-off window (§12.2) | Part and pins designed; **driver open** (AV-03, GNC-04) |
-| Coarse sun sensors (6) | six TLV9002-Q1 transimpedance amplifiers into the ADS7138-Q1 (I2C4, 0x10, AIN0–AIN5) | panel photodiodes (≤ 4.0 mA at AM0) | none | `adcs_control` takes the sun vector | Designed; **driver open** (AV-03) |
-| Magnetorquers (3) | PWM TIM1 CH1–CH3 (PE9, PE11, PE13), direction PE8, PE10, PE12, MTQ_ARM TIM15 CH1 one-pulse 900 ms (PF9), MTQ_FAULT_N PE14, MTQ_EXPIRED PE15, coil currents PA4–PA6; hardware off-timer 0.92–0.98 s (§12.2) | CR0002 rods (STR-01), three DRV8876-Q1 bridges on VBAT_MTQ | none | `MtqCommand` (dipole, PWM, enable), the burst length | Pins designed; **driver open** (AV-03) |
+| Gyro, primary | SPI3 (PC10 SCK / PC11 MISO / PC12 MOSI, CS PD1; `hal_spi` bus 1), DRDY PD10, /RST PD14, rail GYRO_EN PF6 (readback PF10) | Epson M-G370PDT0, 3.3 V, SPI mode 3 ≤ 1 MHz, burst read of the 16-bit rate words | `sqso_fsw::mg370`: /RST, ID check (0x5345), self-test at power-on, burst read on DRDY | the rate through the gyro alignment matrix (SRS-F142); three failures in a row cycle the rail, then the BMI088 (SRS-F140); the simulated HAL supplies the rate on the host | Built, not run on hardware (AV-03, AV-V1) |
+| Gyro, backup | SPI2 (PB13 SCK / PB14 MISO / PB15 MOSI; `hal_spi` bus 0), gyro CS PD0, accelerometer CS PD4, INT3 PD15, rail IMU2_EN PF7 (readback PF11) | Bosch BMI088, cold spare | `sqso_fsw::bmi088`: chip IDs, the gyro and the accelerometer on their own chip selects (each `hal_spi` bus keeps its own mode) | as above; the calibrated-bias assumption (≤ 0.1°/s) is in the Monte Carlo | Built, not run on hardware (AV-03) |
+| Magnetometer | I2C4 (PD12 SCL / PD13 SDA; `hal_i2c` bus 1) through U14, address 0x20, MAG_DRDY PD11, rail SNS_EN PF8 (readback PF12) | PNI RM3100 on the OBC board (SQSO-OBC-BRD-001 §9.4); a bought module fits J10 if AV-V4 fails | `sqso_fsw::rm3100`: REVID 0x22, cycle count 200 (75 counts/µT), single measurement triggered in the coils-off window, read on MAG_DRDY | the field less the bias of the rods' last polarity state (SRS-F144); not used while JET_PG or PTT_EXCITER is high (SRS-F143) | Built, not run on hardware (AV-03, AV-V2) |
+| Coarse sun sensors (6) | six TLV9002-Q1 transimpedance amplifiers into the ADS7138-Q1 (I2C4, 0x10, AIN0–AIN5) | panel photodiodes (≤ 4.0 mA at AM0) | `sqso_fsw::ads7138`: AIN0–AIN5 through the 619 Ω transimpedance (4.0 mA full sun), AIN6 TMP235, AIN7 VBAT_MTQ/6 | `adcs_control` takes the sun vector | Built, not run on hardware (AV-03, AV-V5) |
+| Magnetorquers (3) | PWM TIM1 CH1–CH3 (PE9, PE11, PE13), direction PE8, PE10, PE12, MTQ_ARM TIM15 CH1 one-pulse 900 ms (PF9), MTQ_FAULT_N PE14, MTQ_EXPIRED PE15, coil currents PA4–PA6; hardware off-timer 0.92–0.98 s (§12.2) | CR0002 rods (STR-01), three DRV8876-Q1 bridges on VBAT_MTQ | `firmware/src/mtq.rs` (TIM1 PWM 40 kHz, TIM15 one-pulse; `hal_mtq.h`), `sqso_fsw::mtq` (direction and duty from the dipole, rod 2.3 A·m²/A, 51 Ω) | the direction lines set before the burst, the burst timed by TIM15 (SRS-F141); MTQ_FAULT_N and MTQ_EXPIRED logged at onset and clearance; the coil currents (PA4–PA6) checked at the magnetometer sample | Built, not run on hardware (AV-03, AV-V3) |
 | ADCS rails | `ADCS_EN` (PB6): EPS SW4 3V3_ADCS (sensors, 0.30 A) and SW11 VBAT_MTQ (coils, 0.361 A); the OBC's own sensor switches U5–U7 (50–100 mA) | load switches | GPIO | `eps_control` | Designed: sensors and coils on separate switches, each sensor with its own latch-up trip (RADIATION_ANALYSIS §5.3) |
 | Antenna (AntS) | I2C2 (PF1 SCL / PF0 SDA; `hal_i2c` bus 0), address 0x31 | ISIS AntS | generic `hal_i2c` | `sqso_fsw::ants`, `sqso_ffi::ants` (§12.3) | built against the published protocol; **confirm against the delivered ICD** (AV-V7) |
-| GNSS receiver | LPUART1 (PG7 TX / PG8 RX, 9600) through U30/U31, `GNSS_EN` (PE5), 1PPS PC6 (TIM3_CH1 capture), GNSS_PG PG15 | SkyFox piNAV-NG/FM (D6) | UART and GPIO | `gnss.rs` (NMEA GGA), `gnss_schedule.rs` | built; 1PPS and power-good pins designed, not yet used by the firmware |
+| GNSS receiver | LPUART1 (PG7 TX / PG8 RX, 9600) through U30/U31, `GNSS_EN` (PE5), 1PPS PC6 (TIM3_CH1 capture), GNSS_PG PG15 | SkyFox piNAV-NG/FM (D6) | UART and GPIO | `gnss.rs` (NMEA GGA), `gnss_schedule.rs` | built; GNSS_PG checked 1 s after GNSS_EN, the 1PPS period captured on TIM3 CH1 (`hal_capture.h`) |
+| Mission clock | I2C1 (`hal_i2c` bus 2), address 0x52; CLKOUT 1 Hz to PC8 (TIM3 CH3 capture) | Micro Crystal RV-3028-C7 | `sqso_fsw::rv3028` | the reset time stamp at every boot, the MCU clock checked against the 1 Hz every 60 s (SRS-F145) | Built, not run on hardware |
+| Supervisor | WDI PG11 | TI TPS3850 | GPIO | a falling edge every 10 s while every task checks in (SRS-F146) | Built |
 
 ### 12.2 Coil and Magnetometer Timing
 
 | Item | Value | Owner |
 |------|-------|-------|
 | Control period | 1000 ms | flight software |
-| Coil burst | 900 ms from the command; **TIM15 in one-pulse mode switches the coils off** at its end, whatever the software does next, and a hardware off-timer stops them at 0.92–0.98 s if it does not | OBC board (SQSO-OBC-BRD-001 §10.3); firmware driver (open) |
+| Coil burst | 900 ms from the command; **TIM15 in one-pulse mode switches the coils off** at its end, whatever the software does next, and a hardware off-timer stops them at 0.92–0.98 s if it does not | OBC board (SQSO-OBC-BRD-001 §10.3); firmware `mtq.rs` (TIM15 one-pulse PWM mode 2) |
 | Settling | 50 ms after the burst; the magnetometer sample is taken at 950–1000 ms | flight software (`CoilTiming::FLIGHT`) |
 | Sample rejected | taken inside the burst or the settling: not used, counted, first one logged | flight software |
 | Dipole command | law × 1000/900, saturated at 0.2 A·m² per axis | flight software |
 
 A magnetometer with its own data-ready must be configured for single-shot conversions triggered in the window, not
 continuous mode, so that no conversion straddles the burst's end.
+
+**Calibration by telecommand (Version 1.3).** ADCS_SET_GYRO_ALIGN (0x25) sets the gyro alignment matrix (nine
+elements, signed 32-bit big-endian in units of 1e-6; every element within 1.1 and the determinant within 0.05 of 1;
+VI-MCAD-05) and ADCS_SET_MAG_BIAS (0x26) the magnetometer bias of one of the eight polarity states of the rods (bit n
+set: rod n last driven positive; X, Y, Z signed 32-bit big-endian nT, each within 50 µT; AV-V4). Both are stored under
+CRC in FLASH_REGION_ADCS_CAL (FRAM 0x36880, 256 B) and loaded at every boot; identity and zeros when no record is
+stored (SQSO-ICD-013 §7).
 
 ### 12.3 AntS Deployment over I2C (STR-16, LV-07)
 
@@ -445,3 +457,4 @@ of one sense line; and the inhibits are then on the AntS supply, in hardware.
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 1.1 | 2026-10-27 | SMART-QSO Team (CDR avionics review) | §12 new (revision history now §13): interface status against the baseline parts (gyro, magnetometer, sun sensors, coils, AntS, GNSS), coil and magnetometer timing, the AntS-over-I2C decision and protocol, verification items AV-V1 to AV-V8 |
 | 1.2 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: §2–§5 interface as designed (no ADCS board; harness W6B/W6C/W6D and the STM32 pins of SQSO-ICX-001: M-G370 on SPI3, BMI088 on SPI2, RM3100 and ADS7138 on I2C4, magnetorquers on TIM1/TIM15, RV-3028 on I2C1, supervisor kick PG11); LIS3MDL/LSM6DS3 maps withdrawn (§6); six sun sensors; B-dot gain 10⁴, detumble and 8 °/s spin criteria from BASELINE §8 (§7, §11); §12.1 pins allocated; AV-V3 criterion 2 ms (SQSO-OBC-BRD-001 §24 C4, C5) |
+| 1.3 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §12.1 the software side as built: the firmware on the master pin allocation (SQSO-ICX-001 §6), the drivers of the gyros, magnetometer, sun-sensor ADC, magnetorquers and mission clock (built against the data sheets, not run on hardware), the magnetometer gating and bias, the supervisor; the calibration telecommands ADCS_SET_GYRO_ALIGN and ADCS_SET_MAG_BIAS |

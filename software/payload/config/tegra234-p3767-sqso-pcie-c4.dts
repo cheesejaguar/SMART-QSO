@@ -1,0 +1,28 @@
+// SPDX-License-Identifier: MIT
+/*
+ * SMART-QSO carrier (SQSO-JET-BRD-001 §10): PCIe C4 lane 0 to the M.2 2230
+ * NVMe (Swissbit N2600), limited to Gen2 x1 (500 MB/s is ample for the
+ * rootfs and the model; the lower rate eases the routing and the emissions
+ * near the 2 m and 70 cm bands). Lanes 1-3 are open on the carrier.
+ *
+ * Compiled with dtc -@ and listed in OVERLAY_DTB_FILE by the board
+ * configuration that software/payload/platform_config.py generates (RID
+ * JETB-01). The controller is the T234's C4 (pcie@14160000).
+ */
+
+/dts-v1/;
+/plugin/;
+
+/ {
+	overlay-name = "SMART-QSO carrier: PCIe C4 Gen2 x1";
+	compatible = "nvidia,p3768-0000+p3767-0003", "nvidia,p3767-0003";
+
+	fragment@0 {
+		target-path = "/bus@0/pcie@14160000";
+		__overlay__ {
+			status = "okay";
+			max-link-speed = <0x2>;
+			num-lanes = <0x1>;
+		};
+	};
+};

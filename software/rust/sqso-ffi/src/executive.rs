@@ -1298,6 +1298,7 @@ impl Executive {
                     .then(|| (now.saturating_sub(self.gnss_rx.fix.rx_ms) / 1000, self.gnss_rx.fix.sats)),
                 gnss_sessions: (self.gnss.sessions, self.gnss.fixes),
                 passivation: passivation::passivation_phase(),
+                eol: (passivation::eol_state(), passivation::passivation_attempts()),
                 rx: (receiver::receiver_cycles(), receiver::receiver_failed()),
                 contacts: cmd_handler::contacts(),
                 stored: stored_counts(),

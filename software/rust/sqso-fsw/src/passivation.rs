@@ -841,6 +841,14 @@ mod tests {
         assert_eq!(q.take_report(0), Some(1), "the final report again");
         q.tick(REPORT_WINDOW_MS, SUN, &mut io);
         assert!(q.passivated());
+        // Committed and the fire done on record while the report already
+        // runs in RAM: the report carries on where it is
+        let mut q = Passivation::new(REGION);
+        q.initialized = true;
+        q.fire_done = true;
+        q.report = Some((0, 2));
+        q.verify(0, &mut io);
+        assert_eq!(q.report, Some((0, 2)));
         // Committed on record while a fire is already running in RAM: kept
         let mut io = Bench::default();
         let mut r = executed(&mut io, 1000);

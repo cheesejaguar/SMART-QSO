@@ -54,8 +54,11 @@ impl PassivationIo for HalFlash {
             Line::Arm => GPIO_PIN_EOL_ARM,
             Line::Fire => GPIO_PIN_EOL_FIRE,
         };
+        // Both calls are made every time (the direction is set again before
+        // each level, against an upset); the line is driven if both succeed
         // SAFETY: plain values (the HAL)
-        unsafe { c::hal_gpio_config(pin, 1, 2) == rc::OK && c::hal_gpio_set(pin, on) == rc::OK }
+        let done = unsafe { [c::hal_gpio_config(pin, 1, 2), c::hal_gpio_set(pin, on)] };
+        done == [rc::OK; 2]
     }
 
     fn charge_path_open(&mut self) -> Option<bool> {
@@ -190,5 +193,55 @@ mod tests {
         // SAFETY: NULL is refused
         assert_eq!(unsafe { passivation_arm(core::ptr::null(), 4) }, rc::NULL_PTR);
         assert_eq!(code(Err(Refusal::NotArmed)), rc::ERROR);
+    }
+
+    /// The HAL failing under the sequence: the record not written, the lines
+    /// not driven (the fire ends, the report follows), a corrupt record;
+    /// each logged. The sequence is left before its TX-OFF (the inhibit
+    /// would hold for the rest of this test process)
+    #[test]
+    fn hal_failures_are_reported() {
+        use sqso_fsw::fault_log::Entry;
+        let _serial = serial();
+        let logged = |text: &[u8]| {
+            (0..crate::fault_mgmt::fault_log_get_count()).any(|i| {
+                let mut e = Entry::new(0, 0, 0, b"", 0.0);
+                // SAFETY: a live entry
+                let got = unsafe { crate::fault_mgmt::fault_log_get_entry(i, &mut e) };
+                (got, e.description()) == (rc::OK, text)
+            })
+        };
+        let reset = || {
+            assert_eq!(crate::hal_sim::hal_flash_erase(FLASH_REGION_EOL), rc::OK);
+            let _ = EOL.with(|p| *p = Passivation::new(FLASH_REGION_EOL));
+        };
+        assert_eq!(crate::hal_sim::hal_flash_init(), rc::OK);
+        assert_eq!(crate::hal_sim::hal_gpio_init(), rc::OK);
+        reset();
+        assert_eq!(passivation_init(), rc::OK);
+        // SAFETY: a live 4-byte buffer
+        assert_eq!(unsafe { passivation_arm(b"EOL!".as_ptr(), 4) }, rc::OK);
+        crate::hal_sim::hal_sim_flash_fail_writes(true);
+        assert_eq!(passivation_execute(), rc::OK);
+        crate::hal_sim::hal_sim_flash_fail_writes(false);
+        assert!(logged(b"Passivation record not persisted"));
+        // The lines cannot be driven (the HAL busy): the fire ends at once
+        assert_eq!(crate::hal_sim::holding_the_sim(|| passivation_tick(true)), Some(()));
+        assert!(logged(b"Passivation line cannot be driven"));
+        assert_eq!(passivation_phase(), 4, "straight to the final report");
+        assert_eq!(passivation_take_report(), 1);
+        assert_eq!(passivation_attempts(), 1);
+
+        // A record that is neither blank nor valid: its magic, a bad CRC
+        reset();
+        let mut junk = [0x5Au8; 32];
+        junk[..4].copy_from_slice(&sqso_fsw::passivation::RECORD_MAGIC.to_be_bytes());
+        // SAFETY: a live buffer of its length
+        assert_eq!(unsafe { crate::hal_sim::hal_flash_write(FLASH_REGION_EOL, 0, junk.as_ptr(), junk.len()) }, rc::OK);
+        assert_eq!(passivation_init(), rc::OK);
+        assert!(logged(b"Passivation record unreadable"));
+        assert!(!passivation_passivated());
+        reset();
+        assert_eq!(passivation_init(), rc::OK);
     }
 }

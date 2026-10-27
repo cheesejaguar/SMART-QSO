@@ -290,6 +290,11 @@ impl Mission {
                 e.release_j = [f64::INFINITY; 2]; // the hold-down never lets go
             }
         }
+        if cfg.wing_a_failed {
+            for e in &mut deploy.wings.elements {
+                e.release_j[0] = f64::INFINITY; // resistor A heats but does not part the line
+            }
+        }
         let jetson = Jetson::open(rng.next_u64())?;
         // The flight software's host files and its serial port
         for (k, f) in [
@@ -676,7 +681,7 @@ impl Mission {
         if self.jetson.power_good() {
             // The module's input current at the magnetometer (JETB-09); the
             // flight software does not use these samples (JET_PG gate)
-            mag_meas = mag_meas + V3::new(crate::jetson::MAG_FIELD_T, 0.0, 0.0);
+            mag_meas += V3::new(crate::jetson::MAG_FIELD_T, 0.0, 0.0);
         }
         let sun_meas = self.sensors.sun_sensors(&mut self.sensor_rng, sun_b, illum);
         let gyro_meas = self.sensors.gyro(&mut self.sensor_rng, self.att.w, dt);

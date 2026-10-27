@@ -601,7 +601,9 @@ mod tests {
         let put = |addr: u8, reg: u8, bytes: &[u8]| {
             let mut b = [0u8; 4];
             b[0] = reg;
-            b[1..=bytes.len()].copy_from_slice(bytes);
+            if let Some(dst) = b.get_mut(1..=bytes.len()) {
+                dst.copy_from_slice(bytes);
+            }
             // SAFETY: b holds 1 + bytes.len() bytes
             unsafe { crate::hal_sim::hal_i2c_write(EPS_I2C_BUS, addr, b.as_ptr(), 1 + bytes.len()) }
         };
@@ -629,7 +631,7 @@ mod tests {
         gauge(PACK, 14.2, -0.3);
         gauge(ARRAY, 14.2, 0.8);
 
-        let Some((v, i, a, jet)) = read() else { panic!("no telemetry") };
+        let (v, i, a, jet) = read().unwrap_or((f64::NAN, f64::NAN, f64::NAN, f64::NAN));
         assert!(near(v, 14.2), "the INA228s' readings: {v} {i} {a}");
         assert!(near(i, -0.3), "the INA228s' readings: {v} {i} {a}");
         assert!(near(a, 0.8), "the INA228s' readings: {v} {i} {a}");
@@ -658,6 +660,15 @@ mod tests {
         crate::time::smart_qso_sim_advance_ms(MONITOR_RETRY_MS);
         assert!(read().is_some_and(|(v, ..)| near(v, 14.0)), "retried: the pack gauge again");
         assert_eq!(MONITORS.with(|m| m.ready), Some([true, true]));
+
+        // The array monitor does not configure: the controller's array
+        // current; retried with the pack's already configured
+        assert_eq!(put(ARRAY.address, ina228::reg::MANUFACTURER_ID, &[0, 0]), rc::OK);
+        let _ = MONITORS.with(|m| *m = Monitors { ready: [true, false], tried_ms: None });
+        assert!(read().is_some_and(|(v, _, a, _)| near(v, 14.0) && near(a, 0.2)), "the controller's array current");
+        crate::time::smart_qso_sim_advance_ms(MONITOR_RETRY_MS);
+        assert!(read().is_some_and(|(.., a, _)| near(a, 0.2)), "still not configured");
+        assert_eq!(MONITORS.with(|m| m.ready), Some([true, false]));
         let _ = MONITORS.with(|m| *m = Monitors { ready: [false; 2], tried_ms: None });
         let _ = TELEMETRY.with(|t| t.read = false);
     }

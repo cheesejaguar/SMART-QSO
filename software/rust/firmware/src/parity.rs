@@ -11,7 +11,7 @@
 //!   random parity of power-on.
 //! - Parity is on when the option bit `SRAM2_PE` is 0. It is set when the
 //!   board is programmed (`software/flight/docs/MEMORY_POLICY.md` §10 and
-//!   `docs/development/RELEASE_PROCEDURE.md` §6: the flight software never
+//!   `docs/development/RELEASE_PROCEDURE.md` §5.3.1: the flight software never
 //!   writes option bytes); [`report`] gives the state to the boot telemetry
 //!   (the console and HK2 `PE`) and logs every boot that finds it off.
 //! - The NMI (an SRAM2 parity error, a flash double-bit ECC error or a

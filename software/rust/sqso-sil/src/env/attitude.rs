@@ -7,16 +7,20 @@
 //!
 //! # Mass properties (assumptions)
 //!
-//! * Total mass 1.6 kg (the lifetime-analysis mass, BASELINE §4), body
-//!   100 × 100 × 113.5 mm treated as a uniform box (+Z along the rails,
-//!   `hardware/eps/SOLAR_ARRAY_DESIGN.md` §3.1).
-//! * Each wing 55 g (`docs/environment/MASS_BUDGET.md` §4.2: substrate
+//! * The inertia is the CAD's (`docs/environment/MASS_BUDGET.md` v3.1 §6.1
+//!   and §6.5; four AntS elements, the 2 × 10 g ballast of decision C-13,
+//!   the harness): the mean of its CBE (1,514.3 g) and MEV (1,748.3 g)
+//!   rows, stowed ([`INERTIA_STOWED`]) and deployed ([`INERTIA_DEPLOYED`],
+//!   the flight software's `INERTIA`). The products of inertia (at most
+//!   1.7 × 10⁻⁵ deployed, 3.8 × 10⁻⁵ stowed) are left out: the principal
+//!   axes are within 1° of the body axes deployed (the major axis 0.8–0.9°
+//!   from +Y) and 6–7° stowed.
+//! * Mass 1.6 kg for the drag (the lifetime-analysis mass, BASELINE §4);
+//!   each wing 55 g (`docs/environment/MASS_BUDGET.md` §4.2: substrate
 //!   24.7 g, four cells 14.4 g, hinge and release 16 g), a thin 83 × 98 mm
 //!   plate hinged on the ±X/+Y edge and deployed into the plane of the +Y
-//!   face, centred at (±100, +50, 0) mm.
-//! * Stowed: Ixx = Iyy = 3.05e-3, Izz = 2.67e-3 kg·m². Deployed (CG moves
-//!   3.4 mm to +Y): Ixx = 3.19e-3, Iyy = 4.09e-3, Izz = 3.90e-3 kg·m²;
-//!   products of inertia vanish by symmetry.
+//!   face, centred at (±100, +50, 0) mm, which moves the CG for the
+//!   aerodynamic torque.
 //!
 //! # Disturbances (assumptions)
 //!
@@ -49,14 +53,19 @@ pub const INITIAL_TUMBLE_RAD_S: f64 = 10.0 * core::f64::consts::PI / 180.0;
 /// Largest rotation per RK4 sub-step (rad).
 const MAX_SUBSTEP_ANGLE: f64 = 0.1;
 
-/// Principal inertia of a uniform box (kg·m²).
-fn box_inertia(m: f64, d: V3) -> V3 {
-    V3::new(m * (d.y * d.y + d.z * d.z) / 12.0, m * (d.x * d.x + d.z * d.z) / 12.0, m * (d.x * d.x + d.y * d.y) / 12.0)
-}
+/// Inertia about the CG, wings and antennas stowed (kg·m², body axes): the
+/// mean of the CAD's CBE (2.746, 3.052, 2.732) and MEV (3.158, 3.509, 3.189)
+/// × 10⁻³ (MASS_BUDGET v3.1 §6.1)
+pub const INERTIA_STOWED: V3 = V3::new(2.952e-3, 3.2805e-3, 2.9605e-3);
+/// Inertia about the CG, wings and antennas deployed (kg·m², body axes):
+/// the mean of the CAD's CBE (2.861, 4.268, 4.043) and MEV (3.286, 4.843,
+/// 4.627) × 10⁻³ (MASS_BUDGET v3.1 §6.1 and §6.5, with the C-13 ballast);
+/// Iyy/Izz 1.051. The same diagonal as `sqso_fsw::adcs::INERTIA`
+pub const INERTIA_DEPLOYED: V3 = V3::new(3.0735e-3, 4.5555e-3, 4.335e-3);
 
 /// Principal inertia, wings stowed (kg·m²).
 pub fn inertia_stowed() -> V3 {
-    box_inertia(MASS_KG, BODY_DIMS_M)
+    INERTIA_STOWED
 }
 
 /// CG position (m) in the geometric body frame, wings deployed.
@@ -66,17 +75,7 @@ pub fn cg_deployed() -> V3 {
 
 /// Principal inertia about the CG, wings deployed (kg·m²).
 pub fn inertia_deployed() -> V3 {
-    let mb = MASS_KG - 2.0 * WING_MASS_KG;
-    let cg = cg_deployed();
-    let mut i = box_inertia(mb, BODY_DIMS_M) + V3::new(mb * cg.y * cg.y, 0.0, mb * cg.y * cg.y);
-    let (ax, az) = WING_PANEL_M;
-    let m = WING_MASS_KG;
-    let own = V3::new(m * az * az / 12.0, m * (ax * ax + az * az) / 12.0, m * ax * ax / 12.0);
-    for sx in [1.0, -1.0] {
-        let d = V3::new(sx * 0.10, 0.05 - cg.y, 0.0);
-        i += own + V3::new(m * (d.y * d.y + d.z * d.z), m * (d.x * d.x + d.z * d.z), m * (d.x * d.x + d.y * d.y));
-    }
-    i
+    INERTIA_DEPLOYED
 }
 
 /// Rigid-body attitude state.
@@ -295,11 +294,12 @@ mod tests {
     #[test]
     fn inertia_values() {
         let s = inertia_stowed();
-        assert!((s.x - 3.05e-3).abs() < 1e-5 && (s.z - 2.667e-3).abs() < 1e-5);
         let d = inertia_deployed();
-        println!("inertia deployed {:.3e} {:.3e} {:.3e}", d.x, d.y, d.z);
         assert!(d.x > s.x && d.y > d.x && d.z > s.z);
-        assert!((d.y - 4.09e-3).abs() < 1e-4);
+        // The flight software's model is the same (sqso_fsw::adcs::INERTIA)
+        let f = sqso_fsw::adcs::INERTIA;
+        assert!((d.x - f.x).abs() < 1e-12 && (d.y - f.y).abs() < 1e-12 && (d.z - f.z).abs() < 1e-12);
+        assert!((d.y / d.z - 1.051).abs() < 0.001, "Iyy/Izz {}", d.y / d.z);
     }
 
     #[test]

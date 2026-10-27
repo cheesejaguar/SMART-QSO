@@ -582,7 +582,7 @@ mod tests {
     /// battery min, battery max, +X panel swing, +X mean) over the last orbit.
     fn orbit_case(hot: bool) -> (f64, f64, f64, f64, f64) {
         let t0 = if hot { from_utc(2028, 6, 21, 0, 0, 0.0) } else { from_utc(2028, 3, 20, 0, 0, 0.0) };
-        let o = Orbit::sso(500e3, if hot { 6.0 } else { 12.0 }, t0);
+        let o = Orbit::sso(CASE_ALT_M, if hot { 6.0 } else { 12.0 }, t0);
         let array = Array::new();
         let mut th = Thermal::new(10.0);
         let dt = 10.0;
@@ -834,9 +834,13 @@ mod tests {
         }
     }
 
+    /// The cases' altitude, m: the deployment target of BASELINE Rev E (475 km;
+    /// acceptable 465–485 km)
+    const CASE_ALT_M: f64 = 475e3;
+
     /// Runs a case; prints its last orbit; returns the final temperatures.
     fn run_case(c: &Case) -> [f64; N_NODES] {
-        let o = Orbit::sso(500e3, c.ltan, c.t0);
+        let o = Orbit::sso(CASE_ALT_M, c.ltan, c.t0);
         let array = Array::new();
         let mut th = Thermal::with_params(c.init_c, &c.params);
         if let Some(init) = c.init {
@@ -1159,6 +1163,19 @@ mod tests {
             c.wings = [true, true];
             let _ = run_case(&c);
         }
+        // The deployment itself: 2028-11-01 (BASELINE Rev E planning date),
+        // LTAN 22:30, from the cold soak, tip-off tumbling, one orbit
+        let mut c = Case::new(
+            "L3 LEOP real, 2028-11-01 LTAN 22:30, from cold soak, heater 1.0 W",
+            from_utc(2028, 11, 1, 6, 0, 0.0),
+            22.5,
+            Att::TipOff,
+            Mode::Leop,
+        );
+        c.init = Some(cold_start);
+        c.orbits = 1.0;
+        c.years = 0.0;
+        let _ = run_case(&c);
     }
 
     #[test]

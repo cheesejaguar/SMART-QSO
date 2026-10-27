@@ -1013,6 +1013,8 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
         lump_near(mass["ribbon_W4A"], [(W2, -33.5, z) for z in (12, 26, 40)], "W4A ribbon", "shear_x")
     # harness zones (SQSO-HAR-001 2.0): three points along each zone's run, on what it is tied to (shear panels in the
     # wall gaps, the EPS under it, the deck openings, the end frames, the boards it crosses)
+    CAD.harness_distribution()
+    conn_g = CAD.harness_distribution.connectors
     for pt in parts:
         if not pt.name.startswith("hz_") or mass[pt.name] <= 0:
             continue
@@ -1029,8 +1031,18 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
             grp = "shear"
         elif c[2] > 43.0:
             grp = "endplate_pz"
+        elif -16.7 <= c[2] <= -4.0 and c[2] >= -15.0:
+            # under the EPS: the connector halves on the EPS, the wire on the deck straps (SQSO-HAR-001 2.0 10.3:
+            # tie-downs on the shear panels, end frames, deck straps and the battery clamp, none between boards)
+            mc = min(conn_g.get(pt.name[3:], 0.0), mass[pt.name])
+            if mc > 0:
+                lump_near(mc, pts_, "harness connector halves on the EPS", "EPS")
+            if mass[pt.name] - mc > 0:
+                lump_near(mass[pt.name] - mc, [(q[0], q[1], -16.0) for q in pts_], "harness under the EPS, on the deck",
+                          "deck")
+            continue
         elif -16.7 <= c[2] <= -4.0:
-            grp = "deck" if c[2] < -15.0 else "EPS"
+            grp = "deck"
         elif c[2] < -16.7:
             grp = "endplate_mz"
         elif c[2] > 19.0:

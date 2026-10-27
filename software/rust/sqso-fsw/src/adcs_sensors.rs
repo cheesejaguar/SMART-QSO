@@ -294,10 +294,8 @@ impl Sensors {
     /// per control period
     pub fn trigger_mag(&mut self, now_ms: u64, window_ms: u64, i2c: &mut impl I2cBus) {
         let fresh = self.mag_trigger_ms.is_some_and(|t| t >= window_ms);
-        if now_ms >= window_ms && !fresh && self.mag.ready && !self.mag.pending {
-            if self.mag.trigger(i2c).is_ok() {
-                self.mag_trigger_ms = Some(now_ms);
-            }
+        if now_ms >= window_ms && !fresh && self.mag.ready && !self.mag.pending && self.mag.trigger(i2c).is_ok() {
+            self.mag_trigger_ms = Some(now_ms);
         }
     }
 

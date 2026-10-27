@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 # SMART-QSO CDR (structures): re-run the ADCS Monte Carlo (sqso_adcs_mc) with the plant inertia
-# of docs/environment/MASS_BUDGET.md section 6 instead of the mission simulation's box model.
+# of docs/environment/MASS_BUDGET.md section 6 instead of the mission simulation's own (since the
+# flight software round 3 the simulation's inertia is the CAD mean of section 6.1; the
+# sil_default row runs it).
 #
 # The repository code is not changed. The script copies software/rust and software/flight to a
 # work directory, patches the copy so that sqso-sil's inertia_stowed()/inertia_deployed() read
@@ -56,6 +58,10 @@ run B_coils_mev  "3.475e-3,3.752e-3,3.519e-3" "3.606e-3,5.154e-3,5.049e-3"
 run B_rods_mev_dip10  "3.209e-3,3.487e-3,3.208e-3" "3.335e-3,4.889e-3,4.733e-3" --dipole 0.010
 run B_coils_mev_dip10 "3.475e-3,3.752e-3,3.519e-3" "3.606e-3,5.154e-3,5.049e-3" --dipole 0.010
 run B_rods_mev_tip30  "3.209e-3,3.487e-3,3.208e-3" "3.335e-3,4.889e-3,4.733e-3" --tipoff-sigma 10 --tipoff-max 30
+# The CAD of MASS_BUDGET v3.1 section 6.1 (four AntS elements, the C-13 ballast, the harness):
+# stowed and deployed, CBE and MEV (diagonal; the products are in adcs_mc_cdr.sh's --plant rows)
+run CAD_ballast_cbe "2.746e-3,3.052e-3,2.732e-3" "2.861e-3,4.268e-3,4.043e-3"
+run CAD_ballast_mev "3.158e-3,3.509e-3,3.189e-3" "3.286e-3,4.843e-3,4.627e-3"
 # AntS configuration options of hardware/rf/ANTENNA_DESIGN.md v2.0 section 3 (layout B, rods)
 run antA_rods_cbe "2.788e-3,3.040e-3,2.756e-3" "2.865e-3,4.059e-3,3.851e-3"
 run antA_rods_mev "3.209e-3,3.487e-3,3.208e-3" "3.295e-3,4.622e-3,4.426e-3"

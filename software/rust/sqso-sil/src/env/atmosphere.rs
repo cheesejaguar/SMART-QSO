@@ -29,11 +29,17 @@
 //!
 //! # Solar activity
 //!
-//! [`f107_profile`] is the half-cosine interpolation between the turning
-//! points of `orbit_lifetime.py` (`CYCLE_POINTS`: cycle 25 maximum 185 sfu
-//! at 2024.8, minimum 68 sfu at 2030.5, cycle 26 maximum 150 sfu at 2035.0),
-//! the "nominal" profile behind the BASELINE §3 lifetimes, with a ±8 %
-//! 27-day solar-rotation modulation on the daily value.
+//! [`f107_profile`] is the ODAR's nominal projection (ODAR Draft D §6.2,
+//! `software/simulation/cdr/sma/debris_lifetime.py`, "NOAA predicted +
+//! cycle 26 max 140"): the NOAA SWPC predicted monthly F10.7 to 2030-12,
+//! then half-cosines to a minimum of 68 sfu in mid-2031, a cycle 26 maximum
+//! of 140 sfu at 2035.5 and 68 sfu at 2041.5, cycle 27 repeating cycle 26;
+//! with a ±8 % 27-day solar-rotation modulation on the daily value. Until
+//! flight software round 3 it was the turning-point profile of
+//! `orbit_lifetime.py` (cycle 25 maximum 185 sfu at 2024.8, minimum 68 sfu
+//! at 2030.5, cycle 26 maximum 150 sfu at 2035.0), about 8 sfu higher at
+//! deployment and 10 sfu higher at the cycle 26 maximum: the simulation
+//! re-entered 4.0 years after deployment where the ODAR gives 4.8.
 
 use core::f64::consts::TAU;
 
@@ -116,32 +122,120 @@ pub fn density(alt_m: f64, f107: f64, f107a: f64, ap: f64) -> f64 {
     rho
 }
 
-/// Smoothed-F10.7 turning points (decimal year, sfu) of
-/// `orbit_lifetime.py` `CYCLE_POINTS`: cycle 25 minimum and maximum
-/// observed approximately, later values assumed.
-const CYCLE_POINTS: [(f64, f64); 6] =
-    [(2019.9, 69.0), (2024.8, 185.0), (2030.5, 68.0), (2035.0, 150.0), (2041.0, 68.0), (2045.5, 150.0)];
+/// The NOAA SWPC predicted monthly F10.7 (decimal year at mid-month, sfu),
+/// 2026-04 to 2030-12, as the ODAR's lifetime analysis embeds it
+/// (`software/simulation/cdr/sma/debris_lifetime.py` `SWPC_PRED`, column
+/// "predicted", retrieved 2026-10-27): the ODAR's nominal projection
+const NOAA_PREDICTED: [(f64, f64); 57] = [
+    (2026.2917, 133.4),
+    (2026.3750, 132.7),
+    (2026.4583, 131.7),
+    (2026.5417, 129.0),
+    (2026.6250, 126.9),
+    (2026.7083, 125.7),
+    (2026.7917, 125.9),
+    (2026.8750, 126.0),
+    (2026.9583, 125.8),
+    (2027.0417, 124.9),
+    (2027.1250, 123.3),
+    (2027.2083, 121.4),
+    (2027.2917, 118.8),
+    (2027.3750, 116.2),
+    (2027.4583, 113.4),
+    (2027.5417, 110.8),
+    (2027.6250, 108.3),
+    (2027.7083, 105.9),
+    (2027.7917, 103.8),
+    (2027.8750, 101.7),
+    (2027.9583, 99.9),
+    (2028.0417, 98.0),
+    (2028.1250, 96.3),
+    (2028.2083, 94.7),
+    (2028.2917, 93.1),
+    (2028.3750, 91.7),
+    (2028.4583, 90.2),
+    (2028.5417, 88.9),
+    (2028.6250, 87.5),
+    (2028.7083, 86.3),
+    (2028.7917, 85.1),
+    (2028.8750, 84.0),
+    (2028.9583, 83.0),
+    (2029.0417, 82.0),
+    (2029.1250, 81.0),
+    (2029.2083, 80.2),
+    (2029.2917, 79.4),
+    (2029.3750, 78.6),
+    (2029.4583, 77.8),
+    (2029.5417, 77.2),
+    (2029.6250, 76.5),
+    (2029.7083, 75.9),
+    (2029.7917, 75.3),
+    (2029.8750, 74.8),
+    (2029.9583, 74.3),
+    (2030.0417, 73.8),
+    (2030.1250, 73.3),
+    (2030.2083, 73.0),
+    (2030.2917, 72.6),
+    (2030.3750, 72.2),
+    (2030.4583, 71.9),
+    (2030.5417, 71.6),
+    (2030.6250, 71.3),
+    (2030.7083, 71.0),
+    (2030.7917, 70.8),
+    (2030.8750, 70.5),
+    (2030.9583, 70.3),
+];
+/// After the NOAA table (the ODAR's nominal, `swpc_profile(1, 140.0)`): a
+/// half-cosine to the cycle 25/26 minimum ([`CYCLE_FLOOR`], half a year
+/// after the table ends), up to the cycle 26 maximum and down again; cycle
+/// 27 repeats cycle 26
+const CYCLE_26_PEAK: (f64, f64) = (2035.5, 140.0);
+/// End of the cycle 26 decline (decimal year)
+const CYCLE_26_END: f64 = 2041.5;
+/// The minima, sfu
+const CYCLE_FLOOR: f64 = 68.0;
 
 /// Relative amplitude of the 27-day rotational modulation of daily F10.7.
 const ROTATION_AMPLITUDE: f64 = 0.08;
 /// Synodic solar rotation period (s).
 const ROTATION_PERIOD_S: f64 = 27.0 * DAY_S;
 
-/// Smoothed (81-day) F10.7 at `t` (sfu), the half-cosine profile.
+fn half_cos(y: f64, t0: f64, t1: f64, v0: f64, v1: f64) -> f64 {
+    let x = (y - t0) / (t1 - t0);
+    v0 + (v1 - v0) * 0.5 * (1.0 - (core::f64::consts::PI * x).cos())
+}
+
+/// Smoothed (81-day) F10.7 at `t` (sfu): the ODAR's nominal projection
+/// (the NOAA predicted cycle, then the assumed cycle 26), so that the
+/// simulation's decay uses the solar activity of the filed lifetime
 pub fn f107_smoothed(t: f64) -> f64 {
-    let y = decimal_year(t);
-    let first = CYCLE_POINTS[0];
+    let mut y = decimal_year(t);
+    let (first, last) = (NOAA_PREDICTED[0], NOAA_PREDICTED[NOAA_PREDICTED.len() - 1]);
     if y <= first.0 {
         return first.1;
     }
-    for w in CYCLE_POINTS.windows(2) {
-        let ((t0, v0), (t1, v1)) = (w[0], w[1]);
-        if y <= t1 {
-            let x = (y - t0) / (t1 - t0);
-            return v0 + (v1 - v0) * 0.5 * (1.0 - (core::f64::consts::PI * x).cos());
+    if y <= last.0 {
+        for w in NOAA_PREDICTED.windows(2) {
+            let ((t0, v0), (t1, v1)) = (w[0], w[1]);
+            if y <= t1 {
+                return v0 + (v1 - v0) * (y - t0) / (t1 - t0);
+            }
         }
     }
-    CYCLE_POINTS[CYCLE_POINTS.len() - 1].1
+    let t_min = last.0 + 0.5;
+    if y <= t_min {
+        return half_cos(y, last.0, t_min, last.1, CYCLE_FLOOR);
+    }
+    // Cycle 27 and later repeat cycle 26
+    let period = CYCLE_26_END - t_min;
+    while y > CYCLE_26_END {
+        y -= period;
+    }
+    if y <= CYCLE_26_PEAK.0 {
+        half_cos(y, t_min, CYCLE_26_PEAK.0, CYCLE_FLOOR, CYCLE_26_PEAK.1)
+    } else {
+        half_cos(y, CYCLE_26_PEAK.0, CYCLE_26_END, CYCLE_26_PEAK.1, CYCLE_FLOOR)
+    }
 }
 
 /// Solar-cycle driver: (daily F10.7, 81-day mean F10.7A) at `t` (sfu).
@@ -199,14 +293,20 @@ mod tests {
 
     #[test]
     fn solar_cycle_profile_shape() {
-        let (f, fa) = f107_profile(from_utc(2024, 10, 20, 0, 0, 0.0));
-        assert!(fa > 180.0 && (f / fa - 1.0).abs() <= ROTATION_AMPLITUDE + 1e-12);
-        let min = f107_smoothed(from_utc(2030, 7, 1, 0, 0, 0.0));
-        assert!((min - 68.0).abs() < 1.0);
-        let max26 = f107_smoothed(from_utc(2035, 1, 1, 0, 0, 0.0));
-        assert!((max26 - 150.0).abs() < 1.0);
-        let at_launch = f107_smoothed(from_utc(2028, 6, 1, 0, 0, 0.0));
-        assert!(at_launch > 90.0 && at_launch < 130.0, "{at_launch}");
+        // The ODAR's nominal: the NOAA table (2026-04 133.4, 2028-11 84.0),
+        // the minimum mid-2031, cycle 26 at 140 sfu in mid-2035, cycle 27 the same
+        let (f, fa) = f107_profile(from_utc(2026, 4, 16, 0, 0, 0.0));
+        assert!((fa - 133.4).abs() < 0.5, "{fa}");
+        assert!((f / fa - 1.0).abs() <= ROTATION_AMPLITUDE + 1e-12);
+        let at_launch = f107_smoothed(from_utc(2028, 11, 16, 0, 0, 0.0));
+        assert!((at_launch - 84.0).abs() < 0.5, "{at_launch}");
+        let min = f107_smoothed(from_utc(2031, 6, 15, 0, 0, 0.0));
+        assert!((min - 68.0).abs() < 0.5, "{min}");
+        let max26 = f107_smoothed(from_utc(2035, 7, 1, 0, 0, 0.0));
+        assert!((max26 - 140.0).abs() < 0.5, "{max26}");
+        let max27 = f107_smoothed(from_utc(2045, 7, 1, 0, 0, 0.0));
+        assert!((max27 - 140.0).abs() < 1.0, "{max27}");
+        assert!(f107_smoothed(from_utc(2020, 1, 1, 0, 0, 0.0)) > 133.0, "before the table: its first value");
     }
 
     /// Lifetime (years) from a circular orbit at `alt_km` deployed

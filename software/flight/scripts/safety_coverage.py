@@ -60,6 +60,9 @@ SAFETY_CRITICAL: Tuple[str, ...] = (
     # commissioning hold and the transponder-enable record (RID FSW-05)
     "sqso-fsw/src/transponder.rs",
     "sqso-fsw/src/ops_state.rs", "sqso-ffi/src/ops_state.rs",
+    # The end-of-life passivation: its TX-OFF after the final report is an RF
+    # inhibit (SQSO-SHA-001 SW-HAZ-013, RID REG-12)
+    "sqso-fsw/src/passivation.rs", "sqso-ffi/src/passivation.rs",
 )
 
 EXEMPT = re.compile(r"//\s*COVERAGE-EXEMPT:\s*\S")

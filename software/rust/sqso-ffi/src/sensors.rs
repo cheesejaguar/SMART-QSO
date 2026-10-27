@@ -210,6 +210,37 @@ fn eps_numeric(kind: Kind, channel: &[u8], measured: Option<&Telemetry>, env: &E
     }
 }
 
+/// The two alarms a reading can raise, each logged at its onset and its
+/// clearance (RID FSW-14, SRS-F153)
+fn check_alarms(kind: Kind, channel: &[u8], alarm: Option<Alarm>, soc: f64) {
+    // Each alarm is checked by the reading that can raise it
+    let checks = match (kind, channel) {
+        (Kind::EpsVoltage, b"battery") => Some(0),
+        (Kind::EpsCurrent, b"battery_discharge") => Some(1),
+        _ => None,
+    };
+    if let Some(i) = checks {
+        let present = match i {
+            0 => alarm == Some(Alarm::LowBatteryVoltage),
+            _ => alarm == Some(Alarm::HighDischargeCurrent),
+        };
+        let change = ALARMS.with(|a| a.get_mut(i).map(|cnd| cnd.check(present))).flatten();
+        if let Some(change) = change {
+            if i == 0 {
+                c::log_condition(change, FAULT_VOLTAGE_LOW, severity::ERROR, c"Low battery voltage detected", soc);
+            } else {
+                c::log_condition(
+                    change,
+                    FAULT_CURRENT_HIGH,
+                    severity::ERROR,
+                    c"Excessive battery discharge current",
+                    soc,
+                );
+            }
+        }
+    }
+}
+
 /// Take a reading of `kind` on `channel` (no sensor state borrowed)
 fn read(kind: Kind, channel: &[u8]) -> Reading {
     // The EPS controller's telemetry when it answers, the stand-ins otherwise
@@ -251,32 +282,7 @@ fn read(kind: Kind, channel: &[u8]) -> Reading {
             return Reading::Text(sensors::hex2(bits));
         }
     };
-    // Each alarm is checked by the reading that can raise it
-    let checks = match (kind, channel) {
-        (Kind::EpsVoltage, b"battery") => Some(0),
-        (Kind::EpsCurrent, b"battery_discharge") => Some(1),
-        _ => None,
-    };
-    if let Some(i) = checks {
-        let present = match i {
-            0 => numeric.alarm == Some(Alarm::LowBatteryVoltage),
-            _ => numeric.alarm == Some(Alarm::HighDischargeCurrent),
-        };
-        let change = ALARMS.with(|a| a.get_mut(i).map(|cnd| cnd.check(present))).flatten();
-        if let Some(change) = change {
-            if i == 0 {
-                c::log_condition(change, FAULT_VOLTAGE_LOW, severity::ERROR, c"Low battery voltage detected", soc);
-            } else {
-                c::log_condition(
-                    change,
-                    FAULT_CURRENT_HIGH,
-                    severity::ERROR,
-                    c"Excessive battery discharge current",
-                    soc,
-                );
-            }
-        }
-    }
+    check_alarms(kind, channel, numeric.alarm, soc);
     Reading::Numeric(numeric.value)
 }
 
@@ -651,8 +657,8 @@ mod tests {
     fn a_long_episode_leaves_older_entries_intact() {
         use crate::c::fault_type;
         use crate::fault_mgmt::{self, fault_log_get_count, fault_log_get_entry};
-        use sqso_fsw::fault_log::Entry;
         use sqso_fsw::eps_telemetry::{self, Telemetry};
+        use sqso_fsw::fault_log::Entry;
         let _serial = crate::fault_mgmt::tests::serial();
         let block = |vbatt_v: f64| {
             let mut b = [0u8; eps_telemetry::BLOCK_LEN];

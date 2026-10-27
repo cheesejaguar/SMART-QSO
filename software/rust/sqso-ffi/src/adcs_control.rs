@@ -682,7 +682,7 @@ mod tests {
 
         let (c, s) = (0.999_95_f64, 0.01_f64);
         let m = [c, -s, 0.0, s, c, 0.0, 0.0, 0.0, 1.0];
-        assert_eq!(gyro_alignment_command(&be(&m, 1e6)[..35]), rc::INVALID, "length");
+        assert_eq!(gyro_alignment_command(be(&m, 1e6).get(..35).unwrap_or(&[])), rc::INVALID, "length");
         let twice = [2.0, 0.0, 0.0, 0.0, 2.0, 0.0, 0.0, 0.0, 2.0];
         assert_eq!(gyro_alignment_command(&be(&twice, 1e6)), rc::INVALID, "not a rotation");
         assert_eq!(gyro_alignment_command(&be(&m, 1e6)), rc::OK);
@@ -695,7 +695,9 @@ mod tests {
         let mut bias = vec![3u8];
         bias.extend(be(&[1000.0, -2000.0, 500.0], 1.0));
         let mut bad_state = bias.clone();
-        bad_state[0] = 8;
+        if let Some(state) = bad_state.first_mut() {
+            *state = 8;
+        }
         assert_eq!(mag_bias_command(&bad_state), rc::INVALID, "eight states");
         let mut big = vec![1u8];
         big.extend(be(&[60_000.0, 0.0, 0.0], 1.0));

@@ -90,13 +90,15 @@ pub const SUN_AXIS: Vec3 = Vec3::new(0.0, 1.0, 0.0);
 /// reference layout's Iyz gave 93 % there); the CAD value is 1.051
 pub const SPIN_RATE: f64 = 0.1396;
 /// Moments of inertia about the body axes with the wings and the AntS
-/// deployed, kg m^2: the CAD of `docs/environment/MASS_BUDGET.md` v3.1 §6.6
-/// (layout B, CubeSpace rods, AntS option A: one 2 m tape along +X, one
-/// 70 cm along −X), the mean of its CBE and MEV rows (§6.1 "CAD, deployed",
-/// as §6.5 directs; §6.5 rounds it to (0.0030, 0.0042, 0.0040)): Iyy/Izz 1.051. The products are in
-/// [`Inertia::DEPLOYED`]. To be replaced by the measured stowed inertia plus
-/// the weighed wings before flight
-pub const INERTIA: Vec3 = Vec3::new(0.002_991_5, 0.004_241, 0.004_035);
+/// deployed, kg m^2: the CAD of `docs/environment/MASS_BUDGET.md` v3.1
+/// (MECHANICAL_DESIGN B §5; layout B, CubeSpace rods, all four AntS
+/// elements, the 2 × 10 g ballast of decision C-13, the harness), the mean
+/// of its CBE (1,514.3 g: 2.861, 4.268, 4.043 × 10⁻³) and MEV (1,748.3 g:
+/// 3.286, 4.843, 4.627 × 10⁻³) rows, as §6.5 directs: Iyy/Izz 1.051 (CBE
+/// 1.056, MEV 1.047). The products are in [`Inertia::DEPLOYED`]. To be
+/// replaced by the measured stowed inertia plus the weighed wings before
+/// flight
+pub const INERTIA: Vec3 = Vec3::new(0.003_073_5, 0.004_555_5, 0.004_335);
 /// Momentum gain of the spin law: torque per unit momentum error, 1/s
 pub const MOMENTUM_GAIN: f64 = 0.005;
 /// Nutation damping: torque per rad/s of rate across the spin axis, N m s
@@ -179,11 +181,12 @@ pub struct Inertia {
 }
 
 impl Inertia {
-    /// Both wings and the AntS deployed ([`INERTIA`] with its products: the
-    /// mean of the CAD CBE (+0.004, +0.031, −0.001) and MEV (+0.003, +0.032,
-    /// +0.006) × 10⁻³ kg m², MASS_BUDGET v3.1 §6.1)
+    /// Both wings and the AntS deployed ([`INERTIA`] with its products, the
+    /// tensor's off-diagonal elements −Σm·x·y and so on: the mean of the CAD
+    /// CBE (Ixy −9.6, Ixz +17.3, Iyz −2.9) and MEV (−13.2, +15.6, +2.5) ×
+    /// 10⁻⁶ kg m², MASS_BUDGET v3.1 §6.1)
     pub const DEPLOYED: Inertia =
-        Inertia { xx: 0.002_991_5, yy: 0.004_241, zz: 0.004_035, xy: 0.000_003_5, xz: 0.000_031_5, yz: 0.000_002_5 };
+        Inertia { xx: 0.003_073_5, yy: 0.004_555_5, zz: 0.004_335, xy: -0.000_011_4, xz: 0.000_016_45, yz: -0.000_000_2 };
     /// Only wing W1 (+X hinge) deployed
     pub const WING_1_ONLY: Inertia =
         Inertia { xx: 0.003_081, yy: 0.004_214, zz: 0.004_012, xy: -0.000_242, xz: -0.000_041, yz: -0.000_035 };

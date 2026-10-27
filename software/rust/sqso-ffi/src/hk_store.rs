@@ -66,6 +66,7 @@ static HK: Global<State> = Global::new(State {
         gnss_fix: None,
         gnss_sessions: (0, 0),
         passivation: 0,
+        eol: (None, 0),
         rx: (0, false),
         contacts: 0,
         stored: [0; 2],

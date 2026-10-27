@@ -334,6 +334,23 @@ current.
 | SRS-F131 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
 | SRS-F132 | T, I | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
 | SRS-F133 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F140 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F141 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F142 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F143 | T, A | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F144 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F145 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F146 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F147 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F148 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F149 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F150 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F151 | T, A | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F152 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F153 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F154 | T, I | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F155 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F156 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
 | SRS-P001 | T | FS | 2027-04 to 2027-06 | Timing on the target (TP-OBC-003) | Not verified |
 | SRS-P002 | T | FS | 2027-04 to 2027-06 | Timing on the target (TP-OBC-003) | Not verified |
 | SRS-P003 | T | FS | 2027-04 to 2027-06 | Timing on the target (TP-OBC-003) | Not verified |
@@ -385,12 +402,12 @@ current.
 
 | Code | Event | Planned date | Requirements |
 |------|-------|--------------|--------------|
-| CI | Flight-software tests in CI (host) | continuous | 165 |
+| CI | Flight-software tests in CI (host) | continuous | 182 |
 | SIL | Mission simulation, software in the loop (sqso-sil) | 2026-11 to 2027-01 | 6 |
 | PDR | Analysis or inspection presented at the PDR | 2027-01-12 | 8 |
 | REG | Regulatory filing or coordination record | 2027-01 to 2028-01 | 10 |
 | CON | Launch contract and integrator ICD | 2027-05-31 | 8 |
-| FS | Flatsat and EM bench, flight software on the target (TP-FLATSAT-001, TP-INT) | 2027-04 to 2027-06 | 150 |
+| FS | Flatsat and EM bench, flight software on the target (TP-FLATSAT-001, TP-INT) | 2027-04 to 2027-06 | 167 |
 | EMT | EM development tests (ENVIRONMENTAL_TEST_PLAN §6) | 2027-06 to 2027-08 | 12 |
 | CDR | Analysis or inspection presented at the CDR | 2027-08-03 | 53 |
 | FMI | FM integration and comprehensive functional (TP-INT, TP-SYS-001) | 2027-11 to 2028-01 | 50 |
@@ -403,10 +420,10 @@ current.
 
 | Status | Requirements |
 |--------|--------------|
-| Not verified | 253 |
-| Partial (CI) | 70 |
+| Not verified | 265 |
+| Partial (CI) | 75 |
 | Deleted | 1 |
-| **Total** | **324** |
+| **Total** | **341** |
 
 Methods: A analysis, D demonstration, I inspection, T test, V validation (mission objectives, judged against the success criteria). A method marked * is proposed here because the specification gives none.
 <!-- vcrm:end -->

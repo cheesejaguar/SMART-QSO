@@ -83,6 +83,11 @@ ELF=$(ls "$PKG"/sqso-firmware-*.elf)
 cargo run --release
 ```
 
+Before the first flash of a board, set SRAM2 parity on (option bit `SRAM2_PE` = 0; the flight software never writes
+option bytes): `STM32_Programmer_CLI -c port=SWD mode=UR -ob SRAM2_PE=0`, then `-ob displ` must list
+`SRAM2_PE : 0x0` (`docs/development/RELEASE_PROCEDURE.md` §5.3.1). The console then shows `[SYSTEM] SRAM2 parity on`
+at every boot; "SRAM2 parity OFF (option bit SRAM2_PE)" means the step was missed.
+
 `cargo run --release` flashes, resets and runs the image, then keeps the probe attached until Ctrl-C. The image has no
 RTT or defmt channel, so the runner prints nothing from the firmware: the console is the USART3 adapter (§2). In
 probe-rs 0.32.0 the runner also arms vector catches (HardFault, core reset) and does not clear them when it exits, and

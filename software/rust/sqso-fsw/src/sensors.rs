@@ -931,6 +931,7 @@ units: V\n    period_ms: 1000\n  - id: BT\n    name: \"Battery Temperature\"\n  
     fn spreader_thermistor_follows_the_10k3a_curve() {
         // The table of SQSO-JET-BRD-001 D §12.1: V/Vref at -15, 25 and 70 °C
         for (t, ratio) in [(-15.0, 0.8794), (25.0, 0.5000), (70.0, 0.1491), (-40.0, 0.9711), (100.0, 0.0635)] {
+            #[allow(clippy::cast_possible_truncation, clippy::cast_sign_loss)] // 0..4095
             let raw = (ratio * 4095.0f64).round() as u16;
             let got = spreader_temperature(raw, ratio * 3.3).unwrap();
             assert!((got - t).abs() < 0.35, "{t}: {got}");

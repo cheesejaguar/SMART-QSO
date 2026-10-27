@@ -1,7 +1,7 @@
 # Interface Control Document: Telecommand Authentication and TX-OFF
 
 **Document ID**: SQSO-ICD-013
-**Version**: 0.9 (Draft)
+**Version**: 0.10 (Draft)
 **Date**: 2026-10-27
 **Status**: Draft. Implemented and tested in the host simulation. Not yet run on target hardware (Section 10).
 
@@ -207,13 +207,14 @@ codes 0x34 and 0x35 that Version 0.7 proposed are XPDR_ENABLE and XPDR_DISABLE; 
 | Item | Behaviour |
 |------|-----------|
 | Commands | `PASSIVATE_ARM` (0x70, operational key, 4-byte argument: the ASCII arming code `EOL!`; a wrong code is `INVALID_PARAM`) arms for 600 s and drives nothing. `PASSIVATE_EXECUTE` (0x71, **recovery key**, no argument) within those 600 s executes; without a live arm it is `NOT_ALLOWED` and does nothing. An arm not executed lapses silently (logged). Two keys from two custodians: the two-person rule for an irreversible act |
-| Order of execution | (1) TX-OFF latched (Section 6), and `RF_INHIBIT_PASSIVATED` set, which nothing clears; (2) the passivation record persisted (`FLASH_REGION_EOL`, two-slot CRC-32 record, magic `EOLP`); (3) in sunlight, `EOL_ARM` raised (its rising edge sets the EPS arm latch) and 200 ms later `EOL_FIRE` raised: a level held at least 60 s and at most 120 s, dropped early only once the EPS reports the charge path open. An eclipse before 60 s drops both lines; the fire is repeated at the next sunlight, at most 3 attempts. Both lines end low |
-| Confirmation | The EPS controller's `EOL_STATE` register (0x7C at 0x48: bit 0 armed, bit 1 fired) is read after the fire; an `EOL_STATE` reporting fired counts as passivated even if the record is lost |
-| After reset | The record (or the EPS state) restores the passivated state before anything can transmit; the fire resumes if it did not complete |
+| Order of execution (Version 0.10, RID REG-12) | (1) the passivation record persisted (`FLASH_REGION_EOL`, two-slot CRC-32 record, magic `EOLP`, layout version 2); (2) **while the spacecraft still transmits**, in sunlight, `EOL_ARM` raised (its rising edge sets the EPS arm latch) and 200 ms later `EOL_FIRE` raised: a level held at least 60 s and at most 120 s, dropped once the EPS reports the charge path open after the minimum. An eclipse before 60 s drops both lines and the fire is repeated at the next sunlight; a fire the EPS does not confirm is repeated; at most 3 attempts in all, across resets. Both lines end low; (3) the final report: HK1 and HK2 three times, 60 s apart (below); (4) 180 s after the first report frame, TX-OFF latched (Section 6) and `RF_INHIBIT_PASSIVATED` set, which nothing clears. A fire that is not confirmed after its attempts is reported and silenced the same way: the emissions cease whatever the fire did. Until Version 0.9 TX-OFF came first, so the ground could not see the result |
+| Final report | HK1 `PS=<phase>/<EOL_STATE>/<attempts>` and HK2 `EOL=<EOL_STATE>/<attempts>` (`docs/operations/TELEMETRY_DICTIONARY.md` §4.4): the EPS's view of the disconnect (bit 1 fired) and of the fuse F1 (bit 2 intact), the fire attempts; three frame pairs over three minutes so that one pass is enough to see them (SRS-F155) |
+| Confirmation | The EPS controller's `EOL_STATE` register (0x7C at 0x48: bit 0 armed, bit 1 fired, bit 2 fuse F1 intact) is read during the fire and in every housekeeping frame; an `EOL_STATE` reporting fired counts as passivated even if the record is lost |
+| After reset | The record (or the EPS state) restores the state before anything can transmit: silenced stays silenced; a reset during the fire resumes the fire (within the attempts); a reset during the final report sends it again, then silences. A record of layout version 1 (TX-OFF first) reads as silenced |
 | Allowed states | Every operating state. There is no first-year lockout: the two keys are the protection |
-| Telemetry | The housekeeping frame's `PS=` field: 0 idle, 1 armed, 2 firing, 3 passivated (only 1 can be downlinked: from 2 on nothing transmits) |
-| Pins | `EOL_ARM` and `EOL_FIRE` are the logical pins 19 and 20 of `hal_gpio.h`, low at reset; their STM32 pins are for the OBC designer to allocate (SQSO-EPS-BRD-001 §13.1 proposes PF4 and PG1). Until then the firmware cannot drive them: `PASSIVATE_EXECUTE` still latches TX-OFF and the passivation, and logs that the line is unavailable |
-| Verification | C suite `test_passivation` (two-key sequence, lapse, eclipse, resume after reset, the EPS state), the Rust unit tests of `passivation.rs`, the mission simulation's end-of-life plan (ARM, then EXECUTE 10 s later; the modelled latch fires only through the two lines). On the EM with a sacrificial fuse: V-EPS-8 (SQSO-EPS-BRD-001 §19) |
+| Telemetry | The housekeeping frame's `PS=` field: phase 0 idle, 1 armed, 2 firing, 3 passivated (silenced), 4 final report; then `EOL_STATE` and the attempts. Phases 1, 2 and 4 can be downlinked; from 3 on nothing transmits |
+| Pins | `EOL_ARM` and `EOL_FIRE` are the logical pins 19 and 20 of `hal_gpio.h`: PF4 and PG1 (SQSO-ICX-001 B §6), low at reset and pulled down on the EPS board. A line that cannot be driven ends the fire: it is logged, reported and silenced as an unconfirmed fire |
+| Verification | C suite `test_passivation` (two-key sequence, lapse, the fire while transmitting, the report frames and their times, TX-OFF at 180 s, an unconfirmed fire tried three times then reported and silenced, resume after reset, the EPS state), the Rust unit tests of `passivation.rs` (both crates on the safety-critical coverage list: every line and condition), the mission simulation's end-of-life plan (ARM, then EXECUTE 10 s later; the modelled latch fires only through the two lines). On the EM with a sacrificial fuse: V-EPS-8 (SQSO-EPS-BRD-001 §19) |
 
 The pre-space notification may now describe passivation by telecommand
 (`docs/regulatory/filings/FCC_97-207_PRE_SPACE_NOTIFICATION.md` Rev A.1, (iii), for its owner to update), once the
@@ -251,6 +252,8 @@ CI runs the generator with `--check` and fails if any output is stale. `test_eve
 | 0x21 | ADCS_DETUMBLE | 0 | operational | |
 | 0x23 | ADCS_GET_ATTITUDE | 0 | operational | |
 | 0x24 | ADCS_SET_GEOMETRY | 1 | operational | Spin axis and inertia preset, persisted: 0 both wings, 1 wing W1 only, 2 wing W2 only, 3 no wing |
+| 0x25 | ADCS_SET_GYRO_ALIGN | 36 | operational | Gyro alignment matrix (VI-MCAD-05; persisted): nine elements row by row, signed 32-bit big-endian in units of 1e-6; refused (`INVALID_PARAM`) unless every element is within 1.1 and the determinant within 0.05 of 1 (SRS-F142) |
+| 0x26 | ADCS_SET_MAG_BIAS | 13 | operational | Magnetometer bias of one rod polarity state (AV-V4; persisted): the state 0–7 (bit n set: rod n last driven positive), then X, Y, Z signed 32-bit big-endian nT, each within 50 µT (SRS-F144) |
 | 0x30 | SET_BEACON | 2 | operational | Interval in seconds, big-endian; 10 to 120 s (SYS-211) |
 | 0x31 | TX_ENABLE | 0 | operational | Clears the TX-OFF latch |
 | 0x32 | TX_DISABLE | 0 | **any**; none if no key is usable | Latches TX-OFF; allowed in every state |
@@ -262,7 +265,7 @@ CI runs the generator with `--check` and fails if any output is stale. `test_eve
 | 0x50 | DEPLOY_RETRY | 1 | operational | Retries a deployment element with fresh attempts: 0 antenna, 1 solar wings |
 | 0x60 | GNSS_REQUEST | 0 | operational | Starts a GNSS receiver session (its power gates still apply) |
 | 0x70 | PASSIVATE_ARM | 4 | operational | Argument `EOL!`; arms passivation for 600 s, drives nothing (§6.4) |
-| 0x71 | PASSIVATE_EXECUTE | 0 | **recovery** | Within 600 s of the arm: TX-OFF, the passivation record, the EPS charge disconnect (§6.4). Irreversible |
+| 0x71 | PASSIVATE_EXECUTE | 0 | **recovery** | Within 600 s of the arm: the passivation record, the EPS charge disconnect while still transmitting, the final report (three HK1/HK2 pairs over 3 min), then TX-OFF and the passivation inhibit (§6.4). Irreversible |
 
 **Not in the dictionary.** These IDs are defined in `cmd_handler.h` but have no handler, so they are refused with `INVALID_CMD` before a counter is consumed:
 
@@ -460,3 +463,4 @@ python3 software/ground/tools/telecommand_builder.py TX_DISABLE --key-file test.
 | 0.7 | 2026-10-27 | CDR review (communications panel): telecommand-station status and the 70 cm power limit near Beale AFB (§2); Doppler pre-correction rule (§5.2 rule 5); UTC-derived counters for several stations (§5.2.1, proposed); end-of-life passivation by telecommand (§6.4, proposed: no such command exists, which the pre-space notification must reflect); status rows (§10) |
 | 0.8 | 2026-10-27 | CDR flight software, round 2: end-of-life passivation implemented (§6.4) with the codes 0x70 PASSIVATE_ARM and 0x71 PASSIVATE_EXECUTE (0x34 and 0x35 are XPDR_ENABLE and XPDR_DISABLE); §7 dictionary completed (0x08, 0x09, 0x0A DUMP_TLM, 0x14 EPS_CLEAR_LOCKOUT, 0x24, 0x34, 0x35, 0x50, 0x60, 0x70, 0x71); §9.1 the recovery key also authenticates PASSIVATE_EXECUTE; §10 status rows |
 | 0.9 | 2026-10-27 | CDR S&MA analysis (decision C-14): §2 US270 row states the telecommand EIRP requirement and the two station variants (≤ 50 W PEP at US270 sites) |
+| 0.10 | 2026-10-27 | CDR flight software, round 3 (RID REG-12): §6.4 the fire while still transmitting, then the final report (three HK1/HK2 pairs over 3 min with `EOL_STATE`, the fuse state and the attempts), then TX-OFF and the passivation inhibit; an unconfirmed fire reported and silenced the same way; phase 4 (final report); pins PF4 and PG1; §7 ADCS_SET_GYRO_ALIGN (0x25) and ADCS_SET_MAG_BIAS (0x26) |
