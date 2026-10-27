@@ -7,12 +7,15 @@
 **Status:** CDR Baseline
 
 **Requirements verified:** SYS-504, SYS-603
+**Verification items:** VI-01, V-THM-3, V-JET-7 (`docs/verification/VI_REGISTER.md`)
 
 ---
 
 ## 1. PURPOSE
 
-Verify Jetson module thermal performance under load conditions.
+Verify Jetson module thermal performance under load conditions, and measure the heat-path values that the thermal
+model needs for SYS-603: spreader-to-frame conductance and junction-to-spreader resistance. The steps below are a bench
+screen; the VI-01 measurement is made in vacuum on the EM (`docs/environment/ENVIRONMENTAL_TEST_PLAN.md`).
 
 ---
 
@@ -31,10 +34,10 @@ Verify Jetson module thermal performance under load conditions.
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
 | 1 | Boot Jetson, record idle temp | < 50°C | |
-| 2 | Run inference load 5 min | Temp rising | |
-| 3 | Record peak module temp | < 75°C | |
-| 4 | Record heatspreader temp | < 60°C | |
-| 5 | Continue load 10 min | Stable or throttling | |
+| 2 | Run one flight burst: power-on of at most 10 min including boot, 7 W mode, ≤ 8 W at the carrier input (BASELINE §6) | Temp rising | |
+| 3 | Record peak junction temp | ≤ 95 °C (SYS-603) | |
+| 4 | Record heatspreader temp | Record; with the measured conductance the model gives ≤ +40 °C for a 600 s batch in the hot case (SYS-603) | |
+| 5 | Stuck-on case: hold the module at 8 W until steady | Record; model with the measured values gives the spreader ≤ +70 °C (SYS-603) | |
 | 6 | Record thermal throttling | If occurs | |
 | 7 | Power off, record cool-down | < 50°C in 5 min | |
 
@@ -45,8 +48,8 @@ Verify Jetson module thermal performance under load conditions.
 | Criterion | Requirement |
 |-----------|-------------|
 | Idle temperature | < 50°C |
-| Peak temperature | < 75°C |
-| Heatspreader | < 60°C |
+| Junction | ≤ 95 °C (SYS-603) |
+| Heat path | Junction-to-spreader ≤ 5.7 K/W (design 1.09–1.16 K/W); conductance measured (design 1.10 W/K); with them the correlated model meets SYS-603 (V-THM-3, VI-01) |
 | Cool-down | < 5 minutes |
 
 ---

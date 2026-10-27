@@ -32,8 +32,8 @@ This procedure defines the integration test for the Electrical Power Subsystem (
 
 ## 3. APPLICABLE DOCUMENTS
 
-1. ICD_OBC_EPS.md - Interface Control Document
-2. hardware/eps/PDU_DESIGN.md - PDU Design
+1. `docs/interfaces/ICD_OBC_EPS.md` (SMART-QSO-ICD-001) - Interface Control Document
+2. `docs/hardware/EPS_DESIGN.md` (SMART-QSO-EPS-001) and `hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001) - EPS design; `hardware/eps/PDU_DESIGN.md` is earlier background
 3. hardware/eps/BATTERY_DESIGN.md - Battery Design
 4. TP-EPS-001 - EPS Functional Test
 
@@ -54,7 +54,7 @@ This procedure defines the integration test for the Electrical Power Subsystem (
 
 | Equipment | Specification | Cal Required |
 |-----------|---------------|--------------|
-| Power supply | 0-10V, 5A | Yes |
+| Power supply | 0-20 V, 5 A (4S pack simulator) | Yes |
 | DMM | 6.5 digit | Yes |
 | Oscilloscope | 200 MHz, 4 channel | Yes |
 | Electronic load | 0-4A | Yes |
@@ -100,9 +100,9 @@ This procedure defines the integration test for the Electrical Power Subsystem (
 
 | Step | Action | Expected Result | Actual | P/F |
 |------|--------|-----------------|--------|-----|
-| 1 | Measure battery voltage | 7.2V ± 0.5V | | |
-| 2 | Enable 3.3V rail | 3.3V ± 0.1V | | |
-| 3 | Enable 5V rail | 5.0V ± 0.25V | | |
+| 1 | Measure battery voltage | Within 11.2–16.4 V (4S pack, 14.4 V nominal, charged to 16.4 V; `docs/BASELINE_PARAMETERS.md` §5); record | | |
+| 2 | Enable 3V3_AO | 3.3 V ± 2 % (`docs/hardware/EPS_DESIGN.md` §4) | | |
+| 3 | Enable 5V_PA | 5.0 V ± 2 % (EPS_DESIGN §4) | | |
 | 4 | Measure no-load current | < 50 mA | | |
 | 5 | Verify all load switches OFF | No current draw | | |
 
@@ -110,11 +110,11 @@ This procedure defines the integration test for the Electrical Power Subsystem (
 
 | Step | Action | Expected Result | Actual | P/F |
 |------|--------|-----------------|--------|-----|
-| 1 | Enable 1A load on 5V | 5.0V ± 0.1V | | |
+| 1 | Enable 0.55 A load on 5V_PA (the PA at 1 W RF, EPS_DESIGN §4) | 5.0 V ± 2 % | | |
 | 2 | Measure 5V ripple | < 50 mVpp | | |
-| 3 | Enable 0.5A load on 3.3V | 3.3V ± 0.1V | | |
+| 3 | Enable 0.26 A load on 3V3_AO (its maximum steady load, EPS_DESIGN §4) | 3.3 V ± 2 % | | |
 | 4 | Measure 3.3V ripple | < 20 mVpp | | |
-| 5 | Enable full mission load | All rails stable | | |
+| 5 | Enable full mission load | All rails stable; bus ripple ≤ 200 mV p-p, 1 MHz bandwidth (`docs/environment/ENVIRONMENTAL_TEST_PLAN.md` §3.6) | | |
 | 6 | Monitor for 30 min | No anomalies | | |
 
 ### 8.4 Telemetry Verification [SYS-124, SYS-320]
@@ -133,7 +133,7 @@ This procedure defines the integration test for the Electrical Power Subsystem (
 | Criterion | Requirement |
 |-----------|-------------|
 | Mechanical fit | No interference, secure mount |
-| Voltage accuracy | All rails ± 5% |
+| Voltage accuracy | 3V3_AO and 5V_PA ± 2 % (EPS_DESIGN §4) |
 | Load regulation | < 3% at full load |
 | Telemetry accuracy | Per Section 8.4 |
 | Stability | 30 min operation, no anomalies |

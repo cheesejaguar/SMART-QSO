@@ -50,7 +50,7 @@ against the battery cap.
 | Pumpdown | Ambient | Until < 10⁻⁵ Torr (spacecraft unpowered: launch configuration) | Decreasing |
 | Bake-out (outgassing phase) | +60 °C | ≥ 6 hours after stabilisation | ≤ 1 × 10⁻⁴ Torr |
 | Hot start | +60 °C | Power on after bake-out; boot within 30 s (SYS-300) | < 10⁻⁵ Torr |
-| Hot operational | +60 °C | ≥ 3 hours (stabilisation + performance test); one 120 s Jetson burst | < 10⁻⁵ Torr |
+| Hot operational | +60 °C | ≥ 3 hours (stabilisation + performance test); one Jetson burst (one power-on of at most 10 min including boot, BASELINE §6, SYS-512) | < 10⁻⁵ Torr |
 | Hot non-operating | +60 °C | ≥ 2 hours | < 10⁻⁵ Torr |
 | Transition | ≤ 1 °C/min | | < 10⁻⁵ Torr |
 | Cold operational | -40 °C | ≥ 3 hours; charging must be inhibited below 0 °C (SYS-602); battery heater enabled, battery above -20 °C; Jetson off below its -15 °C gate | < 10⁻⁵ Torr |
@@ -104,7 +104,7 @@ plateaus; a limited functional test at the others.
 |------|--------|----------|----------|-----|
 | 1 | Ramp to +60°C (hot operational plateau) | ≤ 1°C/min | ______ °C/min | |
 | 2 | Stabilize at +60°C | 98 % of TCs within ±2°C, or < 0.1 °C/h | ______ | |
-| 3 | Hot soak (≥ 3 hrs) with one 120 s Jetson burst; battery charging inhibited above +45 °C | Maintain +60°C; burst ends on the OBC limit | ______ hrs | |
+| 3 | Hot soak (≥ 3 hrs) with one Jetson burst (≤ 10 min including boot); battery charging inhibited above +45 °C | Maintain +60°C; burst ends on the OBC limit | ______ hrs | |
 | 4 | Functional test | TP-SYS-001 pass | ______ | |
 | 5 | Power off | Spacecraft safe | ______ | |
 | 6 | Hold +60°C unpowered (hot non-operating) | Survival temp | ______ °C | |

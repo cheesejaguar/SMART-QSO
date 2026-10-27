@@ -1,10 +1,23 @@
 # SMART-QSO Orbit Analysis
 
 **Document ID**: SQSO-OA-001
-**Version**: 1.2
-**Date**: 2026-01-02
+**Version**: 1.3
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: **Superseded.** Version 1.0 analysis (2026-01-02) of a 400 km, 51.6° ISS-like orbit, kept as a record; not
+the mission orbit and not re-run.
+
+> **Superseded for every value (documentation audit, 2026-10-27).** The mission orbit is a circular SSO, target 475 km
+> (465–485 km, not above 485 km), inclination ≈ 97.31°, LTAN 22:30 ± 1 h, deployment planned 2028-11-01
+> (`docs/BASELINE_PARAMETERS.md` §3). Nothing below §1 describes it. The current values are in:
+> orbit, lifetime and disposal: BASELINE §3 and the ODAR (`docs/regulatory/filings/ODAR_SMART-QSO.md`, SQSO-REG-018
+> Draft D, the FCC five-year rule, not the 25-year rule quoted in §2.3); period 94.1 min, passes and first-contact times:
+> `docs/operations/MISSION_TIMELINE.md` §10; β angle and eclipse (36 min at β = 0, β 3–41° over a year):
+> `docs/environment/POWER_BUDGET_ANALYSIS.md` §3 and `docs/environment/THERMAL_ANALYSIS.md` §2.2; ground coverage,
+> pass statistics and contact gaps: `docs/ground/GROUND_STATION_DESIGN.md` (SQSO-GND-001) §4–§5 and
+> `docs/environment/DATA_BUDGET.md` §3; orbit determination and ephemeris: `docs/ground/ORBIT_DETERMINATION_AND_EPHEMERIS.md`
+> (SQSO-GND-002). The sections below (§2.2 perturbations, §5.2 albedo, §8 conjunction screening, §9 tracking sources) are
+> still a fair qualitative description; their numbers are for the old orbit.
 
 ## 1. Purpose
 
@@ -44,15 +57,17 @@ Drag area:            0.01 m² (1U)
 Mass:                 1.2 kg (superseded; see the note below)
 
 Estimated lifetime:   2-5 years (solar cycle dependent)
-Compliance:           < 25 years (NASA-STD-8719.14) ✓
+Compliance:           < 25 years (NASA-STD-8719.14)   [superseded: the governing rule is the
+                      FCC five-year rule after the end of the mission; see the note below]
 ```
 
 > **Note (2026-10-16): superseded inputs.** This estimate uses the 400 km ISS-like orbit and a 1.2 kg mass. The
 > baseline orbit is a circular SSO at ≈ 97.4°, target 475 km, 465–485 km, not above 485 km (`docs/BASELINE_PARAMETERS.md`
 > Rev E §3; updated 2026-10-27, it was 500 km target, 525 km cap). The mass design limit is 2.00 kg; the mass budget
-> gives a CBE of 1.49 kg and an MEV of 1.73 kg (`docs/environment/MASS_BUDGET.md` v3.0, BASELINE §4). Lifetimes
-> for the baseline orbit are in BASELINE §3 (`software/simulation/orbit_lifetime/orbit_lifetime.py`, 1.6 kg with
-> 1.8 kg as the bound). This section and the rest of this analysis must be re-run at the baseline orbit (finding TB-03).
+> gives a CBE of 1.52 kg and an MEV of 1.755 kg (`docs/environment/MASS_BUDGET.md` v3.4, BASELINE §4). Lifetimes
+> for the baseline orbit are in BASELINE §3 and ODAR Draft D §6 (`software/simulation/cdr/sma/debris_lifetime.py`, 1.6 kg
+> with 1.85 kg as the bound). This section and the rest of this analysis are not re-run: the documents named at the top
+> carry the baseline orbit (finding TB-03).
 
 ## 3. Ground Station Coverage
 
@@ -60,7 +75,7 @@ Compliance:           < 25 years (NASA-STD-8719.14) ✓
 
 | Parameter | Value |
 |-----------|-------|
-| Location | TBD (Example: 37.4°N, 122.0°W) |
+| Location | Not designated (example 37.4°N, 122.0°W; candidate sites in SQSO-GND-001 §3.3) |
 | Minimum elevation | 10° |
 | Antenna type | Yagi (tracking) |
 
@@ -315,3 +330,4 @@ SMART-QSO has no propulsion, therefore:
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | §2.3: the 1.2 kg mass and the ISS-like orbit marked superseded, with the baseline orbit, MASS_BUDGET v2.0 and the BASELINE §3 lifetimes cited (findings TB-03, TB-06); values not re-run |
 | 1.2 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: the 2026-10-16 note carries the baseline orbit (475 km target, 485 km cap) and mass (CBE 1.49 kg, MEV 1.73 kg) of BASELINE Rev E |
+| 1.3 | 2026-10-27 | Documentation audit (post-CDR 2026) | Status "CDR Baseline" replaced: the document is marked superseded for every value, with a banner naming where the baseline orbit, lifetime, eclipse, passes and orbit determination now live; the 25-year compliance line marked superseded by the FCC five-year rule; the §2.3 note's mass brought to MASS_BUDGET v3.4 (CBE 1.52 kg, MEV 1.755 kg) and the lifetime source to ODAR Draft D (1.85 kg bound); the ground-station location TBD replaced by "not designated" |

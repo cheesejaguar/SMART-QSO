@@ -7,6 +7,7 @@
 **Status:** CDR Baseline
 
 **Requirements verified:** SYS-201
+**Verification item:** VI-RF-02 (`docs/verification/VI_REGISTER.md`; defined in `docs/environment/LINK_BUDGET_ANALYSIS.md`): conducted power at the antenna port at 0.5 and 1 W, −20 to +60 °C
 
 ---
 
@@ -32,10 +33,11 @@ Measure RF transmitter conducted power output at antenna connector.
 |------|--------|----------|-----|
 | 1 | Connect power meter via attenuator | Setup verified | |
 | 2 | Enable TX @ low power | Carrier detected | |
-| 3 | Measure power (low) | 0.5W ±0.1W | |
+| 3 | Measure power (nominal, 0.5 W setting) at the antenna port, after the filter | 27.0 ± 0.5 dBm (VI-RF-02) | |
 | 4 | Enable TX at the maximum power setting | Carrier detected | |
-| 5 | Measure power (maximum) | ≤ 1.0 W (30.0 dBm); record value (SYS-201) | |
+| 5 | Measure power (maximum) | 30.0 dBm − 0.5 dB (VI-RF-02), never above 30.0 dBm (1 W, SYS-201); record value | |
 | 6 | Verify power stability | ±0.1 dB over 60s | |
+| 7 | Repeat steps 3 and 5 at −20 °C and +60 °C in a thermal chamber (VI-RF-02) | As steps 3 and 5 | |
 
 ---
 
@@ -43,8 +45,8 @@ Measure RF transmitter conducted power output at antenna connector.
 
 | Criterion | Requirement |
 |-----------|-------------|
-| Low power | 0.5W ±0.1W |
-| Maximum power | ≤ 1.0 W (SYS-201: 0.5 W nominal, never above 1 W) |
+| Nominal power | 27.0 ± 0.5 dBm at −20, +25 and +60 °C (VI-RF-02) |
+| Maximum power | 29.5–30.0 dBm: VI-RF-02's 30.0 ± 0.5 dBm, capped at 1 W (SYS-201: 0.5 W nominal, never above 1 W) |
 | Stability | ±0.1 dB |
 
 ---

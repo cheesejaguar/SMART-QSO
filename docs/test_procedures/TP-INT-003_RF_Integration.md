@@ -27,8 +27,8 @@ This procedure defines the integration test for the RF communication subsystem.
 
 ## 3. APPLICABLE DOCUMENTS
 
-1. hardware/rf/TRANSMITTER_DESIGN.md
-2. hardware/rf/ANTENNA_DESIGN.md
+1. `hardware/electrical/rf/RF_BOARD_DESIGN.md` (SQSO-RF-BRD-001), the build-to design; `hardware/rf/TRANSMITTER_DESIGN.md` is earlier background
+2. `hardware/rf/ANTENNA_DESIGN.md`; the antennas are the bought ISIS AntS (`docs/BASELINE_PARAMETERS.md` §7)
 3. TP-RF-001 (prerequisite)
 4. TP-INT-002 (prerequisite)
 
@@ -41,7 +41,7 @@ This procedure defines the integration test for the RF communication subsystem.
 | Spectrum analyzer | 100 MHz - 1 GHz |
 | Power meter | VHF capable |
 | Dummy load | 50Ω, 5W |
-| SMA cables | Low loss |
+| RF cables and adapters | MMCX to the test connector, loss characterized (the board's antenna ports are MMCX, VI-RFB-13) |
 | Attenuator | 20 dB |
 
 ---
@@ -62,9 +62,9 @@ This procedure defines the integration test for the RF communication subsystem.
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
 | 1 | Install RF board | Secure mounting | |
-| 2 | Connect RF cable | SMA mated | |
+| 2 | Connect RF cable | MMCX mated | |
 | 3 | Connect power harness | Proper polarity | |
-| 4 | Connect UART cable | To OBC | |
+| 4 | Connect the RF board harness | To OBC J2 (USART2, readbacks; SQSO-ICX-001) | |
 
 ### 6.2 RF Power Test [SYS-200, SYS-201, SYS-206, SYS-322]
 
@@ -93,7 +93,7 @@ This procedure defines the integration test for the RF communication subsystem.
 | RF power | 27 dBm ±1 dB (0.5 W nominal); ≤ 30 dBm (SYS-201) |
 | Frequency | The IARU-coordinated downlink frequency ±5 kHz (TBD until coordination, TBD-SYS-001; SYS-200, SYS-206) |
 | Beacon decode | 100% success |
-| Spurious | < -40 dBc (SYS-203) and ≤ 25 µW (47 CFR 97.307(e): < -43 dBc at 0.5 W, < -46 dBc at 1 W; `docs/BASELINE_PARAMETERS.md` §7) |
+| Spurious | ≤ −46 dBc and ≤ 25 µW at 1 W (SYS-203; 47 CFR 97.307(e)); third harmonic ≤ −70 dBc at the antenna port (SYS-203 Rev G; `docs/BASELINE_PARAMETERS.md` §7); measured in TP-RF-003 |
 
 ---
 

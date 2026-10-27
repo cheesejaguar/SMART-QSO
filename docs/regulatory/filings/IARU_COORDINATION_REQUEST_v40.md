@@ -2,7 +2,7 @@
 ## SMART-QSO
 
 **Document Number:** SQSO-REG-010
-**Revision:** A.6 (draft, not submitted)
+**Revision:** A.7 (draft, not submitted)
 **Date:** 2026-10-27
 **Form:** IARU *Amateur Satellite Frequency Coordination Request* **v40** (effective 15 May 2020; "earlier versions will no longer be accepted" — https://www.iaru.org/reference/satellites/, page updated 26 Jul 2026)
 **Submit to:** satcoord@iaru.org, by the **prospective space station licensee**, as a .doc/.pdf named `smartqso_req YYMMDD` (form checklist item 1). Large files go by URL (checklist item 2).
@@ -45,7 +45,7 @@ Transfer each answer below into the corresponding numbered box of the official v
 - **5.7 Planned duration:** Commissioning ~2 weeks (beacon only); transponder operations 2 years **(BL)**; then end-of-mission passivation and natural decay (see ODAR)
 
 **Transmitting (space-to-Earth):**
-- **5.8 Frequencies and functions:** One frequency in 145.800–146.000 MHz: FM transponder downlink, time-shared with the 1200 bps AX.25 telemetry beacon. *We do not request 145.825 MHz, which carries ISS/ARISS packet and APRS digipeater traffic.* The 3rd harmonic of the downlink falls in 437.4–438.0 MHz; we ask that the pair keep the uplink at least 2 MHz below 3 × the downlink (see 5.14).
+- **5.8 Frequencies and functions:** One frequency in 145.800–146.000 MHz: FM transponder downlink, time-shared with the 1200 bps AX.25 telemetry beacon. *We do not request 145.825 MHz, which carries ISS/ARISS packet and APRS digipeater traffic.* The 3rd harmonic of the downlink falls in 437.4–438.0 MHz; we ask that the pair keep the uplink at least 0.9 MHz below 3 × the downlink (see 5.14; **(BL)**).
 - **5.9 Tuning range / step:** `[per radio datasheet, e.g. 144–146 MHz, 2.5 kHz steps]`
 - **5.10 EIRP:** +26 dBm at 0.5 W and +29 dBm at 1 W maximum (1 dB line loss, 0 dBi peak antenna) **(BL)**
 - **5.11 ITU emission designators:** 16K0F3E (transponder), 10K4F2D (telemetry)
@@ -53,7 +53,7 @@ Transfer each answer below into the corresponding numbered box of the official v
 - **5.13 Antenna:** ISIS AntS deployable tape elements, ~0 dBi peak; quarter-wave 2 m elements along ±X, across the spin axis **(BL)** (`hardware/rf/ANTENNA_DESIGN.md` §3). Spacecraft spins at 8°/s about the Sun-pointing axis (5.25), so the pattern null moves slowly across the sky
 
 **Receiving (Earth-to-space):**
-- **5.14 Requested receive frequency and function:** One frequency in **435.222–435.778 MHz**, or if none is available there, in **436.222–436.500 MHz** **(BL)**: FM transponder uplink (CTCSS 67.0 Hz) and telecommand. These windows are where the spacecraft's own receiver works best: the receive SAW filter's temperature drift and the receiver clock's harmonic at 435.000 MHz limit the band to 435.050–436.500 MHz, and the power-system converters, synchronised to 1.000 MHz, leave the uplink clear by at least 200 kHz only inside these windows. Both lie below the downlink's 3rd harmonic (437.4–438.0 MHz); within them we ask for a frequency at least 2 MHz below 3 × the coordinated downlink where one is available (5.8)
+- **5.14 Requested receive frequency and function:** One frequency in **435.222–435.778 MHz**, or if none is available there, in **436.222–436.500 MHz** **(BL)**: FM transponder uplink (CTCSS 67.0 Hz) and telecommand. These windows are where the spacecraft's own receiver works best: the receive SAW filter's temperature drift and the receiver clock's harmonic at 435.000 MHz limit the band to 435.050–436.500 MHz, and the power-system converters, synchronised to 1.000 MHz, leave the uplink clear by at least 200 kHz only inside these windows. Both lie below the downlink's 3rd harmonic (437.4–438.0 MHz); within them we ask for a frequency at least 0.9 MHz below 3 × the coordinated downlink (5.8; **(BL)**: with the third harmonic at −70 dBc the receiver desense is then ≤ 0.44 dB)
 - **5.15 Tuning range / step:** `[per radio datasheet]`
 - **5.16 / 5.17 Emissions:** 16K0F3E (user uplink); 10K4F2D 1200 bps AFSK/FM (telecommand)
 - **5.18 Receiver noise temperature:** 1,000 K system at the antenna port, budgeted (requirement ≤ 650 K for the receiver with a 290 K source; `docs/hardware/RF_DESIGN.md` RF-P006)
@@ -72,11 +72,11 @@ Transfer each answer below into the corresponding numbered box of the official v
 - **6.4 Signature:** `[ ]`
 
 ### 7. Telecommand information (not published)
-- **7.1 Telecommand station call signs:** `[call 1]`, `[call 2]` (minimum two, RR 25.11)
+- **7.1 Telecommand station call signs:** `[call 1]`, `[call 2]` (minimum two, RR 25.11; at least 1,000 km apart, each able to command alone **(BL)**)
 - **7.2 Locations:** `[lat/long]`
 - **7.3 Telecommand frequency:** the coordinated 435–438 MHz uplink frequency
 - **7.4 / 7.5 Emission:** 10K4F2D, 1200 bps AFSK on FM, AX.25 framing
-- **7.6 Link budget:** `[repo]/docs/environment/LINK_BUDGET_ANALYSIS.md` v3.5 §6.1 (475 km; telecommand stations radiate ≥ 64 dBm EIRP (2.5 kW) toward the spacecraft above 10° elevation (decision C-14): variant A, outside the 47 CFR 2.106 US270 areas, ≥ 100 W PEP at the feed into ≥ 15.5 dBic; variant B, inside them (the Bay Area site near Beale AFB, Fairbanks near Clear SFS), ≤ 50 W PEP at the transmitter output, through a ≤ 0.5 dB feed, into ≥ 17.8 dBic (a stacked pair of cross-Yagis); telecommand margin with the 10th-percentile spacecraft gain and a 6 dB interference allowance +6.5 dB at 5° and +8.3 dB at 10° at 64 dBm toward the spacecraft (pointing included); commands only above 10°; analysis). Telecommand stations pre-correct Doppler to ±1 kHz and correct the uplink for the spacecraft's reference offset measured on the downlink
+- **7.6 Link budget:** `[repo]/docs/environment/LINK_BUDGET_ANALYSIS.md` v3.5 §6.1 (475 km; telecommand stations radiate ≥ 64 dBm EIRP (2.5 kW) toward the spacecraft above 10° elevation (decision C-14): variant A, outside the 47 CFR 2.106 US270 areas, ≥ 100 W PEP at the feed into ≥ 15.5 dBic; variant B, inside them (the Bay Area site near Beale AFB, Fairbanks near Clear SFS), ≤ 50 W PEP at the transmitter output, through a ≤ 0.5 dB feed, into ≥ 17.8 dBic (a stacked pair of cross-Yagis); telecommand margin with the 10th-percentile spacecraft gain and a 6 dB interference allowance ≥ +6.2 dB at 5° and ≥ +8.0 dB at 10° at 64 dBm toward the spacecraft **(BL)**; commands only above 10°; analysis). Telecommand stations pre-correct Doppler to ±1 kHz and correct the uplink for the spacecraft's reference offset measured on the downlink
 - **7.7 Telecommand encryption:** Commands are authenticated, not encrypted: HMAC-SHA-256 with a secret key held only by the licensee, plus a monotonically increasing command counter for replay protection (permitted by 47 CFR 97.211(b)). Command content is otherwise in the clear. Keys are loaded before launch through the umbilical; a compromised key is replaced on orbit by switching to a pre-loaded spare, so no key material is ever transmitted.
 - **7.8 How telecommand stations turn off the transmitter immediately, even with user traffic or computer failure:** The 435 MHz command receiver is powered whenever the radio is: from the end of the 45-minute post-deployment silence (during which the whole radio, receiver included, is unpowered, CDS Rev 14.1 §2.4.5) in every operating mode, and neither TX-OFF nor the loss-of-contact inhibit removes its power. The one planned interruption is a recovery cycle: if the receiver has heard no valid frame and no carrier for 24 hours, the flight software switches the radio supply off for 2 s and on again to clear a hung receiver (never within 15 minutes of the last activity and never while transmitting; at most one cycle a day). Every uplink frame is demodulated and its FCS checked by the radio board's own TNC microcontroller, which passes it to the on-board computer; the computer checks it again, authenticates it and executes it. A `TX_DISABLE` telecommand (authenticated; accepted without authentication only if no key is usable) makes the computer drive the power-amplifier supply switch off (RF off at the antenna within 1 ms) and latch the state in non-volatile memory, so it persists across resets. User traffic does not block it: the receiver hears the command channel whatever the transponder is doing. The path does not depend on the AI payload or the transponder logic, and nothing in the transponder can power the amplifier. If the computer fails, its independent watchdog resets it within about 32 s, and during a reset or with the computer unpowered the switch is held off by a pull-down. There is one command path, through the radio's TNC and the on-board computer; there is no decoder that can switch the transmitter without the computer. Verified by TP-RF-006 (`docs/hardware/RF_DESIGN.md` VI-RF-12).
 - **7.9 Mechanism if command contact is lost:** If no valid authenticated command is received for N days, flight software inhibits the transponder and beacon (receive-only); the next authenticated command lifts the inhibit, and a reset does not. N is 30 days at launch and is set to 14 days by telecommand once commissioning is complete (settable 1–90 days). **Declared exception (failed receiver):** when the evidence shows that the command receiver itself has failed, and not that the ground has gone silent, the inhibit no longer silences the **beacon and housekeeping frames**, which continue at their normal duty cycle so that the spacecraft's state and the failure stay observable. All three conditions must hold at once: the N days have expired; a recovery power cycle of the receiver (7.8) has been tried in the current silence; and the receiver's own hardware health line reports a fault (synthesizer out of lock or supply out of its window; the line reads healthy if open, so a wiring fault cannot cause the exception). In that state the **transponder stays off**, a `TX_DISABLE` that gets through still latches TX-OFF, and end-of-mission passivation still ends all transmission; any valid frame or carrier ends the exception. The beacon then cannot be turned off by telecommand, which is why it is declared here; it is also put to the FCC consultation before the pre-space notification, and if either the coordinator or the FCC objects it is removed before launch (one condition in the flight software), the inhibit then applying whatever the receiver state. *(Proposed, subject to the FCC consultation: after a further 180 days, never within the first year after launch, the end-of-mission passivation sequence runs: battery charge path permanently disconnected, transmitter disabled. This autonomous passivation is not implemented, and the orbital debris assessment recommends against it.)*
@@ -97,11 +97,11 @@ Transfer each answer below into the corresponding numbered box of the official v
 
 ### 10. Typical transmitting earth station
 - **10.1** FM handheld or mobile transceiver, 5–50 W, on 435 MHz with a handheld 2-element Yagi (≈ 5 dBi) or cross-Yagi
-- **10.2 Link budget:** `[repo]/docs/environment/LINK_BUDGET_ANALYSIS.md` v3.0 §6.2–6.3: 5 W with a handheld Yagi reaches 12 dB SINAD at the spacecraft from 5°; 5 W with a whip from about 12°
+- **10.2 Link budget:** `[repo]/docs/environment/LINK_BUDGET_ANALYSIS.md` v3.5 §6.2–6.4: 5 W with a handheld Yagi reaches 12 dB SINAD at the spacecraft from 5°; 5 W with a whip from about 12°
 
 ### 11. Typical receiving earth station
 - **11.1** 2 m FM receiver or SDR with a handheld Yagi or omni antenna; telemetry decoded with open-source software (Dire Wolf / SatNOGS)
-- **11.2 Link budget:** same, §4.2–4.3: a handheld Yagi hears the transponder at 20 dB SINAD from 5°; a handheld with a whip at 12 dB SINAD from about 18°
+- **11.2 Link budget:** same, §4.2–4.3: a handheld Yagi hears the transponder at 20 dB SINAD from 5°; a handheld with a whip at 12 dB SINAD from about 17° (v3.5 §1.1)
 
 ### 12. Additional information
 - Public repository with all designs and documentation: `[URL]`
@@ -119,13 +119,13 @@ Transfer each answer below into the corresponding numbered box of the official v
 
 | # | Item | Status |
 |---|------|--------|
-| 1 | Licensee named and licensed (pathway D1) | ☒ KK6GDB; ☐ two telecommand stations agreed (F13) |
+| 1 | Licensee named and licensed (pathway D1) | ☒ KK6GDB; ☐ two telecommand stations agreed (F13; `mission/SCHEDULE.md` DA-10, by 2027-01-05) |
 | 2 | AMSAT-NA/ARRL consulted (4.8–4.9) | ☐ |
-| 3 | FCC Space Bureau pre-filing consultation done (pathway D3) | ☐ |
+| 3 | FCC Space Bureau pre-filing consultation done (pathway D3; request by 2026-11-15, meeting by 2027-01-05, DA-11) | ☐ |
 | 4 | Baseline RF parameters frozen (power, antenna, receiver) | ☐ |
-| 5 | Uplink link budget added to LINK_BUDGET_ANALYSIS.md | ☒ (v2.0 §4, analysis; replace assumptions with EM measurements, §7 of the budget) |
-| 6 | Telecommand authentication implemented as described in 7.7 (implemented and tested in flight-software simulation per `docs/interfaces/TELECOMMAND_AUTHENTICATION.md`; target receiver driver and hardware test TP-RF-006 open, findings SW-02/SW-03) | ☐ |
-| 7 | TX-OFF hardware path in RF design (7.8) | ☒ designed (`docs/hardware/RF_DESIGN.md` v2.0 §3.5, SQSO-ICD-003 v2.0); ☐ built and tested (VI-RF-12) |
+| 5 | Uplink link budget added to LINK_BUDGET_ANALYSIS.md | ☒ (v3.5 §6, analysis; replace assumptions with EM measurements, §8 of the budget) |
+| 6 | Telecommand authentication implemented as described in 7.7 (implemented and tested in flight-software simulation per `docs/interfaces/TELECOMMAND_AUTHENTICATION.md`; the firmware's receiver driver (the KISS TNC on USART2) is built but not run on hardware; hardware test TP-RF-006 open) | ☐ |
+| 7 | TX-OFF hardware path in RF design (7.8) | ☒ designed (`docs/hardware/RF_DESIGN.md` v2.4 §3.5, SQSO-ICD-003 v2.4); ☐ built and tested (VI-RF-12) |
 | 8 | Signed by licensee | ☐ |
 
 ---
@@ -143,3 +143,4 @@ Transfer each answer below into the corresponding numbered box of the official v
 | A.4 | 2026-10-27 | Items 7.6 and 8.4: link budget values from SQSO-LBA-001 v3.2 at 475 km (RID SE-16) |
 | A.5 | 2026-10-27 | Item 7.6: telecommand EIRP requirement and the two station variants of decision C-14 (LBA v3.4) |
 | A.6 | 2026-10-27 | CDR round 3 (RIDs RF-13, REG-11): 7.8 corrected: the receiver is unpowered during the 45-minute silence and power-cycled for 2 s after 24 h without activity (SRS-F115), and the radio board's TNC demodulates every command (was "always on and not switched by any inhibit", "no separate decoder in the radio"); 7.9 declares the failed-receiver exception (REL-04: beacon and housekeeping continue only with the receiver known failed, transponder off, TX-OFF still works) instead of stating that the beacon is always inhibited after N days; 7.6 variant B at ≤ 50 W PEP at the transmitter output into ≥ 17.8 dBic and the downlink-offset correction (LBA v3.5); 8.4 LBA v3.5. Not submitted |
+| A.7 | 2026-10-27 | Documentation audit (post-CDR 2026): 5.8, 5.14 uplink at least 0.9 MHz below 3 × f_down (BASELINE Rev E §7, CR-2026-008; was 2 MHz); 7.6 telecommand margins ≥ +6.2 / ≥ +8.0 dB (BASELINE §7); 7.1 the station criterion of DA-10; 10.2, 11.2 LBA v3.5 (whip from about 17°); checklist items 1, 3, 5, 6, 7 brought to the current documents and dated actions. Not submitted |

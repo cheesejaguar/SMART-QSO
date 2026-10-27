@@ -32,11 +32,11 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 | Parameter | Value |
 |-----------|-------|
 | Altitude | 475 km (target; 465–485 km, 485 km cap, `docs/BASELINE_PARAMETERS.md` §3) |
-| Inclination | ≈ 97.4° (circular SSO, `docs/BASELINE_PARAMETERS.md` §3) |
+| Inclination | ≈ 97.31° at 475 km (circular SSO, `docs/BASELINE_PARAMETERS.md` §3) |
 | Orbital period | 94.1 minutes at 475 km |
 | Eclipse duration | ~36 minutes (β = 0, the cold case of `docs/BASELINE_PARAMETERS.md` §8) |
 | Sunlit duration | ~59 minutes |
-| Orbits per day | 15.2 |
+| Orbits per day | 15.3 (SYS-012) |
 
 ### 3.2 Mission Phases to Exercise
 
@@ -68,17 +68,18 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 |-------|------|--------|----------|--------|-----|
 | Deploy | T+0:00 | Separation | 30-min inhibit start | ______ | |
 | RF silence | T+0:00 to T+0:45 | Monitor spectrum | No RF emission (SYS-224) | ______ | |
-| Antenna | T+0:30 | Deploy antenna | Successful deploy | ______ | |
-| Detumble | T+0:31 | Start B-dot | < 0.5°/s in 45 min | ______ | |
+| Detumble | T+0:02 | Start B-dot, no actuation before 120 s (SRS-F086) | Detumbled from 10°/s within 3 orbits (SYS-420) | ______ | |
+| Wings | T+0:30 | Deploy both wings, one resistor at a time (10 s, C-17) | Successful deploy | ______ | |
+| Antenna | After the wings | AntS deployment, temperature gate ≥ −17 °C (C-18) | Successful deploy; transmitters silent until then (C-19) | ______ | |
 | First beacon | ≥ T+0:45 | Transmit | Received at the IARU-coordinated frequency (TBD-SYS-001; SYS-200), not before T+0:45 (SYS-224) | ______ | |
-| Eclipse entry | T+0:59 | Sun lost | Safe mode | ______ | |
+| Eclipse entry | T+0:59 | Sun lost | Mode by SOC (BASELINE §5); transponder and Jetson off (sunlit only) | ______ | |
 | Eclipse exit | T+1:34 | Sun acquired | Resume ops | ______ | |
 
 #### Orbit 2: Initial Checkout [SYS-303, SYS-422]
 
 | Event | Time | Action | Expected | Actual | P/F |
 |-------|------|--------|----------|--------|-----|
-| Sun pointing | T+1:35 | ADCS mode | Pointing < 10° | ______ | |
+| Sun pointing | T+1:35 | ADCS mode | Spin-stabilized sun-pointing of +Y at 8°/s (SYS-422) | ______ | |
 | Telemetry | T+1:40 | Full TLM | All sensors nominal | ______ | |
 | Power check | T+1:45 | SOC verify | Battery > 50% | ______ | |
 | Health check | T+1:50 | System status | No faults | ______ | |
@@ -188,8 +189,8 @@ Verify SMART-QSO CubeSat performance over a complete orbital day simulation (24 
 |-----------|-------------|--------|-----|
 | Test duration | 24 hours minimum | ______ | |
 | Beacon success rate | > 95% | ______ | |
-| ADCS pointing | < 10° error | ______ | |
-| Battery SOC | Never < 10% | ______ | |
+| ADCS pointing | Spin about +Y at 8°/s held; pointing performance judged by the Monte Carlo (decision C-23, ADCS-P002) | ______ | |
+| Battery SOC | Never < 15 % (EMERGENCY threshold, BASELINE §5); depth of discharge ≤ 10 % per eclipse (SYS-112) | ______ | |
 | Command success | > 99% | ______ | |
 | Autonomous recovery | All faults recovered | ______ | |
 | AI payload ops | > 80% availability | ______ | |

@@ -28,8 +28,8 @@ This procedure defines the integration test for the Jetson Orin Nano AI payload 
 
 ## 3. APPLICABLE DOCUMENTS
 
-1. hardware/payload-jetson/INTEGRATION_DESIGN.md
-2. ICD_OBC_JETSON.md
+1. `hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md` (the custom carrier); `hardware/payload-jetson/INTEGRATION_DESIGN.md` is earlier background
+2. `docs/interfaces/ICD_OBC_JETSON.md` (SMART-QSO-ICD-002)
 3. TP-JETSON-001 (prerequisite)
 4. TP-INT-002 (prerequisite)
 
@@ -51,7 +51,7 @@ This procedure defines the integration test for the Jetson Orin Nano AI payload 
 - [ ] OBC integration complete (TP-INT-002)
 - [ ] Jetson module tested standalone (TP-JETSON-001)
 - [ ] Thermal interface materials installed
-- [ ] SD card with flight software
+- [ ] Flight image on the carrier's NVMe (custom partition layout, V-JET-3)
 
 ---
 
@@ -64,18 +64,18 @@ This procedure defines the integration test for the Jetson Orin Nano AI payload 
 | 1 | Install thermal interface | Even coverage | |
 | 2 | Mount Jetson module | Secure, aligned | |
 | 3 | Install heatspreader | Good contact | |
-| 4 | Connect power harness | 5V supply | |
+| 4 | Connect power harness | VBAT_JET from the EPS (SW1 and eFuse U19; the carrier converts to the module's 5 V; `docs/hardware/EPS_DESIGN.md` §4) | |
 | 5 | Connect UART cable | To OBC USART1 | |
 
 ### 6.2 Power Gating Verification [SYS-502, SYS-503]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
-| 1 | OBC: JETSON_PWR_EN = 0 | Jetson off | |
+| 1 | OBC: PAYLOAD_EN and JETSON_PWR low | Jetson off | |
 | 2 | Measure standby current | < 1 mA | |
-| 3 | OBC: JETSON_PWR_EN = 1 | Jetson boots | |
-| 4 | Measure boot current | < 2A peak | |
-| 5 | Measure idle current | < 1A | |
+| 3 | OBC: PAYLOAD_EN and JETSON_PWR high (sunlit, SOC ≥ 55 %, Jetson ≥ −15 °C simulated; BASELINE §6) | Jetson boots; first STATUS line within 45 s (V-JET-3) | |
+| 4 | Measure boot current at the carrier input | Record; below the eFuse's 1.20 A latch-off | |
+| 5 | Measure input power during the burst | ≤ 8.0 W, 2 s average (V-JET-4; SYS-501) | |
 
 ### 6.3 UART Interface Test [SYS-321, SYS-511, SRS-F030, SRS-F031]
 
@@ -91,19 +91,19 @@ This procedure defines the integration test for the Jetson Orin Nano AI payload 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
 | 1 | Send inference request | Processing starts | |
-| 2 | Measure inference power | < 8W | |
+| 2 | Measure inference power at the carrier input | ≤ 8 W (SYS-501) | |
 | 3 | Receive beacon text | Valid output | |
-| 4 | Verify content | Appropriate text | |
-| 5 | Measure inference time | < 10 s | |
+| 4 | Verify content | Passes the `docs/BEACON_SPEC.md` §6 filter on the payload and the OBC (SYS-513) | |
+| 5 | Measure the burst | One power-on ≤ 10 min including boot and ≤ 3.6 kJ (SYS-512); then ≥ 100 min off (BASELINE §6) | |
 
 ### 6.5 Thermal Verification [SYS-504]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
 | 1 | Record ambient temp | Baseline | |
-| 2 | Run inference (5 min) | Stable thermal | |
-| 3 | Measure Jetson temp | < 70°C | |
-| 4 | Measure spreader temp | < 60°C | |
+| 2 | Run one flight burst | Stable thermal | |
+| 3 | Measure Jetson junction temp | ≤ 95 °C (SYS-603) | |
+| 4 | Measure spreader temp | Record for the SYS-603 model (≤ +40 °C in a 600 s batch in the hot case; VI-01) | |
 
 ### 6.6 Shutdown Test [SYS-503]
 
@@ -121,12 +121,12 @@ This procedure defines the integration test for the Jetson Orin Nano AI payload 
 | Criterion | Requirement |
 |-----------|-------------|
 | Power gating | Clean on/off |
-| Idle power | < 5W |
-| Inference power | < 8W |
+| Idle power | < 5W (SYS-502) |
+| Inference power | ≤ 8 W at the carrier input (SYS-501) |
 | UART communication | Reliable |
 | Inference output | Valid beacon text |
-| Temperature | < 70°C Jetson, < 60°C spreader |
-| Boot time | < 60 s |
+| Temperature | Junction ≤ 95 °C; spreader recorded for the SYS-603 model |
+| Boot time | First STATUS line ≤ 45 s (V-JET-3) |
 | Shutdown time | < 10 s |
 
 ---

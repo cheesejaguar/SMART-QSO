@@ -28,9 +28,10 @@ This procedure tests the EPS board in a standalone configuration with simulated 
 
 | Document | Title |
 |----------|-------|
-| SQSO-EPS-001 | EPS Design Document |
+| SMART-QSO-EPS-001 | EPS Design Document (`docs/hardware/EPS_DESIGN.md`) |
+| SQSO-EPS-BRD-001 | EPS Board: Build-to Design (`hardware/electrical/eps/EPS_BOARD_DESIGN.md`) |
 | SMART-QSO-ICD-001 | OBC-EPS Interface Control Document |
-| SQSO-SRS-001 | Software Requirements Specification |
+| SMART-QSO-SRS-001 | Software Requirements Specification |
 
 ## 4. Test Article
 
@@ -65,7 +66,7 @@ This procedure tests the EPS board in a standalone configuration with simulated 
 
 ## 7. Safety
 
-- **Electrical Hazard:** Voltages up to 16.8V (4S battery)
+- **Electrical Hazard:** Voltages up to 16.4 V (4S battery charged to 4.10 V/cell, decision D8; 16.8 V absolute maximum)
 - **Battery Hazard:** Li-ion cells, fire risk if shorted
 - **Thermal Hazard:** Components may be hot during operation
 
@@ -84,45 +85,45 @@ This procedure tests the EPS board in a standalone configuration with simulated 
 | 1 | Connect EPS to test harness | All connections secure | |
 | 2 | Connect solar array simulator to SA input | Simulator ready | |
 | 3 | Connect battery pack to battery port | Battery connected | |
-| 4 | Connect electronic loads to 3.3V, 5V, 12V rails | Loads connected | |
+| 4 | Connect electronic loads to 3V3_AO, 5V_PA, VBAT_JET and V_BURN (`docs/hardware/EPS_DESIGN.md` §4; there is no 12 V rail) | Loads connected | |
 | 5 | Connect data acquisition to telemetry | DAQ recording | |
-| 6 | Power on solar array simulator (Voc=8V, Isc=1A) | Power applied | |
+| 6 | Power on solar array simulator within the trackers' range (3.5–6.3 V, up to 1.1 A per string; V-EPS-1) | Power applied | |
 
 ### 8.2 Voltage Rail Verification [SYS-120, SYS-121]
 
 | Step | Rail | Load | Expected V | Measured V | Tolerance | P/F |
 |------|------|------|------------|------------|-----------|-----|
-| 7 | 3.3V | 0mA | 3.30V | _______ | ±2% | |
-| 8 | 3.3V | 100mA | 3.30V | _______ | ±2% | |
-| 9 | 3.3V | 500mA | 3.30V | _______ | ±3% | |
-| 10 | 5.0V | 0mA | 5.00V | _______ | ±2% | |
-| 11 | 5.0V | 200mA | 5.00V | _______ | ±2% | |
-| 12 | 5.0V | 1000mA | 5.00V | _______ | ±3% | |
-| 13 | 12V | 0mA | 12.0V | _______ | ±3% | |
-| 14 | 12V | 100mA | 12.0V | _______ | ±3% | |
+| 7 | 3V3_AO | 0mA | 3.30V | _______ | ±2% | |
+| 8 | 3V3_AO | 100mA | 3.30V | _______ | ±2% | |
+| 9 | 3V3_AO | 260mA (maximum steady) | 3.30V | _______ | ±2% | |
+| 10 | 5V_PA | 0mA | 5.00V | _______ | ±2% | |
+| 11 | 5V_PA | 350mA (0.5 W RF) | 5.00V | _______ | ±2% | |
+| 12 | 5V_PA | 550mA (1 W RF) | 5.00V | _______ | ±2% | |
+| 13 | V_BURN | 0mA | 7.04V | _______ | record | |
+| 14 | V_BURN | 880mA (one resistor) | 7.04V | _______ | record | |
 
 ### 8.3 Load Switch Operation [SYS-122, SRS-F011]
 
 | Step | Switch | Command | Expected | Measured | P/F |
 |------|--------|---------|----------|----------|-----|
-| 15 | Payload | OFF | 0V output | _______ | |
-| 16 | Payload | ON | 5V output | _______ | |
+| 15 | Payload (SW1 + U19, PAYLOAD_EN and JETSON_PWR) | OFF | 0V output | _______ | |
+| 16 | Payload | ON | VBAT output | _______ | |
 | 17 | Payload | OFF | 0V output | _______ | |
-| 18 | Radio | OFF | 0V output | _______ | |
-| 19 | Radio | ON | 5V output | _______ | |
-| 20 | Radio | OFF | 0V output | _______ | |
-| 21 | ADCS | OFF | 0V output | _______ | |
+| 18 | Radio (SW2, RADIO_EN) | OFF | 0V output | _______ | |
+| 19 | Radio | ON | 3.3V output | _______ | |
+| 20 | PA (SW3, RF_TX_EN) | ON, then OFF | 5V, then 0V | _______ | |
+| 21 | ADCS (SW4, ADCS_EN) | OFF | 0V output | _______ | |
 | 22 | ADCS | ON | 3.3V output | _______ | |
-| 23 | ADCS | OFF | 0V output | _______ | |
+| 23 | Every switch at reset | Off (pull-down) (EPS-F007) | 0V output | _______ | |
 
 ### 8.4 Current Sensing Accuracy [SYS-124, SRS-I011]
 
 | Step | Rail | Set Current | Measured (DMM) | Reported (TLM) | Error | P/F |
 |------|------|-------------|----------------|----------------|-------|-----|
-| 24 | 3.3V | 100mA | _______ | _______ | <5% | |
-| 25 | 3.3V | 500mA | _______ | _______ | <5% | |
-| 26 | 5V | 200mA | _______ | _______ | <5% | |
-| 27 | 5V | 1000mA | _______ | _______ | <5% | |
+| 24 | 3V3_AO | 100mA | _______ | _______ | <5% | |
+| 25 | 3V3_AO | 260mA | _______ | _______ | <5% | |
+| 26 | 5V_PA | 350mA | _______ | _______ | <5% | |
+| 27 | VBAT_JET | 620mA (8 W) | _______ | _______ | <5% | |
 | 28 | Battery | 500mA | _______ | _______ | <5% | |
 
 ### 8.5 Battery Charging [SYS-113]
@@ -131,7 +132,7 @@ This procedure tests the EPS board in a standalone configuration with simulated 
 |------|--------|----------|----------|-----|
 | 29 | Set SA sim to 2A max | SA providing power | _______ | |
 | 30 | Verify charge current (CC phase) | I_chg ≤ 1A | _______ | |
-| 31 | Verify charge voltage limit | V_chg ≤ 16.8V | _______ | |
+| 31 | Verify charge voltage limit | V_chg ≤ 16.4 V (4.10 V/cell, decision D8) | _______ | |
 | 32 | Verify charge taper (CV phase) | Current decreasing | _______ | |
 | 33 | Verify charge termination | I_chg < 50mA | _______ | |
 
@@ -139,19 +140,19 @@ This procedure tests the EPS board in a standalone configuration with simulated 
 
 | Step | Action | Expected | Result | P/F |
 |------|--------|----------|--------|-----|
-| 34 | Simulate over-voltage (17.5V) | Charge disabled | _______ | |
-| 35 | Simulate under-voltage (11.0V) | Load shed | _______ | |
+| 34 | Simulate cell over-voltage above 4.25 V/cell (17.0 V pack) | Charge disabled (BASELINE §5) | _______ | |
+| 35 | Simulate under-voltage: bus below 13.6 V, then below the 11.2 V BMS cut | Jetson rail shed in hardware below 13.6 V, PA not shed (EPS-F012); BMS cut at 11.2 V (EPS_DESIGN §4, §6) | _______ | |
 | 36 | Simulate over-current (3A) | Current limit | _______ | |
-| 37 | Simulate over-temperature (60°C) | Charge disabled | _______ | |
+| 37 | Simulate pack temperature above +45 °C, then below 0 °C | Charge disabled outside 0 °C to +45 °C (BASELINE §5; SYS-602) | _______ | |
 | 38 | Clear fault conditions | Normal operation | _______ | |
 
 ### 8.7 MPPT Operation [SYS-102]
 
 | Step | SA Condition | Expected Pmax | Measured | Efficiency | P/F |
 |------|--------------|---------------|----------|------------|-----|
-| 39 | Voc=8V, Isc=1A | ~6W | _______ | >95% | |
-| 40 | Voc=6V, Isc=0.5A | ~2.25W | _______ | >95% | |
-| 41 | Voc=10V, Isc=2A | ~15W | _______ | >95% | |
+| 39 | One string at 6.3 V, 1.1 A | Record | _______ | >95% tracking; ≥ 92 % conversion above 2 W (V-EPS-1) | |
+| 40 | One string at 5.0 V, 0.5 A | Record | _______ | >95% tracking; ≥ 90 % conversion above 1 W (V-EPS-1) | |
+| 41 | One string at 3.5 V, 0.05 A | Record | _______ | >95% tracking | |
 
 ### 8.8 Telemetry Verification [SYS-124, SRS-I011, SRS-I012]
 

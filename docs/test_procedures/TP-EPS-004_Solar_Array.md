@@ -12,7 +12,9 @@
 
 ## 1. PURPOSE
 
-Characterize solar array I-V curves and verify MPPT performance.
+Characterize solar array I-V curves and verify MPPT performance. The array is 16 triple-junction cells: 2 on each of
+the 4 long body faces and 2 deployable wings with 2 cells per side, on four trackers (`docs/BASELINE_PARAMETERS.md` §5;
+`docs/hardware/EPS_DESIGN.md`).
 
 ---
 
@@ -43,6 +45,7 @@ Characterize solar array I-V curves and verify MPPT performance.
 |------|--------|----------|-----|
 | 1 | Connect to MPPT | Tracking active | |
 | 2 | Measure power extracted | Within 95% of Pmax | |
+| 2a | Tracker efficiency over 3.5–6.3 V, 0.05–1.1 A at −20, +25 and +60 °C, synchronised | ≥ 92 % above 2 W, ≥ 90 % above 1 W (V-EPS-1) | |
 | 3 | Vary illumination | MPPT tracks | |
 
 ---
@@ -53,7 +56,8 @@ Characterize solar array I-V curves and verify MPPT performance.
 |-----------|-------------|
 | Cell efficiency | Per spec |
 | MPPT efficiency | > 95% |
-| Array power | Per power budget |
+| Tracker efficiency | ≥ 92 % above 2 W, ≥ 90 % above 1 W (V-EPS-1) |
+| Array power | Per power budget: the measured I-V curves entered in the power analysis, which must still deliver ≥ 2.23 W orbit average at end of life tumbling (SYS-100; simulated 2.48 W, `docs/environment/POWER_BUDGET_ANALYSIS.md`) |
 
 ---
 

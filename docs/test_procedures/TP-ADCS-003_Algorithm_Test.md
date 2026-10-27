@@ -51,15 +51,15 @@ assumes (ADCS_DESIGN §11.6). A result worse than the model takes the recorded o
 | 2 | Enable B-dot controller | Actuators respond | |
 | 3 | Verify opposing torque | Correct direction | |
 
-**Proposed (PI to ratify), TBR-TPADCS003-001:** Step 1: rotate the unit on the rate table at 0.5, 5 and 10°/s about each axis in turn; pass if the reported rate is within ±0.1°/s at 0.5°/s and within ±5 % at 5 and 10°/s. Steps 2 and 3: in the Helmholtz cage, apply a field that rotates at the same rates; pass if each magnetorquer's commanded dipole has the sign that opposes the change in the measured field and reaches at least 0.15 A·m² at saturation (`docs/BASELINE_PARAMETERS.md` §8). §4 "B-dot convergence": replace "Damping observed" by the mission detumble criterion once the PI ratifies it (proposed: below 0.5°/s within 3 orbits from 10°/s, shown by simulation and a hardware-in-the-loop run). The rate table covers 0.1–10°/s (§2) and 10°/s is the baseline's worst tip-off rate. ±0.1°/s is a fifth of the 0.5°/s detumble exit threshold, so measurement error cannot decide the exit.
+**Proposed (PI to ratify), TBR-TPADCS003-001:** Step 1: rotate the unit on the rate table at 0.5, 5 and 10°/s about each axis in turn; pass if the reported rate is within ±0.1°/s at 0.5°/s and within ±5 % at 5 and 10°/s. Steps 2 and 3: in the Helmholtz cage, apply a field that rotates at the same rates; pass if each magnetorquer's commanded dipole has the sign that opposes the change in the measured field and reaches more than 0.2 A·m² at saturation with the CR0002 rods (at least 0.15 A·m² with the air-core alternate; `docs/BASELINE_PARAMETERS.md` §8). §4 "B-dot convergence": replace "Damping observed" by the mission detumble criterion once the PI ratifies it (proposed: below 0.5°/s within 3 orbits from 10°/s, shown by simulation and a hardware-in-the-loop run). The rate table covers 0.1–10°/s (§2) and 10°/s is the baseline's worst tip-off rate. ±0.1°/s is a fifth of the 0.5°/s detumble exit threshold, so measurement error cannot decide the exit.
 
 ### 3.3 Sun Pointing [SYS-422]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
 | 1 | Set sun vector | Known direction | |
-| 2 | Enable sun pointing | Tracks sun | |
-| 3 | Verify pointing accuracy | < 10° error | |
+| 2 | Enable sun pointing (spin about +Y at 8°/s, BASELINE §8) | Commanded dipole drives +Y toward the Sun with the sign the law gives | |
+| 3 | Pointing performance | Not measurable on the bench: verified by the Monte Carlo of the flight code with the face-photodiode and albedo model (ADCS_DESIGN §11.6), with the photodiode data of §3.1 entered: sunlit generation lost to pointing ≤ 5 % and the Sun within 30° of +Y for ≥ 95 % of sunlit time in every trial (decision C-23; ADCS-P002) | |
 
 ---
 
@@ -70,7 +70,7 @@ assumes (ADCS_DESIGN §11.6). A result worse than the model takes the recorded o
 | Photodiode response and sun vector against the Monte Carlo model (§3.1 steps 1–3) | Within the model; otherwise the +Y sensor option (C-23) |
 | Rate knowledge (§3.1 step 4) | ≤ 0.2°/s per axis |
 | B-dot convergence | Damping observed |
-| Sun pointing | < 10° |
+| Sun pointing | Law sign correct on the bench; ADCS-P002 (≤ 5 % generation loss, ≥ 95 % of sunlit time within 30°) by the Monte Carlo with the measured photodiode data (C-23) |
 
 ---
 

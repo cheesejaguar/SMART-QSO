@@ -1,8 +1,8 @@
 # Regression Test Suite
 
 **Document ID**: SMART-QSO-REG-001
-**Version**: 1.1
-**Date**: 2026-10-24
+**Version**: 1.2
+**Date**: 2026-10-27
 **Classification**: Engineering
 
 ## 1. Purpose
@@ -40,7 +40,7 @@ Example: `test_regression_DEF001_null_pointer_in_eps_init`
 |---------|-----------|-------------|--------|
 | REG-EPS-001 | DEF-001 | NULL pointer in eps_init when config missing | PASS |
 | REG-EPS-002 | DEF-005 | Power mode not updated on SOC change | PASS |
-| REG-EPS-003 | DEF-012 | Integer overflow in power calculation | PASS |
+| REG-EPS-003 | DEF-012 | Integer overflow in power calculation | Withdrawn: `eps_update_state()` and its calculation no longer exist (suite header) |
 
 ### 4.2 Fault Management
 
@@ -54,7 +54,7 @@ Example: `test_regression_DEF001_null_pointer_in_eps_init`
 | Test ID | Defect ID | Description | Status |
 |---------|-----------|-------------|--------|
 | REG-COM-001 | DEF-003 | UART buffer overflow on long message | PASS |
-| REG-COM-002 | DEF-007 | Timeout not reset after successful RX | PASS |
+| REG-COM-002 | DEF-007 | Timeout not reset after successful RX | Not in the suite: no case covers it (to be restored or withdrawn) |
 
 ### 4.4 State Machine
 
@@ -76,6 +76,8 @@ Example: `test_regression_DEF001_null_pointer_in_eps_init`
 |---------|-----------|-------------|--------|
 | REG-MEM-001 | DEF-011 | Stack overflow in telemetry formatting | PASS |
 | REG-MEM-002 | DEF-013 | CRC calculated over wrong length | PASS |
+
+"PASS" is the result of the host suite in CI (simulated HAL); none of these has run on hardware.
 
 ## 5. Running Regression Tests
 
@@ -131,6 +133,7 @@ static void test_regression_DEFxxx_description(void **state)
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-24 | SMART-QSO Team | The suite runs against the Rust flight software; a regression test may also be a Rust unit test. §5: a single case cannot be selected with `ctest -R` |
+| 1.2 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): §4 matched to the suite's 11 cases (REG-EPS-003 withdrawn, REG-COM-002 has no case); PASS means the host suite |
 
 ---
 

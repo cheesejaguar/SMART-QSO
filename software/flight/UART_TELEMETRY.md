@@ -2,22 +2,27 @@
 
 ## Overview
 
-The SMART-QSO flight software automatically reports all sensor values via UART to the payload Jetson when it is powered on. This provides real-time telemetry data for mission monitoring and payload operations.
+The flight software (Rust; the executive is `software/rust/sqso-ffi/src/executive.rs`) sends a `TELEMETRY` line to the
+Jetson over its UART while the payload is powered, followed by a `BEACON_REQ`. The line format, CRC and the other
+message types are defined by `docs/interfaces/ICD_OBC_JETSON.md` §4, which governs; this page describes the host
+simulation's configuration and the fields the OBC adds. The Jetson side is `software/payload/obc_link.py` and
+`agent.py` (`software/payload/README.md`).
 
 ## Features
 
-- **Automatic Telemetry**: All sensor values are sent every 60 seconds (configurable)
-- **Conditional Transmission**: Telemetry only sent when Jetson is powered on
-- **Comprehensive Data**: Includes all sensor readings, mission state, and UART health
-- **Configurable Parameters**: UART device, baud rate, and telemetry interval
-- **Error Recovery**: Automatic UART reinitialization on communication failures
-- **Health Monitoring**: Periodic UART health checks and status reporting
+- **Telemetry every interval** (default 60 s, `TELEMETRY_INTERVAL_MS`) while the payload is on; none while it is off,
+  and the first one at once when it comes back on
+- **Sealed lines**: every line ends with a CRC-16/CCITT-FALSE field and is at most 512 bytes (ICD §4.1)
+- **Contents**: the fixed ICD fields, the sensor readings in table order, the EPS switches, the last fault, UART health
+  and the watchdog state
+- **Error recovery**: UART reinitialization after failures; periodic UART health checks
 
 ## Configuration
 
-### Environment Variables
+### Environment Variables (host simulation only)
 
-The UART telemetry can be configured using environment variables:
+On the host the executive reads these; on the target the Jetson link is USART1 (PA9/PA10) at 115200 baud, 8N2
+(`software/rust/README.md`, The firmware).
 
 ```bash
 # UART device (default: /dev/ttyUSB0)
@@ -35,12 +40,8 @@ export SENSORS_YAML="custom_sensors.yaml"
 
 ### Supported Baud Rates
 
-- 9600
-- 19200
-- 38400
-- 57600
-- 115200 (default)
-- 230400
+9600, 19200, 38400, 57600, 115200 (default) and 230400 (`sqso-fsw/src/uart_comm.rs`). An unsupported rate falls back
+to the default.
 
 ### Telemetry Interval Range
 
@@ -50,25 +51,27 @@ export SENSORS_YAML="custom_sensors.yaml"
 
 ## Telemetry Format
 
-Each telemetry packet contains:
-
 ```
-TELEMETRY,<timestamp>,<sunlit_state>,<battery_soc>,<sensor1>=<value1><units1>,<sensor2>=<value2><units2>,...,UART_HEALTH=<status>
+TELEMETRY,<time_ms>,<SUNLIT|ECLIPSE>,<soc>,<power_mode>,<power_limit_w>,<sensor>=<value>,...,EPS_PAYLOAD=<ON|OFF>,EPS_RADIO=..,EPS_ADCS=..,EPS_BEACON=..,LAST_FAULT=..,FAULT_COUNT=..,UART_HEALTH=<OK|FAIL>,WATCHDOG=<OK|TRIGGERED>,<CRC>
 ```
 
-### Example Output
+The ICD golden line (both test suites check these bytes):
 
 ```
-TELEMETRY,1234567890,SUNLIT,0.750,BV=12.450V,BT=22.500C,BUSV=5.000V,BDI=0.050A,JPC=0.000A,SPV=7.500V,SPC=0.600A,ST=03hex,UART_HEALTH=OK
+TELEMETRY,1704153600000,SUNLIT,0.750,2,3.0,BV=8.1,EPS_PAYLOAD=ON,9C86
 ```
 
 ### Fields
 
-- **timestamp**: Milliseconds since program start
-- **sunlit_state**: "SUNLIT" or "ECLIPSE"
-- **battery_soc**: Battery state of charge (0.0 to 1.0)
-- **sensor values**: All configured sensors with ID, value, and units
-- **UART_HEALTH**: "OK" or "FAIL"
+- **time_ms**: milliseconds of the OBC clock
+- **SUNLIT / ECLIPSE**
+- **soc**: battery state of charge, 0.000 to 1.000
+- **power_mode**: 0 SAFE, 1 IDLE, 2 ACTIVE
+- **power_limit_w**: the power limit of the mode
+- **KEY=VALUE fields**: the sensors in table order, then the status fields above. If the sensor table is too long for
+  the line, the status fields that do not fit are left out (tested by `Executive_Jetson_guard`,
+  `software/flight/tests/README.md`)
+- **CRC**: four upper-case hex digits over every byte before the last comma (ICD §4.4)
 
 ## Sensor Configuration
 
@@ -80,6 +83,7 @@ Sensors are configured in `sensors.yaml` and include:
 - **BUSV**: Bus Voltage
 - **BDI**: Battery Discharge Current
 - **JPC**: Jetson Payload Current
+- **PT**: Payload Heat Spreader Temperature
 - **SPV**: Solar Panel Voltage
 - **SPC**: Solar Panel Current
 - **ST**: Status Hex (bitmap)
@@ -94,46 +98,38 @@ Sensors are configured in `sensors.yaml` and include:
 
 ### Protocol
 
-- **Data Format**: 8N1 (8 data bits, no parity, 1 stop bit)
-- **Flow Control**: None (hardware flow control disabled)
-- **Termination**: Newline character (`\n`)
-- **Encoding**: ASCII
+- **Data format**: 8N1 on the host; 8N2 on the target (the module's receiver needs two stop bits)
+- **Flow control**: none
+- **Termination**: a single LF (`\n`)
+- **Encoding**: printable ASCII (0x20 to 0x7E)
 
 ### Error Handling
 
-- **Automatic Recovery**: UART reinitialization on communication failures
-- **Health Monitoring**: Periodic UART status checks
-- **Graceful Degradation**: Telemetry disabled if UART unavailable
-- **Retry Logic**: One retry attempt on write failures
+- **Automatic recovery**: UART reinitialization on communication failures
+- **Health monitoring**: periodic UART status checks (every 10 s)
+- **Graceful degradation**: telemetry is not sent if the UART is unavailable; the OBC beacons with its templates
 
 ## Usage Examples
 
 ### Basic Operation
 
 ```bash
-# Run with default settings
-cd software/flight
-make
-./smart_qso_flight
-```
-
-### Custom Configuration
-
-```bash
-# Custom UART device and faster telemetry
-export UART_DEVICE="/dev/ttyACM0"
-export TELEMETRY_INTERVAL_MS="30000"
-./smart_qso_flight
+# From the repository root: build and run the host simulation
+cmake -S software/flight -B build && cmake --build build
+./build/smart_qso_flight
 ```
 
 ### Development/Testing
 
 ```bash
-# Use virtual serial port for testing
+# Use a pseudo-terminal as the Jetson port and faster telemetry
 export UART_DEVICE="/dev/pts/1"
 export TELEMETRY_INTERVAL_MS="5000"
-./smart_qso_flight
+./build/smart_qso_flight
 ```
+
+`software/flight/tests/integration/test_executive_jetson.c` does this with two pseudo-terminals and checks every line
+against the ICD.
 
 ## Monitoring and Debugging
 
@@ -180,45 +176,19 @@ cat /dev/ttyUSB0
 
 ### Recommended Jetson Setup
 
-```python
-import serial
-import time
-
-# Configure UART
-ser = serial.Serial(
-    port='/dev/ttyTHS1',  # Jetson UART port
-    baudrate=115200,
-    bytesize=serial.EIGHTBITS,
-    parity=serial.PARITY_NONE,
-    stopbits=serial.STOPBITS_ONE,
-    timeout=1
-)
-
-# Read telemetry
-while True:
-    if ser.in_waiting:
-        line = ser.readline().decode('ascii').strip()
-        if line.startswith('TELEMETRY'):
-            # Parse telemetry data
-            parts = line.split(',')
-            timestamp = int(parts[1])
-            sunlit = parts[2]
-            soc = float(parts[3])
-            # Process sensor data...
-    time.sleep(0.1)
-```
+Use `software/payload/obc_link.py` (the same Rust parser as the OBC, through `sqso_protocol`), which checks the CRC and
+the format; do not split lines by hand. `software/payload/agent.py` answers `BEACON_REQ` and runs on stdin/stdout or
+under the supervisor (`software/payload/README.md`).
 
 ## Performance Considerations
 
-- **Memory Usage**: Telemetry buffer limited to 1024 bytes
+- **Memory Usage**: one line of at most 512 bytes (`LINE_MAX`, ICD §4.1)
 - **CPU Overhead**: Minimal impact on main sensor polling loop
-- **UART Bandwidth**: ~156 bytes every 60 seconds = ~21 bps average
+- **UART Bandwidth**: at most 512 bytes per interval (68 bps average at 60 s)
 - **Power Consumption**: UART active only during transmission
 
 ## Future Enhancements
 
 - **Compression**: Reduce telemetry packet size
 - **Selective Sensors**: Configurable sensor subset for telemetry
-- **Binary Protocol**: More efficient data encoding
-- **Acknowledgment**: Jetson confirmation of received data
 - **Dynamic Interval**: Adaptive telemetry rate based on mission phase

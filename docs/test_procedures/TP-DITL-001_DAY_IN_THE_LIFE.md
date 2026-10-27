@@ -145,7 +145,9 @@ TIME    EVENT                           RESPONSIBLE
 04:30   PASS 2 - COMMANDING
         - Release from SAFE             FC
         - Transition to ACTIVE          FC
-        - Enable AI payload             FC
+        - Enable AI payload (gated      FC
+          experiment, D5; only after
+          COMMISSIONING_RELEASE)
         - Collect AI beacons            Ground
 
 04:45   POST-PASS 2

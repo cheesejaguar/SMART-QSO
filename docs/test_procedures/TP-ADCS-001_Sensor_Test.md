@@ -11,7 +11,8 @@
 
 ## 1. Purpose
 
-Verify calibration and accuracy of ADCS sensors (magnetometer and sun sensors).
+Verify calibration and accuracy of ADCS sensors: the PNI RM3100 magnetometer on board A2 and the six face photodiodes
+read through the ADS7138 (`docs/BASELINE_PARAMETERS.md` §8; `hardware/electrical/obc/OBC_BOARD_DESIGN.md`).
 
 ## 2. Test Equipment
 
@@ -51,8 +52,10 @@ Verify calibration and accuracy of ADCS sensors (magnetometer and sun sensors).
 
 ## 4. Pass/Fail Criteria
 
-- Magnetometer accuracy: < 2% full scale
-- Sun sensor detection: All faces functional
+- Magnetometer, after the per-polarity bias correction and sampled only in the coils-off window: residual bias
+  ≤ 0.3 µT per axis and noise ≤ 0.2 µT 1σ per sample (SYS-401; AV-V2, AV-V4)
+- Sun sensors: each photodiode within 2 % of cos θ up to 60° incidence and at least 0.5 × cos θ at 85°, gain spread
+  ≤ 3 % 1σ (SYS-403); all six faces functional (SYS-402)
 - Cross-axis coupling: < 2%
 
 ---

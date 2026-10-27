@@ -7,7 +7,7 @@ This ConOps follows the lightweight style used by NASA Ames smallsat missions (e
 - Primary objective: a single‑channel U/V FM transponder for worldwide amateur contacts, duty‑gated by available power (BASELINE §2; decision D4 keeps it)
 - Secondary: AX.25 telemetry beacon, 1200 bps AFSK, plain text with a machine‑parsable telemetry tail (`docs/BEACON_SPEC.md`)
 - Experiment: onboard AI that schedules the transponder within the power budget and selects beacon text (§5)
-- RF: uplink 435–438 MHz (70 cm), downlink 145.8–146.0 MHz (2 m), one IARU‑coordinated frequency each; 0.5 W nominal, 1 W maximum (BASELINE §7, `docs/RF_PLAN.md`)
+- RF: uplink requested in 435.222–435.778 MHz, else 436.222–436.500 MHz (70 cm), downlink 145.800–146.000 MHz (2 m), one IARU‑coordinated frequency each; 0.5 W nominal, 1 W maximum (BASELINE §7, `docs/RF_PLAN.md`)
 - Command: authenticated telecommand from designated stations, with a hardware TX‑OFF path (§4)
 - Autonomy: low‑power OBC (STM32L4R5ZI; Rust flight software on the Embassy executor, no RTOS) runs the spacecraft. The Jetson Orin Nano is power‑gated and used only in short bursts. If the Jetson is off or faulty, the spacecraft is a conventional transponder with template beacons
 - Compliance: FCC Part 97 amateur space station, licensee KK6GDB, station KK6GDB‑11 (§8)
@@ -17,10 +17,10 @@ This ConOps follows the lightweight style used by NASA Ames smallsat missions (e
    - Before launch: final charge to 60 % ± 5 % SOC at the integrator about 47 days before launch; no access afterwards. Unpowered in the dispenser, all inhibits open (≤ 20 µA drain); separation SOC ≥ 40 %
    - Deployment from the dispenser; the OBC boots on switch release. No magnetorquer actuation for 120 s (SpaceX UG v11 §3.3.4). No RF for 45 minutes: the whole radio stays unpowered, receiver included (CDS 2.4.5); once complete, the silence is latched
    - Solar wings deploy no earlier than 30 minutes after switch release (CDS 2.4.4), then the antennas (ISIS AntS, I²C-commanded), with retries spread over sunlight and a ground-commanded retry
-   - Detumble with B-dot magnetorquer control (from 10°/s within 3 orbits; detumbled 0.25 h after separation in the mission simulation, 1.2 h at the slowest in the ADCS Monte Carlo and 2.1 h from a 50°/s tip-off, BASELINE §8); spin-stabilized coarse sun-pointing of +Y
+   - Detumble with B-dot magnetorquer control (from 10°/s within 3 orbits; detumbled 0.25 h after separation in the mission simulation, 1.3 h at the slowest in the ADCS Monte Carlo and 1.6 h from a 50°/s tip-off, BASELINE §8); spin-stabilized coarse sun-pointing of +Y at 8°/s
    - No GNSS before 45 minutes either: the receiver stays unpowered through the RF silence (SYS-224 covers every emitter); the first GNSS session is at 46 min after separation, then one every orbit (95 min) through launch and early operations (P3A-01, implemented: SRS-F084); each fix is downlinked in the GNSS state frame (SRS-F158)
-   - First beacons in IDLE, template text, every 120 s (SAFE, every 180 s, if the separation SOC is below 25 %); receiver on from the end of the silence. The transmitters also stay silent while the AntS deployment is pending (decision C-19, SRS-F167): the first beacon is at the later of the end of the 45-minute silence and the end of the AntS sequence (its elements deployed, or its attempts spent, or the attempt at its 30-deferral cap made). Nominally the AntS is out at S+31 min, so the first beacon is at S+45 min; after an eclipse separation from a cold dispenser it can be deferred to a later 50-minute slot (S+81 min in the mission simulation), at worst about S+27 h (the deferral cap); a failed AntS still gets its stowed-antenna beacon at the end of its sequence The spacecraft holds IDLE, with the Jetson and the transponder off, until an authenticated command releases the commissioning hold
-   - First pass over the Bay Area 0.7–12.1 h after separation (median 5.3 h); first commanding pass median 6.4 h, at the latest 13.7 h (`docs/operations/MISSION_TIMELINE.md` 2.3 §10, with a 15° mask; sooner at the 10° commanding rule and with the second station). First operator ephemeris within 24 h of first contact (SpaceX UG v11 §9.5.7.2), from the onboard GNSS fixes
+   - First beacons in IDLE, template text, every 120 s (SAFE, every 180 s, if the separation SOC is below 25 %); receiver on from the end of the silence. The transmitters also stay silent while the AntS deployment is pending (decision C-19, SRS-F167): the first beacon is at the later of the end of the 45-minute silence and the end of the AntS sequence (its elements deployed, or its attempts spent, or the attempt at its 30-deferral cap made). Nominally the AntS is out at S+31 min, so the first beacon is at S+45 min; after an eclipse separation from a cold dispenser it can be deferred to a later 50-minute slot (S+81 min in the mission simulation), at worst about S+27 h (the deferral cap); a failed AntS still gets its stowed-antenna beacon at the end of its sequence. The spacecraft holds IDLE, with the Jetson and the transponder off, until an authenticated command releases the commissioning hold
+   - First pass over the Bay Area 0.7–12.1 h after separation (median 5.3 h); first commanding pass median 6.4 h, at the latest 13.7 h (`docs/operations/MISSION_TIMELINE.md` §10, with a 15° mask; sooner at the 10° commanding rule and with the second station). First operator ephemeris within 24 h of first contact (SpaceX UG v11 §9.5.7.2), from the onboard GNSS fixes
    - Partner and community stations confirm reception and a power-positive state
 
 2) Commissioning — ~2 weeks (`docs/operations/COMMISSIONING_PLAN.md`)
@@ -34,7 +34,7 @@ This ConOps follows the lightweight style used by NASA Ames smallsat missions (e
 
 3) Nominal Operations — Months 1–24 (minimum 12 months)
    - Transponder windows when sunlit and SOC ≥ 55 %, duty ≤ 25 %, CTCSS‑gated access
-   - QSO handling: users work each other through the transponder with FM handhelds or mobile rigs; the scheduler places windows by predicted regional demand and fair access, within the power gates
+   - QSO handling: users work each other through the transponder with FM handhelds or mobile rigs; the FM repeater has no per‑station control, so there is no QSO priority; the scheduler (designed, not implemented) opens windows where measured demand is spread rather than first‑come, within the power gates (`docs/payload/OBC_SELECTOR_DESIGN.md` §3.4)
    - Beacon every 60 s (ACTIVE), 120 s (IDLE), 180 s (SAFE), time‑shared with the transponder downlink
    - Regular authenticated contacts from the telecommand stations, at least once per loss‑of‑contact period
    - Public engagement: decoded beacons and status published openly
@@ -44,7 +44,7 @@ This ConOps follows the lightweight style used by NASA Ames smallsat missions (e
 
 5) Deorbit & Passivation — End of Life
    - Final identification beacon
-   - Permanent passivation by a two-step authenticated command (`PASSIVATE_ARM` with the operational key, then `PASSIVATE_EXECUTE` with the recovery key within 600 s; SQSO-ICD-013 v0.10 §6.4, `passivation.rs`): **while still transmitting**, the battery charge path is disconnected (non‑resettable one-shot fuse, fired in sunlight through two independent lines); the result (EOL_STATE and the fuse state) is reported in three final housekeeping frames a minute apart; then TX‑OFF is latched for good and the battery is left discharging (47 CFR 97.207(g)(1)(iii)). The execute is sent early in a sunlit pass so that the fire (60–120 s) and the final report (3 min) are heard (`docs/operations/END_OF_LIFE_PLAN.md` §3.2)
+   - Permanent passivation by a two-step authenticated command (`PASSIVATE_ARM` with the operational key, then `PASSIVATE_EXECUTE` with the recovery key within 600 s; SQSO-ICD-013 §6.4, `passivation.rs`): **while still transmitting**, the battery charge path is disconnected (non‑resettable one-shot fuse, fired in sunlight through two independent lines); the result (EOL_STATE and the fuse state) is reported in three final housekeeping frames a minute apart; then TX‑OFF is latched for good and the battery is left discharging (47 CFR 97.207(g)(1)(iii)). The execute is sent early in a sunlit pass so that the fire (60–120 s) and the final report (3 min) are heard (`docs/operations/END_OF_LIFE_PLAN.md` §3.2)
    - Passive re‑entry with the solar wings deployed, no later than 5 years after mission end. There is no separate drag device
 
 ## 3. Modes of Operation
@@ -59,18 +59,18 @@ This ConOps follows the lightweight style used by NASA Ames smallsat missions (e
 Mode transitions follow the SOC thresholds (ACTIVE at ≥ 55 % sunlit; IDLE below 40 %; SAFE below 25 %; EMERGENCY below 15 %), sun/eclipse state, thermal limits and the watchdog. Faults drop to SAFE. TX‑OFF and the loss‑of‑contact inhibit override every mode.
 
 ## 4. Communications Concept
-- Downlink: 145.8–146.0 MHz (2 m). FM transponder output (16K0F3E) and AX.25 UI beacon frames, 1200 bps AFSK (10K4F2D)
-- Uplink: 435–438 MHz (70 cm). Transponder input (CTCSS‑gated) and telecommand (1200 bps AFSK)
+- Downlink: one frequency in 145.800–146.000 MHz (2 m), not 145.825 MHz. FM transponder output (16K0F3E) and AX.25 UI beacon frames, 1200 bps AFSK (10K4F2D)
+- Uplink: one frequency requested in 435.222–435.778 MHz, else 436.222–436.500 MHz (70 cm; BASELINE §7). Transponder input (CTCSS‑gated) and telecommand (1200 bps AFSK)
 - Telecommand: HMAC‑SHA‑256 with a persisted monotonic counter per key, from designated stations only (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md`). Commands are sent in the clear and authenticated, not encrypted (97.211(b)). Keys are loaded only through the umbilical
 - TX‑OFF: `TX_DISABLE` removes PA power through a hardware switch and is latched in non‑volatile memory. It is accepted without authentication if no key is usable. The receiver stays on (97.207(b))
 - Loss of contact: transmit inhibit after N days with no authenticated command, receiver on; N = 30 days at launch, 14 days after commissioning (D3). The next authenticated contact lifts it
 - Identification: call sign in the AX.25 source address and again at the start of the beacon text (97.119)
-- Antennas: separate deployable quarter‑wave monopoles for 2 m (≈ 0.5 m) and 70 cm (≈ 0.17 m), with a receive filter
+- Antennas: ISIS AntS, separate deployable quarter‑wave monopoles for 2 m (≈ 0.5 m, along ±X) and 70 cm (≈ 0.17 m, along ±Y), with a receive filter
 
 ## 5. Autonomy, Power, and Thermal Management
 - OBC always on. It enforces every hard limit itself; no AI output can override them
 - Beacon text: an OBC selector picks among pre‑approved templates (flight baseline, D5). Jetson‑generated text is a gated experiment, enabled only if the measured energy per accepted beacon is ≤ 0.1 Wh. Both sides apply the same content filter, and generated text carries no numbers; the OBC writes all values from measurements (`docs/BEACON_SPEC.md` §6)
-- Transponder: the selector proposes the window schedule and QSO priority; the OBC applies the power gates (sunlit, SOC ≥ 55 %, duty ≤ 25 %)
+- Transponder: the selector proposes the window schedule (no QSO priority: the repeater has no per‑station control, `docs/payload/OBC_SELECTOR_DESIGN.md` §3.4); the OBC applies the power gates (sunlit, SOC ≥ 55 %, duty ≤ 25 %)
 - Jetson bursts: each power-on ≤ 10 minutes including boot, producing a batch of ≥ 10 lines, then ≥ 100 minutes off, and ended earlier by the energy gate (360 J per line of a full batch); sunlit, SOC ≥ 55 %, Jetson ≥ −15 °C at power-on; the OBC cuts the rail on its own current and temperature measurements (BASELINE §6)
 - Fail‑graceful: if the Jetson is off, faulty or its text fails the filter, the beacon uses a template and the transponder runs on fixed rules
 - As built (2026‑10‑25): the OBC sends its fixed templates in turn; the selector and the transponder scheduler are not implemented, and the flight software has not run on hardware
@@ -98,6 +98,8 @@ Mode transitions follow the SOC thresholds (ACTIVE at ≥ 55 % sunlit; IDLE belo
 - End‑of‑life passivation and re‑entry within 5 years of mission end (47 CFR 97.207(g))
 
 ---
+
+*Revision note (2026‑10‑27, documentation audit (post-CDR 2026)): uplink request windows and antenna axes (BASELINE §7); detumble times and 8°/s spin (BASELINE §8); no QSO priority (SQSO-PAY-SEL-001 §3.4); stale document versions removed.*
 
 *Revision note (2026‑10‑27, CDR round 3, decision C-19): the first beacon waits for the AntS sequence's end as well as the 45-minute silence (SRS-F167).*
 

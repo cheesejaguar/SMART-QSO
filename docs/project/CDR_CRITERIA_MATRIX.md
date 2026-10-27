@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document ID**: SQSO-PM-002
-**Version**: B
+**Version**: C
 **Date**: 2026-10-27
 **Status**: Review record of the CDR panel's programmatics, systems engineering and V&V reviewer. Assessment only;
 it approves nothing.
@@ -11,6 +11,12 @@ it approves nothing.
 ---
 
 ## 0. Verdict
+
+> **Documentation audit note (2026-10-27).** The panel is AI reviewers (Claude), not an independent board
+> (`docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md` §1.2); "independent" in the recommendation below means independent of
+> the design work only, and the PDR and CDR it recommends are the independent reviews still to be held. Where the Rev A
+> text below gives other dates or floats (CDR 2027-08-03; June 2028 late by 21 days; 18.6 weeks of float), the Rev B
+> status box above and `mission/SCHEDULE.md` (SQSO-SCH-001 E) govern.
 
 > **Status at Rev B (CDR round 3, 2026-10-27; RID P3P-06).** Rev A (below) recorded the state before the round-2 design
 > completion. Since then every custom board has a schematic captured as code with parts, BOM and ERC, the mechanical
@@ -302,3 +308,4 @@ change outside the reviewer's documents. The review report gives the evidence an
 |---------|------|-------------|--------|
 | A | 2026-10-27 | Initial issue: governing framework and applicability by path (§1), tailoring of reviews and products (§2), Table G-7 entrance and success criteria assessed with evidence (§3, §4), Table G-6 quick look (§5) | CDR review, PM/SE/V&V |
 | B | 2026-10-27 | CDR round 3, systems and programmatics (RID P3P-06): status note in §0; §3 rows 6.3, 6.20, 6.24, 6.26, 6.27, 6.30, 6.32 and §4 rows 1, 13 restated after the round-2 design completion (schematics as code, CAD and FE, FMEA, safety data package, security plan, TRA), Rev A text kept; §2.3 rows 14–15 point to SQSO-TRA-001; CDR date 2027-09-28 | CDR round 3 |
+| C | 2026-10-27 | Documentation audit (post-CDR 2026): note in §0 on the panel's nature (AI reviewers, not an independent board) and on which dates govern | Documentation audit |

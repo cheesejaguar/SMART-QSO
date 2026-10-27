@@ -8,10 +8,14 @@
 > **Update 2026-10-24 (version 1.2):** all flight software is Rust (`software/rust/README.md`). The only C left is the
 > flight-log printf shim. §2.1, §2.3, §4.1, §5 and §6.2 now describe that state. §4.3 gives the figures of 2026-10-24.
 > §4.2 keeps the figures of 2026-10-16 as the record of that date. Still no release and no delivery.
+>
+> **Update 2026-10-27 (version 1.3):** §4.4 gives the figures recorded by the CDR 2026 design review
+> ([CDR_2026_DESIGN_REVIEW.md](CDR/CDR_2026_DESIGN_REVIEW.md) §7.1); §6 matches `KNOWN_ISSUES.md` Version 1.4. Still no
+> release and no delivery. Index of the review documents: [README.md](README.md).
 
 **Document ID**: SQSO-FSW-DEL-001
-**Version**: 1.2
-**Date**: 2026-10-24
+**Version**: 1.3
+**Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Template and status record. No release, no delivery (project phase: Phase B, pre-PDR; `docs/BASELINE_PARAMETERS.md` §1)
 
@@ -33,7 +37,7 @@ must contain. The flight software is NPR 7150.2D Class C (`docs/software/SOFTWAR
 | Git SHA | The commit being described; no release commit exists |
 | Host build | `smart_qso_flight`, a host simulation executable (Linux/macOS; crate `sqso-sim`), using the simulated HAL `software/rust/sqso-ffi/src/hal_sim.rs` |
 | Target build | The Embassy firmware `software/rust/firmware` (ELF `sqso-firmware`), linked for the STM32L4R5ZI and built and checked in CI. It has not run on hardware. (Until 2026-10-24 this was a C static library with a register-level HAL; it was removed) |
-| Binary size / checksum | Release image (2026-10-25): text 115,876 B, data 19,764 B, bss 16,496 B. No checksum is recorded because nothing is released. CI prints the section sizes on each run |
+| Binary size / checksum | Release image (2026-10-27): text 207,284 B, data 26,400 B, bss 17,052 B (`software/flight/docs/MEMORY_POLICY.md` Rev H §3.2; 2026-10-25: text 115,876 B, data 19,764 B, bss 16,496 B). No checksum is recorded because nothing is released. CI prints the section sizes on each run |
 
 ### 2.2 Payload Software (Jetson)
 
@@ -139,6 +143,14 @@ Every figure below comes from a CI configuration or a file in the repository, or
 | Target build | Image linked; CI checks the entry point, vector table, initial SP, flight symbols, and no heap or C library | Job "STM32L4 Cross-Compile (library)" |
 | Integration / hardware tests | **None run.** No hardware exists | — |
 
+### 4.4 Test and analysis summary, 2026-10-27 (CDR 2026 design review)
+
+| Item | Value | Evidence |
+|------|-------|----------|
+| Tests | 622 Rust tests and 56 C suites pass; the safety-critical coverage gate (32 files, 100 % of lines and conditions) and the image and stack checks pass | `docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md` §7.1 |
+| Mission simulation | SQSO-SIL-001 G: 730 days, 0 anomalies in 50 checks | Same; `docs/test/SIL_MISSION_SIMULATION.md` |
+| Integration / hardware tests | **None run.** No hardware exists; the firmware has not run on hardware and its pin map is provisional | Same, §7.2 |
+
 ## 5. Build Instructions
 
 ### 5.1 Prerequisites
@@ -175,21 +187,16 @@ Applies once a linked image exists: build twice from a clean tree and compare th
 
 ### 6.1 Open Issues
 
-This list matches `docs/reviews/KNOWN_ISSUES.md` (5 issues, all marked "Accepted" there, though no acceptance has been
-signed).
+This list matches `docs/reviews/KNOWN_ISSUES.md` Version 1.4 (5 issues: three accepted, KI-002 resolved in code and
+open until verified on hardware, KI-003 open; no acceptance has been signed).
 
-| ID | Severity | Description | Workaround (from KNOWN_ISSUES) |
-|----|----------|-------------|--------------------------------|
-| KI-001 | Medium | HAL stubs: magnetometer, sun-sensor and magnetorquer drivers, HAL UART initialization and the assert-handler watchdog reset are TODO stubs | Simulated values in the host build |
-| KI-002 | Medium | No persistent fault logging | Fault counts in each beacon; boot reason preserved |
-| KI-003 | Low | Beacon interval not ground-commandable | Fixed intervals |
-| KI-004 | Low | AI model loaded at Jetson boot; no hot-swap | Jetson power cycle |
-| KI-005 | Low | Ground software tested with one TNC only | KISS standard |
-
-`KNOWN_ISSUES.md` itself needs an update, not made here: KI-001 refers to the Ambiq Apollo4 SDK, but the OBC is the
-STM32L4R5ZI (BASELINE §6), and its line numbers have moved; KI-002 may be stale, since `fault_mgmt.c` now saves and
-loads the fault log; KI-003 says the beacon is fixed at 60 s, but the interval is 60, 120 or 180 s by mode
-(BASELINE §8).
+| ID | Severity | Status | Description | Workaround (from KNOWN_ISSUES) |
+|----|----------|--------|-------------|--------------------------------|
+| KI-001 | Medium | Accepted | Firmware not run on hardware; the sensor table is simulated on the target | None needed before hardware |
+| KI-002 | Medium | Resolved in code | Fault log persisted in FRAM; not yet verified on hardware | Fault counts in each beacon; boot reason preserved |
+| KI-003 | Low | Open | SET_BEACON is accepted but has no effect; intervals fixed per mode (60 / 120 / 180 s) | Baseline intervals per mode |
+| KI-004 | Low | Accepted | AI model loaded when the payload agent starts; no hot-swap | None needed: the Jetson boots at every burst |
+| KI-005 | Low | Accepted | Beacon decoder tested only on synthetic data, with no TNC | KISS standard |
 
 ### 6.2 Other open limitations (not yet in KNOWN_ISSUES)
 
@@ -198,7 +205,7 @@ loads the fault log; KI-003 says the beacon is fixed at 60 s, but the interval i
 | No RTOS, startup code or linker script; no linked flight image (2026-10-16; resolved 2026-10-24: linked Embassy image, no RTOS by design) | `software/rust/firmware` |
 | Unity, integration and regression suites not built (2026-10-16; all are built and run on 2026-10-24) | SW-09 |
 | Static-analysis findings not yet worked down (58 clang-tidy, 1,189 MISRA on 2026-10-16; on 2026-10-24, 0 and 42 in the remaining C) | `software/flight/quality/` |
-| Firmware not run on hardware; pin map provisional; ADCS drivers not written | `docs/reviews/KNOWN_ISSUES.md` KI-001 |
+| Firmware not run on hardware; pin map provisional (SQSO-ICX-001 allocation); sensor table simulated (ADCS drivers written since the CDR 2026 review) | `docs/reviews/KNOWN_ISSUES.md` KI-001 |
 | No hardware-in-the-loop or flatsat testing | `software/flight/tests/hil/HIL_TEST_PLAN.md` |
 
 ### 6.3 Accepted Deviations
@@ -217,19 +224,23 @@ Update 2026-10-24: the firmware links with cortex-m-rt's `link.x` and the `memor
 0x08000000 (vector table first) and 640 KB RAM from 0x20000000, with the stack growing down from 0x200A0000, and no
 heap (`software/flight/docs/MEMORY_POLICY.md` §3).
 
+Update 2026-10-27: the firmware's own `memory.x` links SRAM2 alone (64 KB from 0x20030000, parity): statics at its
+start, the 8 KB stack at its top growing down from 0x20040000, no heap; SRAM1 and SRAM3 are not linked
+(`software/flight/docs/MEMORY_POLICY.md` Rev H §3.1).
+
 ## 8. Resource Utilization
 
 ### 8.1 Memory Usage
 
+From `software/flight/docs/MEMORY_POLICY.md` Rev H §3.2 (release image, 2026-10-27):
+
 | Resource | Allocated | Used | Margin |
 |----------|-----------|------|--------|
-| Flash (code) | TBD | TBD (library size printed by CI; no linked image) | TBD |
-| RAM (static) | TBD | TBD | TBD |
-| RAM (stack) | TBD | TBD | TBD |
+| Flash (code and constants) | 256 KB (SRS-C004; 2 MB device) | 207,284 B | 21 % of SRS-C004 |
+| RAM (static) | 57,312 B (64 KB SRAM2 less the stack and its guard) | 43,452 B (data 26,400 B, bss 17,052 B) | 24 % |
+| RAM (stack) | 8 KB (SRS-C003) | 6,332 B worst case, static analysis (MEMORY_POLICY §6.2) | 23 % |
 
-Measured 2026-10-25 from the release image (the table is left open until allocations are set): text 115,876 B in flash;
-static RAM 36,260 B (data 19,764 B, bss 16,496 B). Worst-case stack 5,004 B of 8 KB by static analysis
-(`software/flight/docs/MEMORY_POLICY.md` §6).
+CI prints the section sizes on every run.
 
 ### 8.2 CPU Utilization
 
@@ -274,3 +285,4 @@ Not designed. There is no bootloader or software-update mechanism yet; requireme
 | 1.1 | 2026-10-16 | SMART-QSO Team | Funding audit SW-18: status sections rewritten from repository facts (no tag, no linked image, 31 suites / 428 cases, 68.2 % line coverage, static-analysis baselines, KI-001 to KI-005); invented memory map, FreeRTOS/CMSIS versions and upload procedure removed |
 | 1.2 | 2026-10-24 | SMART-QSO Team | All flight software Rust: host and target builds, build environment (Rust toolchain, Embassy, no RTOS), §4.3 figures of 2026-10-24, build instructions for the firmware, limitations updated. The 2026-10-16 figures kept in §4.2. Still no release |
 | 1.2, note | 2026-10-25 | SMART-QSO Team | §1: software classification NPR 7150.2D Class C (SDP §3.1); §2 RTOS row: no RTOS is the baseline (BASELINE §6, CR-2026-002) |
+| 1.3 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): §4.4 figures of the CDR 2026 design review (622 Rust tests, 56 C suites, SIL G); §6.1 known issues to KNOWN_ISSUES 1.4 with their statuses (was "all Accepted" and the stale descriptions, and a note that KNOWN_ISSUES needed an update, which it has had); §6.2 ADCS drivers now written; §2.1, §7 and §8.1 memory figures and map from MEMORY_POLICY Rev H (the table was empty; SRAM2-only link) |

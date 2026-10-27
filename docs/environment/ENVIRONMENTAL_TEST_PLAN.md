@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-ETP-001
-**Revision:** E
+**Revision:** F
 **Date:** 2026-10-27
 **Reference:** GSFC-STD-7000B (GEVS, 2021-04-28) including Appendix B (CubeSats); SpaceX Rideshare Payload User's Guide
 v11 (August 2026, "UG v11"); Cal Poly CubeSat Design Specification Rev 14.1 §3; LSP-REQ-317.01 Rev B (CSLI path only)
@@ -137,8 +137,9 @@ covered by the deployment tests (§3.8). SQSO-LVR-001 LVR-046 and VI-LV-16 carry
 
 GEVS-B §2.6.3.2.1.1 sets the protoflight test margin at no less than 10 °C beyond the allowable flight temperatures
 (AFT), and at the system level at least 10 °C beyond the margined predictions. The correlated thermal model does not
-exist yet (finding TB-07; `docs/environment/THERMAL_ANALYSIS.md` is the unverified January 2026 issue), so the interim
-levels are set from the requirement and part limits and capped by the battery:
+exist yet (`docs/environment/THERMAL_ANALYSIS.md` v2.5 is the CDR analysis of an uncorrelated model, to be correlated by
+the EM thermal balance V-THM-1), so the interim levels are set from the requirement and part limits and capped by the
+battery:
 
 | Plateau | GEVS-B rule | Uncapped value | **Interim test value** | Limiting item |
 |---------|-------------|----------------|------------------------|---------------|
@@ -317,7 +318,7 @@ and FM_BURNIN).
 ## 6. Engineering-Model Development Tests (before the CDR)
 
 These retire the design risks that the CDR needs answered and are scheduled as event EMT (2027-07-27 to 2027-09-21,
-`mission/SCHEDULE.md` Rev D; CDR 2027-09-28): Jetson heat path and burst energy (VI-01, VI-02), EM TVAC with thermal
+`mission/SCHEDULE.md` Rev E; CDR 2027-09-28): Jetson heat path and burst energy (VI-01, VI-02), EM TVAC with thermal
 balance (VI-03), pathfinder vibration (VI-04), antenna pattern (VI-05), EMC pre-scan and GNSS noise (VI-06), shock if
 VI-07 requires it, burn-in (VI-09) and the ≥ 500 h on the EM boards (VI-11). Their pass criteria are in §8. Every
 verification item of the design documents, with its event and date, is in `docs/verification/VI_REGISTER.md`.
@@ -378,7 +379,7 @@ met, every anomaly dispositioned through `docs/integration/ANOMALY_RESOLUTION.md
 requirements updated with the test report. A failure on the FM triggers root cause, repair and the re-test that the
 integrator and GEVS-B §2.4.2.8 require. The campaign must end by L − 4 months (`docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`
 §9): for the June 2028 opportunity it is 80 days late before any re-test; for the 2028-11 planning launch it has 71
-days of float, 0.5 weeks more than the GOLD Rule 1.06 margin (`mission/SCHEDULE.md` Rev D §3).
+days of float, 0.5 weeks more than the GOLD Rule 1.06 margin (`mission/SCHEDULE.md` Rev E §3).
 
 ---
 
@@ -394,3 +395,4 @@ days of float, 0.5 weeks more than the GOLD Rule 1.06 margin (`mission/SCHEDULE.
 | D | 2026-10-27 | CDR round 3 (VV-07, VV-08, REL-01, P3P-03, P3E-07, P3S-10, SE-07): §3.3 shock: the UG v11 MPE exceeds the vibe-equivalent SRS, so the RFQ asks for the attenuated Nova MPE and an EM shock test is planned and costed if VI-07 needs it (deviation 7); §3.4 one TVAC definition, the SpaceX ± 5 °C / 20-cycle advice mapped onto it; new §3.11 reliability programme (VI-11 ≥ 500 h EM flatsat, VI-12 ≥ 200 h FM burn-in); §5 matrix; §6 EM test dates from SQSO-SCH-001 D; §7 cost $42k–130k with the battery abuse tests in the ROM; VI-01 criterion for SYS-603 Rev G; deviations 1–3 and 7 to the PI by CR-2026-013 | CDR round 3, systems and programmatics |
 | E | 2026-10-27 | VI-02 to decision C-20 (CR-2026-018): the flight burst definition (≤ 10 min, ≤ 3.6 kJ) and the energy per accepted line over ≥ 30 bursts (was 120 s bursts and a p95 per beacon) | CDR round 3, flight software |
 | D, amended | 2026-10-27 | CDR round 3 (STR-04, P3S-01, P3S-04): §3.7 spin-balance mass properties to ± 0.5 % / ± 1 × 10⁻⁵ kg·m²; §3.8 cold deployment at −55 °C with the 10 s burn (C-17); MoS₂ hinge humidity, cycle budget and film inspection; (THM-04, CR-2026-017) §3.4 cold operational plateau −40 °C (AFT −30 °C − 10 °C) and cold start at −40 °C for the first-orbit extension of the AFT, tested at its AFT without the 10 °C margin (new §9 deviation 8), V-THM-8 on the EM; deviation 4 range −40/+60 °C | Design review chair |
+| F | 2026-10-27 | Documentation audit (post-CDR 2026): §3.4 the thermal analysis is the uncorrelated CDR model (SQSO-THA-001 v2.5), not the January 2026 issue; §6 and §10 cite `mission/SCHEDULE.md` Rev E (dates unchanged) | Documentation audit |

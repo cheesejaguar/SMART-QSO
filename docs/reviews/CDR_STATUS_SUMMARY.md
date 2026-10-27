@@ -1,6 +1,16 @@
 # CDR Status Summary
 ## SMART-QSO CubeSat Mission
 
+> **Historical record (2026-01-02).** Superseded for current values by
+> [`docs/BASELINE_PARAMETERS.md`](../BASELINE_PARAMETERS.md) and
+> [`docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`](CDR/CDR_2026_DESIGN_REVIEW.md). It is the CDR status summary
+> generated on 2026-01-02; its "COMPLETE" and 100 % statuses were never true. No independent CDR has been held: the
+> project is in Phase B (pre-PDR), and the independent PDR (2027-01-12) and CDR (2027-09-28) are planned in
+> `mission/SCHEDULE.md` (BASELINE §1). The record is kept as written; its values, statuses, approvals and the dated
+> "superseded" notes in its body are those of their dates and are not to be cited. Still useful for: the status claims
+> that the funding audit measured and corrected (findings PI-03, PI-04). Index of the review documents:
+> [README.md](README.md).
+
 > **Funding audit notice (2026-10-14): status claims not substantiated.**
 > Test counts, coverage, verification percentages and completion statements in this document were not
 > reproduced by the funding audit (measured: 14 registered unit-test suites, 44.5 % line coverage of the
@@ -8,7 +18,7 @@
 > `docs/funding_audit/FINDINGS_REGISTER.md` for the measured values.
 
 **Document Number:** SQSO-REV-003
-**Revision:** C
+**Revision:** D
 **Date:** 2026-01-02
 **Reference:** NPR 7120.5, NPR 7123.1, RALPH.md Audit
 
@@ -491,3 +501,4 @@ The project is ready to proceed to Phase C (Final Design & Fabrication) with rem
 | A | 2026-01-02 | Initial CDR status summary | SMART-QSO Team |
 | B | 2026-10-16 | OBC design row points to `hardware/obc/OBC_DESIGN.md`, into which `docs/hardware/OBC_DESIGN.md` was merged (finding PI-17) | SMART-QSO Team |
 | C | 2026-10-16 | §6.3: dated notes beside the superseded frequency, TX power and link margin (SYS-200, SYS-201, LINK_BUDGET_ANALYSIS v2.0; finding TB-05); recorded values kept | SMART-QSO Team |
+| D | 2026-10-27 | Documentation audit (post-CDR 2026): historical-record banner (superseded by BASELINE and SQSO-REV-CDR-002; no CDR held); body unchanged | SMART-QSO Team |

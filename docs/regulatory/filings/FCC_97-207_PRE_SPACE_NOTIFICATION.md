@@ -2,10 +2,10 @@
 ## Amateur Space Station SMART-QSO
 
 **Document Number:** SQSO-REG-013
-**Revision:** A.3 (draft, not filed)
+**Revision:** A.4 (draft, not filed)
 **Date:** 2026-10-27
 **Rule:** 47 CFR 97.207(g)(1) (eCFR version of 2026-10-01; no amendment since 89 FR 65217, effective 2024-09-09)
-**Due:** within 30 days after launch-vehicle determination, and no later than 90 days before integration into the launch vehicle. A replacement is required if any material item changes ((g)(1)(viii)). **Plan** (REGULATORY_ROADMAP Rev C §3): file early on 2027-01-19 with the API data, replace within 30 days of the launch contract (by 2027-06-30), last replacement by 2028-06-17 (integration about 2028-09-15, planning launch 2028-11-01).
+**Due:** within 30 days after launch-vehicle determination, and no later than 90 days before integration into the launch vehicle. A replacement is required if any material item changes ((g)(1)(viii)). **Plan** (REGULATORY_ROADMAP Rev D §3): file early on 2027-01-19 with the API data, replace within 30 days of the launch contract (by 2027-06-30), last replacement by 2028-06-17 (integration about 2028-09-15, planning launch 2028-11-01).
 **Filing channel:** written notification to the Space Bureau, FCC, Washington, DC 20554. Confirm with Space Bureau staff whether to file via ICFS or by email (DA 13-445 listed amsat.spacecap@fcc.gov in 2013).
 **Fill-ins:** `[brackets]`. Values marked **(BL)** come from [BASELINE_PARAMETERS.md](../../BASELINE_PARAMETERS.md) and must be re-checked at filing.
 
@@ -22,7 +22,7 @@
 > | Address / phone / email | `[ ]` |
 > | 24-hour interference and space-safety contact | `[name, phone, email]` |
 > | Control operators (97.207(a)) | `[call signs]` |
-> | Telecommand stations designated under 97.211(a) | `[call sign — location lat/long]` ×2 minimum (RR 25.11) |
+> | Telecommand stations designated under 97.211(a) | `[call sign — location lat/long]` ×2 minimum (RR 25.11), at least 1,000 km apart, each able to command alone **(BL)** |
 > | Organization (if any) | `[club / university / nonprofit]`; licensee's role `[ ]` |
 > | Statement of amateur character | SMART-QSO is an amateur space station providing an FM transponder and plain-language telemetry to radio amateurs worldwide, and carries an amateur technical investigation of onboard machine-learning control of the transponder and beacon. No person is compensated for operating the station, no data or services are sold, and all transmission formats are published (97.113; ITU RR 1.56, 1.57, 25.2A). See [Licensing Pathway Determination](../LICENSING_PATHWAY_DETERMINATION.md). |
 >
@@ -125,8 +125,9 @@
 | 4 | SpaceCap Appendix 4 file prepared from ITU_APPENDIX4_DATA.md | ☐ |
 | 5 | DAS 3.2.6 run with the controlled mass and area by 2027-01-08 and ODAR Draft E results inserted (REGULATORY_ROADMAP §7; DAS results are needed in this filing for (ii) and (iv)(A)(1)) | ☐ |
 | 6 | TX-OFF telecommand path verified by test (TP-RF-006, VI-RF-12) | ☐ |
-| 6a | Passivation telecommand implemented and tested (SQSO-ICD-013 v0.10 §6.4: implemented and tested in the host simulation; EM fire test V-EPS-8 open) | ☐ |
-| 6b | Telecommand stations designated in writing (F13), with locations | ☐ |
+| 5a | FCC Space Bureau consultation outcome recorded in the pathway determination (REGULATORY_ROADMAP §6; `mission/SCHEDULE.md` DA-11, by 2027-01-08) and applied to §3 and §4 | ☐ |
+| 6a | Passivation telecommand implemented and tested (SQSO-ICD-013 v0.15 §6.4: implemented and tested in the host simulation; EM fire test V-EPS-8 open) | ☐ |
+| 6b | Telecommand stations designated in writing (F13), with locations (DA-10, by 2027-01-05) | ☐ |
 | 7 | Space-Track registration complete | ☐ |
 | 8 | Licensee signature | ☐ |
 
@@ -140,3 +141,4 @@
 | A.1 | 2026-10-27 | CDR review (communications panel): rule currency; filing plan dates; EIRP; uplink range; cessation-of-emissions text made accurate (one command path, through the on-board computer); loss-of-contact line; the "autonomous backup" passivation claim removed (not implemented) and the passivation command flagged; checklist items 6a, 6b |
 | A.2 | 2026-10-27 | CDR 2026 consistency pass: orbit 475 km target, 485 km maximum and the uplink request windows from BASELINE Rev E §3, §7; last replacement date 2028-06-17 for the 2028-11-01 planning launch. Not filed |
 | A.3 | 2026-10-27 | CDR round 3 (RIDs RF-13, REG-11, REG-12, ODA-02; chair note C-2): cessation of emissions without "always-on receiver" (the 45-minute silence and the 24 h recovery cycle; the radio's TNC in the path); the failed-receiver exception in the loss-of-contact line; (iii) passivation as implemented: the charge disconnect fired while transmitting, the final report, then TX-OFF (was "not implemented"); (vii) the F10.7 = 70 bound fails at 475 km, 1.85 kg even with the wings deployed; checklist: DAS 3.2.6 before this filing. Not filed |
+| A.4 | 2026-10-27 | Documentation audit (post-CDR 2026): plan cites REGULATORY_ROADMAP Rev D; the station criterion of BASELINE Rev E §1; checklist 5a the FCC consultation outcome (DA-11), 6a SQSO-ICD-013 v0.15, 6b DA-10. Not filed |

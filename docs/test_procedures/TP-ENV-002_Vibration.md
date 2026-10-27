@@ -122,7 +122,7 @@ Flight unit: 1 minute per axis. Engineering model (pathfinder, `ENVIRONMENTAL_TE
 | Step | Action | Expected Result | Result | P/F |
 |------|--------|-----------------|--------|-----|
 | 1 | Visual inspection | No damage | ______ | |
-| 2 | Mass measurement | Within the current mass list (BASELINE §4: CBE 1.49 kg, MEV 1.73 kg, limit 2.00 kg or the dispenser limit) | ______ kg | |
+| 2 | Mass measurement | Within the current mass list (BASELINE §4: CBE 1.52 kg, MEV 1.75 kg, limit 2.00 kg, or the dispenser limit: EXOpod Nova 1U 2.5 kg) | ______ kg | |
 | 3 | CG measurement | Within 2 cm of the geometric centre (CDS Rev 14.1 Table 2) | ______ cm | |
 | 4 | Functional test | TP-SYS-001 pass | ______ | |
 | 5 | Read and record the OBC boot counter and fault log | Recorded | ______ | |
@@ -209,7 +209,7 @@ UG v11 Table 6-6; force limiting is preferred (UG v11 §6.7.6). Record every not
 | 3 | Torque check | All fasteners tight | ______ | |
 | 4 | Read the OBC boot counter and fault log | Unchanged from §5.1 step 5 (no boot during vibration) | ______ | |
 | 5 | Functional test | TP-SYS-001 pass | ______ | |
-| 6 | Burn-wire continuity and stowed-state telemetry; a deployment only if the integrator agrees in writing (deployment tests run before this procedure: TP-ENV-005 Rev B) | Continuity within the pre-test value ± 10 %; stowed | ______ | |
+| 6 | Burn-wire continuity and stowed-state telemetry; a deployment only if the integrator agrees in writing (deployment tests run before this procedure: TP-ENV-005 version 1.1 or later) | Continuity within the pre-test value ± 10 %; stowed | ______ | |
 
 Actuating deployables after a protoflight test changes the flight configuration (CDS Rev 14.1 §3.5.2.1). For a fully
 containerized CubeSat, UG v11 §6.3 item 7 allows burn wires to be replaced and reset identically, with evidence that the

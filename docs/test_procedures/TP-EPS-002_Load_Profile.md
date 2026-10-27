@@ -26,9 +26,10 @@ This procedure verifies the Electrical Power Subsystem (EPS) performance under m
 
 | Document | Title |
 |----------|-------|
-| SQSO-HW-001 | EPS Design Document |
-| SQSO-REQ-001 | System Requirements |
-| SQSO-SW-001 | Software Design Document |
+| SMART-QSO-EPS-001 | EPS Design Document (`docs/hardware/EPS_DESIGN.md`) |
+| SQSO-REQ-002 | System Requirements Specification |
+| SMART-QSO-SDD-001 | Software Design Document |
+| SQSO-PBA-001 | Power Budget Analysis (`docs/environment/POWER_BUDGET_ANALYSIS.md`) |
 | EEE-INST-002 | EEE Parts Derating |
 
 ## 4. Test Article
@@ -54,7 +55,7 @@ This procedure verifies the Electrical Power Subsystem (EPS) performance under m
 ## 6. Preconditions
 
 - [ ] EPS functional test (TP-EPS-001) completed and passed
-- [ ] Battery fully charged (>95% SOC)
+- [ ] Battery fully charged to the flight set point, 4.10 V/cell (16.4 V; decision D8)
 - [ ] All test equipment calibrated
 - [ ] OBC software loaded and verified
 - [ ] Load simulators configured
@@ -85,9 +86,9 @@ This procedure verifies the Electrical Power Subsystem (EPS) performance under m
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
-| 8.2.1 | Set total load to 0.5W | Stable voltage on all rails | |
+| 8.2.1 | Set total load to the SAFE load, 0.79 W (`docs/BASELINE_PARAMETERS.md` §5, heater included) | Stable voltage on all rails | |
 | 8.2.2 | Maintain for 10 minutes | No anomalies | |
-| 8.2.3 | Record power consumption | <0.6W total | |
+| 8.2.3 | Record power consumption | Record against 0.79 W | |
 | 8.2.4 | Verify beacon transmission | Every 180 seconds (SAFE; SYS-211) | |
 | 8.2.5 | Record battery voltage trend | Stable or rising | |
 
@@ -95,9 +96,9 @@ This procedure verifies the Electrical Power Subsystem (EPS) performance under m
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
-| 8.3.1 | Set total load to 1.5W | Stable voltage on all rails | |
+| 8.3.1 | Set total load to the IDLE load, 1.18 W (BASELINE §5) | Stable voltage on all rails | |
 | 8.3.2 | Maintain for 10 minutes | No anomalies | |
-| 8.3.3 | Record power consumption | <1.8W total | |
+| 8.3.3 | Record power consumption | Record against 1.18 W | |
 | 8.3.4 | Verify beacon timing | Every 120 seconds (IDLE; SYS-211) | |
 | 8.3.5 | Record battery voltage trend | Stable | |
 
@@ -105,20 +106,20 @@ This procedure verifies the Electrical Power Subsystem (EPS) performance under m
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
-| 8.4.1 | Set total load to 3.0W | Stable voltage on all rails | |
+| 8.4.1 | Set total load to the ACTIVE load at the duty limits, 2.60 W sun-pointed bottom-up (BASELINE §5) | Stable voltage on all rails | |
 | 8.4.2 | Maintain for 10 minutes | No anomalies | |
-| 8.4.3 | Record power consumption | <3.5W total | |
+| 8.4.3 | Record power consumption | Record against 2.60 W | |
 | 8.4.4 | Verify all subsystems active | Telemetry nominal | |
 | 8.4.5 | Record battery voltage trend | Slight decline acceptable | |
 
-### 8.5 Burst Mode Load Profile (Jetson Active) [SYS-121]
+### 8.5 Jetson Burst Load Profile (in ACTIVE) [SYS-121]
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
-| 8.5.1 | Set total load to 8.0W | Stable voltage on all rails | |
-| 8.5.2 | Maintain for 60 seconds | No voltage sag below limits | |
-| 8.5.3 | Record peak current draw | <2.5A from battery | |
-| 8.5.4 | Verify 5V rail stability | 5.0V 5% | |
+| 8.5.1 | Add 8.0 W on VBAT_JET (the Jetson at its carrier-input limit, BASELINE §6) to the ACTIVE load | Stable voltage on all rails | |
+| 8.5.2 | Maintain for 10 minutes (one burst, BASELINE §6) | No voltage sag below limits; bus above the 13.6 V hardware shed | |
+| 8.5.3 | Record peak current draw | Record; VBAT_JET ≤ 0.62 A at 8 W, below the 1.20 A eFuse (`docs/hardware/EPS_DESIGN.md` §4) | |
+| 8.5.4 | Verify 5V_PA and 3V3_AO stability | ± 2 % (EPS_DESIGN §4) | |
 | 8.5.5 | Return to Active mode | Smooth transition | |
 
 ### 8.6 Load Transient Response
@@ -126,9 +127,9 @@ This procedure verifies the Electrical Power Subsystem (EPS) performance under m
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
 | 8.6.1 | Start in Idle mode | Stable | |
-| 8.6.2 | Step load from 1.5W to 8W | Voltage dip <10% | |
+| 8.6.2 | Step load from IDLE (1.18 W) to IDLE plus an 8 W Jetson burst | Voltage dip <10%; bus above 12.0 V, no OBC reset (V-EMC-6) | |
 | 8.6.3 | Measure recovery time | <100ms to steady state | |
-| 8.6.4 | Step load from 8W to 1.5W | Voltage spike <10% | |
+| 8.6.4 | Step the Jetson burst off | Voltage spike <10% | |
 | 8.6.5 | Measure settling time | <100ms | |
 
 ### 8.7 Eclipse Simulation [SYS-111, SYS-112]
@@ -138,17 +139,17 @@ This procedure verifies the Electrical Power Subsystem (EPS) performance under m
 | 8.7.1 | Start with solar input on | Battery charging | |
 | 8.7.2 | Record initial battery voltage | |V| = ____V | |
 | 8.7.3 | Disable solar input (eclipse entry) | Battery discharging | |
-| 8.7.4 | Maintain eclipse for 35 minutes | Voltage within limits | |
+| 8.7.4 | Maintain eclipse for 36 minutes (β = 0, BASELINE §8) in IDLE | Voltage within limits | |
 | 8.7.5 | Record battery voltage at end | |V| = ____V | |
 | 8.7.6 | Re-enable solar input (eclipse exit) | Charging resumes | |
 | 8.7.7 | Monitor recovery | SOC increasing | |
-| 8.7.8 | Calculate DOD during eclipse | <30% DOD | |
+| 8.7.8 | Calculate DOD during eclipse | ≤ 10 % nominal (SYS-111, SYS-112); never above 30 % | |
 
 ### 8.8 Multi-Orbit Simulation [MRD-050, SYS-304]
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
-| 8.8.1 | Configure 90-minute orbit profile | 35min eclipse, 55min sun | |
+| 8.8.1 | Configure the 475 km orbit profile, 94.1 min (SYS-012; TP-SYS-002 §3.1) | 36 min eclipse, 58 min sun | |
 | 8.8.2 | Execute 4 complete orbits | ~6 hours | |
 | 8.8.3 | Record battery voltage profile | Document | |
 | 8.8.4 | Verify power mode transitions | Automatic per power state | |
@@ -171,7 +172,7 @@ This procedure verifies the Electrical Power Subsystem (EPS) performance under m
 |-----------|-------------|--------|
 | Voltage regulation | All rails within spec | |
 | Transient response | <10% deviation, <100ms recovery | |
-| Eclipse survival | <30% DOD per orbit | |
+| Eclipse survival | ≤ 10 % DOD per eclipse nominal, ≤ 30 % contingency (SYS-112) | |
 | Multi-orbit margin | Positive power margin | |
 | SOC tracking | Within 5% of actual | |
 | Mode transitions | Smooth, no glitches | |

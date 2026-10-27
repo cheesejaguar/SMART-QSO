@@ -1,18 +1,18 @@
 # Electrical Power Subsystem (EPS) Design Document
 
 **Document Number**: SMART-QSO-EPS-001
-**Version**: 2.5
+**Version**: 2.6
 **Date**: 2026-10-27
 **Status**: CDR design description; the build-to board design with selected parts, netlist, BOM and ERC is
-`hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001 E), which governs part-level detail; board-to-board pins: `hardware/electrical/INTERCONNECT.md`
+`hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001 G), which governs part-level detail; board-to-board pins: `hardware/electrical/INTERCONNECT.md`
 (SQSO-ICX-001)
 
-**Governing documents**: `docs/BASELINE_PARAMETERS.md` Rev D (§4 inhibits and timers, §5 power, §7 TX-OFF);
+**Governing documents**: `docs/BASELINE_PARAMETERS.md` Rev E (§4 inhibits and timers, §5 power, §7 TX-OFF);
 `docs/hardware/BUILD_VS_BUY.md` §2.4 (build the EPS; ISIS ICEPS2 Type B alternate), §3.2, §4; CDS Rev 14.1 §2.3;
 SpaceX Rideshare Payload User's Guide v11 §6.7.7 and §7.6; JSC 20793 Rev D for the ISS backup; EEE-INST-002 and
 SQSO-HAR-001 §5.2 for derating.
 
-**Analyses**: power closure SQSO-PBA-001 v2.0; thermal SQSO-THA-001 v2.0; battery safety SQSO-BSA-001; EMC SQSO-EMC-001;
+**Analyses**: power closure SQSO-PBA-001 v2.5; thermal SQSO-THA-001 v2.5; battery safety SQSO-BSA-001; EMC SQSO-EMC-001;
 drawings SQSO-HW-DIAG-001 (B2, S1, S2, S5, S7, W1, W2, W7).
 
 Version 1.x described an EPS assembled from GomSpace and ISIS modules (NanoPower MPPT, ISIS iBMS, NanoPower PDU) that
@@ -340,3 +340,4 @@ readable without the EPS controller, and the controller's block at 0x48 fed by t
 | 2.3 | 2026-10-27 | CDR design (EPS board) | Pack fuse F2 (and F0 on the battery sense board) FM12A72V5.0A for breaking capacity; storage drain 7.7 µA worst with the access-port board's TVS (SQSO-EPS-BRD-001 C) |
 | 2.4 | 2026-10-27 | CDR design (EPS board) | Round-3 panel (SQSO-EPS-BRD-001 D): DS2 two-pole, array path with three inhibits (§8.1, §8.2); load shed on both Jetson series switches and the covered failure modes restated (§6); EOL arm with the EPS controller's key, fault-tolerance claim corrected (§7); sense-board fuses F0A/F0B/F0N and fused, current-limited taps (§5); JETSON_PWR PA8; harness table to SQSO-HAR-001 2.0; BMS BQ76952; cold-burn bus voltage per EMC_ANALYSIS C (§4, §5.1) |
 | 2.5 | 2026-10-27 | CDR design (EPS board) | Board FMEA (SQSO-FMEA-003 A) changes in SQSO-EPS-BRD-001 E: PA out of the load shed (EPS-F012 change proposed), AntS supply on DEPLOY_EN OR the EPS controller, OBC heartbeat supervision of SW10, DS2 drive from the pack or the array, active-high tracker clamps (DS3's tracker contact dropped), passivation's dependence on the EPS controller stated (§7); EPS-F001 2.23 W (SYS-100 Rev G) with 2.48 / 3.92 W; transponder 1.84 / 2.42 W DC on SW3; burn 10 s per resistor (C-17); AntS bus on the OBC's I2C3 (SQSO-ICX-001 E14); storage drain 13.8 µA worst (protector tap ladder, SQSO-EPS-BRD-001 G) |
+| 2.6 | 2026-10-27 | Documentation audit (post-CDR 2026) | Header references to the current revisions: BASELINE Rev E (was Rev D), SQSO-EPS-BRD-001 G (was E), SQSO-PBA-001 v2.5 and SQSO-THA-001 v2.5 (were v2.0); content unchanged |

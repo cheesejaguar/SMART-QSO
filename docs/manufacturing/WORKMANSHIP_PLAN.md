@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-WP-001
-**Revision:** B
+**Revision:** C
 **Date:** 2026-10-27
 **Reference:** NASA-STD-8739.6B and the standards it invokes (§2)
 
@@ -71,8 +71,8 @@ This Workmanship Plan defines the quality standards and inspection criteria for 
 
 | Parameter | Requirement |
 |-----------|-------------|
-| Standard | NASA-STD-8739.1 |
-| Material | Per materials list (Dow 1-2577 or equiv) |
+| Standard | NASA-STD-8739.1B |
+| Material | Arathane 5750 A/B (LV) polyurethane, preferred; HumiSeal 1B73 and Dow 1-2577 alternates, E595 data open (`docs/compliance/MATERIALS_LIST.md` §5) |
 | Thickness | 25-75 µm (1-3 mils) |
 | Coverage | All exposed conductors |
 
@@ -111,8 +111,8 @@ This Workmanship Plan defines the quality standards and inspection criteria for 
 
 | Material | Application |
 |----------|-------------|
-| Dow Corning 93-500 | General staking |
-| Hysol EA 9394 | High-strength staking |
+| 3M Scotch-Weld 2216 B/A Gray | Component and wire staking, harness tie-down dots; staking only, never structural (`docs/compliance/MATERIALS_LIST.md` §5) |
+| Arathane 5750 A/B | Staking of mated wire-to-board connectors (removable bead; `hardware/harness/HARNESS_DESIGN.md`) |
 
 ### 5.3 Staking Criteria
 
@@ -130,7 +130,7 @@ This Workmanship Plan defines the quality standards and inspection criteria for 
 | Standard | NASA-STD-8739.4 |
 | Wire type | Per materials list (Teflon insulated) |
 | Routing | No sharp bends, service loops |
-| Tie-down | Lacing cord with E595 data (no nylon ties: MATERIALS_LIST Rev B §7) |
+| Tie-down | MIL-T-43435 lacing tape (no nylon ties: `docs/compliance/MATERIALS_LIST.md` §7) |
 
 ### 6.2 Crimping
 
@@ -163,13 +163,9 @@ This Workmanship Plan defines the quality standards and inspection criteria for 
 
 ### 7.2 Torque Values
 
-| Fastener | Torque (in-lb) |
-|----------|----------------|
-| M2 | 1.5-2.0 |
-| M2.5 | 2.5-3.5 |
-| M3 | 4.0-5.5 |
-| #2-56 | 2.0-2.5 |
-| #4-40 | 4.5-5.5 |
+The installation torque of every flight joint is set by the structural design, joint by joint, and governs: M2 A286
+0.15 N·m, M2.5 A286 0.35 N·m, M3 A286 stack studs 0.60 N·m, the M2.5 Ti-6Al-4V battery isolators 0.20 N·m ± 10 %, the
+M2 Ti-6Al-4V cell-retention screws 0.10 N·m (`hardware/structure/STRUCTURAL_DESIGN.md` §8.1). The Revision A generic table (in-lb per thread size) is withdrawn.
 
 ### 7.3 Inspection
 
@@ -288,3 +284,4 @@ This Workmanship Plan defines the quality standards and inspection criteria for 
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-27 | §2 standards corrected (8739.6B, J-STD-001 space addendum, 8739.4A, 8739.1B; 8739.3 cancelled); Sn63Pb37 only; lacing instead of nylon ties; Loctite 242 removed | CDR S&MA review |
+| C | 2026-10-27 | Documentation audit (post-CDR 2026): §4.1 conformal coat Arathane 5750 (preferred) with the open alternates, §5.2 staking materials Scotch-Weld 2216 and Arathane 5750 (Dow 93-500 is the panel encapsulant, Hysol EA 9394 is not in the materials list), §6.1 MIL-T-43435 lacing tape, all per MATERIALS_LIST §5 and §7; §7.2 torques from STRUCTURAL_DESIGN §8.1 in place of the generic table | Documentation audit |

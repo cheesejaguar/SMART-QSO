@@ -28,8 +28,8 @@ This procedure verifies that the flight unit is configured correctly for launch 
 
 ## 3. APPLICABLE DOCUMENTS
 
-1. Software Version Description (SVD)
-2. Flight Configuration Baseline
+1. Software Version Description (SVD), SQSO-SVD-001 (`docs/software/SOFTWARE_VERSION_DESCRIPTION.md`)
+2. Flight Configuration Baseline (`docs/BASELINE_PARAMETERS.md`)
 3. As-Built Configuration List
 4. CDS Rev 14.1
 
@@ -41,7 +41,7 @@ This procedure verifies that the flight unit is configured correctly for launch 
 |-----------|---------------|
 | Development PC | Ground station software |
 | Serial interface | USB-UART adapter |
-| Power supply | 4.0V battery simulation |
+| Power supply | 4S pack simulator, 11.2–16.4 V |
 | RBF pin | Flight unit |
 | Inspection tools | Torque wrench, magnifier |
 
@@ -94,13 +94,16 @@ This procedure verifies that the flight unit is configured correctly for launch 
 | Beacon Interval (IDLE) | 120 s | | |
 | Beacon Interval (SAFE) | 180 s | | |
 | Modulation | AFSK 1200 | | |
+| Loss-of-contact timeout N | 30 days at launch (set to 14 days after commissioning; range 1–90; `docs/BASELINE_PARAMETERS.md` §7, D3) | | |
+| TX-OFF latch | Not latched (transmitters enabled for the post-silence beacon) | | |
+| Telecommand keys | 4 operational keys (1 active, 3 spares) and the recovery key loaded through the umbilical (SYS-326; SQSO-ICD-013); counters at their provisioned values | | |
 
 #### 6.2.3 Power Management Configuration [SRS-F013, SRS-F014, SRS-F015]
 
 | Parameter | Expected Value | Actual | P/F |
 |-----------|----------------|--------|-----|
-| Battery Low Threshold | 3.3V | | |
-| Battery Critical Threshold | 3.1V | | |
+| BMS under-voltage cut | 11.2 V pack (`docs/hardware/EPS_DESIGN.md` §4) | | |
+| Jetson hardware load shed | Below 13.6 V (BASELINE §5) | | |
 | Safe Mode Threshold | 25% SOC (SRS-F013) | | |
 | Idle Mode Threshold | 40% SOC (SRS-F014) | | |
 | Emergency Threshold (beacon shed) | 15% SOC (`docs/BASELINE_PARAMETERS.md` §5) | | |
@@ -112,7 +115,7 @@ This procedure verifies that the flight unit is configured correctly for launch 
 | Parameter | Expected Value | Actual | P/F |
 |-----------|----------------|--------|-----|
 | Detumble Threshold | 0.5°/s across +Y (`DETUMBLE_RATE_THRESHOLD`) | | |
-| Spin Rate (SUNPOINT) | 6°/s about +Y (`SPIN_RATE`) | | |
+| Spin Rate (SUNPOINT) | 8°/s about +Y (`SPIN_RATE` 0.1396 rad/s, `software/rust/sqso-fsw/src/adcs.rs`; BASELINE §8, decision D9 as changed by the design review) | | |
 | B-dot Gain | 1.0e4 A·m²·s/T (`ADCS_BDOT_GAIN`) | | |
 | Control Mode | Sun-pointing | | |
 | Magnetometer Calibration | Applied | | |
@@ -122,21 +125,22 @@ This procedure verifies that the flight unit is configured correctly for launch 
 | Parameter | Expected Value | Actual | P/F |
 |-----------|----------------|--------|-----|
 | Deployment Timer | 30 minutes | | |
-| Antenna Deploy First | Yes | | |
-| Solar Deploy Second | Yes | | |
-| Burn Wire Duration | 3 seconds | | |
-| Retry Attempts | 3 | | |
+| Solar Wings Deploy First | Yes, one resistor at a time (SRS-F089) | | |
+| Antennas (AntS) Second | Yes, over I2C3, temperature gate ≥ −17 °C (C-18) | | |
+| Burn Duration | 10 s per resistor (decision C-17); hardware one-shot 12 s | | |
+| Retry Attempts | 50 minutes apart, bounded (SRS-F088) | | |
 
 ### 6.3 Hardware Configuration Verification [SYS-001, SYS-004, SYS-005]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
-| 1 | Verify rail dimensions | 8.5×8.5 mm ±0.1 | |
+| 1 | Verify rail dimensions | ≥ 8.5 mm wide, rail ends ≥ 6.5 × 6.5 mm (SYS-080) | |
 | 2 | Verify overall dimensions | 100×100×113.5 mm | |
 | 3 | Verify deployment switch location | Per drawing | |
 | 4 | Verify RBF pin location | Per drawing | |
 | 5 | Verify antenna stowage | Properly stowed | |
-| 6 | Verify solar panel stowage | Properly stowed | |
+| 6 | Verify solar wing stowage | Properly stowed | |
+| 6a | Verify the inertia ballast | 2 × 10 g W-Ni-Cu on the +Z end frame, as trimmed (BASELINE §4, decision C-13) | |
 | 7 | Verify all fasteners | Torqued and staked | |
 | 8 | Verify all connectors | Properly mated | |
 | 9 | Verify harness routing | No pinch points | |
@@ -158,7 +162,7 @@ This procedure verifies that the flight unit is configured correctly for launch 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
 | 1 | Measure battery voltage | Record value | |
-| 2 | Verify shipping SOC | 30-50% per guidelines | |
+| 2 | Verify shipping SOC | Storage band agreed with the integrator; the final 60 % ± 5 % charge is made at the integrator (BASELINE §4; SQSO-LVR-001 LVR-071) | |
 | 3 | Verify heater status | Off or as required | |
 | 4 | Record battery temperature | Within safe range | |
 
@@ -194,8 +198,8 @@ Bench power-ups can complete the 45-minute silence and the deployment sequence, 
 | Configuration parameters | Match flight baseline |
 | Hardware configuration | Matches as-built list |
 | Inhibit states | Correct for shipping |
-| Battery state | 30-50% SOC |
-| Documentation | Complete and approved |
+| Battery state | Shipping SOC as agreed with the integrator (BASELINE §4) |
+| Documentation | Complete; approvals recorded when given |
 
 ---
 

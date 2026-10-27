@@ -1,17 +1,18 @@
 # SMART-QSO Executive Summary
 
 **Document ID**: SQSO-ES-001
-**Version**: 2.2
+**Version**: 2.3
 **Date**: 2026-10-27
 **Classification**: Unclassified — open-source project
-**Status**: Design-phase baseline (pre-PDR in substance). See the [funding audit](funding_audit/FUNDING_AUDIT_REPORT.md).
+**Status**: Phase B (pre-PDR) (BASELINE §1). Current review record: the [CDR 2026 design review](reviews/CDR/CDR_2026_DESIGN_REVIEW.md), an engineering assessment by AI reviewers, not an independent board.
 
 ## Mission Overview
 
 **SMART-QSO** (Self-Managing Amateur Radio Transponder — QSO) is a proposed 1U CubeSat in the amateur-satellite
 service. It carries a single-channel U/V FM transponder for worldwide amateur contacts and a plain-text AX.25 telemetry
-beacon. It also carries an amateur technical investigation of onboard AI: a power-gated NVIDIA Jetson schedules the
-transponder within the available power and composes beacon text. If the AI is unavailable, the spacecraft falls back to
+beacon. It also carries an amateur technical investigation of onboard AI: a small selector on the flight computer schedules the
+transponder within the available power and chooses plain-language beacon text (flight baseline), and a power-gated
+NVIDIA Jetson composes beacon text as a gated experiment (decision D5). If the AI is unavailable, the spacecraft falls back to
 a conventional transponder and template beacon.
 
 ## Mission Objectives
@@ -26,28 +27,28 @@ a conventional transponder and template beacon.
 | Feature | Baseline |
 |---------|----------|
 | Form factor | 1U CubeSat, 100 × 100 × 113.5 mm (CDS Rev 14.1) |
-| Mass | Design limit 2.00 kg or the dispenser limit (EXOpod Nova 1U 2.5 kg). CBE 1.49 kg, MEV 1.73 kg, margin +15.9 % (BASELINE §4; [mass budget](environment/MASS_BUDGET.md) v3.0) |
-| Power | 16 triple-junction cells (body + two deployable wings): 2.43 W EOL orbit average delivered tumbling, 3.93 W sun-pointed (mission simulation, BASELINE §5; [power budget](environment/POWER_BUDGET_ANALYSIS.md) v2.0); 2.14 W isotropic-tumble bound ([array analysis](../hardware/eps/SOLAR_ARRAY_DESIGN.md) §9) |
-| Battery | 4S1P Li-ion 18650, ≈ 50 Wh; eclipse depth of discharge 1.3–2.0 % against a 10 % limit ([battery design](../hardware/eps/BATTERY_DESIGN.md) §3) |
+| Mass | Design limit 2.00 kg (dispenser limit EXOpod Nova 1U 2.5 kg). CBE 1.52 kg, MEV 1.755 kg, margin +14.0 % (BASELINE §4; [mass budget](environment/MASS_BUDGET.md) v3.3) |
+| Power | 16 triple-junction cells (body + two deployable wings): 2.48 W EOL orbit average delivered tumbling, 3.84 W sun-pointed (mission simulation, BASELINE §5; [power budget](environment/POWER_BUDGET_ANALYSIS.md) v2.5); 2.14 W isotropic-tumble bound ([array analysis](../hardware/eps/SOLAR_ARRAY_DESIGN.md) §9) |
+| Battery | 4S1P Li-ion 18650, ≈ 50 Wh, charged to 4.10 V/cell (D8); depth of discharge as flown in the mission simulation ≤ 2.3 %, deepest contingency 2.8 %, against a 10 % limit (BASELINE §5) |
 | Flight computer | STM32L4R5ZI; Rust flight software on the Embassy executor, no RTOS (BASELINE §6, rebaselined 2026-10-25). It runs as a host simulation, and the image has not run on hardware |
 | AI payload | Jetson Orin Nano 8 GB module, 7 W mode, power-on ≤ 10 min per burst then ≥ 100 min off, duty ≤ 5–10 %; flight baseline is a template selector on the OBC, Jetson text a gated experiment (BASELINE §6, D5) |
 | Radio | Downlink 145.800–146.000 MHz and uplink requested in 435.222–435.778 MHz, else 436.222–436.500 MHz (IARU to coordinate; BASELINE §7); ≤ 1 W; FM transponder plus 1200 bps AX.25 beacon; authenticated telecommand with a hardware TX-OFF path |
-| Link | 1200 bps beacon at 0.5 W closes from 5° elevation with +7.7 dB for a 12 dBic station (+4.7 dB in the conservative antenna-pattern case); analysis, [link budget](environment/LINK_BUDGET_ANALYSIS.md) v2.0 |
+| Link | 1200 bps beacon at 0.5 W closes from 5° elevation with +7.9 dB for a 12 dBic station at the median spacecraft gain (+0.9 dB at the 10th percentile); telecommand ≥ 64 dBm EIRP from each station (C-14); analysis, [link budget](environment/LINK_BUDGET_ANALYSIS.md) v3.5 (BASELINE §7) |
 | Orbit | Sun-synchronous, 475 km target, 465–485 km, not above 485 km; Falcon 9 Transporter-class rideshare through Exolaunch, planning launch about 2028-11 (ISS deployment as backup) (BASELINE §3) |
 | Design life | 2 years (12 months minimum); passive re-entry within the FCC 5-year rule |
 
-## Program Status (as of 2026-10-14)
+## Program Status (as of 2026-10-27)
 
 | Item | Status |
 |------|--------|
 | Hardware | **None built or procured** |
-| Design reviews (SRR/PDR/CDR) | **No independent review held.** Existing records are internal self-assessments generated on 2026-01-02 |
-| Flight software | Rust (2026-10-24; `software/rust/README.md`): a host simulation and an STM32L4R5ZI image on the Embassy executor that CI builds and checks but no hardware has run. 45 C test suites (695 cases) run against it, with 358 Rust unit tests and 12 fuzz targets. Line coverage 94.8 % (Rust) and 94.8 % (C and Rust together), counting every compiled line (CI, 2026-10-25). On 2026-10-16 it was C: 40 suites (596 cases) and 82.7 % |
-| Payload / ground software | Python; 143 payload and 98 ground unit tests pass in CI |
+| Design reviews (SRR/PDR/CDR) | **No independent review held.** The records of 2026-01-02 are internal self-assessments. The CDR 2026 design review (2026-10-27) is an engineering assessment by AI reviewers against the NPR 7123.1D CDR criteria, not an independent board: no review action open; verdict "a strong PDR with CDR-depth analysis, not past a CDR" (review record §7). Independent PDR planned 2027-01-12, independent CDR 2027-09-28 ([schedule](../mission/SCHEDULE.md)) |
+| Flight software | Rust (`software/rust/README.md`): a host simulation, a mission simulation from integration to re-entry (SQSO-SIL-001), and an STM32L4R5ZI image on the Embassy executor that CI builds and checks but no hardware has run. At the CDR 2026 review 622 Rust tests and 56 C suites passed, with the safety-critical coverage gate (32 files, 100 % of lines and conditions) (review record §7.1); coverage gates and values in `software/flight/tests/README.md` |
+| Payload / ground software | Python; payload and ground pytest suites run in CI (`.github/workflows/program-checks.yml`) |
 | Regulatory filings | **None submitted.** Drafts exist for the IARU request, FCC Part 97 pre-space notification, ITU Appendix 4 data and ODAR |
-| Launch | **Not contracted.** Trade study recommends a commercial SSO rideshare in 2028 |
-| Licensee / team | **Not yet named** |
-| Budget | ROM only: $0.28M–$0.72M cash for a volunteer build, $0.58M–$1.32M for a university build ([cost ROM](funding_audit/LIFECYCLE_COST_ROM.md)) |
+| Launch | **Not contracted.** Planned: Falcon 9 Transporter rideshare through Exolaunch in an EXOpod Nova, about 2028-11-01; integrator RFQs by 2026-12-31, contract by 2027-06-30 (BASELINE §3, D7) |
+| Licensee / team | Licensee **KK6GDB** (individual, D1); telecommand stations and team **not yet named or agreed** |
+| Budget | ROM only: $0.31M–$0.96M cash for a volunteer build, $0.61M–$1.56M for a university build ([cost ROM](funding_audit/LIFECYCLE_COST_ROM.md) Rev F §5) |
 
 ## Key Design Features
 
@@ -59,13 +60,14 @@ AI-scheduled transponder + AI beacon → Template beacon + scheduled transponder
 ### Power-aware operations
 - AI bursts only when sunlit, SOC ≥ 55 % and within temperature limits; duty ≤ 5 % tumbling, ≤ 10 % sun-pointed
 - Transponder duty ≤ 25 %, power-gated
-- Power allocation closes with +33 % (tumbling) and +63 % (sun-pointed) margin (BASELINE §5). This is an allocation, not yet a simulation; with array self-shadowing the tumbling margin is +19 %, below the 20 % requirement
+- Power allocation closes with +33 % (tumbling) and +70 % (sun-pointed) margin against the simulated end-of-life generation; the bottom-up ACTIVE loads with the designed transponder give +27 % and +45 % (BASELINE §5; requirement ≥ 20 %). Predicted, not measured
 
 ## Top Risks
 
-See [mission/RISK_REGISTER.md](../mission/RISK_REGISTER.md). The highest-rated risks are funding timing versus launch
-capacity (R11), key-person dependency (R14), flight-software maturity (R18), Jetson feasibility in 1U (R16) and
-regulatory schedule (R19).
+See [mission/RISK_REGISTER.md](../mission/RISK_REGISTER.md). The highest-rated risks (score 20) are funding timing versus launch
+capacity (R11), key-person dependency (R14), the third RF and deployable inhibit (R26, designed, open until tested) and
+the wing burn line (R27, designed, open until tested); next (16) are Jetson feasibility in 1U (R16), schedule (R21), no
+PCB layout or engineering model (R24), the deployment altitude (R25) and reliability (R29).
 
 ## Success Criteria
 
@@ -84,12 +86,13 @@ outreach tools ([SDP](software/SOFTWARE_DEVELOPMENT_PLAN.md) §3.1). No standard
 
 ## Forward Plan
 
-1. Name the licensee and team (D1); confirm funding structure (D2); consult the FCC (D3)
-2. Obtain integrator quotes; reserve a 2028 slot by mid-2027
-3. Rebuild power, thermal and link analyses at the baseline; run NASA DAS
-4. Implement the regulatory flight-software functions (TX-OFF, authenticated telecommand, 45-minute RF silence) on target hardware
-5. Hold an independent PDR, then build a flatsat/EM
-6. Submit the IARU request; file the FCC pre-space notification within 30 days of launch-vehicle determination
+Dated actions from the CDR 2026 review (review record §7.3; [schedule](../mission/SCHEDULE.md) §5):
+1. Request the NASA DAS agreement (2026-11-06) and the FCC Space Bureau consultation (2026-11-15)
+2. Name the independent PDR board (2026-12-01); name the contracting legal entity and send the integrator RFQs (2026-12-31)
+3. Telecommand station agreements (2027-01-05)
+4. Ratify or reject the review's chair decisions C-1 to C-24; independent PDR (2027-01-12); engineering-model order (2027-01-15)
+5. Early FCC pre-space notification (2027-01-19) and IARU request (2027-01-26)
+6. Launch contract with the altitude clause by 2027-06-30; independent CDR with engineering-model data (2027-09-28)
 
 ---
 
@@ -103,3 +106,4 @@ outreach tools ([SDP](software/SOFTWARE_DEVELOPMENT_PLAN.md) §3.1). No standard
 | 2.1, note | 2026-10-24 | SMART-QSO Team | Flight computer and flight software rows: the flight software is Rust on the Embassy executor (BASELINE §6 note); test counts and coverage of 2026-10-24 |
 | 2.1, note | 2026-10-25 | SMART-QSO Team | Flight computer row: Embassy executor, no RTOS, is the baseline (CR-2026-002); software classification NPR 7150.2D Class C (SDP §3.1) |
 | 2.2 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: mass, power, AI burst, uplink and orbit rows from BASELINE Rev E (§3–§7) |
+| 2.3 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): status Phase B and the CDR 2026 review; mass, power, battery and link rows from BASELINE Rev E (amended); AI selector as flight baseline; program status, budget and forward plan from the review record §7 and the cost ROM Rev F; top risks from SQSO-RISK-001 |

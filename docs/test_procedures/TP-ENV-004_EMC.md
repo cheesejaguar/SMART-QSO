@@ -6,7 +6,15 @@
 **Date:** 2026-01-02
 **Status:** CDR Baseline
 
-**Requirements verified:** MRD-080 (launch provider EMC), SYS-200, SYS-203
+**Requirements verified:** MRD-080 (launch provider EMC), SYS-200, SYS-203, SYS-713
+
+> **Governing tests.** `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` (SQSO-ETP-001) §3.6 sets the EMC tests and pass
+> criteria; they are in §8.7 below and govern where this procedure differs. MIL-STD-461G RE102 and CE102 at spacecraft
+> level are not required (the spacecraft is unpowered in the dispenser; GEVS-B Appendix B §2.5), so §8.2, §8.3, §8.5 and
+> §8.6 are optional engineering-model pre-scans. On the flight model the antennas are **not** deployed for this test:
+> it runs after the protoflight vibration and thermal vacuum (ETP §4 step 8), and a deployment after protoflight testing
+> needs the integrator's written approval (CDS Rev 14.1 §3.5.2; ETP §3.8). Radiated checks with deployed antennas are
+> made on the engineering model.
 
 ---
 
@@ -52,7 +60,7 @@ This procedure defines the electromagnetic compatibility (EMC) and electromagnet
 |------|---------------|
 | Unit Under Test | SMART-QSO Flight Unit |
 | Power Source | Flight batteries or equivalent |
-| Antennas | Flight antennas deployed |
+| Antennas | EM: deployed. FM: stowed, transmitters into loads through the antenna ports (see the governing-tests note) |
 | Software | Flight software |
 | Mode | All operational modes |
 
@@ -63,7 +71,7 @@ This procedure defines the electromagnetic compatibility (EMC) and electromagnet
 | Mode 1 | Safe Mode (beacon only) |
 | Mode 2 | Idle Mode (OBC + beacon) |
 | Mode 3 | Active Mode (all systems) |
-| Mode 4 | Burst Mode (Jetson active) |
+| Mode 4 | Active Mode with a Jetson burst and magnetorquer actuation (there is no separate burst mode) |
 
 ---
 
@@ -111,7 +119,7 @@ This procedure defines the electromagnetic compatibility (EMC) and electromagnet
 |------|--------|-----------------|
 | 1 | Position UUT on test table | Centered, grounded |
 | 2 | Connect LISN to power input | Proper impedance |
-| 3 | Deploy antennas | Full deployment |
+| 3 | EM: deploy antennas. FM: connect the antenna ports to loads | Configuration recorded |
 | 4 | Power on UUT | Boot successful |
 | 5 | Verify beacon transmission | RF signal present |
 | 6 | Record ambient noise floor | < -100 dBm |
@@ -150,7 +158,7 @@ This procedure defines the electromagnetic compatibility (EMC) and electromagnet
 
 **Exceptions:**
 - Intentional transmission at the IARU-coordinated downlink frequency in 145.800–146.000 MHz, not 145.825 MHz (SYS-200; TBD-SYS-001)
-- Harmonics at least 40 dB below carrier (SYS-203) and ≤ 25 µW (47 CFR 97.307(e): < -43 dBc at 0.5 W, < -46 dBc at 1 W)
+- Harmonics at least 46 dB below carrier and ≤ 25 µW at 1 W (SYS-203; 47 CFR 97.307(e)); third harmonic at least 70 dB below carrier (SYS-203 Rev G)
 
 ### 8.4 Self-Compatibility Test
 
@@ -162,6 +170,17 @@ This procedure defines the electromagnetic compatibility (EMC) and electromagnet
 | 4 | Monitor beacon generation | Correct format |
 | 5 | Monitor Jetson inference | Correct output |
 | 6 | Duration: 30 minutes | No anomalies |
+
+### 8.7 ETP §3.6 Tests (govern) [SYS-203, SYS-713]
+
+| Step | Test | Pass Criteria |
+|------|------|---------------|
+| 1 | Bus ripple at each power card and at the distribution point, all loads on | ≤ 200 mV peak-to-peak on the 14.4 V bus, 1 MHz bandwidth |
+| 2 | Emissions at the 435 MHz receiver input in every mode, including a Jetson burst and magnetorquer PWM | ≥ 6 dB below the receiver's minimum usable signal (SYS-713) |
+| 3 | RF self-compatibility, each transmitter at full power | No reset, no false telecommand, no sensor fault (SYS-713) |
+| 4 | Spurious and harmonics, conducted (TP-RF-003) | ≥ 46 dBc and ≤ 25 µW at 1 W; third harmonic ≥ 70 dBc at the antenna port (SYS-203) |
+| 5 | EM only: GNSS L1 noise with the Jetson, PA and magnetorquers on | Receiver keeps a fix with C/N0 loss ≤ 3 dB |
+| 6 | EM only: magnetometer with the Jetson and magnetorquer currents | Bias shift within the ADCS calibration budget |
 
 ### 8.5 Conducted Susceptibility (CS101)
 
@@ -190,6 +209,7 @@ This procedure defines the electromagnetic compatibility (EMC) and electromagnet
 | CE102 | Emissions < limit - 6 dB margin |
 | RE102 | Emissions < limit - 6 dB margin |
 | Self-Compat | No operational anomalies |
+| ETP §3.6 (§8.7) | Every criterion of §8.7 met (governs) |
 | CS101 | No operational disruption |
 | RS103 | No operational disruption |
 
@@ -232,7 +252,7 @@ Anomalies: ___________
 | Step | Action |
 |------|--------|
 | 1 | Power off UUT |
-| 2 | Stow antennas (if applicable) |
+| 2 | EM only: stow antennas per the vendor procedure |
 | 3 | Perform abbreviated functional test |
 | 4 | Complete test data package |
 | 5 | Review results with test lead |

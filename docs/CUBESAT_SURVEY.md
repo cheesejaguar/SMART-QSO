@@ -1,6 +1,16 @@
 # CubeSat AI Payload Mission Survey
 ## Analysis of Similar Missions and SMART-QSO's Novel Contributions
 
+> **Historical record (2026-01), unverified.** Superseded for current values by `docs/BASELINE_PARAMETERS.md` and
+> `docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`. This survey was written without citations that resolve (the reference
+> list names no URLs, papers or dates), and the documentation audit of 2026-10-27 could not check its mission
+> descriptions; do not cite them. Its priority claims ("first 1U CubeSat with a dedicated AI payload", "fastest AI
+> accelerator ever deployed in a CubeSat") are not substantiated, and SMART-QSO has not been built or flown. The
+> payload is a Jetson Orin Nano 8 GB module in the 7 W mode, not the "Super" and its performance figures (BASELINE §6,
+> TB-13), and the flight-baseline AI is a template selector on the OBC, with Jetson-generated text a gated experiment
+> (decision D5). Still good for: the categories of AI CubeSat missions a sourced survey should cover. Sourced research
+> for the payload decision: `docs/funding_audit/research/D5_AI_MODEL_SELECTION.md`.
+
 ### Executive Summary
 
 This document surveys the landscape of CubeSat missions with AI payloads, analyzing both flown and upcoming missions to establish SMART-QSO's position in the field. The survey reveals that while several CubeSats have incorporated AI capabilities, SMART-QSO represents a significant advancement as the first 1U CubeSat with a dedicated AI payload, the first focused on amateur radio outreach, and the first to fly the fastest AI accelerator ever deployed in a CubeSat.

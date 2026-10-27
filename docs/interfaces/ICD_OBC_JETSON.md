@@ -1,9 +1,9 @@
 # Interface Control Document: OBC-Jetson
 
 **Document Number**: SMART-QSO-ICD-002
-**Version**: 1.4
+**Version**: 1.5
 **Date**: 2026-10-27
-**Status**: Preliminary
+**Status**: Preliminary. §2, §3, §5.2 and §6.3 are the 2026-01 interface and are superseded by §9 and §10 (carrier SQSO-JET-BRD-001, pins SQSO-ICX-001 §3.3); §4 is exact
 
 ---
 
@@ -28,8 +28,8 @@ This document covers:
 +----------------+                    +------------------+
 |                |     UART (3.3V)    |                  |
 |      OBC       |<------------------>|     Jetson       |
-| (STM32L4/      |     TX/RX/GND      | Orin Nano Super  |
-|  Apollo4)      |                    |                  |
+| (STM32L4R5ZI)  |     TX/RX/GND      | Orin Nano 8 GB   |
+|                |                    | (7 W mode)       |
 |                |     Power Enable   |                  |
 |                |------------------->|                  |
 |                |     (GPIO)         |                  |
@@ -312,7 +312,8 @@ module's I/O rail, hold it in an undefined state at switch-on, and add a few mil
 of: an isolating buffer on the carrier powered from its own 3.3 V (a part with I_off, e.g. 74LVC1T45 class) in each
 direction; or the firmware switching PA9 to an analog input while `JETSON_PWR` is low and back to the USART function
 after power-good. Until then the interface is not verified for power-off isolation (test: TX idle with the carrier off,
-measure the carrier's 3.3 V rail; pass below 0.3 V).
+measure the carrier's 3.3 V rail; pass below 0.3 V). The design now takes the first option on both boards: U28/U29
+SN74LVC1T45 on the OBC, powered from JET_3V3 (SQSO-ICX-001 §3.3), and the carrier's translators (§10.2); V-OBC-9 is the test.
 
 ## 10. Carrier Interface as Designed (SQSO-JET-BRD-001 A)
 
@@ -375,7 +376,7 @@ JETSON_PWR PA2; corrected in place, panel item P3E-05); this table governs: the 
 | Readbacks | VSW1_RB (PA1) and VJET_RB (PA7), ×6 dividers: compared with the commands 200 ms after each change, on above 6.0 V; a disagreement is a fault logged at onset and clearance (RID AV-06) |
 | Current (JPC) | the EPS controller's IMON_JET (register 0x8A, SMART-QSO-ICD-001 §4.6), carrier input current; the payload power for the guard is VJET_RB × JPC |
 | Spreader temperature (PT) | PT_NTC on PA2 (ADC1_IN7), 10.0 kΩ 0.1 % bias from VDDA: R = 10.0 kΩ · N / (4095 − N), Steinhart–Hart 10K3A (A = 1.129241e-3, B = 2.341077e-4, C = 0.877547e-7); readable with the carrier off. Outside 0.10–3.25 V a sensor fault that inhibits the switch-on; the 70 °C guard and the −15 °C gate use it (SRS-F150) |
-| Burst energy gate | the burst ends when VJET_RB × JPC integrated reaches 360 J per line of a full batch (3.6 kJ for 10 lines), normally at 480–500 s, before the 10-minute limit (SRS-F151, RID JETB-04); HK2 `JB` |
+| Burst energy gate | VJET_RB × JPC integrated; the burst ends when it exceeds 360 J for each line the content filter has accepted so far plus the one in progress, or reaches 3.6 kJ, or at the 10-minute limit (decision C-20; `sqso_fsw::payload_schedule`, SRS-F151, RIDs JETB-04, P3F-G-03); HK2 `JB` |
 | Magnetometer | not used for actuation while JET_PG is high (the carrier's field, about 0.35 µT at the 6.5 W cap; SRS-F143) |
 | Module configuration | the 6.5 W cap (INA3221 channel 1 `curr1_max` = 1300 mA), nvpmodel ID 1 (7 W) the default, PCIe C4 Gen2 x1, the board configuration without a carrier EEPROM: `software/payload/platform_config.py` and `software/payload/config/` (RID JETB-01) |
 
@@ -399,3 +400,4 @@ JETSON_PWR PA2; corrected in place, panel item P3E-05); this table governs: the 
 | 1.2 | 2026-10-27 | SMART-QSO Team (CDR avionics review) | §9 new: interface as built (power through SW1 and U3 from VBAT, 8 W limit, connector pin 4, switch-on/off, fallback); back-powering through the idle TX line (RID AV-09) |
 | 1.3 | 2026-10-27 | Payload carrier design (CDR design completion) | §10 new: carrier connectors (W5B 6 pins with the spreader thermistor, change E10), 5 V-only module input, 1.8 V UART translated on the carrier, OBC transmits 8N2, JET_3V3 as power-good, timing, commanded switch-off with SHUTDOWN and JET_3V3 (supersedes the §9 switch-off row) |
 | 1.4 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §10.5 new: the flight-software side as built: 8N2, PAYLOAD_EN PB2 and JETSON_PWR PA8, JET_PG, the commanded switch-off with SHUTDOWN, power-good faults, switch readbacks, JPC from IMON_JET, the spreader thermistor, the burst energy gate, magnetometer gating, the module's platform configuration (RIDs JETB-01 to JETB-04, AV-06) (amended: §9 power row pins corrected to PAYLOAD_EN PB2, JETSON_PWR PA8, eFuse U19, panel item P3E-05; §10.1 carrier connectors 0430450402 and 2035560607, gold, per SQSO-MFG-003) |
+| 1.5 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): status names the superseded sections; §1.3 diagram STM32L4R5ZI and the Orin Nano 8 GB module in the 7 W mode (was STM32L4/Apollo4, Orin Nano Super; BASELINE §6); §10.5 the energy gate per accepted line of decision C-20 (was 360 J per line of a full batch); §9 back-powering: the isolating buffers are now in the design |

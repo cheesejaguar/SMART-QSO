@@ -2,9 +2,18 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-ADCS-003
-**Version:** 1.0
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.1
+**Date:** 2026-10-27
+**Status:** Superseded (see the notice below)
+
+> **Superseded (documentation audit, 2026-10-27).** There is **no ADCS interface board**: the sensors and the
+> magnetorquer drive are on the OBC board (`hardware/electrical/INTERCONNECT.md` §2, interface change E5). The design
+> of record is `hardware/electrical/obc/OBC_BOARD_DESIGN.md` (SQSO-OBC-BRD-001) §9–§10, with its schematic source,
+> BOM and pin map in `hardware/electrical/obc/`, and `docs/interfaces/ICD_OBC_ADCS.md` (SQSO-ICD-004): PNI RM3100
+> magnetometer on board A2 at the +Z end frame (not the LIS3MDL), Epson M-G370PDT0 gyro with a BMI088 cold spare, six
+> panel photodiodes into transimpedance amplifiers and an ADS7138-Q1, three DRV8876-Q1 bridges from VBAT_MTQ for the
+> CubeSpace CR0002 rods, each sensor on its own latch-up switch. The part choices, board specification, connector and
+> deliverables below are withdrawn; kept only as a record of the pre-CDR concept.
 
 ---
 
@@ -305,3 +314,4 @@ This document specifies the electrical design requirements for the SMART-QSO ADC
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
+| 1.1 | 2026-10-27 | Documentation audit (post-CDR 2026): marked superseded by SQSO-OBC-BRD-001 §9–§10 and SQSO-ICD-004 (no ADCS board; RM3100, M-G370PDT0, DRV8876-Q1, CR0002 rods) |

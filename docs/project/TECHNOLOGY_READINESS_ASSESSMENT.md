@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-TRA-001
-**Revision:** A
+**Revision:** B
 **Date:** 2026-10-27
 **Status:** Assessment by the CDR 2026 design review (round 3, RID SE-09), for the independent PDR (2027-01-12). No
 hardware exists: every TRL below rests on analysis, simulation or a vendor's record, as its evidence column says. To be
@@ -24,7 +24,7 @@ tailoring requires one at the PDR. This document:
    level or the safety of the launch;
 2. assigns each a **TRL today** with the NPR 7123.1D Appendix E definition it meets and the evidence for it, and states
    the next level's exit criterion;
-3. sets the **target TRL 6 at the CDR** (2027-09-28, `mission/SCHEDULE.md` Rev D): "system/subsystem model or
+3. sets the **target TRL 6 at the CDR** (2027-09-28, `mission/SCHEDULE.md` Rev E): "system/subsystem model or
    prototype demonstration in a relevant environment"; for this protoflight project the model is the EM and the
    relevant environment is the EM test campaign (thermal vacuum, random vibration, EMC, power and thermal duty), with
    radiation by analysis plus the latch-up protection test where no beam test is planned;
@@ -81,7 +81,7 @@ register (R1, R16 for the Jetson; R23 and R24 for the hardware build).
 
 ## 4. Technology Development Plan
 
-Dates are the early dates of `mission/SCHEDULE.md` Rev D (EM boards assembled 2027-06-01; EM integration 2027-06-01 to
+Dates are the early dates of `mission/SCHEDULE.md` Rev E (unchanged from Rev D; EM boards assembled 2027-06-01; EM integration 2027-06-01 to
 2027-07-27; EM tests 2027-07-27 to 2027-09-21; CDR 2027-09-28). Each step's verification item, pass criterion and owner
 are in `docs/verification/VI_REGISTER.md`.
 
@@ -112,3 +112,4 @@ before the FM build (gate G3, `docs/project/PROJECT_PLAN.md` §6.1).
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-10-27 | Initial assessment (RID SE-09): twelve critical elements with TRL, evidence and gap per NPR 7123.1D Appendix E; TRL 6 targets at the CDR and the development plan tied to the EM schedule of SQSO-SCH-001 D | CDR round 3, systems and programmatics |
+| B | 2026-10-27 | Documentation audit (post-CDR 2026): schedule cited at SQSO-SCH-001 E (dates unchanged) | Documentation audit |

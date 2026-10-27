@@ -1,10 +1,20 @@
 # SMART-QSO Launch Readiness Review Package
 
 **Document ID**: SQSO-LRR-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: Template (Pre-LRR)
+**Status**: Template (Pre-LRR). No LRR has been held
+
+> **Template for a future review: not held.** No launch readiness review has been held and nothing in this document
+> records a result; every status, version and signature field is to be filled in at the review. It belongs to the
+> **launch** milestone of `mission/SCHEDULE.md` (planning launch 2028-11-01, the last Transporter-class rideshare of
+> 2028, Falcon 9 from Vandenberg SLC-4E through Exolaunch in an EXOpod Nova; BASELINE §3). The spacecraft is sealed in
+> the dispenser from about L − 47 days with no access or charging (BASELINE §4), so the hardware rows of §4 record the
+> integration at the integrator, not checks made at the review. Values to check against are in
+> [BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md); the current review record is
+> [CDR_2026_DESIGN_REVIEW.md](CDR/CDR_2026_DESIGN_REVIEW.md); the planned event sequence is
+> `docs/operations/MISSION_TIMELINE.md`. Index of the review documents: [README.md](README.md).
 
 ## 1. Purpose
 
@@ -35,7 +45,7 @@ This document provides the Launch Readiness Review (LRR) package for SMART-QSO p
 | Criterion | Requirement |
 |-----------|-------------|
 | FRR complete | All FRR actions closed |
-| Spacecraft at launch site | Integrated with deployer |
+| Spacecraft integrated | In the EXOpod Nova since ≈ L − 47 d |
 | Ground systems operational | Primary and backup ready |
 | Team in position | All stations staffed |
 | No open waivers | All approved or N/A |
@@ -44,13 +54,13 @@ This document provides the Launch Readiness Review (LRR) package for SMART-QSO p
 ### 3.2 Entrance Criteria
 
 - [ ] FRR complete and closed
-- [ ] Spacecraft shipped and received
-- [ ] Deployer integration complete
-- [ ] Final functional test passed
+- [ ] Spacecraft delivered to the integrator and received (≈ L − 50 d)
+- [ ] Dispenser integration complete (≈ L − 47 d)
+- [ ] Final functional test passed before integration
 - [ ] Ground stations verified
 - [ ] Ops team on station
 
-## 4. Spacecraft Status at Launch Site
+## 4. Spacecraft Status (recorded at the integrator, ≈ L − 50 d to L − 47 d)
 
 ### 4.1 Pre-Integration Status
 
@@ -59,7 +69,7 @@ This document provides the Launch Readiness Review (LRR) package for SMART-QSO p
 | Receiving inspection | | [ ] Complete |
 | Visual inspection | | [ ] Pass |
 | Continuity check | | [ ] Pass |
-| Battery SOC | | [ ] >95% |
+| Battery SOC after the final charge | | [ ] 60 % ± 5 % (BASELINE §4) |
 
 ### 4.2 Deployer Integration
 
@@ -74,11 +84,12 @@ This document provides the Launch Readiness Review (LRR) package for SMART-QSO p
 
 | Item | Configuration | Verified |
 |------|---------------|----------|
-| Flight software | v1.0.0 | [ ] |
-| State | SAFE (power off) | [ ] |
-| Antenna | Stowed | [ ] |
-| RBF pin | Installed | [ ] |
-| Deployment switches | Actuated | [ ] |
+| Flight software | (version) | [ ] |
+| Keys loaded; `ARM_FLIGHT` the last umbilical action | Done | [ ] |
+| State | Off: deployment switches open the battery path | [ ] |
+| Antennas and wings | Stowed | [ ] |
+| RBF pin | Removed at integration | [ ] |
+| Deployment switches | Actuated (held by the dispenser) | [ ] |
 | Access panels | Closed | [ ] |
 
 ## 5. Ground System Readiness
@@ -112,6 +123,7 @@ This document provides the Launch Readiness Review (LRR) package for SMART-QSO p
 | Update process defined | [ ] Yes |
 | Search plan ready | [ ] Yes |
 | Pass predictions available | [ ] After TLE |
+| GNSS ephemeris with covariance within 24 h of first contact (SpaceX UG v11 §9.5.7.2) | [ ] Pipeline ready |
 
 ## 6. Team Readiness
 
@@ -176,11 +188,13 @@ L-0:00  LAUNCH
         [ ] Confirm launch
         [ ] Start T+ clock
 
-L+0:30  Deployment expected
-        [ ] Await separation confirmation
-        [ ] Note deployment time
+L+1:00 to L+3:00  Separation (S) from the dispenser, by the
+        integrator's deploy order (MISSION_TIMELINE §2, §4)
+        [ ] Await separation confirmation and state vector
+        [ ] Note separation time
 
-L+0:32  First beacon possible
+S+0:45  First beacon possible: RF silence ends at 45 min
+        (CDS 2.4.5), only once the AntS is deployed (C-19)
         [ ] Begin listening (if in view)
 ```
 
@@ -199,7 +213,7 @@ T+??:?? Signal acquired (expected)
         [ ] Beacon decoded
 
 T+??:?? Health assessment
-        [ ] State = SAFE confirmed
+        [ ] Mode as expected (IDLE, commissioning hold)
         [ ] Battery SOC nominal
         [ ] Temps nominal
         [ ] No fault flags
@@ -245,10 +259,10 @@ T+??:?? LOS
 
 | License | Agency | Status |
 |---------|--------|--------|
-| Spectrum | FCC | [ ] Approved |
-| Frequency Coord | IARU | [ ] Approved |
+| Pre-space notification, 47 CFR 97.207(g) | FCC | [ ] Filed |
+| Frequency coordination | IARU | [ ] Letter received |
 | Launch License | Provider | [ ] Approved |
-| Orbital Debris | Provider | [ ] Compliant |
+| Orbital debris assessment (ODAR) | FCC | [ ] Filed |
 
 ### 9.2 Notifications
 
@@ -262,9 +276,11 @@ T+??:?? LOS
 
 ### 10.1 Open Risks
 
+From `mission/RISK_REGISTER.md` at the time of the review.
+
 | Risk | Mitigation | Status |
 |------|------------|--------|
-| None critical | - | - |
+| | | |
 
 ### 10.2 Accepted Risks
 
@@ -289,15 +305,15 @@ T+??:?? LOS
 
 | ID | Item | Approval | Status |
 |----|------|----------|--------|
-| None | - | - | - |
+| | | | |
 
 ## 12. LRR Checklist
 
 ### 12.1 Hardware Status
 
-- [ ] Spacecraft integrated with deployer
-- [ ] Final functional test passed
-- [ ] Battery fully charged
+- [ ] Spacecraft integrated with the dispenser
+- [ ] Final functional test passed before integration
+- [ ] Battery at 60 % ± 5 % SOC at integration
 - [ ] Configuration verified
 - [ ] All access panels closed
 
@@ -386,3 +402,4 @@ Systems Engineer: _________ Date: _____
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial template |
+| 1.1 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): banner (template, not held; milestone: launch, 2028-11-01); battery 60 % ± 5 % at integration (was > 95 % / fully charged; BASELINE §4); RBF removed at integration (was installed); hardware status recorded at the integrator, not at the review; timeline: separation at L + 1 to 3 h, first beacon not before S + 45 min (was L + 0:32); first-pass mode IDLE (was SAFE); FCC pre-space notification and IARU letter in place of "approved" licences; GNSS ephemeris row; pre-filled "None" risks and waivers removed |

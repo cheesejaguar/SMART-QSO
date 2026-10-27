@@ -2,7 +2,7 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-011
-**Revision:** D
+**Revision:** E
 **Date:** 2026-10-27
 **Reference:** NPR 7150.2, Embassy (embassy-executor 0.10, embassy-stm32 0.6, embassy-time 0.5), NASA Ames SmallSat Heritage
 
@@ -44,7 +44,7 @@ CR-2026-002). The flight image (`software/rust/firmware`) uses:
 | Component | Version | Role |
 |-----------|---------|------|
 | embassy-executor | 0.10 (`platform-cortex-m`, `executor-thread`) | Runs the one async task; the core sleeps (WFE) when the task is waiting |
-| embassy-stm32 | 0.6 (`stm32l4r5zi`, `dual-bank`, `time-driver-any`, `memory-x`, `rt`, `exti`) | Chip bring-up, clocks, peripheral drivers, the time driver |
+| embassy-stm32 | 0.6 (`stm32l4r5zi`, `time-driver-tim2`, `rt`, `exti`, `dual-bank`, `unstable-pac`; `software/rust/firmware/Cargo.toml`) | Chip bring-up, clocks, peripheral drivers, the time driver |
 | embassy-time | 0.5 (`tick-hz-32_768`) | `Timer::after_millis`; the HAL time base |
 | cortex-m-rt | 0.7 | Vector table, `Reset`, the linker script `link.x` |
 
@@ -75,7 +75,7 @@ The image has one async task, `main` (`#[embassy_executor::main]`). It runs thes
 1. Start the IWDG at its longest timeout (about 32 s, `wdt::start_boot_watchdog`) before anything else, so a PLL that
    never locks resets the OBC.
 2. `embassy_stm32::init(clocks())`: clocks, the time driver, the peripherals.
-3. Install the HAL drivers (GPIO first, with enable and burn lines low; FRAM; SPI; I2C; the three UARTs; the ADC).
+3. Install the HAL drivers (GPIO first, with enable and burn lines low; FRAM; SPI; I2C; the four UARTs; the ADC).
 4. `Executive::start()`: bring the flight software up in the order of `init_system` (time base, GPIO and flash,
    deployment, fault management, RF safety and telecommand, mission data, EPS, sensors, beacon, payload guard, system
    state and mode manager, watchdog manager, Jetson UART). If it returns `None`, the processor resets.
@@ -93,13 +93,14 @@ the watchdog manager when it completes:
 | 1 | Mission state | Power model step, SOC to the EPS, power event to the mode manager, uptime and payload energy | — |
 | 2 | Health (every 10 s) | Temperatures, bus voltage, SOC, Jetson link | `health` (period 20 s) |
 | 3 | Main | — | `main` (period 1 s) |
-| 4 | Jetson telemetry | When the payload is on and the telemetry interval (60 s default) has passed: TELEMETRY line and beacon request; UART health check; sensor polling | — |
-| 5 | Payload | Jetson replies; the OBC-enforced payload limits (`payload_guard`) | `payload` (period 1 s) |
-| 6 | Beacon | Beacon measurements; a beacon when one is due (silent while TX-OFF, loss-of-contact or RF-silence inhibits are set) | `beacon` (period 1 s) |
-| 7 | Uplink | Telecommands from the receiver (`uplink_poll`); GSE key provisioning (umbilical only) | `uplink` (period 1 s) |
-| 8 | Timers | Elapsed time to the contact monitor, RF silence and deployment | — |
-| 9 | Persistence (every 100 passes) | Mission data and EPS state saved | — |
-| 10 | Watchdog | `wdt_mgr_kick()`: task check once a second; hardware refresh unless a task is stalled (§8) | — |
+| 4 | Attitude and heater | Exciter keyed time; ADCS step; battery heater | — |
+| 5 | Jetson telemetry | When the payload is on and the telemetry interval (60 s default; shorter during a batch) has passed: TELEMETRY line and beacon request; UART health check; sensor polling | — |
+| 6 | Payload | Jetson replies; the OBC-enforced payload limits (`payload_guard`); the burst schedule (`sqso_fsw::payload_schedule`) and Jetson supervision | `payload` (period 1 s) |
+| 7 | Beacon and housekeeping | Beacon measurements; a beacon when one is due (silent while TX-OFF, loss-of-contact or RF-silence inhibits are set); housekeeping frames and the stored housekeeping; GNSS sessions, frames and rail check; the transponder gates | `beacon` (period 1 s) |
+| 8 | Uplink | Telecommands from the receiver (`uplink_poll`); GSE key provisioning (umbilical only); periodic safety checks | `uplink` (period 1 s) |
+| 9 | Timers | Elapsed time to the contact monitor, RF silence and deployment | — |
+| 10 | Persistence (every 100 passes) | Mission data and EPS state saved | — |
+| 11 | Watchdog | `wdt_mgr_kick()`: task check once a second; hardware refresh unless a task is stalled (§8) | — |
 
 ---
 
@@ -113,9 +114,12 @@ There is one task, so there is no inter-task communication. Interrupts are bound
 | USART1 (Jetson link, 115,200 baud) | embassy-stm32 `BufferedInterruptHandler` | Receive buffer 512 B, transmit buffer 256 B |
 | USART2 (TNC, KISS, 9600 baud) | `BufferedInterruptHandler` | Receive buffer 1,024 B; the loop decodes KISS frames (`sqso_protocol::kiss`) in `hal_radio_*` |
 | USART3 (debug console, 115,200 baud) | `BufferedInterruptHandler` | Receive buffer 64 B, transmit buffer 512 B |
-| Time driver timer | embassy-stm32 `time-driver-any` | Wakes the executor when `Timer::after_millis` expires; 64-bit tick count at 32,768 Hz |
+| LPUART1 (GNSS receiver, PB11 TX / PG8 RX) | `BufferedInterruptHandler` | Receive buffer 256 B, transmit buffer 64 B |
+| TIM2 (time driver) | embassy-stm32 `time-driver-tim2` | Wakes the executor when `Timer::after_millis` expires; 64-bit tick count at 32,768 Hz |
+| TIM7 | `software/rust/firmware/src/heartbeat.rs` | None: toggles the `XPDR_EN` heartbeat on PE4 while the main loop's lease lasts |
+| NMI | `software/rust/firmware/src/parity.rs` | None: SRAM2 parity and flash ECC errors (`software/flight/docs/MEMORY_POLICY.md` §10.3) |
 
-The interrupt handlers only move bytes between the peripheral and the buffers. The flight software reads the buffers
+The UART handlers only move bytes between the peripheral and the buffers. The flight software reads the buffers
 from the loop, with no blocking wait. No flight-software code runs in interrupt context. The HAL's callback timers and
 the watchdog early-warning callback are not provided, because a callback from interrupt context would bypass the
 module-state rules (`software/rust/firmware/src/timer.rs`). Module state is held in a busy-flag cell, so a call that
@@ -157,7 +161,7 @@ C test suites exercise it. The executive does not use it: the main loop runs its
 | Heap | None. No crate uses `alloc`; the image links no heap (CI checks for `malloc`, `free`, `_sbrk`) |
 | Task storage | Static, in the executor (`embassy-executor`) |
 | UART buffers | Static `ConstStaticCell` arrays (§5) |
-| Stack | One stack (cortex-m-rt), from the initial SP 0x20040000 downward in SRAM2, 8 KB budget with an MPU guard below it. Worst case 6,236 B by static analysis (`software/flight/docs/MEMORY_POLICY.md` §6); not measured on hardware |
+| Stack | One stack (cortex-m-rt), from the initial SP 0x20040000 downward in SRAM2, 8 KB budget with an MPU guard below it. Worst case 6,332 B by static analysis (`software/flight/docs/MEMORY_POLICY.md` §6.2); not measured on hardware |
 
 `software/flight/docs/MEMORY_POLICY.md` has the policy.
 
@@ -201,7 +205,7 @@ Between passes the task waits on `Timer::after_millis(20)`, and the executor put
 | Rust panic (overflow check, broken invariant) | Fatal assertion: `report_panic` (`software/rust/sqso-ffi/src/lib.rs`) logs it and saves state through the assertion handler. Then the processor waits (WFI) for the IWDG, or resets itself through `SCB::sys_reset` if the IWDG was never started (`software/rust/firmware/src/main.rs`) |
 | Driver set-up fails (UART) or `Executive::start()` returns `None` | `SCB::sys_reset` |
 | Stage stalled or loop hung | IWDG reset (§8) |
-| Stack overflow | Not detected. There is no stack guard (the stack grows down from the top of RAM) |
+| Stack overflow | An MPU region with no access covers the 32 bytes below the 8 KB budget; an overrun faults there (MemManage, escalated to HardFault) and the HardFault handler spins until the IWDG resets the processor (`software/rust/firmware/src/stack.rs`, `software/flight/docs/MEMORY_POLICY.md` §6.3) |
 
 ---
 
@@ -222,6 +226,7 @@ Between passes the task waits on `Timer::after_millis(20)`, and the executor put
 | B | 2026-10-24 | Rewritten for the design as built: no RTOS; the Embassy executor with one task, interrupt-driven UARTs and the time driver; the stages of a pass and their watchdog supervision; timing. The FreeRTOS design of Revision A, never implemented, kept as a history note (§13) | SMART-QSO Team |
 | C | 2026-10-27 | Stack worst case 5,444 B (was 5,004 B) after the CDR flight-software changes | SMART-QSO Team (CDR avionics review) |
 | D | 2026-10-27 | Flight software round 3: image sizes, initial SP 0x20040000 (the stack in SRAM2, RID AV-13), worst-case stack 6,236 B | SMART-QSO Team |
+| E | 2026-10-27 | Documentation audit (post-CDR 2026): embassy-stm32 features as in `firmware/Cargo.toml` (TIM2 time driver); LPUART1, TIM7 and NMI interrupts; §4.2 stages as in `Executive::step()` (ADCS, heater, burst schedule, housekeeping, GNSS, transponder, safety checks); §7 stack 6,332 B as §3.2; §10 the MPU stack guard (was "not detected") | SMART-QSO Team |
 | B, note | 2026-10-25 | §3.1: the Embassy executor with no RTOS is the baseline (BASELINE §6, OBC-F001, CR-2026-002) | SMART-QSO Team |
 
 ---

@@ -2,7 +2,7 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-006
-**Revision:** H
+**Revision:** I
 **Date:** 2026-10-27
 **Reference:** JPL D-60411 (Power of Ten), NPR 7150.2
 
@@ -98,8 +98,9 @@ All buffers have sizes fixed at compile time. There is no buffer pool and no all
 | Buffer | Size | Where |
 |--------|------|-------|
 | Jetson UART receive / transmit | 512 B / 256 B | `software/rust/firmware/src/main.rs` (`ConstStaticCell`) |
-| TNC UART receive / transmit | 1,024 B / 16 B | same |
+| TNC UART receive / transmit | 1,024 B / 1,024 B (`RADIO_TX_LEN`, at least the longest KISS stream) | same |
 | Debug UART receive / transmit | 64 B / 512 B | same |
+| GNSS UART (LPUART1) receive / transmit | 256 B / 64 B | same |
 | Module state (fault log 100 entries, flight log, sensor table of 32, key table, scheduler, watchdog table, ...) | Fixed arrays | One `cell::Global` per module in `software/rust/sqso-ffi/src` |
 | Frame and line buffers | `LINE_MAX`, `TEXT_MAX`, receive frame sizes | Stack arrays in the function that uses them |
 
@@ -346,3 +347,4 @@ a disagreement toward the safe side (SRS-F133):
 | F | 2026-10-27 | §3.1 the stack moved into SRAM2 (initial SP 0x20040000; RID AV-13), SRAM3 unused; §3.2 budget of the round-3 image; §6 worst case 6,236 B, the budget and guard addresses; §8.1 region ADCS_CAL; §10.3 the programming procedure sets `SRAM2_PE`; §10.5 the stack no longer unprotected | SMART-QSO Team (CDR flight software, round 3) |
 | G | 2026-10-27 | §3.1 the second FRAM U36 (RID SMA-B10); §8.2 every record mirrored, read from the mirror when the first FRAM fails, the degraded mode without either (SRS-F160); §3.2 and §6 the image and worst-case stack of round 3, second part | SMART-QSO Team (CDR flight software, round 3, second part) |
 | H | 2026-10-27 | §3.2 and §6 the image and worst-case stack of round 3, third part (text 207,284 B, data 26,400 B, bss 17,052 B; 6,332 B of 8 KB), the statics' end 0x2003A9BC (Revision G named these without changing the figures) | SMART-QSO Team (CDR flight software, round 3, third part) |
+| I | 2026-10-27 | Documentation audit (post-CDR 2026): §5.1 TNC transmit buffer 1,024 B (was 16 B) and the GNSS UART buffers, as in `firmware/src/main.rs` | SMART-QSO Team |

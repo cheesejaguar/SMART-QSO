@@ -28,10 +28,10 @@ This procedure defines the software development and verification testing on the 
 
 ## 3. APPLICABLE DOCUMENTS
 
-1. docs/integration/FLATSAT_CONFIGURATION.md
-2. software/flight/README.md
-3. docs/design/FDIR_DESIGN.md
-4. ICD_OBC_EPS.md, ICD_OBC_JETSON.md
+1. `docs/integration/FLATSAT_CONFIGURATION.md`
+2. `software/rust/README.md` (the flight software) and `CLAUDE.md` (build commands)
+3. `software/flight/docs/FDIR_DESIGN.md`
+4. `docs/interfaces/ICD_OBC_EPS.md`, `docs/interfaces/ICD_OBC_JETSON.md`
 
 ---
 
@@ -39,12 +39,12 @@ This procedure defines the software development and verification testing on the 
 
 | Equipment | Specification |
 |-----------|---------------|
-| Flatsat boards | EPS dev, OBC dev, RF dev, ADCS breakout, Jetson dev kit |
+| Flatsat boards | EM boards when built (EPS, OBC with the STM32L4R5ZI, RF, magnetometer board A2, Jetson carrier); development boards until then (`docs/integration/FLATSAT_CONFIGURATION.md`) |
 | Power supply | 0-12V, 5A (battery simulation) |
 | Solar simulator | 0-6V, 3A programmable |
 | Serial interface | USB-UART adapters (multiple) |
 | Logic analyzer | 8+ channels |
-| Development PC | STM32CubeIDE, serial terminal |
+| Development PC | Rust toolchain (`software/rust/rust-toolchain.toml`), probe-rs or ST-Link, serial terminal |
 
 ---
 
@@ -82,20 +82,20 @@ This procedure defines the software development and verification testing on the 
 | 4 | Command magnetorquer | Correct actuation | |
 | 5 | Enable Jetson | Boot complete | |
 | 6 | Request Jetson status | Status received | |
-| 7 | Trigger Jetson inference | Text generated | |
-| 8 | Verify RF beacon content | Contains Jetson text | |
+| 7 | Trigger a Jetson burst (gated experiment, D5) | Text generated; filtered on the OBC (`docs/BEACON_SPEC.md` §6) | |
+| 8 | Verify RF beacon content | Template text from the OBC selector (flight baseline, D5); accepted Jetson lines only when the experiment is enabled | |
 
 ### 6.3 Mode Transition Test [SRS-F012, SRS-F013, SYS-304]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
-| 1 | Start in INIT mode | Mode = INIT | |
-| 2 | Complete init sequence | Transition to SAFE | |
+| 1 | Start in BOOT | Mode = BOOT | |
+| 2 | Complete boot | Transition to DETUMBLE (`software/rust/sqso-fsw/src/mode.rs`) | |
 | 3 | Command transition to IDLE | Mode = IDLE | |
-| 4 | Command transition to ACTIVE | Mode = ACTIVE | |
-| 5 | Command transition to AI_BURST | Mode = AI_BURST | |
-| 6 | Simulate low power | Auto-transition to SAFE | |
-| 7 | Recover power | Return to previous mode | |
+| 4 | Command transition to ACTIVE (SOC ≥ 55 %, sunlit) | Mode = ACTIVE | |
+| 5 | In ACTIVE, start a Jetson burst | Burst runs within ACTIVE (there is no burst mode); ends within 10 min (BASELINE §6) | |
+| 6 | Simulate falling SOC | IDLE below 40 %, SAFE below 25 %, EMERGENCY below 15 % (BASELINE §5) | |
+| 7 | Recover power | SAFE at 25 %, IDLE above 40 % (BASELINE §5) | |
 
 ### 6.4 Fault Injection Testing [SRS-F040, SRS-F042, SRS-F052, SRS-F062, SYS-523]
 
@@ -108,14 +108,14 @@ This procedure defines the software development and verification testing on the 
 | 5 | Corrupt configuration CRC | Fallback to defaults | |
 | 6 | Simulate watchdog timeout | OBC resets safely | |
 | 7 | Power cycle during write | Data integrity maintained | |
-| 8 | Simulate Jetson hang | Jetson power-cycled | |
+| 8 | Simulate Jetson hang | Jetson powered off within its 10 min burst limit or at the per-rail current limit; OBC, beacon and telecommand unaffected (SYS-522, SYS-523) | |
 
 ### 6.5 Regression Testing [SRS-Q011]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
-| 1 | Run unit test suite | All tests pass | |
-| 2 | Run integration test suite | All tests pass | |
+| 1 | Run the Rust tests and the C test suites (`cargo test --workspace` in `software/rust`; `ctest --test-dir build`) | All tests pass | |
+| 2 | Run the mission simulation (`docs/test/SIL_MISSION_SIMULATION.md`) | All checks pass | |
 | 3 | Verify code coverage | >= 80% achieved | |
 | 4 | Run static analysis | No new issues | |
 | 5 | Compare to baseline | No regressions | |

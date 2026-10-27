@@ -1,6 +1,30 @@
 # Attitude Determination and Control System (ADCS) Trade Study
 ## Magnetorquer Active Control Systems for 1U CubeSat Applications
 
+> **Documentation audit notice (2026-10-27): superseded trade study, kept as a record.** The recommendation below (a
+> GomSpace NanoMind A3200 integrated ADCS) is withdrawn, and the vendor products, masses and prices in §4.3 were never
+> sourced: in the build-versus-buy survey no vendor sells a 1U integrated ADCS any more, GomSpace's 1U–3U lines and
+> the EnduroSat 1U products are delisted and the ISIS iMTQ page is gone (`docs/hardware/BUILD_VS_BUY.md` §2.1). The
+> requirements here (detumble within 1 orbit, 100 g, ±5° pointing) are not the baseline's. The current design, from
+> `docs/BASELINE_PARAMETERS.md` §8 and decisions C-3, C-4, C-22 to C-24: three **CubeSpace CR0002** rods, an **Epson
+> M-G370PDT0** gyro with a **Bosch BMI088** cold spare, a **PNI RM3100** magnetometer on board A2, the six panel
+> photodiodes as coarse sun sensors, B-dot detumble from 10°/s within 3 orbits and spin-stabilised sun-pointing of +Y
+> at 8°/s, with the pointing requirement stated as power (≤ 5 % of sunlit generation lost, Sun within 30° of +Y for
+> ≥ 95 % of sunlit time). There is no ADCS board: sensors and drivers are on the OBC board.
+>
+> **What this directory holds**
+>
+> | File | Status |
+> |------|--------|
+> | `README.md` (this file) | Pre-CDR trade study, superseded as above |
+> | `SENSOR_DESIGN.md` (SQSO-ADCS-SEN-001) | Sensor requirements and use; current |
+> | `ACTUATOR_DESIGN.md` (SQSO-ADCS-ACT-001) | Superseded by the OBC board design §10 (air-core sizing kept as the alternate) |
+> | `ADCS_ELECTRICAL_DESIGN.md` (SQSO-ADCS-003) | Superseded by the OBC board design §9–§10 (no ADCS board) |
+>
+> **Governing documents**: `docs/hardware/ADCS_DESIGN.md` (SMART-QSO-ADCS-001: requirements, control law, Monte
+> Carlo); `hardware/electrical/obc/OBC_BOARD_DESIGN.md` (SQSO-OBC-BRD-001) §9–§10 (sensor and drive hardware);
+> `docs/interfaces/ICD_OBC_ADCS.md` (SQSO-ICD-004); the flight code is `sqso_fsw::adcs` in `software/rust`.
+
 ### Executive Summary
 
 This trade study evaluates magnetorquer-based active control systems for the SMART-QSO 1U CubeSat mission, analyzing design alternatives against mission requirements for detumble capability, power efficiency, and pointing accuracy. The study concludes that a 3-axis magnetorquer system with sun sensors and magnetometer provides optimal performance for the mission's power-bias sun pointing requirements while meeting mass and power constraints.

@@ -1,10 +1,20 @@
 # SMART-QSO Mission Operations Review Package
 
 **Document ID**: SQSO-MOR-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: Template (Pre-MOR)
+**Status**: Template (Pre-MOR). No MOR has been held
+
+> **Template for a future review: not held.** No mission operations review has been held, no operator has been
+> trained or certified, and nothing in this document records a result; every status, version and signature field is
+> to be filled in at the review. `mission/SCHEDULE.md` has no MOR task: the review belongs before the **pre-ship
+> review** (earliest 2028-05-19), after the FM day-in-the-life (FM_FUNC, 2028-02-01 to 2028-02-22). Operations
+> facts to check against: two designated telecommand stations at least 1,000 km apart, each able to command alone
+> (BASELINE §1), commissioning of about 14 days (`docs/operations/COMMISSIONING_PLAN.md`), mission rules in
+> `docs/operations/MISSION_RULES.md` and contingency procedures in `docs/operations/CONTINGENCY_PROCEDURES.md`. The
+> current review record is [CDR_2026_DESIGN_REVIEW.md](CDR/CDR_2026_DESIGN_REVIEW.md). Index of the review documents:
+> [README.md](README.md).
 
 ## 1. Purpose
 
@@ -25,7 +35,7 @@ This document provides the Mission Operations Review (MOR) package for SMART-QSO
 
 ### 2.2 Entrance Criteria
 
-- [ ] CDR complete
+- [ ] Independent CDR held (planned 2027-09-28)
 - [ ] Ground system development complete
 - [ ] Procedures written
 - [ ] Team identified
@@ -72,26 +82,28 @@ This document provides the Mission Operations Review (MOR) package for SMART-QSO
 
 | Procedure | Version | Tested | Issues | Status |
 |-----------|---------|--------|--------|--------|
-| Pre-pass preparation | 1.0 | [ ] | | [ ] Approved |
-| Pass operations | 1.0 | [ ] | | [ ] Approved |
-| Commanding | 1.0 | [ ] | | [ ] Approved |
-| Telemetry monitoring | 1.0 | [ ] | | [ ] Approved |
-| Post-pass activities | 1.0 | [ ] | | [ ] Approved |
-| Shift handoff | 1.0 | [ ] | | [ ] Approved |
-| Daily status | 1.0 | [ ] | | [ ] Approved |
+| Pre-pass preparation | | [ ] | | [ ] Approved |
+| Pass operations | | [ ] | | [ ] Approved |
+| Commanding | | [ ] | | [ ] Approved |
+| Telemetry monitoring | | [ ] | | [ ] Approved |
+| Post-pass activities | | [ ] | | [ ] Approved |
+| Shift handoff | | [ ] | | [ ] Approved |
+| Daily status | | [ ] | | [ ] Approved |
 
 ### 4.2 Contingency Procedures
 
+Procedure names as in `docs/operations/CONTINGENCY_PROCEDURES.md`.
+
 | Procedure | Version | Tested | Status |
 |-----------|---------|--------|--------|
-| CP-001 Safe Mode Recovery | 1.0 | [ ] | [ ] Approved |
-| CP-002 Low Power Response | 1.0 | [ ] | [ ] Approved |
-| CP-003 Comm Loss | 1.0 | [ ] | [ ] Approved |
-| CP-004 Unexpected State | 1.0 | [ ] | [ ] Approved |
-| CP-005 Thermal Violation | 1.0 | [ ] | [ ] Approved |
-| CP-006 Software Anomaly | 1.0 | [ ] | [ ] Approved |
-| CP-007 AI Payload Issue | 1.0 | [ ] | [ ] Approved |
-| CP-008 Ground System Fail | 1.0 | [ ] | [ ] Approved |
+| CP-001 Loss of Signal (LOS) | | [ ] | [ ] Approved |
+| CP-002 Unexpected Safe Mode Entry | | [ ] | [ ] Approved |
+| CP-003 Battery Undervoltage | | [ ] | [ ] Approved |
+| CP-004 Thermal Limit Exceeded | | [ ] | [ ] Approved |
+| CP-005 Watchdog Reset | | [ ] | [ ] Approved |
+| CP-006 AI Payload Failure | | [ ] | [ ] Approved |
+| CP-007 Command Rejection | | [ ] | [ ] Approved |
+| CP-008 Collision Avoidance Maneuver | | [ ] | [ ] Approved |
 
 ### 4.3 Procedure Validation Summary
 
@@ -115,7 +127,7 @@ Validation Status: [ ] COMPLETE  [ ] IN PROGRESS
 
 ## 5. Ground System Validation
 
-### 5.1 Primary Ground Station
+### 5.1 Telecommand Stations (each of the ≥ 2 designated stations)
 
 | Test | Date | Result |
 |------|------|--------|
@@ -188,19 +200,19 @@ Validation Status: [ ] COMPLETE  [ ] IN PROGRESS
 
 | Category | Rules | Reviewed |
 |----------|-------|----------|
-| Mandatory Rules | MR-001 to MR-010 | [ ] |
-| Flight Constraints | FC-001 to FC-007 | [ ] |
-| Ground Constraints | GC-001 to GC-005 | [ ] |
-| Contingency Triggers | CT-001 to CT-006 | [ ] |
+| Mandatory Rules | MR-001 to MR-005 | [ ] |
+| Critical Flight Constraints | FC-001 to FC-005 | [ ] |
+| Standard Mission Rules | MR-101 to MR-107 | [ ] |
+| Ground Rules | GR-001 to GR-004 | [ ] |
 
 ### 7.2 Rule Scenarios
 
 | Rule | Scenario Tested | Result |
 |------|-----------------|--------|
-| MR-001 | SAFE mode command | [ ] Pass |
-| MR-002 | Battery threshold | [ ] Pass |
-| MR-003 | Thermal limits | [ ] Pass |
-| FC-001 | Commanding limits | [ ] Pass |
+| MR-001 | RF transmission authorization | [ ] Pass |
+| MR-005 | Emergency stop authority (TX-OFF) | [ ] Pass |
+| FC-001 | Battery state-of-charge limits | [ ] Pass |
+| FC-002 | Temperature limits | [ ] Pass |
 
 ## 8. Lessons Learned Application
 
@@ -215,11 +227,11 @@ Validation Status: [ ] COMPLETE  [ ] IN PROGRESS
 
 ### 8.2 SMART-QSO Development Lessons
 
+To be filled from the flatsat, end-to-end and day-in-the-life campaigns once they have run (none has).
+
 | Phase | Lesson | Implementation |
 |-------|--------|----------------|
-| Flatsat | Procedure gaps | Updated procedures |
-| E2E test | Tool issues | Software updates |
-| DITL | Handoff clarity | Enhanced checklists |
+| | | |
 
 ## 9. Staffing Plan
 
@@ -258,7 +270,7 @@ Validation Status: [ ] COMPLETE  [ ] IN PROGRESS
 | Space-Track | 18 SDS | [ ] |
 | SatNOGS | Community | [ ] |
 | AMSAT | Organization | [ ] |
-| Launch Provider | TBD | [ ] |
+| Launch integrator | Exolaunch (planned; contract by 2027-06-30, BASELINE §3) | [ ] |
 
 ### 10.2 Internal Interfaces
 
@@ -353,3 +365,4 @@ QA: _____________________ Date: _____
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial template |
+| 1.1 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): banner (template, not held; milestone: before the pre-ship review); development "lessons" from flatsat, E2E and DITL campaigns that have not run removed; contingency procedure names and mission-rule ranges as in CONTINGENCY_PROCEDURES and MISSION_RULES (CT and GC rules do not exist); telecommand stations (≥ 2, BASELINE §1); launch integrator named (was an open placeholder); pre-filled versions 1.0 removed |

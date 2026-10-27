@@ -7,8 +7,8 @@ assigned launch vehicle", "~1-2 min/axis"). It is replaced by:
 | Topic | Controlled document |
 |-------|---------------------|
 | V&V process, methods, levels of assembly | `docs/verification/VERIFICATION_VALIDATION_PLAN.md` (SQSO-VVP-001) |
-| Test levels, articles (EM and FM), flow, facilities, cost, verification items | `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` (SQSO-ETP-001) Rev C |
-| Method, planned event and status of every requirement | `docs/verification/VERIFICATION_MATRIX.md` (SQSO-VCRM-001) Rev C |
+| Test levels, articles (EM and FM), flow, facilities, cost, verification items | `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` (SQSO-ETP-001) Rev E |
+| Method, planned event and status of every requirement | `docs/verification/VERIFICATION_MATRIX.md` (SQSO-VCRM-001) Rev E |
 | Review plan and the CDR criteria | `docs/project/CDR_CRITERIA_MATRIX.md` (SQSO-PM-002) |
 | Dates | `mission/SCHEDULE.md` (SQSO-SCH-001) |
 

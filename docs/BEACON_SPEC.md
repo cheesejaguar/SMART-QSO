@@ -31,7 +31,8 @@ Implementation: `software/rust/sqso-fsw/src/beacon.rs` (frame, telemetry, schedu
 de KK6GDB-11: <text> | T=<unix s> M=<SAFE|IDLE|ACTIVE> SOC=<%> BV=<V.d> SUN=<0|1> RF=<0|1> QSO=<count>
 ```
 
-Example: `de KK6GDB-11: Hello from orbit! | T=1792115511 M=ACTIVE SOC=83 BV=8.1 SUN=1 RF=1 QSO=-`
+Example: `de KK6GDB-11: Hello from orbit! | T=1792115511 M=ACTIVE SOC=83 BV=14.4 SUN=1 RF=1 QSO=-` (the 4S pack is
+14.4 V nominal, 16.4 V at the 4.10 V/cell end of charge; BASELINE §5)
 
 - The call sign appears in the source address and again at the start of every information field (97.119).
 - `<text>` is at most 176 characters, the room left after the telemetry fields at their widest. The text is cut if
@@ -109,7 +110,8 @@ Then, word by word (a word is a run of letters and digits):
 | IDLE | 120 s |
 | SAFE | 180 s |
 
-`BEACON_INTERVAL_*_MS` in `beacon.h`; no mode beacons faster than ACTIVE.
+`BEACON_INTERVAL_*_MS` in `beacon.h`; no mode beacons faster than ACTIVE. Each interval carries a uniform ±5 s random
+jitter, so that successive beacons do not fall at the same phase of the 8°/s spin (RID RF-04; SQSO-LBA-001 §5.3).
 
 ## 8. Compliance Summary
 
@@ -118,3 +120,6 @@ Then, word by word (a word is a run of letters and digits):
 - Content rules in section 6 cover obscene, commercial, encoded and false content mechanically. The licensee remains
   responsible for content (97.103).
 - Transmitter can be stopped by telecommand, independent of the AI payload (97.207(b), 97.211(b)).
+
+*Revision note (2026-10-27, documentation audit (post-CDR 2026)): the example's battery voltage for the 4S pack (was
+8.1 V, a 2S value); the ±5 s beacon-interval jitter (§7).*

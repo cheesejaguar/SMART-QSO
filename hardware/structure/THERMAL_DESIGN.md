@@ -2,9 +2,9 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-THM-001
-**Version:** 1.7
+**Version:** 1.8
 **Date:** 2026-10-27
-**Status:** CDR Baseline. The analysis is `docs/environment/THERMAL_ANALYSIS.md` (SQSO-THA-001 v2.4); this document holds
+**Status:** CDR Baseline. The analysis is `docs/environment/THERMAL_ANALYSIS.md` (SQSO-THA-001 v2.5); this document holds
 the design (finishes, mount, heater, sensors) and the allowable temperatures
 
 ---
@@ -129,16 +129,18 @@ cold and hot soaks and the deployment that follows.
 
 ### 5.3 Analysis Results
 
-From SQSO-THA-001 v2.0 §4–§5 (12-node model, uncorrelated; 10 °C uncertainty margin applies):
+From SQSO-THA-001 v2.5 §1 and §5 (model uncorrelated; 10 °C uncertainty margin applies; 475 km, heater 207 Ω at
++5/+9 °C). The allowable temperatures are those of §1.1 (boards −30 °C, −40 °C for the first orbit after separation).
 
-| Component | Hot bounding (°C) | Cold (°C) | Margin after 10 °C (worst) |
-|-----------|-------------------|-----------|----------------------------|
-| OBC/EPS stack | +31.9 | −11.6 (−17.4 after a 2 h cold soak) | +8.1 hot; **−1.6 / −7.4** cold against SYS-600 |
-| Battery | +28.9 | +1.3 at 0.72 W, 43 % duty; +4.0 with set points +5/+9 °C | +6.1 hot; heater duty below 70 % |
-| RF | +32.2 | −11.8 (−18.6 wings stowed) | +7.8 hot; −1.8 / −8.6 cold |
-| Jetson (burst, 600 s batch) | +39.0 | −12.0 (unpowered) | +1.0 against SYS-600, +21 against the 70 °C guard |
-| Structure, body panels | +39.0 (+51.5 with a stuck-on Jetson) | −22.7 | +7.3 cold |
-| Wings | +75.2 (+82.9 at LTAN 21:30) | −45.4 (LEOP after a cold soak) | −15.4 / −7.9 against −40/+85 (qualification needed) |
+| Component | Hot (°C) | Cold (°C) | Margin after 10 °C (worst) |
+|-----------|----------|-----------|----------------------------|
+| OBC/EPS stack | +31.9 | −11.5 in orbit; −27.6 in the first orbit (LEOP after a 2 h cold soak) | +8.1 hot; +8.5 cold against −30 °C; first orbit +2.4 against −40 °C (−7.6 against −30 °C: test-margin deviation, THM-04) |
+| Battery | +28.9 | +3.6 at 0.70 W (12.0 V floor), 55 % duty; −1.5 with the wings stowed (contingency) | +6.1 hot; cold passes by the heater-duty rule (< 70 %) |
+| RF | +32.2 | −11.7 in orbit; −18.5 wings stowed; −28.6 first orbit | +1.5 wings stowed against −30 °C; first orbit +1.4 against −40 °C |
+| Jetson (burst, 600 s batch) | +39.0 | −28.9 (off, first orbit) | +1.0 against +50 °C, +21 against the 70 °C guard; cold needs the EM non-operating soak (V-THM-8) |
+| Structure, body panels | +51.5 (stuck-on Jetson) | −22.7 | +7.3 cold, +18.5 hot |
+| Wings | +82.9 (LTAN 21:30) | −45.4 (LEOP after a cold soak) | −15.4 / −7.9 against −40/+85 (vendor qualification needed, THM-05) |
+| Battery and boards, dispenser hot soak (bounding) | +55.5 / +66.6 at 2 h | — | Fail in the bounding environment (THM-07; integrator data at the contract) |
 
 ## 6. Thermal Control Hardware
 
@@ -155,7 +157,7 @@ From SQSO-THA-001 v2.0 §4–§5 (12-node model, uncorrelated; 10 °C uncertaint
 
 | Element | Location | Power | Activation |
 |---------|----------|-------|------------|
-| Battery heater | Battery pack | ≈ 1 W at 14.4 V (≈ 200 Ω, two elements): 0.72 W at 12.0 V, 0.95 W at 14.0 V, 1.30 W at 16.4 V | Flight software: on below +2 °C, off above +6 °C (`sqso_fsw::heater`). **Recommended +5/+9 °C** (SQSO-THA-001 §6.1, RID THM-02); hardware over-temperature cutout at +40 °C; fuse 0.25 A |
+| Battery heater | Battery pack | ≈ 1 W at 14.4 V (≈ 207 Ω, two elements): 0.70 W at 12.0 V, 0.95 W at 14.0 V, 1.30 W at 16.4 V (BASELINE §8) | Flight software (`sqso_fsw::heater`): on below +5 °C, off above +9 °C (decision C-11, RID THM-02 closed); hardware over-temperature cutout at +40 °C; fuse 0.25 A |
 | (Jetson heater) | Heatspreader | (0.5W) | (Optional) |
 
 ### 6.3 Heater Sizing
@@ -167,16 +169,16 @@ Battery heater (1.2; docs/hardware/BUILD_VS_BUY.md §4):
   Q = G × ΔT: 0.81 W at a -25 °C frame, 0.51 W at -15 °C
   Heater power: about 1 W at 14.4 V (margin for an as-built G of
   0.10 W/K, which the mission simulation shows 0.5 W cannot hold)
-  Thermostat setpoint: +2°C (on), +6°C (off): the design's 0/+5 °C
-  with 2 °C of margin over the 0 °C charge limit (SYS-602) for the
-  sensor and the gradient across the pack
+  Thermostat setpoint: +5°C (on), +9°C (off) (decision C-11;
+  was +2/+6 °C, which left the pack at +0.1 °C in the simulated
+  commissioning: SQSO-THA-001 §6.1)
 ```
 
 The sizing above assumes the pack is isolated from the frame (about 0.03 W/K). §4.2 and §7.2 had put it on a
 1.0 W/K thermal pad instead; with the pad the mission simulation (`docs/test/SIL_MISSION_SIMULATION.md`) kept the
 pack below 0 °C for a fifth of every sun-pointed orbit with the heater on, so charging was refused each time the Sun
 returned. The pack is now on isolating standoffs, 0.05 W/K to the frame and 0.02 W/K to the OBC stack: its own I²R
-heat (≤ 0.1 W) raises it about 2 K above the frame in the hot case, and the heater holds it above +2 °C in eclipse.
+heat (≤ 0.1 W) raises it about 2 K above the frame in the hot case, and the heater holds it above 0 °C in eclipse (+3.6 °C minimum at the 12.0 V floor, SQSO-THA-001 v2.5 §1).
 
 ---
 
@@ -282,3 +284,4 @@ inside that range: the test is tailored at the battery with the integrator's agr
 | 1.5 | 2026-10-27 | CDR round 3, thermal (RID THM-04, chair disposition): §1.1 per-unit allowable flight temperatures derived from the parts (SQSO-THA-001 2.2 §6.6): −30 °C cold for every board, operating and non-operating, −40 °C for the first orbit after separation; battery and Jetson per the proposed SYS-600/601 (CR-2026-017) |
 | 1.6 | 2026-10-27 | CDR round 3, parts temperature audit (RID P3T-01, SQSO-MFG-003 A): §1.1 bases from the line-by-line audit; rows added for the EPS fuses F1/F3 (−10 … +65 °C, V-EPS-8 extended to −40/+70 °C), the RF PA Q601 (no published minimum), the ISIS AntS (−20 … +60 °C, not modelled) and the CR0002 rods (−20 … +80 °C, cold start −35 °C), each with how it is covered; Y451 basis corrected to option L (EEE parts engineer, chair action) |
 | 1.7 | 2026-10-27 | CDR thermal analyst, round 3 (chair action, SQSO-MFG-003 §12 V-1) | §1.1 ISIS AntS row: predictions from the AntS node of SQSO-THA-001 2.4 §4.4 (release −44.0 °C after an eclipse separation, first-orbit minimum −47.0 °C, orbit −30.5 … +34.8 °C) and the temperature-gated release (−20 °C with the margin) |
+| 1.8 | 2026-10-27 | Documentation audit (post-CDR 2026) | §5.3 results from SQSO-THA-001 v2.5 (were v2.0: 475 km, +5/+9 °C, LEOP first orbit, judged against the §1.1 allowables); §6.2 and §6.3 heater 207 Ω and set points +5/+9 °C as implemented (were +2/+6 °C, decision C-11); status cites THA v2.5 |

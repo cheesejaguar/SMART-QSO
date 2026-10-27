@@ -1,9 +1,9 @@
 # Radio Frequency (RF) Subsystem Design Document
 
 **Document Number**: SMART-QSO-RF-001
-**Version**: 2.4
+**Version**: 2.5
 **Date**: 2026-10-27
-**Status**: CDR design description. The architecture, interfaces and requirements are defined here; the build-to board design with selected parts is [RF_BOARD_DESIGN.md](../../hardware/electrical/rf/RF_BOARD_DESIGN.md) (SQSO-RF-BRD-001 A), not yet built or measured (§9). Values follow [BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md) §7, which governs.
+**Status**: CDR design description. The architecture, interfaces and requirements are defined here; the build-to board design with selected parts is [RF_BOARD_DESIGN.md](../../hardware/electrical/rf/RF_BOARD_DESIGN.md) (SQSO-RF-BRD-001 F), not yet built or measured (§9). Values follow [BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md) §7, which governs.
 
 **Governing documents**:
 - 47 CFR Part 97: 97.207 (space station), 97.211 (telecommand), 97.307(e) (spurious, 30–225 MHz), 97.313(f) and
@@ -16,8 +16,8 @@
   tests at the receive bands)
 - SpaceX Rideshare Payload User's Guide v11 (interim provider document): payload unpowered and RF silent through
   launch and deployment; the integrator ICD replaces it when signed
-- Link budget: [LINK_BUDGET_ANALYSIS.md](../environment/LINK_BUDGET_ANALYSIS.md) (SQSO-LBA-001 v3.0)
-- Interfaces: [ICD_OBC_RF.md](../interfaces/ICD_OBC_RF.md) (SQSO-ICD-003 v2.0),
+- Link budget: [LINK_BUDGET_ANALYSIS.md](../environment/LINK_BUDGET_ANALYSIS.md) (SQSO-LBA-001 v3.5)
+- Interfaces: [ICD_OBC_RF.md](../interfaces/ICD_OBC_RF.md) (SQSO-ICD-003 v2.4),
   [TELECOMMAND_AUTHENTICATION.md](../interfaces/TELECOMMAND_AUTHENTICATION.md) (SQSO-ICD-013)
 
 Version 1.x described a beacon-only transmitter with no receiver. That design could not be authorized (47 CFR
@@ -59,20 +59,20 @@ Decision record: **build** the transponder radio from the receiver and the 2 m t
 | ID | Parameter | Requirement | Basis |
 |----|-----------|-------------|-------|
 | RF-P001 | Downlink frequency | One IARU-coordinated frequency in 145.800–146.000 MHz, not 145.825 MHz | BASELINE §7, SYS-200 |
-| RF-P002 | Uplink frequency | One IARU-coordinated frequency in **435.000–437.300 MHz** (clear of 3 × f_down by ≥ 50 kHz for any downlink in the segment) and ≥ 0.9 MHz below 3 × f_down; the requested windows are 435.222–435.778 and 436.222–436.500 MHz (BASELINE §7). With the LMX2571 exciter at −70 dBc H3 the desense is ≤ 0.44 dB even 100 kHz from 3f (SQSO-RF-BRD-001 §7.5), so the earlier 2 MHz separation is not needed | SQSO-LBA-001 §7.1, §7.3 |
+| RF-P002 | Uplink frequency | One IARU-coordinated frequency, requested in **435.222–435.778 MHz, or else 436.222–436.500 MHz** (BASELINE §7): inside the RF board's receive band 435.050–436.500 MHz (SAW drift and the 435.000 MHz clock harmonics, SQSO-RF-BRD-001), in the windows clear of the EPS converters' 1.000 MHz harmonics (SQSO-EPS-BRD-001, SQSO-EMC-001), and ≥ 0.9 MHz below 3 × f_down. (2.5: the 435.000–437.300 MHz segment of 2.2 is narrowed to the board's band.) With the LMX2571 exciter at −70 dBc H3 the desense is ≤ 0.44 dB even 100 kHz from 3f (SQSO-RF-BRD-001 §7.5), so the earlier 2 MHz separation is not needed | SQSO-LBA-001 §7.1, §7.3 |
 | RF-P003 | Output power at the antenna port | 27.0 ± 0.5 dBm and 30.0 ± 0.5 dBm, −40 to +70 °C (2.4: was −20 to +60 °C; board allowables plus test margin, first-orbit cold start at −40 °C) | BASELINE §7; SQSO-MFG-003 |
 | RF-P004 | Deviation | Beacon ±3.0 kHz peak (10K4F2D); transponder ±5.0 kHz peak with a limiter (16K0F3E) | ITU_APPENDIX4_DATA §C |
 | RF-P005 | Frequency stability, both bands (amended, RID RFB-05) | **±1.0 ppm over temperature** (−40 … +85 °C, about the calibrated offset), and **≤ ±3.0 ppm total offset over 2 years including ageing**. The ±1.0 ppm over 2 years of 2.2 is not met: the selected TG2016SMN reaches 2.1 ppm worst after 2 years (0.6 ppm at BOL plus class ageing; SQSO-RF-BRD-001 §6.5). **The ground corrects the uplink from the measured downlink offset.** One 40 MHz reference drives both bands, so a station that measures the beacon's offset scales it by 435.5/145.9 and pre-corrects its uplink. That keeps the residual at the spacecraft within ±1 kHz, and the CC1200's AFC tracks it. An optional TNC re-trim (KISS SetHardware, bounded to ±3 ppm) is not required | SQSO-LBA-001 §4.4 (±1 kHz pre-correction); chair decision RFB-05 (2026-10-27) |
 | RF-P006 | Receiver system noise temperature at the antenna port, RX filter included | ≤ 650 K with a 290 K source (NF ≤ 4.7 dB); the budget carries 1,000 K | SQSO-LBA-001 §2.4 |
 | RF-P007 | RX filter | Ahead of the LNA: ≥ 60 dB rejection at 144–146 MHz, ≤ 1.5 dB loss at 435.0–437.3 MHz. Ahead of the receiver IC (filter after the LNA allowed): ≥ 40 dB at 250–330 MHz and 560–620 MHz (2.1: the second-order products these bands guard against form after the LNA) | SQSO-LBA-001 §7.4–7.5; SQSO-RF-BRD-001 §6.2 |
-| RF-P008 | Harmonics and spurious at the antenna port | 2nd, 4th and all spurious ≤ 25 µW and ≤ −46 dBc at 1 W (97.307(e)); **3rd ≤ −70 dBc** (proposed; the baseline target is −60 dBc, §5) | 97.307(e); SQSO-LBA-001 §7.3 |
+| RF-P008 | Harmonics and spurious at the antenna port | 2nd, 4th and all spurious ≤ 25 µW and ≤ −46 dBc at 1 W (97.307(e)); **3rd ≤ −70 dBc** measured at the antenna port with the antennas deployed (BASELINE §7) | 97.307(e); SQSO-LBA-001 §7.3 |
 | RF-P009 | Full-duplex desense | ≤ 0.5 dB loss of receiver sensitivity with the transmitter keyed at 1 W | SQSO-LBA-001 §7.3 |
 | RF-P010 | Receiver IF | ±7.5 kHz (25 kHz-channel filter); adjacent-channel rejection ≥ 60 dB at ±25 kHz (selected CC1200: 54–60 dB data-sheet value at ±12.5 kHz; to be measured, VI-RFB-03) | SQSO-LBA-001 §3, §4.4 |
 | RF-P011 | Demodulators | Telecommand AFSK: 90 % of 60-byte frames at C/N₀ ≤ 53.0 dB-Hz. Repeat audio: 12 dB SINAD at C/N₀ ≤ 47.5 dB-Hz | SQSO-LBA-001 §3.2 |
 | RF-P012 | CTCSS | 67.0 Hz at ±0.5 kHz decoded at 6 dB SINAD, within ±2.5 kHz carrier offset; key within 200 ms typical and 260 ms maximum (2.1: the CMX138A specifies 250 ms maximum, plus a 2 ms relay); drop within 260 ms of tone loss | SQSO-LBA-001 §4.4; SQSO-RF-BRD-001 §8 |
 | RF-P013 | Antenna gain (proposed SYS-222 replacement) | Median ≥ −3 dBi and 10th percentile ≥ −10 dBi toward the ground over the pass-weighted directions, each band | SQSO-LBA-001 §5.2 |
 | RF-P014 | Antenna VSWR | < 2:1 at the coordinated frequencies, deployed, on the flight body | SYS-223 |
-| RF-P015 | Power (DC) | Receiver chain ≤ 0.15 W always on; transmitter ≤ 1.5 W DC at 0.5 W RF (≥ 33 % efficiency, exciter included); repeat path ≤ 30 mW while enabled. Design (SQSO-RF-BRD-001 §5): receiver 0.104 W typical, 0.129 W worst; **transmitter 1.76 W at 0.5 W RF (not met, finding for the chair)**; repeat path 24 mW typical, 31 mW worst | BASELINE §5 |
+| RF-P015 | Power (DC) | Receiver chain ≤ 0.15 W always on; transmitter ≤ 1.85 W DC at 0.5 W RF, exciter included (BASELINE §5 allocation, raised from 1.5 W to the RF board's designed draw); repeat path ≤ 30 mW while enabled. Design (SQSO-RF-BRD-001 §1, §5): receiver 0.102 W typical, 0.127 W worst; transmitter 1.84 W at 0.5 W RF (Version E: LMX2571 on its own LDO), 2.42 W at 1 W; repeat path 24 mW typical, 31 mW worst | BASELINE §5 |
 
 ### 2.3 Regulatory
 
@@ -129,7 +129,7 @@ and enables the exciter (SQSO-RF-BRD-001 §8).
 
 | Item | Design |
 |------|--------|
-| Function | Single-conversion or SDR-on-chip FM receiver, 435.000–437.300 MHz, ±7.5 kHz IF, discriminator audio out (flat, before de-emphasis) for the TNC and the repeat path |
+| Function | Single-conversion or SDR-on-chip FM receiver, 435.050–436.500 MHz (the board's band, RF-P002), ±7.5 kHz IF, discriminator audio out (flat, before de-emphasis) for the TNC and the repeat path |
 | Front end | RX filter (RF-P007) then an LNA, NF ≤ 1 dB, IIP3 ≥ 0 dBm |
 | Always on | Powered whenever `RADIO_EN` is high, which is always after the 45-minute silence; TX-OFF, loss of contact and EPS `radio_enabled` do not switch it (ICD-013 §6) |
 | Selected (2.1) | 70 cm lattice balun, FL1 7th-order high-pass with three 146 MHz traps, Infineon BFP640F LNA (6 mA), Tai-Saw TA2209A SAW, TI CC1200 receive-only in its custom-frequency-modulation (analog FM) mode, TCXO Epson TG2016SMN 40 MHz ±0.5 ppm: T_sys 503–550 K with a 290 K source, 0.104–0.129 W (SQSO-RF-BRD-001 §6). Rejected: NiceRF SA818 (60 mA, −30…+70 °C), AX5043 (discontinued), CMX994EF (39–58 mA) |
@@ -187,7 +187,7 @@ second, independent path"; that text is corrected (SQSO-REG-010 Rev A.2).
 
 ### 3.6 Antennas
 
-**Baseline (BASELINE §4, §7, Rev D):** 2 m elements along ±X; the board feeds the 2 m pair (±X) and the 70 cm pair (±Y) in antiphase through lumped baluns (SQSO-RF-BRD-001 §9). The options below are the review's analysis.
+**Baseline (BASELINE §4, §7, Rev E):** 2 m elements along ±X; the board feeds the 2 m pair (±X) and the 70 cm pair (±Y) in antiphase through lumped baluns (SQSO-RF-BRD-001 §9). The options below are the review's analysis.
 
 ISIS AntS 1U–3U on one ±Z face, tapes deploying in the plane of the face (each along ±X or ±Y), redundant thermal-knife
 release, deployment switches, I²C. Configuration choice (finding RF-03): with the spin about +Y (BASELINE §8),
@@ -206,13 +206,15 @@ distort the pattern; the EM pattern measurement with wings deployed is VI-RF-01.
 | State | DC power (allocation → design, SQSO-RF-BRD-001 §5) | Basis |
 |-------|----------|-------|
 | RF silence | 0 (radio unpowered) | RF-F005 |
-| Receive (always) | ≤ 0.15 W → 0.104 W typical, 0.129 W worst | BASELINE §5 |
+| Receive (always) | ≤ 0.15 W → 0.102 W typical, 0.127 W worst | BASELINE §5 |
 | Repeat path enabled, not keyed | ≤ 30 mW → 24 mW typical, 31 mW worst | RF-P015 |
-| Beacon at 0.5 W (≈ 1.2 s per 60 s) | ≈ 1.5 W → 1.76 W while keyed; 0.035 W average | SIL: 1,431 frames/day, 1,756 s keyed/day |
-| Transponder at 0.5 W | ≈ 1.5 W → 1.76 W while keyed; ≤ 25 % duty (SIL: 57–80 min keyed a day) | BASELINE §5; finding for the chair |
-| 1 W | ≈ 2.7 W → 2.34 W while keyed (29.5–30.1 dBm) | PA saturated at 5 V |
+| Beacon at 0.5 W (≈ 1.2 s per 60 s) | 1.85 W → 1.84 W while keyed; 0.035 W average | SIL: 1,431 frames/day, 1,756 s keyed/day |
+| Transponder at 0.5 W | 1.85 W → 1.84 W while keyed; ≤ 25 % duty (SIL: 57–80 min keyed a day) | BASELINE §5 |
+| 1 W | ≈ 2.7 W → 2.42 W while keyed (29.5–30.1 dBm) | PA saturated at 5 V |
 
 ## 5. Findings Against the Baseline (for the chair)
+
+*Status (2.5): the 3rd-harmonic, uplink and spurious rows are adopted in BASELINE Rev E §7 (≥ 70 dB at the antenna port; uplink windows ≥ 0.9 MHz below 3 × f_down; 97.307(e) text). The table is kept as the record.*
 
 | Item | Baseline text | Finding | Recommended change |
 |------|---------------|---------|--------------------|
@@ -238,17 +240,17 @@ The verification items VI-RF-01 to VI-RF-10 are defined in SQSO-LBA-001 §8. Ite
 
 | ID | Risk | L | C | Mitigation |
 |----|------|---|---|------------|
-| RF-K1 | No flight-proven U/v FM repeater; the built radio slips the schedule | M | H | EM on modules (SA818) early; RFQs to ISIS (TRXUV) and LETSCOM (BUILD_VS_BUY §3.1) as fall-backs |
+| RF-K1 | No flight-proven U/v FM repeater; the built radio slips the schedule | M | H | EM of the flight-design RF board with the TNC firmware from development boards (`mission/SCHEDULE.md` TNC_UT, TNC_EM); RFQs to ISIS (TRXUV) and LETSCOM (BUILD_VS_BUY §3.1) as fall-backs |
 | RF-K2 | Desense from the 3rd harmonic or PIM at the AntS hinges | M | M | Frequency plan (RF-P002), 70 dBc, VI-RF-04, VI-RF-06 |
 | RF-K3 | Pattern nulls and wing blockage worse than modelled | M | M | Element along +Y or crossed (§3.6), VI-RF-01 |
 | RF-K4 | Terrestrial interference at 435 MHz above +6 dB | M | M | 50 W telecommand option; command at higher elevations; VI-RF-09 |
 | RF-K5 | IARU assigns frequencies close in harmonic | L | M | State RF-P002 in the request |
-| RF-K6 | Module parts (SA818 class) fail radiation or thermal tests | M | M | EM-only; discrete flight design |
+| RF-K6 | Module parts (SA818 class) fail radiation or thermal tests | — | — | Retired (2.5): no module parts; the EM uses the flight-design board (ETP Rev C §2) |
 
 ## 8. Ground Segment
 
-See [GROUND_STATION_DESIGN.md](../ground/GROUND_STATION_DESIGN.md) (SQSO-GND-001 Rev C) and
-[ICD_SPACE_GROUND.md](../interfaces/ICD_SPACE_GROUND.md) (SQSO-ICD-005 v2.0). Beacon format:
+See [GROUND_STATION_DESIGN.md](../ground/GROUND_STATION_DESIGN.md) (SQSO-GND-001 Rev H) and
+[ICD_SPACE_GROUND.md](../interfaces/ICD_SPACE_GROUND.md) (SQSO-ICD-005 v2.7). Beacon format:
 [BEACON_SPEC.md](../BEACON_SPEC.md).
 
 ## 9. Selected and Designed; What Remains Open (closure path)
@@ -260,12 +262,12 @@ the netlist, the BOM and the ERC log). What it leaves open:
 |------|-------|---------|
 | 435 MHz receiver and RX filter | Designed: FL1 + BFP640F + TA2209A + CC1200 (CFM) | EM: VI-RFB-01 to -03, VI-RF-08 |
 | KISS TNC hardware | Designed: STM32L431; firmware is a new software item | Firmware development under the SDP; VI-RF-03 |
-| 2 m exciter and PA | Designed: LMX2571 + PCM1808, RD01MUS3; DC at 0.5 W 1.76 W (over the 1.5 W allocation) | EM load-pull VI-RFB-04; chair decision on the allocation |
+| 2 m exciter and PA | Designed: LMX2571 + PCM1808, RD01MUS3; DC at 0.5 W 1.84 W, inside the 1.85 W allocation of BASELINE §5 | EM load-pull VI-RFB-04 |
 | Repeat path, CTCSS decoder, heartbeat monostable, key-down timer, audio select | Designed (SQSO-RF-BRD-001 §8) | VI-RF-11, VI-RFB-07, VI-RFB-08 |
 | TCXO | Selected: TG2016SMN 40 MHz ±0.5 ppm; 2.1 ppm worst after 2 years with ageing, against RF-P005 as amended (≤ ±3.0 ppm); ground-side uplink correction from the measured downlink offset (RFB-05) | VI-RF-14 |
 | AntS configuration (elements, faces, phasing) | Baseline: 2 m pair ±X, 70 cm pair ±Y, antiphase from on-board lattice baluns (or ISIS phasing) | RFQ to ISIS; VI-RF-01, VI-RF-17 |
 | RF board layout, shielding, thermal path | Rules defined (SQSO-RF-BRD-001 §10) | EM layout and review |
-| Inhibit schematic (which switches are physical RF inhibits) | EPS_DESIGN 2.0 §8 (DS1–DS3) | EPS design |
+| Inhibit schematic (which switches are physical RF inhibits) | EPS_DESIGN 2.6 §8 (DS1–DS3) | EPS design |
 | `XPDR_EN` heartbeat | Firmware implemented (40 ms lease, SRS-F081); board monostable designed | VI-RF-11 |
 | Readbacks TONE_OK, XPDR_KEY, PTT_EXCITER | On W4 J1-8/9/10; OBC pins not yet allocated | OBC design (RID RF-21) |
 
@@ -286,3 +288,4 @@ the netlist, the BOM and the ERC log). What it leaves open:
 | 2.3 (amended) | 2026-10-27 | CDR round 3 (P3A-05, RID RFB-05) | RF-P005: ±1.0 ppm over temperature and ≤ ±3.0 ppm with 2-year ageing (TG2016SMN worst 2.1 ppm); the ground corrects the uplink from the measured downlink offset. VI-RF-14 adds ageing and offset estimation |
 | 2.3 (amended) | 2026-10-27 | CDR round 3 (P3A-07) | §3.4 and §9: the XPDR_EN heartbeat lease is 40 ms (SRS-F081; was 60 ms), a stalled loop unkeys within 98 ms (90 ms nominal), inside VI-RF-11's 100 ms; VI-RF-13 also checks the GNSS receiver unpowered (GNSS_EN low) before 45:00 (SYS-224 Rev G) |
 | 2.4 | 2026-10-27 | CDR parts temperature audit (SQSO-MFG-003) | Verification temperature range −40 … +70 °C (RF-P003, §2.4, VI-RF-14), was −20 … +60 °C; Q601 minimum operating temperature path (SQSO-RF-BRD-001 F VI-RFB-14) |
+| 2.5 | 2026-10-27 | Documentation audit (post-CDR 2026) | RF-P002 uplink to the BASELINE Rev E windows inside the board's 435.050–436.500 MHz band (was 435.000–437.300 MHz); RF-P008 3rd harmonic per BASELINE §7; RF-P015 and §4 transmitter allocation 1.85 W and design 1.84 W / 2.42 W (were 1.5 W and 1.76 / 2.34 W), receiver 0.102 / 0.127 W; §5 findings marked adopted; RF-K1 and RF-K6 without the SA818 engineering model; references SQSO-RF-BRD-001 F, LBA 3.5, ICD-003 2.4, GND-001 Rev H, ICD-005 2.7, EPS_DESIGN 2.6, BASELINE Rev E |

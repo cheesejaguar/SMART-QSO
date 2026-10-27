@@ -1,16 +1,17 @@
 # Jetson Orin Nano Carrier Board Design
 
 **Document ID**: SQSO-JET-BRD-001
-**Version**: E
+**Version**: F
 **Date**: 2026-10-27
 **Status**: CDR design completion (RID SE-01, carrier part). Schematic captured as code with selected parts, netlist,
 BOM, ERC and calculations. Not built; PCB layout not started (section 18 is the layout input).
 
 **Sources (all values trace to these)**: `docs/BASELINE_PARAMETERS.md` Rev E §5–§7 (the values used here are unchanged from Rev D); `docs/hardware/PAYLOAD_DESIGN.md` 1.2
-§11–§12; `docs/interfaces/ICD_OBC_JETSON.md` 1.3; `hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001)
+§11–§12; `docs/interfaces/ICD_OBC_JETSON.md` (SMART-QSO-ICD-002) §10; `hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001)
 §8.3, §11, §13; `hardware/electrical/obc/OBC_BOARD_DESIGN.md` (SQSO-OBC-BRD-001) §11; `hardware/electrical/INTERCONNECT.md`
 (SQSO-ICX-001) §3.3, §7; `hardware/mechanical/MECHANICAL_DESIGN.md` §4.1, §4.3–§4.5, §6.10, §11 (items 5, 9, 12); `docs/environment/THERMAL_ANALYSIS.md`
-2.0 §6.3; `docs/environment/EMC_ANALYSIS.md` (SQSO-EMC-001) A; `docs/environment/RADIATION_ANALYSIS.md` C/D §5.3.
+2.5 §6.3; `docs/environment/EMC_ANALYSIS.md` (SQSO-EMC-001) E; `docs/environment/RADIATION_ANALYSIS.md` F §4.1, §5.3;
+`hardware/harness/HARNESS_DESIGN.md` (SQSO-HAR-001 2.0).
 NVIDIA: *Jetson Orin Nano Series Modules Data Sheet* DS-11105-001 v1.5 (December 2024), cited below as **DS**;
 *Jetson Linux Developer Guide* r36.4.4, "Platform Power and Performance" and "Quick Start" (docs.nvidia.com), cited as
 **JLG**. Not retrieved in this session (mirrors returned 403/503, NVIDIA's download centre needs a login): the *Orin
@@ -36,7 +37,7 @@ Files: `design.py` (SKiDL 3.0 schematic), `jetson_calcs.py` (every calculation b
 | 7 W mode (TB-13) | Exists only in the **original** flash configuration (`jetson-orin-nano-devkit`, nvpmodel ID 1: 4 cores ≤ 960 MHz, 2 TPC ≤ 408 MHz, EMC 2133 MHz); the Super configuration has 15 W, 25 W, MAXN_SUPER (JLG). The design assumes the original configuration with 7 W as the default mode |
 | Thermal interface | Gap pad from the SoC lid to a spreader pedestal (no thermal transfer plate on this module): junction-to-spreader **0.9–1.2 K/W estimated** against the 5.7 K/W THM-10 allowable; clamp force ≤ 38 N (48 % of the 80 N module limit) |
 | EMC | CE102 differential-mode estimate ≥ 37 dB under the MIL-STD-461G basic curve; all carrier converters on one crystal clock at 1.000 MHz (the EPS frequency plan): no harmonic within 200 kHz of either uplink window. L1 cannot be protected from the module's own 38.4 MHz reference (41st harmonic 1.02 MHz below L1, EMC-04): GNSS sessions stay with the Jetson off |
-| Parts | 137 placements, 51 BOM lines, plus the module, the SSD and 5 mechanical items; 12 ICs (10 TI AEC-Q100, TPS25947 and SN74LVC1G74 industrial); all stresses within EEE-INST-002 / 50 % rules (§17) |
+| Parts | 137 placements, 51 BOM lines, plus the module, the SSD and 4 mechanical items (MP1–MP4; the window frame and its screws were withdrawn in version E); 12 ICs (10 TI AEC-Q100, TPS25947 and SN74LVC1G74 industrial); all stresses within EEE-INST-002 / 50 % rules (§17) |
 | Carrier dissipation | 0.72 W at 7 W module power (U1 0.28 W, 3.3 V side 0.38 W of which the SSD 0.30 W, U2 0.06 W); hottest junction 70 °C at a 60 °C board |
 | Gyro window, heights, magnetometer, 2.0 mm board (B–E) | 27 × 27 mm window for the OBC's M-G370 gyro at y +17.0 … +44.0, **no frame** (withdrawn by the mechanical design; the carrier is 2.0 mm thick instead: fatigue margin +0.07, first carrier mode 479 Hz, top face unchanged, bottom face 0.4 mm lower; MECHANICAL_DESIGN §4.3–§4.5, D-11): the power train in the −Y strip and the −X column, the I/O parts at the +X edge; 0 placement conflicts and every part within the top-side height limits (7.7 mm under the spreader, 13.2 mm beyond; `jetson_calcs.py` table 14). The RM3100 keep-out of version B is withdrawn (magnetometer moved to (+24, +27), OBC item E11); the parts stay as placed (§18.2) |
 | Not met or not verifiable | 8 W at the full 7 W budget (no margin: cap the module); hold-up after an uncommanded power cut 0.11 ms (the normal shutdown must be commanded, §7.4); DG/TDG values (sequence timing, AC-coupling location, SoC lid area and θjc) |
@@ -196,7 +197,8 @@ carrier's housekeeping, until the OBC removes VBAT. The latch state is on test p
 **Commanded (normal).** OBC sends `SHUTDOWN` → payload runs `poweroff` → SHUTDOWN_REQ* low → U5 latches → POWER_EN low →
 module asserts SYS_RESET* → U7/U8 off with quick output discharge (3V3_IO below 0.5 V in 0.09 ms, 1V8_IO in 0.19 ms:
 DS limits 1.5 and 4 ms) → **JET_3V3 low → OBC JET_PG falls** → OBC drives JETSON_PWR then PAYLOAD_EN low. This
-reverses ICD-002 1.2 §9 ("no SHUTDOWN message is sent"); the flight-software change is for the chair (§19).
+reverses ICD-002 1.2 §9 ("no SHUTDOWN message is sent"); ICD-002 §10.4 records the change and §10.5 the flight-software
+side (§19 item F2).
 
 **Uncommanded (guard trip, eFuse trip, OBC reset, load shed).** U4 sees VBAT_F fall below 10.49 V and drops POWER_EN
 within 20 µs; the input capacitance then holds the converters for only **0.11 ms** at 7 W (0.84 mJ between 10.49 V and
@@ -286,9 +288,9 @@ channel, and a carrier-powered monitor would vanish with the fault). For the cha
 **Temperature.** The guard's spreader limit (70 °C) and power-on gate (−15 °C, SRS-F131) need the spreader temperature
 **before the carrier is powered**, so the sensor cannot be powered by the carrier. RT1 (10 kΩ NTC, TE GA10K3MCD1 (curve in §12.1), bonded
 to the spreader with Stycast 2850FT) has flying leads to J3 and is passed through to **J2 pins 5 and 6** untouched (ESD
-only). The OBC biases it (10.0 kΩ 0.1 % from its 3.3 V reference) and reads it on an ADC channel. No OBC or EPS channel is
-free in the current pin allocation (ICX-001 §4.3, OBC-BRD ADS7138 AIN0–AIN7, EPS ADS7138): interface change **E10**
-(§19). The Jetson-reported junction temperature (STATUS) remains a second input.
+only). The OBC biases it (10.0 kΩ 0.1 % from its 3.3 V reference) and reads it on an ADC channel: with every
+OBC and EPS channel then in use, interface change **E10** (§19) asked for one, and the OBC designer freed PA2
+(ADC1_IN7) for it by moving JETSON_PWR to PA8 (SQSO-ICX-001 §3.3, §4.4). The Jetson-reported junction temperature (STATUS) remains a second input.
 
 ### 12.1 RT1 conversion for the OBC (version D)
 
@@ -422,8 +424,8 @@ V-EMC-1 needs it).
 
 ## 16. Radiation and Parts
 
-The carrier is powered ≤ 10 % of the time (unbiased otherwise). TID: 5.25 krad(Si) in two years behind 2 mm Al
-(RADIATION_ANALYSIS C); the carrier parts are bulk-CMOS/BiCMOS automotive parts with no radiation data; the module is
+The carrier is powered ≤ 10 % of the time (unbiased otherwise). TID: 4.69 krad(Si) in two years behind 2 mm Al
+at 475 km, 4.91 krad at the 485 km cap (RADIATION_ANALYSIS F §4.1; BASELINE §6); the carrier parts are bulk-CMOS/BiCMOS automotive parts with no radiation data; the module is
 "non-critical and expendable" (BASELINE §6) and so is its carrier. SEL: every rail is current-limited and latched or
 tripped (§12). The SSD controller's SEFI shows as a boot or I/O failure, which the OBC's burst timeout ends with a power
 cycle. NAND in pSLC mode keeps a larger charge margin against TID-induced loss than TLC.
@@ -459,7 +461,7 @@ is rated by standoff, not derated).
 |------|------|
 | Cut-out | 27 × 27 mm, x −33.5 … −6.5, **y +17.0 … +44.0** (version C: moved +3 mm by the mechanical design to clear MP2; gyro at (−20, +30.5)), routed |
 | Keep-out | window + 0.5 mm on both faces and every layer: x −34.0 … −6.0, y +16.5 … +44.5 (no parts, copper or routing; planes cut back). The window is 1.5 mm clear of the gyro on every side |
-| What it displaced | Version A put the whole power train in this area (+Y, −X): moved to Z2 and Z3. J2 moved from the −X edge to the +X edge (both harness gaps at y 24–34 are reachable; W5B length unchanged at 0.10 m, to be confirmed by the harness design) |
+| What it displaced | Version A put the whole power train in this area (+Y, −X): moved to Z2 and Z3. J2 moved from the −X edge to the +X edge (both harness gaps at y 24–34 are reachable; W5B 0.060 m in the harness design, SQSO-HAR-001 2.0 §4) |
 | Clear of it | SO-DIMM (y ≤ −27), module (since version C the window starts 0.5 mm beyond the module's +Y edge), M.2 connector and card (x ≥ −4.5: 1.5 mm since E amended), converters and connectors (table 14), centre support (0, +21) (3.0 mm, per the mechanical design) |
 
 ### 18.2 Magnetometer (version D: keep-out withdrawn)
@@ -480,9 +482,9 @@ oscillator near the old corner, and nothing in it depended on the keep-out excep
 | # | Owner | Change | Reason |
 |---|-------|--------|--------|
 | E9 | carrier (this board) | **Done**: JET_3V3 on J2-4, ≤ 1 mA, = 3V3_IO switched by SYS_RESET* | AV-06, AV-09 |
-| E10 | **taken by the OBC designer**: OBC J3 6-pin, pin 5 thermistor, pin 6 return, ADC on PA2; INTERCONNECT W5B, harness | W5B becomes Pico-Clasp 6 (2035560607, gold): pins 5 PT_NTC, 6 PT_RTN; OBC biases RT1 (10.0 kΩ 0.1 % from its 3.3 V reference) and reads it on one ADC channel (none free today: the OBC designer allocates, e.g. a third ADS7138 input freed or a second ADS7138); `sensors.yaml` PT bound to it | spreader temperature for the guard and the −15 °C power-on gate, readable with the carrier off |
+| E10 | **taken by the OBC designer**: OBC J3 6-pin, pin 5 thermistor, pin 6 return, ADC on PA2; INTERCONNECT W5B, harness | W5B becomes Pico-Clasp 6 (2035560607, gold): pins 5 PT_NTC, 6 PT_RTN; OBC biases RT1 (10.0 kΩ 0.1 % from its 3.3 V reference) and reads it on one ADC channel (allocated: PA2, ADC1_IN7, SQSO-ICX-001 §3.3); `sensors.yaml` PT bound to it | spreader temperature for the guard and the −15 °C power-on gate, readable with the carrier off |
 | F1 | flight software (`firmware/src/uart.rs`) | USART1 transmit 2 stop bits (8N2) | DS §2.10.4 |
-| F2 | flight software (`eps_control.rs`, payload schedule) | end each burst with `SHUTDOWN`, wait for JET_PG to fall (≤ 5 s, then cut anyway), then JETSON_PWR low and PAYLOAD_EN 10 ms later; treat an unexpected JET_PG fall with the rail commanded on as a payload fault and cut both lines | §7.4; reverses ICD-002 1.2 §9 |
+| F2 | flight software (`eps_control.rs`, payload schedule) | end each burst with `SHUTDOWN`, wait for JET_PG to fall (≤ 5 s, then cut anyway), then JETSON_PWR low and PAYLOAD_EN 10 ms later; treat an unexpected JET_PG fall with the rail commanded on as a payload fault and cut both lines | §7.4; reverses ICD-002 1.2 §9; taken in ICD-002 §10.4, and the flight-software side is recorded in ICD-002 §10.5 |
 | F3 | flight software (`sensors.yaml`, EPS driver) | bind JPC to the EPS controller's IMON_JET register (U19 IMON, 0.84 V/A) | §12 |
 | F4 | payload software (`software/payload`) | at boot: `curr1_max` = 1300 mA on INA3221 channel 1 (VDD_IN 6.5 W cap); nvpmodel default ID 1 (7 W) in `/etc/nvpmodel.conf`; device tree PCIe C4 x1 Gen2; carrier board config derived from `jetson-orin-nano-devkit` (not `-super`), no carrier EEPROM | §2, §10, §13; TB-13 |
 | M1 | mechanical | spreader pedestal over the SoC and second face over DRAM/regulators; flatness and shim per §14; module standoff positions and the (0, −21) fastener under the module (taken: MECHANICAL_DESIGN §4.5) | §14, §18 |
@@ -542,3 +544,4 @@ oscillator near the old corner, and nothing in it depended on the keep-out excep
 | C | 2026-10-27 | Payload carrier design (chair follow-up) | Window moved to y +17.0 … +44.0 (MECHANICAL_DESIGN §4.5, item 12): keep-outs split by side, frame screws H10–H13 moved to the side bars, J3/D2/U10/U11 re-placed; top-side height limits (7.7 / 13.2 mm) added to the placement check; MP2/MP3 at (±31.3, +12.6); BASELINE cited as Rev E |
 | D | 2026-10-27 | Payload carrier design (chair follow-up) | (amended) frame screws H10–H13 moved to the mechanical designer's positions with Ø4.5 mm head and local bottom keep-outs, MP2 assembly notes (§18.1), Z2 logic group nudged 0.5 mm; RM3100 moved to (+24, +27) by the OBC designer (E11): §18.2 keep-out withdrawn, parts kept as placed, SO-DIMM VDD_IN end now a field-magnitude check, M2 closed; E10 taken (OBC J3 6-pin, ADC on PA2); §12.1 RT1 resistance-temperature table (10K3A Steinhart–Hart curve) for the OBC's conversion; RT1 range corrected to −40 … +125 °C |
 | E | 2026-10-27 | Payload carrier design (chair follow-up) | Window frame withdrawn by the mechanical design: H10–H13, MP5, the frame keep-outs and the MP2 frame assembly notes deleted; window + 0.5 mm keep-out on both faces kept; board 2.0 mm (6 layers, stack-up and impedance-controlled widths recomputed, `jetson_calcs.py` table 17); power planes moved to L5 over the L4 ground  (amended: HARNESS_DESIGN 2.0 item J-1: J1 right-angle Micro-Fit 2×2, gold, plug from −X, moved to the −X edge at (−40.3, −21); U2 and the VDD_IN bulk to the −Y strip; J2 gold, moved to (+36.5, +28.5) clear of the W5B volume; J3 gold; J6 plating F; M.2 card shifted 6 mm toward −X; part-to-part overlap check added; §7.3 JETSON_PWR pin corrected to PA8 (P3E-05); M.2 screw: prevailing-torque locking feature and Scotch-Weld 2216 staking instead of a liquid thread-locker; SQSO-MFG-003 part numbers J1 0430450402, J2 2035560607, J3 2035560207, R1 ERJ-6RQF1R0V; module cold limits stated in §2 item 5) |
+| F | 2026-10-27 | Documentation audit (post-CDR 2026) | Sources to their current revisions (THA 2.5, EMC E, RADIATION F, ICD-002 §10); §0 parts count: 4 mechanical items (MP1–MP4) after the frame's withdrawal, as the BOM; §12 and §19 E10: the spreader NTC channel is PA2 (no longer "none free"); §16 TID 4.69 krad at 475 km (4.91 at the cap; was 5.25 krad at the former 500 km bound); §18.1 W5B 0.060 m (SQSO-HAR-001 2.0); §7.4 and §19 F2: the switch-off change is in ICD-002 §10.4–§10.5. No circuit change |

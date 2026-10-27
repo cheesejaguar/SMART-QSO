@@ -11,8 +11,8 @@
 > **Order changed at the CDR review (2026-10-27).** CDS Rev 14.1 §3.5.2 forbids modifying the flight unit after
 > protoflight testing, and §3.5.2.1 notes that providers may treat a deployment as a configuration change that
 > invalidates the vibration test. On the flight model this procedure therefore runs **before** the protoflight
-> vibration (`docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C §3.8 and §4 step 3): ambient, then hot (+60 °C) and
-> cold (−30 °C) in a thermal chamber, at the minimum battery voltage of the end-of-life state of charge, followed by a
+> vibration (`docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev E §3.8 and §4 step 3): ambient, then hot (+60 °C) and
+> cold (−55 °C, the bounding stowed-wing temperature at the burn with margin, RID P3S-01; was −30 °C) in a thermal chamber, at the minimum battery voltage of the end-of-life state of charge, followed by a
 > re-stow per the vendor procedure and an inspection. After vibration and TVAC, only burn-wire continuity and
 > stowed-state telemetry are checked unless the integrator approves a deployment in writing. On the engineering
 > model the procedure runs at least five times per mechanism, including after the EM vibration. Where §5 below says
@@ -28,8 +28,8 @@ This procedure defines the deployment test to be performed after completion of e
 
 ## 2. SCOPE
 
-- Antenna deployment test (flight-like actuation)
-- Solar panel deployment test (if applicable)
+- Solar wing deployment test (two wings, two burn resistors each, 10 s per resistor, decision C-17)
+- Antenna deployment test (ISIS AntS, by its own controller over I2C, after the wings; `docs/BASELINE_PARAMETERS.md` §4)
 - Deployment sequence timing verification
 - RBF pin function verification
 
@@ -48,7 +48,7 @@ This procedure defines the deployment test to be performed after completion of e
 
 | Equipment | Specification |
 |-----------|---------------|
-| Power supply | 0-12V, 5A |
+| Power supply | Flight battery at the minimum voltage of the end-of-life state of charge, or a pack simulator 11.2–16.4 V, 5 A (SYS-709) |
 | Timer/stopwatch | 0.1s resolution |
 | Video camera | HD, 60 fps |
 | Current monitor | 0-5A, mA resolution |
@@ -114,34 +114,34 @@ This procedure defines the deployment test to be performed after completion of e
 | 5 | Verify inhibit cleared | Status shows enabled | |
 | 6 | Re-install RBF pin | For next test phase | |
 
-### 7.3 Antenna Deployment Test
+### 7.3 Antenna Deployment Test (after the wings, §7.4)
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
 | 1 | Remove RBF pin | Deployment enabled | |
 | 2 | Start video recording | Recording active | |
 | 3 | Start timer | T=0 | |
-| 4 | Command antenna deploy | Command acknowledged | |
-| 5 | Monitor burn wire current | Current pulse detected | |
-| 6 | Record burn time | Time to release | |
+| 4 | Command antenna deploy (AntS arm and automatic deployment over I2C3) | Command acknowledged; AntS temperature read ≥ −17 °C, or the gate's deferral recorded (decision C-18) | |
+| 5 | Monitor the AntS supply current (3V3_ANTS) | ≤ 0.2 A at the pack (`docs/hardware/EPS_DESIGN.md` §5.1) | |
+| 6 | Record each element's time to release from the status word | Time to release | |
 | 7 | Observe antenna deployment | Elements deploy | |
 | 8 | Record deployment time | Total deployment time | |
 | 9 | Verify full deployment | Elements fully extended | |
 | 10 | Stop video recording | Recording saved | |
 
-### 7.4 Solar Panel Deployment Test (If Applicable)
+### 7.4 Solar Wing Deployment Test (first)
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
 | 1 | Reset/restow or new test article | Deployables stowed | |
 | 2 | Start video recording | Recording active | |
 | 3 | Start timer | T=0 | |
-| 4 | Command solar panel deploy | Command acknowledged | |
-| 5 | Monitor burn wire current | Current pulse detected | |
-| 6 | Record burn time | Time to release | |
-| 7 | Observe panel deployment | Panels deploy | |
-| 8 | Record deployment time | Total deployment time | |
-| 9 | Verify full deployment | Panels locked at 90° | |
+| 4 | Command wing deployment (resistor A of each wing, one at a time) | Command acknowledged | |
+| 5 | Monitor burn driver current | 0.800 A ± 10 % (ICD_OBC_ADCS §12.4) | |
+| 6 | Record burn time | 10 s per resistor; second resistor only if the wing has not released; hardware limit 12.0 ± 0.6 s | |
+| 7 | Observe wing deployment | Wings deploy | |
+| 8 | Record deployment time | Within 5 s of release; rebound settles within 2 s (VI-STR-05) | |
+| 9 | Verify full deployment | Wings at their deployed stops; deployment sense agrees (SYS-709) | |
 | 10 | Stop video recording | Recording saved | |
 
 ### 7.5 Deployment Sequence Timing Verification
@@ -152,7 +152,7 @@ This procedure defines the deployment test to be performed after completion of e
 | 2 | Simulate separation switch | Timer starts | |
 | 3 | Verify T+30 min timer | Timer counting | |
 | 4 | Wait for deployment command | At T+30 min | |
-| 5 | Verify sequence | Antenna first, panels second | |
+| 5 | Verify sequence | Wings first (one resistor at a time), antennas second (`docs/BASELINE_PARAMETERS.md` §4; SRS-F089); no magnetorquer actuation or deployment before 120 s | |
 | 6 | Record all timing | Per specification | |
 
 ### 7.6 Post-Deployment Verification
@@ -162,7 +162,7 @@ This procedure defines the deployment test to be performed after completion of e
 | 1 | Visual inspection | No damage | |
 | 2 | Photograph deployed config | Photos captured | |
 | 3 | RF test (if antenna) | VSWR < 2:1 | |
-| 4 | Solar panel I-V (if panels) | Characteristic correct | |
+| 4 | Solar wing I-V | Characteristic correct | |
 | 5 | Mechanical check | Locked position | |
 
 ---
@@ -172,12 +172,12 @@ This procedure defines the deployment test to be performed after completion of e
 | Criterion | Requirement |
 |-----------|-------------|
 | RBF inhibit | Prevents deployment when installed |
-| Burn wire time | < 5 seconds to release |
-| Deployment time | < 30 seconds to full deploy |
+| Burn time | Release on the first resistor's 10 s burn at the cold temperature and the minimum bus voltage (VI-LV-17), with at least 2× margin at cold (ETP §3.8) |
+| Deployment time | Wings within 5 s of release (VI-STR-05); AntS elements within the AntS's own time limit |
 | Full deployment | All elements fully deployed |
 | No damage | No visible damage to mechanism |
 | RF (antenna) | VSWR < 2:1 after deployment |
-| Lock (panels) | Panels locked at deployment angle |
+| Wings | At their deployed stops |
 
 ---
 

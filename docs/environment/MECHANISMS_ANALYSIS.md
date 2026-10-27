@@ -1,7 +1,7 @@
 # SMART-QSO Mechanisms Analysis
 
 **Document ID**: SQSO-MECH-001
-**Version**: E
+**Version**: F
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR issue. Analysis of the two solar-wing hinges and hold-downs and of the bought ISIS AntS antenna system;
@@ -27,12 +27,13 @@ in `hardware/mechanical/hinge_results.json`). Mass properties: `docs/environment
 | Deployed-position latch | **No latch**: a latch pin (Ø0.8 mm) would see 974 MPa in shear at the rebound impact (allowable 662 MPa) and its drag lowers the end-of-travel margin to +0.01 at −55 °C. The springs hold the wing on the damped stop: holding margin +17 (DDMR 14) | §5A |
 | Wing deployment while tumbling (15–50°/s) | No effect on the mechanism (inertial torque ≤ 0.1 mN·m); body rate after deployment scales with the inertia ratio | §5 |
 | Burn-wire release energy (simulation model, flight timing: 10 s per resistor (chair decision C-17; was 8 s), `sqso_fsw::deployment`, retries 50 min apart) | Wing line, 10 s: 32.0 J against a 3σ need of 15.5 J at the margined resistor temperature **−41 °C** (THERMAL_ANALYSIS 2.2 §4.3; ratio **2.07**, STR-15 asks 1.5; 8 s gave 1.66; at the −55 °C bound 1.90, 8 s 1.52). The antenna is the AntS's own release (I²C), not a burn line of this design | §6 |
-| Partial deployment | One wing out (CAD, CBE / MEV): CG moves 1.2–1.3 mm in X, the major principal axis tilts 8.0° / 8.6° (W1 only) or 9.1° / 9.3° (W2 only) from +Y, 3.1° / 3.9° with neither wing out; generation and drag area drop; survivable. The flight software has the one-wing and no-wing presets (`sqso_fsw::adcs` Geometry, SRS-F094, selected by telecommand); their tensors are to be replaced by the CAD ones of §8 | §8 |
+| Partial deployment | One wing out (CAD, CBE / MEV): CG moves 1.1–1.3 mm in X, the major principal axis tilts 8.1° / 8.6° (W1 only) or 9.0° / 9.2° (W2 only) from +Y, 3.2° / 4.0° with neither wing out; generation and drag area drop; survivable. The flight software has the one-wing and no-wing presets (`sqso_fsw::adcs` Geometry, SRS-F094, selected by telecommand), which carry the CAD tensors (MASS_BUDGET 3.2 §6.5); with the wing not identified, preset 0 (decision C-21) | §8 |
 | Wing and tape flexible modes vs spin and ADCS bandwidth | Wing 21–83 Hz, VHF tape 0.4–4 Hz, against a 0.017 Hz spin and a < 0.001 Hz control bandwidth: no coupling; dissipation makes the major-axis rule apply (MASS_BUDGET §6) | §9 |
 
 Verdict for this discipline: **ready for fabrication with actions**: spring and sensor specification (§4), a soft or
-damped stop (§5), a longer wing burn or a higher burn current (§6), the AntS command interface in place of the
-simulated antenna burn line (§7), and the deployment order wings-then-antennas or a verified clearance (§7.2). The
+damped stop (§5), a longer wing burn or a higher burn current (§6; done: 10 s per resistor, decision C-17), the AntS
+command interface in place of the simulated antenna burn line (§7; done in `sqso_fsw::deployment`, §7.1), and the
+deployment order wings-then-antennas or a verified clearance (§7.2; done: wings first, BASELINE §4). The
 torque margins rest on estimated resistive torques; the hinge torque test (VI-STR-04) replaces them.
 
 **Version B.** The Version A springs (Ø0.55 mm wire, mean Ø4 mm, 22 coils, 12 mm long, two per wing on the hinge line)
@@ -53,7 +54,7 @@ MoS₂-coated pins, a PTFE-faced snubber and a heat-set clock-spring flex (§4A)
 | NASA-STD-5001B w/Change 3 | Table 6 (softgood lines), Table 1 (metallic parts) |
 | CDS Rev 14.1 | §2.2.4 (deployables constrained by the CubeSat), §2.3.8 (three inhibits per deployable), §2.4.4 (30 min wait) |
 | SpaceX Rideshare Payload User's Guide v11 | §5.7 (no passive deployment of appendages on ejection), §6.3 item 7 (burn wires may be reset after test if identical and the test shows the original did not fail) |
-| Mission simulation | `software/rust/sqso-sil/src/hw/deploy.rs` (release-energy model), `sqso_fsw::deployment` (burn 5 s wing / 3 s antenna, 3 attempts 60 s apart, 30 min wait) |
+| Mission simulation | `software/rust/sqso-sil/src/hw/deploy.rs` (release-energy model), `sqso_fsw::deployment` (as of Version E: 10 s per wing resistor, one at a time, attempts 50 min apart, 30 min wait, then the AntS over I²C in a 45 s window; the first issue analysed 5 s wing / 3 s antenna, 60 s apart) |
 
 ## 3. Mechanisms (Version A; the wing hinge, springs and flex are superseded by §3A)
 
@@ -288,7 +289,7 @@ resistor at a time, A and B resistors alternating, 3 attempts **50 min apart**, 
 | Wing, 5 s | −55 °C (bound, P3S-01) | 16.0 J | 16.8 J | 0.95 | 99.6 % | 0.43 % |
 | Wing, 8 s | −55 °C | 25.6 J | 16.8 J | 1.52 | 100 % | 0 |
 | **Wing, 10 s (flight, C-17)** | **−55 °C** | 32.0 J | 16.8 J | **1.90** | 100 % | 0 |
-| Antenna line, 3 s (flight; simulation model) | −20 °C | 9.6 J | 13.4 J | 0.71 | 76.5 % | 1.8 % |
+| Antenna line, 3 s (simulation model only; the flight AntS uses its own release, §7.1) | −20 °C | 9.6 J | 13.4 J | 0.71 | 76.5 % | 1.8 % |
 | Antenna line, 3 s | −40 °C | 9.6 J | 15.4 J | 0.63 | 50.1 % | **11.4 %** |
 
 The deployment happens 30 min after separation, possibly in eclipse. THERMAL_ANALYSIS 2.2 §4.3 now gives the margined
@@ -384,8 +385,9 @@ qualification item (VI-STR-13). Consequences for this design:
 - **Clocking:** the 2 m (VHF) elements must lie along ±X, parallel to the deployed wings. Any 2 m element along ±Y makes
   +Y the intermediate axis of inertia and the sun-pointing spin fails: Iyy/Izz = 0.89 with two elements along ±Y, 0.97–0.98
   for options B and C of `hardware/rf/ANTENNA_DESIGN.md` v2.0 §3 (one element along +Y, or a quadrature pair along +X and
-  +Y), with 52–60 % of sunlit time within 15° instead of 100 % (MASS_BUDGET §6.4, item 6). The antenna design recommends
-  option C for the link; this is a conflict for the chair (STR-01).
+  +Y), with 52–60 % of sunlit time within 15° instead of 100 % (MASS_BUDGET §6.4, item 6). The antenna design's 2.0 issue
+  recommended option C for the link; the conflict (STR-01) is resolved by decision C-3: 2 m elements along ±X, 70 cm along
+  ±Y (BASELINE §7; ANTENNA_DESIGN 2.1 onward).
 - **Clearance:** along ±X the VHF elements run in the −Z face plane (z ≈ −55 mm), 4–6 mm below the lower edge of a stowed
   wing (z = −49 mm; the CAD's wing lower edge is at z −43 mm since Version B, 6.5 mm above the tape band). The flight
   order is now wings first, then the AntS (`sqso_fsw::deployment`); antennas first would leave the tapes under the stowed
@@ -446,3 +448,4 @@ stable only about the major axis of inertia. That is why the inertia ratio of MA
 | C | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: spin 8°/s (BASELINE Rev E §8) in the hinge-load statements and the frequency table (spin 0.022 Hz, nutation ≈ 0.004 Hz, scaled with the spin); hold-down drivers and the burn pack current from the EPS board (one 0.8 A driver per resistor, 0.67 A at the pack; SQSO-EPS-BRD-001 §9) |
 | D | 2026-10-27 | Mechanical design (SQSO-MECH-CAD-001, magnetometer zone) | Hinge pins 440C → A286 (non-ferromagnetic, 20 mm zone round the magnetometer board A2) with sputtered MoS₂ on the pin and burnished binder-free MoS₂ in the bore; pin strength at the end-of-travel impact and at launch (§5A: MS +3.3 yield, +4.6 ultimate); torque margins unchanged; VI-MECH-03 (friction and galling with the A286 pin) |
 | E | 2026-10-27 | Mechanical design (SQSO-MECH-CAD-001, review round 3) | Cold bound −55 °C (P3S-01): torque margin +0.08 at the end of travel (one spring out +0.07, qualification factors +0.29; +0.14 at −40 °C), resistive torques raised by allowance below −40 °C, burn release at −55 °C with the flight 8 s burn: ratio 1.52 (§4A, §6; `hinge.py` `T_COLD`, `burn_release`); VI-STR-04/-05/-06 and VI-MECH-01/-02/-03 at −55 °C; MoS₂ ground controls (humidity, dry N₂, cycle budget, film inspection; P3S-04, §5A); partial-deployment table from the CAD with W2-only and no-wing cases and the FSW presets (§1, §8; P3S-07); flight deployment timing and AntS interface brought up to `sqso_fsw::deployment` (§6, §7); one VI-STR-10 criterion (P3S-08); burn release at the margined resistor temperature −41 °C (THERMAL_ANALYSIS 2.2 §4.3; 8 s: 1.66, 10 s: 2.07; `hinge.py` `T_BURN`); hold-down line preload at the −81 °C free span: slack possible with a stiff braid, series spring at the anchor (≤ 40 N/mm) added, 19 N at −81 °C after creep (§6, VI-STR-07); the spring placed on the burn board in the CAD (`W1_line_spring`, above the corner strip CS_PXMY, 1.0 mm clear; check SWP-2), criterion ≥ 10 N at −81 °C, data item DI-MECH-01 (line EA and creep, mechanical lead, 2027-01-15); flight burn 10 s per resistor (chair decision C-17: 2.07 at −41 °C, 1.90 at −55 °C); partial-deployment rows refreshed from the CAD (with the harness parts audit M-11) |
+| F | 2026-10-27 | Documentation audit (post-CDR 2026) | §1 partial-deployment row brought to the §8 CAD values (tilts 8.1° / 8.6°, 9.0° / 9.2°, 3.2° / 4.0°) and to the presets as coded; §1 verdict marks the burn length, AntS interface and deployment order as done; §2 flight timing as of Version E; §6 antenna-line rows labelled as the simulation model; §7.2 the clocking conflict resolved by decision C-3 |

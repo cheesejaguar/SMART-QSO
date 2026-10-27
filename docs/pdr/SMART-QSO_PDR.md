@@ -1,5 +1,13 @@
 # SMART-QSO (Self‑Managing Amateur Radio Transponder — QSO)
 
+> **Historical record (2025, PDR-phase concept).** Superseded for current values by `docs/BASELINE_PARAMETERS.md` and
+> `docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`. No PDR has been held (independent PDR planned 2027-01-12,
+> `mission/SCHEDULE.md`). Superseded here among others: the "Jetson Orin Nano Super" (now an Orin Nano 8 GB module in
+> the 7 W mode), the 475–525 km orbit and 12–18-month life (now 475 km target, 485 km cap, 2 years), the drag or tether
+> device (none), QSO prioritization and community-taught models (not in the flight baseline), Llama 3.2 3B with
+> TensorRT (decision D5), and the cost figures (`docs/funding_audit/LIFECYCLE_COST_ROM.md`). Still good for: the
+> original mission concept and its design rationale.
+>
 > **Note (2026-10-24):** a historical PDR-phase description, not updated. The OBC is the STM32L4R5ZI
 > (`docs/BASELINE_PARAMETERS.md` §6), and the flight software is Rust on the Embassy executor, with no FreeRTOS
 > (`software/rust/README.md`). Since 2026-10-25 the Embassy executor with no RTOS is the baseline (BASELINE §6,

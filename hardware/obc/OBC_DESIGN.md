@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-CDH-OBC-001
-**Version:** 1.8
+**Version:** 1.9
 **Date:** 2026-10-27
 **Status:** Draft
 **Supersedes:** `docs/hardware/OBC_DESIGN.md` (SMART-QSO-OBC-001), merged as Appendix A (finding PI-17)
@@ -11,7 +11,7 @@
 
 ## 1. Overview
 
-This document defines the On-Board Computer (OBC) design for the SMART-QSO 1U CubeSat, following NASA Ames SmallSat heritage (GeneSat, PharmaSat, O/OREOS, EcAMSat) and NPR 7150.2 software engineering requirements.
+This document defines the On-Board Computer (OBC) design for the SMART-QSO 1U CubeSat, drawing on the design patterns of NASA Ames small satellites (GeneSat, PharmaSat, O/OREOS, EcAMSat; reference missions, not project heritage) and NPR 7150.2D software engineering requirements. The board of record is the build-to design `hardware/electrical/obc/OBC_BOARD_DESIGN.md` (SQSO-OBC-BRD-001), with the pin allocation `hardware/electrical/INTERCONNECT.md` (SQSO-ICX-001); where this document differs, they govern. Not built.
 
 ### 1.1 Design Requirements
 
@@ -86,10 +86,12 @@ the C linker script cited here until 2026-10-24 was removed with the C target bu
 | Type | Size | Interface | Purpose |
 |------|------|-----------|---------|
 | Internal Flash | 2 MB | Direct | Code, config |
-| FRAM | 256 KB | SPI | Critical state |
-| MRAM (optional) | 1 MB | SPI | Telemetry storage |
+| FRAM | 2 × FM25V20A, 256 KB each (the second a mirror) | SPI1 | Critical state, housekeeping store |
+| External flash or MRAM | None (SQSO-OBC-BRD-001 §7: the housekeeping store, ≈ 88 kB, fits one FRAM) | — | — |
 
 ### 3.3 FRAM Usage
+
+*Superseded by `hardware/obc/STORAGE_DESIGN.md` §3.3 (the 12 regions as implemented in `software/rust/firmware/src/fram.rs`); the map below is the earlier plan.*
 
 | Address | Size | Content |
 |---------|------|---------|
@@ -310,8 +312,8 @@ the deployment sense moves to PE2 and the FRAM WP#/HOLD# to PE0/PE1.
 
 | Parameter | Value |
 |-----------|-------|
-| Layers | 4 |
-| Size | 90mm × 90mm (PC104 form) |
+| Layers | 6 (SQSO-OBC-BRD-001 §1) |
+| Size | PC/104, 90.17 × 95.89 mm (SQSO-OBC-BRD-001 §1) |
 | Thickness | 1.6 mm |
 | Copper | 1 oz outer, 0.5 oz inner |
 | Finish | ENIG |
@@ -319,8 +321,7 @@ the deployment sense moves to PE2 and the FRAM WP#/HOLD# to PE0/PE1.
 
 ### 9.3 EMC Design
 
-- Ground plane on layer 2
-- Power plane on layer 3
+- Layer assignment and layout constraints: SQSO-OBC-BRD-001 §21
 - Decoupling at each IC
 - Ferrite beads on power inputs
 - ESD protection on external interfaces
@@ -1075,3 +1076,4 @@ OpenOCD / STM32CubeProgrammer
 | 1.7 | 2026-10-27 | §8 marked superseded by SQSO-ICX-001 (master pin allocation); §13 note and §13.5: resolution of every open avionics item (AV-01, AV-02, AV-03, AV-05, AV-06, AV-09, AV-10, RF-21) in the board design SQSO-OBC-BRD-001 |
 | 1.7, note | 2026-10-27 | §13.5 rows AV-01 and AV-03 follow SQSO-OBC-BRD-001 B and SQSO-ICX-001 B (28 firmware changes; magnetometer on board A2) |
 | 1.8 | 2026-10-27 | Stale pins against SQSO-ICX-001 D (amended): §8.3–§8.4, §13.1 (FRAM SPI1 PG2–PG5 and mirror CS# PD7; AntS on I2C3 PG7/PB4; LPUART1_TX PB11; PAYLOAD_EN PB2; JETSON_PWR PA8; DEPLOY_EN PF3; four burn lines, 10 s each), §13.2 and §13.5 (IWDG reload 3200, 25.6 s; supervisor window 4.9–29.3 s), A.5.4 replaced by the current allocation |
+| 1.9 | 2026-10-27 | Documentation audit (post-CDR 2026): §1 board of record SQSO-OBC-BRD-001 named, heritage reworded (reference missions), NPR 7150.2D; §3.2 two FRAMs and no external flash or MRAM; §3.3 points to STORAGE_DESIGN §3.3; §9.2–§9.3 board size and layers to SQSO-OBC-BRD-001 §1 (was 4 layers, 90 × 90 mm) |

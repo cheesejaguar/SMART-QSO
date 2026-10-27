@@ -6,6 +6,7 @@
 **Date:** 2026-10-15
 **Classification:** Development/Qualification Test (hardware-in-the-loop)
 **Status:** Written; not yet run. Needs EM or FM hardware, the target receiver driver and the FRAM driver (SQSO-ICD-013 §10).
+**Verification items:** VI-RF-12 (TX-OFF at the antenna port), VI-RF-13 and VI-LV-07 (RF silence, §8.8) (`docs/verification/VI_REGISTER.md`)
 
 ---
 
@@ -88,7 +89,7 @@ Each command below is built with `telecommand_builder.py <COMMAND> --key-file <k
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
-| 3 | Send TX_DISABLE (operational key); start a timer at the end of the uplink frame | `RF_TX_EN` low and PA supply off within **1 s (TBR)**; silent for 120 s | |
+| 3 | Send TX_DISABLE (operational key); start a timer at the end of the uplink frame | `RF_TX_EN` low, PA supply < 0.1 V and RF at the port < −60 dBm within **1 s (TBR)** (VI-RF-12); silent for 120 s | |
 | 4 | Force SAFE (SET_MODE 0) | Accepted; still silent for 120 s | |
 | 5 | Remove and restore OBC power | After boot, `RF_TX_EN` stays low from power-on (oscilloscope); silent for 120 s | |
 | 6 | Re-send the TX_ENABLE frame saved at step 2, unchanged (replay) | Rejected; silent for 60 s | |
@@ -148,11 +149,13 @@ Monitor the downlink frequency and its harmonics, and the receiver's local-oscil
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
 | 23g | Send `arm-flight` through the umbilical; power off; disconnect the umbilical | Reply `SQGR 00` before power-off | |
-| 23h | Apply power with the deployment switches released (simulated deployment); start a timer | Boot log `state=COUNTING elapsed=0s`; radio and transmitter unpowered; no signal | |
-| 23i | At 30 min, force a watchdog reset (debug command or by withholding the watchdog kick) | Silent; boot log shows the count resumed (about 1,800 s) | |
+| 23h | Apply power with the deployment switches released (simulated deployment); start a timer | Boot log `state=COUNTING elapsed=0s`; radio and transmitter unpowered; GNSS receiver unpowered (GNSS_EN low); no signal | |
+| 23h1 | At 20 min, force a power-on reset (VI-RF-13) | Count restarts at 0 (SYS-224); silent | |
+| 23i | At 30 min, force a watchdog reset (debug command or by withholding the watchdog kick) | Silent; boot log shows the count resumed, not shortened | |
 | 23j | At 40 min, remove and restore power (switch toggle) | Silent; count restarts at 0 | |
 | 23k | Send TX_ENABLE (operational key) during the silence | No effect while the radio is off; still silent | |
-| 23l | Continue to 45 min after step 23j | First beacon no earlier than 45:00 after 23j | |
+| 23l | Continue to 45 min after step 23j | First beacon no earlier than 45:00 after 23j; no emission > −60 dBm and GNSS_EN low before 45:00 (VI-RF-13, VI-LV-07); with the AntS simulator reporting not deployed, the transmitters stay silent after 45:00 until it reports deployed or its sequence ends (decision C-19, SRS-F167) | |
+| 23l1 | After the first beacon, remove and restore power with a switch toggle | Silence completed is latched: no new 45-min silence (SYS-224 Rev G; BASELINE §4) | |
 | 23m | Re-arm (step 23g) before any further integration activity | `SQGR 00` | |
 
 ### 8.9 Completion

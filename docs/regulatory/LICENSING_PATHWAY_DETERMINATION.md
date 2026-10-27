@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REG-003
-**Revision:** B.1
+**Revision:** B.2
 **Date:** 2026-10-27
 **Status:** Decisions D1–D3 taken (§8) — not legal advice; confirm with FCC Space Bureau staff before filing
 **Baseline:** [BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md)
@@ -44,14 +44,14 @@ pre-space notification deadline (see the [Regulatory Roadmap](REGULATORY_ROADMAP
 
 | # | Condition | Basis | How SMART-QSO satisfies it |
 |---|-----------|-------|----------------------------|
-| C1 | Space station licensee and every control operator hold valid U.S. amateur licenses; the licensee can remove the satellite from the manifest and disable it. | [R1] 97.207(a); [R3] "Who Should Apply?" | Licensee and backup control operators to be named in BASELINE_PARAMETERS §1 (**OPEN — decision D1**). |
+| C1 | Space station licensee and every control operator hold valid U.S. amateur licenses; the licensee can remove the satellite from the manifest and disable it. | [R1] 97.207(a); [R3] "Who Should Apply?" | Licensee named by decision D1: **KK6GDB** (BASELINE Rev E §1). The other control operators, including a backup control operator for the licensee, are still to be named (BASELINE §1). |
 | C2 | No person or organization is compensated, directly or indirectly, for operating the satellite or its ground stations. | [R1] 97.113(a)(2); [R4] form item 4.10 | Funding agreements shall exclude operations labor from any paid scope. Build and test may be funded by **grants or donations with nothing required in return** ([R4] p.1 note on "without pecuniary interest"). |
 | C3 | No communications on behalf of an employer, and no sale of services or data. | [R1] 97.113(a)(3); [R4] p.1 | All telemetry, beacon formats and AI outputs are published openly (BEACON_SPEC, ICD_SPACE_GROUND). No exclusive data rights to any funder. |
 | C4 | Nothing transmitted from the spacecraft is encoded to obscure its meaning; decoding information is published. | [R1] 97.113(a)(4); [R5] RR 25.2A; [R4] form §6 | Downlinks are plain AX.25/AFSK or FM. Formats are published before launch (IARU form item 6.1). |
-| C5 | Only telecommand stations designated by the licensee may initiate, modify or terminate spacecraft functions. They may use codes that obscure command content (authentication/encryption of telecommand only). | [R1] 97.3(a)(45), 97.211(a)-(b) | Telecommand uplink is authenticated (HMAC with replay counter) from designated stations only. **Public uplinks, including federated-learning model contributions, are user data, not telecommand.** No public uplink may change spacecraft mode, RF state or power without an authenticated command from a designated station. |
-| C6 | Capability to cease transmissions by telecommand whenever ordered by the FCC; sufficient command stations in place before launch. | [R1] 97.207(b); [R5] RR 22.1, 25.11 | A TX-OFF telecommand, executed by the on-board computer's flight software, which removes PA power through a hardware switch and latches the state; it does not depend on the AI payload or the transponder (`docs/hardware/RF_DESIGN.md` v2.0 §3.5). At least two geographically separate telecommand stations at launch (none agreed yet). See IARU request item 7.8/7.9. |
+| C5 | Only telecommand stations designated by the licensee may initiate, modify or terminate spacecraft functions. They may use codes that obscure command content (authentication/encryption of telecommand only). | [R1] 97.3(a)(45), 97.211(a)-(b) | Telecommand uplink is authenticated (HMAC with replay counter) from designated stations only. **Public uplinks, including any future community model contribution (not in the flight baseline and not implemented onboard, BASELINE §2), are user data, not telecommand.** No public uplink may change spacecraft mode, RF state or power without an authenticated command from a designated station. |
+| C6 | Capability to cease transmissions by telecommand whenever ordered by the FCC; sufficient command stations in place before launch. | [R1] 97.207(b); [R5] RR 22.1, 25.11 | A TX-OFF telecommand, executed by the on-board computer's flight software, which removes PA power through a hardware switch and latches the state; it does not depend on the AI payload or the transponder (`docs/hardware/RF_DESIGN.md` v2.4 §3.5). At least two telecommand stations at least 1,000 km apart, each able to command alone (none agreed yet; written agreements due 2027-01-05, BASELINE Rev E §1, `mission/SCHEDULE.md` DA-10). See IARU request item 7.8/7.9. |
 | C7 | Operations stay within 144–146 MHz / 435–438 MHz and Part 97 emission standards (no non-amateur TT&C). | [R1] 97.207(c), 97.307 | Federal-band TT&C removed from baseline. |
-| C8 | Orbital debris disclosures meet 97.207(g)(1)(i)–(vii), including re-entry no later than **5 years after mission completion** with ≥ 0.9 disposal success probability, and casualty risk < 1:10,000 (DAS). | [R1] 97.207(g)(1)(vii)(D) | [ODAR](filings/ODAR_SMART-QSO.md). The deployment altitude is selected in the [launch trade](../funding_audit/LAUNCH_RIDESHARE_TRADE_STUDY.md) so that passive decay closes. |
+| C8 | Orbital debris disclosures meet 97.207(g)(1)(i)–(vii), including re-entry no later than **5 years after mission completion** with ≥ 0.9 disposal success probability, and casualty risk < 1:10,000 (DAS). | [R1] 97.207(g)(1)(vii)(D) | [ODAR](filings/ODAR_SMART-QSO.md). The deployment altitude is set so that passive decay closes: target 475 km, not above 485 km (BASELINE Rev E §3; first selected in the [launch trade](../funding_audit/LAUNCH_RIDESHARE_TRADE_STUDY.md)); whether an early failure ends the mission is a consultation question (REGULATORY_ROADMAP Rev D §6 Q5). |
 
 ## 6. Corrections to Prior Repository Statements
 
@@ -103,7 +103,7 @@ A signed contract triggers the following, before any money is accepted:
 |------|-----|
 | Second radio, UHF (e.g., 94 g, 30–33 dBm) | ≈ $6k, plus antenna |
 | S-band instead | ≈ $13–15k; non-Federal S-band is restricted (US94, US96) |
-| Power and volume trade on the 1U | A second transmitter at 5–10 % duty is ≈ 0.2–0.6 W orbit average. The headroom before the 20 % margin requirement is ≈ 0.19 W tumbling and ≈ 0.78 W sun-pointed (BASELINE §5), so it may reopen D4 |
+| Power and volume trade on the 1U | A second transmitter at 5–10 % duty is ≈ 0.2–0.6 W orbit average. The headroom before the 20 % margin requirement is ≈ 0.21 W tumbling and ≈ 0.94 W sun-pointed (BASELINE Rev E §5: 2.48 W and 3.84 W generation against the 1.86 W and 2.26 W allocations), so it may reopen D4 |
 | Part 5 application | $140 FCC fee; ITU cost recovery (2013 schedule CHF 570 + 7,030; current schedule not checked); 45–180 days, plus NTIA time if a Federal band |
 | IARU | Coordinate as a combined mission, disclosing the separation |
 
@@ -117,7 +117,7 @@ Is AI beacon text affected if the AI experiment is also a contract deliverable?
 |----|----------|----------|-----------|
 | D1 | Licensee KK6GDB; space station KK6GDB-11 | Name at least two control operators and telecommand stations (NASA Ames and Santa Clara University are prospective partners only) | Before IARU submission |
 | D2 | Paid contracts allowed on the terms of §7.1; grants and donations until one is signed | Apply §7.1 to any contract before accepting funds | Before accepting funds |
-| D3 | Consultation with FCC Space Bureau (amateur satellite staff): AI experiment, loss-of-contact values (N = 30/14 days, M = 180 days proposed), the §7.1 questions | Hold the consultation | Before IARU submission |
+| D3 | Consultation with FCC Space Bureau (amateur satellite staff): AI experiment, loss-of-contact values (N = 30/14 days, M = 180 days proposed), the §7.1 questions; agenda Q1–Q10 in REGULATORY_ROADMAP Rev D §6 | Request the consultation by 2026-11-15, hold it by 2027-01-05, record the outcome here by 2027-01-08 (`mission/SCHEDULE.md` DA-11) | Before the early pre-space filing (2027-01-19) and the IARU submission |
 
 ---
 
@@ -128,3 +128,4 @@ Is AI beacon text affected if the AI experiment is also a contract deliverable?
 | A | 2026-10-14 | Initial determination (funding audit) |
 | B | 2026-10-15 | Decisions D1–D3 recorded; §7.1 paid-contract terms (D2) |
 | B.1 | 2026-10-27 | C6 describes the TX-OFF path accurately (executed by the OBC flight software through a hardware PA switch; there is no path independent of the OBC); telecommand stations still to be agreed (CDR review, communications panel) |
+| B.2 | 2026-10-27 | Documentation audit (post-CDR 2026): C1 the licensee named (D1 was shown open); C5 community model updates not in the flight baseline; C6 the station criterion of DA-10, RF_DESIGN v2.4; C8 the BASELINE Rev E deployment band; §7.1 power headroom from BASELINE Rev E §5 (was 0.19 / 0.78 W); §8 D3 dates of DA-11 |

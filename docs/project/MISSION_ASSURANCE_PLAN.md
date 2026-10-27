@@ -1,7 +1,7 @@
 # SMART-QSO Mission Assurance Plan
 
 **Document ID**: SQSO-MAP-001
-**Version**: 2.0
+**Version**: 2.1
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR draft. §1, §2.2–§2.3, §5.2, §6.2, §7 and §8 rewritten by the CDR S&MA review; the other sections are
@@ -56,7 +56,7 @@ Principles:
 | Mission | Class D |
 | Safety | The software has safety-critical components (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2; Safety Data Package §3.2) |
 | Software | Class C per NPR 7150.2D (flight software and ground software used in operations); Class D for research and analysis tools (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1) |
-| EEE Parts | NASA-STD-8739.10 Level 4 (commercial) with project screening for mission-critical parts (§7; `docs/manufacturing/EEE_PARTS_LIST.md` Rev C §2A) |
+| EEE Parts | NASA-STD-8739.10 Level 4 (commercial) with project screening for mission-critical parts (§7; `docs/manufacturing/EEE_PARTS_LIST.md` Rev G §2A) |
 
 ## 3. Organization
 
@@ -140,7 +140,7 @@ Engineer     │
 
 The critical items list is `docs/safety/SYSTEM_FMEA_CIL.md` (SQSO-FMEA-002) §3: inhibits, battery and its protections,
 burn circuits and restraints, structure and fasteners (Category 1), and the bus single points (Category 2). Each has its
-controls and verification there. Reliability estimates and the early-failure program: `docs/environment/RELIABILITY_ANALYSIS.md` v2.0.
+controls and verification there. Reliability estimates and the early-failure program: `docs/environment/RELIABILITY_ANALYSIS.md` v2.2.
 
 ### 5.3 Failure Reporting
 
@@ -181,7 +181,7 @@ battery and deployment as "Controlled"; that is withdrawn (finding VV-05).
 
 ### 7.1 EEE parts
 
-Policy, screening, traceability, radiation acceptance and finishes: `docs/manufacturing/EEE_PARTS_LIST.md` Rev C §2A.
+Policy, screening, traceability, radiation acceptance and finishes: `docs/manufacturing/EEE_PARTS_LIST.md` Rev G §2A.
 In brief:
 
 | Element | Requirement | Reference |
@@ -189,7 +189,7 @@ In brief:
 | Grade | NASA-STD-8739.10 Level 4 (commercial); automotive or industrial grade preferred | NASA-STD-8739.10 (2017); SPD-39 |
 | Screening of mission-critical parts | EEE-INST-002 Level 3 principles applied at board level: receiving inspection, thermal cycling powered, ≥ 200 h burn-in with 100 h failure-free | GSFC EEE-INST-002 (2003, Addendum 1 2008) |
 | Lot traceability | Franchised sources only; one lot per part type; lot recorded on the traveler | SAE AS6081 practice for any other source |
-| Radiation | TID ≥ 10 krad by data, heritage or lot test; latch-up current limiters on every mission-critical rail | NASA/TM-20210018053; RADIATION_ANALYSIS Rev C |
+| Radiation | TID ≥ 10 krad by data, heritage or lot test; latch-up current limiters on every mission-critical rail | NASA/TM-20210018053; RADIATION_ANALYSIS Rev F |
 | Finishes | No pure tin (re-tin with Sn63Pb37 or conformal coat), no cadmium, no zinc plating | UG v11 Table 5-5; GEIA-STD-0005-2, GEIA-STD-0006 |
 | Derating | EEE_PARTS_LIST §12 | — |
 
@@ -205,13 +205,13 @@ In brief:
 
 Per the SpaceX Rideshare Payload User's Guide v11 Table 5-5, which applies to a containerized CubeSat (§5.3): cadmium and
 cadmium plating, zinc plating, mercury and its compounds, pure tin and tin electroplate. Also PVC (outgassing, chlorine)
-and Sharpie markers. Where each could enter the design and its control: `docs/compliance/MATERIALS_LIST.md` Rev B §2.2.
+and Sharpie markers. Where each could enter the design and its control: `docs/compliance/MATERIALS_LIST.md` Rev E §2.2.
 
 ### 7.4 Materials and processes (NASA-STD-6016C with Change 1, tailored)
 
 | Requirement | Method | Applies |
 |-------------|--------|---------|
-| Outgassing TML ≤ 1.0 %, CVCM ≤ 0.1 % (CDS 2.1.7; UG v11 RML ≤ 1.0 %) | ASTM E595 data with a cited source for every non-metallic material (MATERIALS_LIST Rev B); bakeout in TVAC | All |
+| Outgassing TML ≤ 1.0 %, CVCM ≤ 0.1 % (CDS 2.1.7; UG v11 RML ≤ 1.0 %) | ASTM E595 data with a cited source for every non-metallic material (MATERIALS_LIST Rev E); bakeout in TVAC | All |
 | Stress-corrosion cracking | Alloys from MSFC-STD-3029 Table I (high resistance): 6061-T6, 7075-T73 preferred to 7075-T6 for stressed parts, A286, 300-series, Ti-6Al-4V | Structure, fasteners |
 | Threaded fasteners | Locking feature on every fastener (UG v11 §5.2), torque table, NASA-STD-5020B practice for preload; staking with an E595-compliant adhesive; no thread-locker alone on polymer-bushed joints | Structure, battery mount |
 | Galvanic compatibility | Conversion-coated aluminium against stainless or titanium; no bare dissimilar contact in moisture-exposed stowage | Structure |
@@ -344,7 +344,7 @@ NONCONFORMANCE PROCESS
 | Document | Document owner |
 | Design (minor) | Systems Engineer |
 | Design (major) | CCB |
-| Requirements | CCB + customer |
+| Requirements | CCB (the PI; no customer: CM plan §2.2) |
 
 ## 11. Reviews and Audits
 
@@ -471,3 +471,4 @@ NONCONFORMANCE PROCESS
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 1.0, note | 2026-10-25 | SMART-QSO Team | §2.3 software row cites the NPR 7150.2D determination (SDP §3.1); the class is unchanged. Safety row: the software has safety-critical components (SDP §3.2), not "non-hazardous" |
 | 2.0 | 2026-10-27 | CDR S&MA review | Class D basis (NPR 8705.4B, SPD-39 template) replaces the NPR 8735.2 citation; tailoring table; critical items and hazard log point to SQSO-FMEA-002 and SQSO-SDP-002 (hazards reopened); §7 EEE policy (NASA-STD-8739.10 Level 4, EEE-INST-002 screening, traceability, radiation, tin and prohibited finishes), M&P per NASA-STD-6016C tailored; §8 workmanship standards corrected (8739.6B, J-STD-001 space addendum, 8739.4A, 8739.1B; 8739.3 cancelled), ESD and contamination |
+| 2.1 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): cited revisions (EEE_PARTS_LIST G, MATERIALS_LIST E, RADIATION_ANALYSIS F, RELIABILITY_ANALYSIS 2.2); requirements change authority is the PI as CCB |

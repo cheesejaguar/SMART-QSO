@@ -1,7 +1,7 @@
 # Onboard AI Model Selection (Decision D5)
 
 **Document Number:** SQSO-AUD-006
-**Revision:** B
+**Revision:** C
 **Date:** 2026-10-27
 **Decision owner:** Payload lead (baseline: `docs/BASELINE_PARAMETERS.md` §6, §9)
 **Research:** [D5_AI_MODEL_SELECTION.md](../funding_audit/research/D5_AI_MODEL_SELECTION.md). Numbers marked [ROM] there are
@@ -13,8 +13,10 @@ estimates, not measurements.
    trees or a tiny INT8 MLP. It picks:
    - one of a fixed set of pre-approved beacon templates;
    - a proposed power mode;
-   - transponder on/off scheduling;
-   - a QSO priority score.
+   - transponder on/off scheduling.
+
+   It sets no QSO priority: the FM repeater has no per-station control (`docs/payload/OBC_SELECTOR_DESIGN.md` §3.4;
+   `docs/BASELINE_PARAMETERS.md` §6).
 
    Below a confidence threshold, or with inputs out of range, it abstains to fixed rules. Hard limits (SOC floor, duty
    caps, temperature, TX-OFF and the other inhibits) stay outside the model. The Jetson is never woken for these
@@ -111,18 +113,23 @@ rate by rule.
 ## 6. Open Items
 
 1. **7 W mode versus the "Super" flash configuration** (FINDINGS_REGISTER TB-13). NVIDIA lists 7 W and 15 W only for the
-   original configuration, and 15 W, 25 W and MAXN_SUPER for Super. The baseline specifies 7 W. Without a module-enforced
-   cap near 8 W, the OBC's per-rail current limit is the only protection against a burst exceeding the carrier budget.
+   original configuration, and 15 W, 25 W and MAXN_SUPER for Super. The baseline specifies 7 W, on the original flash
+   configuration. At every boot the payload software sets the module's VDD_IN average limit to 6.5 W and checks the 7 W
+   mode (`software/payload/platform_config.py`; SQSO-JET-BRD-001 §13 F4); the OBC's per-rail current limit stays the
+   protection independent of the Jetson. Both are to be measured on the EM.
 2. Storage medium and load path on the custom carrier.
 3. Suspend instead of power-gating: the only way to avoid boot energy. Measure suspend power and resume time.
 4. A regulatory read, by FCC counsel or an ARRL coordinator, of autonomous text generation under the control
    operator's responsibility, before enabling generation (D3 consultation).
 5. TypeSafe's Master Customer Agreement and early-access terms before any Jev use.
-6. The selector needs the OBC target port (FINDINGS_REGISTER SW-01). It can be validated in the host simulation first.
+6. The selector is designed, not implemented (`docs/BASELINE_PARAMETERS.md` §6). The OBC firmware exists
+   (`software/rust/firmware`, built and checked in CI) but has not run on hardware (FINDINGS_REGISTER SW-01); the
+   selector can be validated in the host simulation first.
 
 ## Revision History
 
 | Rev | Date | Description |
 |-----|------|-------------|
 | A | 2026-10-15 | Decision D5 recorded from the research report |
+| C | 2026-10-27 | Documentation audit (post-CDR 2026): §1 the selector sets no QSO priority (OBC_SELECTOR_DESIGN §3.4, BASELINE §6); §6 items 1 and 6 updated to the payload platform configuration and the firmware status |
 | B | 2026-10-27 | §5 pass criterion to decision C-20 (CR-2026-018): energy per accepted line over the flight burst definition (≤ 10 min, ≤ 3.6 kJ); the 960 J burst bound withdrawn |

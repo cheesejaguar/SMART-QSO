@@ -1,7 +1,7 @@
 # SMART-QSO Mechanical Design: CAD Model and Structural Finite-Element Model
 
 **Document ID**: SQSO-MECH-CAD-001
-**Version**: B
+**Version**: C
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR design completion (RIDs SE-01 mechanical part, SE-12). Parametric CAD of layout B to the level of each
@@ -12,7 +12,7 @@ weighed. Vendor envelopes are published values where a source is cited; everythi
 numpy/scipy). Outputs are in the same directory: `results.json`, `fem_results.json`, four STEP files and two SVG sheets.
 **Inputs**: `docs/environment/MASS_BUDGET.md` (SQSO-MB-001), `docs/environment/STRUCTURAL_ANALYSIS.md` (SQSO-SA-001),
 `docs/environment/MECHANISMS_ANALYSIS.md` (SQSO-MECH-001), `hardware/structure/STRUCTURAL_DESIGN.md` (SQSO-STR-001),
-`docs/hardware/BUILD_VS_BUY.md`, [BASELINE_PARAMETERS.md](../../docs/BASELINE_PARAMETERS.md) Rev D.
+`docs/hardware/BUILD_VS_BUY.md`, [BASELINE_PARAMETERS.md](../../docs/BASELINE_PARAMETERS.md) Rev E (governs).
 
 ## 1. Result
 
@@ -24,8 +24,8 @@ numpy/scipy). Outputs are in the same directory: `results.json`, `fem_results.js
 | AntS below the −Z rail ends (STR-11) | 1.25 mm nominal, 0.90 mm worst case, with the −Z face recessed 1.5 mm (unrecessed: 0.25 mm **beyond** the rail ends) | ≥ 0.1 mm (CDS App. B) | §6.3 |
 | GNSS patch below the +Z rail ends | 1.75 mm nominal, 1.40 mm worst case | ≥ 0.1 mm | §6.3 |
 | Deployment switches, separation plungers, RBF | DS1, DS2 at −Z and DS3 at +Z on three rails; SP1, SP2 at −Z; all flush when actuated; RBF head 5.10 mm from the rail plane | CDS §2.3.2.3, §2.2.14, §2.3.5.2; BASELINE §4 | §6.4 |
-| Interference, stowed and deployed | None (529 / 523 solid pairs with overlapping boxes tested by boolean intersection); the harness design's 58 zones clear of every solid (`harness_calcs.py` check) | — | §6.5, §6.11 |
-| Gyro in its socket (OBC item C3) | M-G370PDT0 stands 14.0 mm above the OBC (11.4 mm to the carrier): **through a 27 × 27 mm window in a 2.0 mm carrier** (no frame; the thicker board keeps the carrier's Steinberg margin, +0.08), 1.5 mm clear of the carrier and 3.6 mm of the Jetson module; raising the carrier 3 mm and a bracket with a ribbon were evaluated and do not fit | OBC_BOARD_DESIGN §9.2, §24 C3 | §4.3 |
+| Interference, stowed and deployed | None (529 / 523 solid pairs with overlapping boxes tested by boolean intersection); the harness design's 61 zones clear of every solid (`harness_calcs.py` check) | — | §6.5, §6.11 |
+| Gyro in its socket (OBC item C3) | M-G370PDT0 stands 14.0 mm above the OBC (11.4 mm to the carrier): **through a 27 × 27 mm window in a 2.0 mm carrier** (no frame; the thicker board keeps the carrier's Steinberg margin, +0.42 CBE / +0.14 MEV, §8.5), 1.5 mm clear of the carrier and 3.6 mm of the Jetson module; raising the carrier 3 mm and a bracket with a ribbon were evaluated and do not fit | OBC_BOARD_DESIGN §9.2, §24 C3 | §4.3 |
 | Wing sweep (0–90°) | 0.35 mm minimum clearance (at 45°, wing back cells to body-panel coverglass) | > 0.3 mm allowance | §6.6 |
 | AntS tapes to the stowed wings (STR-16) | 6.5 mm (tape band to the wing's −Z edge, wing shortened and moved +3 mm); 0.5 mm with the 98 mm wing centred; deployed 2 m tape to the deployed wing 37.8 mm | ≥ 10 mm or wings first | §6.7 |
 | Wing hinge and deployment springs (MCAD-01, STR-13) | Version A springs do not fit; **Version B design fits**: two 17-7PH torsion springs on the hinge axis (primary below the wing, secondary at +Z), clock-spring flex at R 1.0–1.6 mm. Torque margin (5017B, analysis factors) **+0.14** at the cold end of travel, one spring out +0.13; spring stress MS +0.12 / **+0.04** (yield); damped soft stop 0.157 N·m (214 µε); no latch, holding margin +17 | TM ≥ 0 (5017B Eq. 4-1); Table 4; DDMR 14, 53; ≤ 0.3 N·m (STR-14) | §6.8; SQSO-MECH-001 B |
@@ -48,10 +48,10 @@ on placement to about 2 mm (§5.4).
 | Cal Poly CubeSat Design Specification Rev 14.1 (CP-CDS-R14.1, 2022) and drawing CDS-14-001 (1U, Appendix B) | §2.1.9, §2.2.1–§2.2.14, §2.3.2, §2.3.5, Table 2; standoff note "(0.5–7.0) 0.1 MIN ±Z faces" |
 | SpaceX Rideshare Payload User's Guide v11 (August 2026) | §4.1.1 (> 40 Hz), Table 4-1 (10 g / 17 g), Table 4-6 (MPE), Appendix B (dynamic model), Appendix C (CAD model: STEP AP214, outer mould line), Table G-3 |
 | NASA-STD-5001B w/Change 3 | Factors of safety (protoflight 1.25 / 1.40; composites 1.50 / 2.00) |
-| `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C §3.1 | Protoflight random level: envelope of MPE + 3 dB and the GEVS-B workmanship spectrum, 8.18 Grms (analysed here) |
+| `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` (SQSO-ETP-001) Rev E §3.1 | Protoflight random level: envelope of MPE + 3 dB and the GEVS-B workmanship spectrum, 8.18 Grms (analysed here) |
 | D. S. Steinberg, *Vibration Analysis for Electronic Equipment*, 3rd ed. | PCB displacement criterion |
 | A. W. Leissa, *Vibration of Plates*, NASA SP-160 | Corner-supported plate, FE verification |
-| SQSO-LVR-001 (`docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`) Version B | LVR-004, LVR-005, LVR-020, LVR-025–027, §9 (L-8 M deliverables) |
+| SQSO-LVR-001 (`docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`) Version E | LVR-004, LVR-005, LVR-020, LVR-025–027, §9 (L-8 M deliverables) |
 
 ## 3. The Model
 
@@ -77,7 +77,7 @@ centre, +Z along the rails, −Z inserted first).
 | Part | Envelope used | Source |
 |------|---------------|--------|
 | 1U frame | Rails L 8.5 × 8.5 × 1.5 mm, standoffs solid 8.5 × 8.5 × 6.75 mm, end frames 1.6 mm, side shear panels 1.0 mm, inner envelope 97 mm | CDS App. B; Spacemanic 1U structure (inside envelope 98.4 mm, 115 g, as quoted by a search listing of its datasheet; the datasheet PDF returned 404); ISIS 1U (87 / 108 g, BUILD_VS_BUY §2.2). Wall thicknesses are allocations |
-| ISIS AntS 1U–3U | 98 × 98 × 7 mm, 10 × 10 mm corner notches for the standoffs, tapes 5 mm wide, 2 m tape 500 mm, 70 cm tape 170 mm | `hardware/rf/ANTENNA_DESIGN.md` 2.0 §2; BUILD_VS_BUY §2.6. ISIS datasheet ISIS-ANTS-DSH-0001 could not be retrieved (vendor pages 404) |
+| ISIS AntS 1U–3U | 98 × 98 × 7 mm, 10 × 10 mm corner notches for the standoffs, tapes 5 mm wide, 2 m tape 500 mm, 70 cm tape 170 mm | `hardware/rf/ANTENNA_DESIGN.md` 2.3 §2; BUILD_VS_BUY §2.6. ISIS datasheet ISIS-ANTS-DSH-0001 could not be retrieved (vendor pages 404) |
 | CubeSpace CR0002 | 10.5 × 10.5 × 47 mm, 16.5 g | CubeSpace Gen 2 actuators brochure (2023) and cubesatshop.com listing (marked preliminary by the vendor). MASS_BUDGET used 70 mm |
 | Jetson Orin Nano 8 GB | 69.6 × 45 mm SO-DIMM module, 260-pin connector, stack height 4 mm (allocation) | NVIDIA module form factor (data sheet not re-read for this issue) |
 | Epson M-G370PDT0 | 24 × 24 × 10 mm module; 24 × 24 × 14.0 mm in its socket X1 (Samtec CLM-110 / FTMH-110), modelled as one block | BUILD_VS_BUY §5.2; OBC_BOARD_DESIGN §9.2 |
@@ -129,7 +129,7 @@ upper stack.
 | D-4 | Hinge axis (±54.1, +38.75) mm; hinge hardware of radius ≤ 2.0 mm on the axis: primary spring below the wing (z −47.6 … −40.1), secondary spring in the +Z end zone, flex cup in the −Z end zone (SQSO-MECH-001 B §3A) | Spring 1.25 mm inside the rail-zone limit and 0.40 mm (nominal) / 0.12 mm (worst case) inside the protrusion limit; sweep clear of the body cells |
 | D-5 | Hold-down: cup/cone post at the −Z free corner (y −38.5, z −40) with the line over it; PTFE-faced silicone snubber at the +Z free corner | No free strip at the free edge: the cells fill the wing width; PTFE face removes 0.3 mN·m of breakaway adhesion |
 | D-6 | Jetson module centred at y = −6 mm (spreader −3 mm), SO-DIMM on the −Y edge; RBF and access port on −Y in the −Z end zone; harness in four symmetric bundles | Cancels Iyz (§5.3) |
-| D-7 | Second centre support at (0, −21) mm, EPS → OBC → carrier; boards stay 1.6 mm (chair decision) | Steinberg margins of the EPS and carrier boards (§8.5) |
+| D-7 | Second centre support at (0, −21) mm, EPS → OBC → carrier; boards stay 1.6 mm (chair decision; later the carrier and the EPS became 2.0 mm, D-11 and D-14) | Steinberg margins of the EPS and carrier boards (§8.5) |
 | D-8 | Torquer deck as a 1.0 mm Al skeleton (7.8 g; 9 g with clips from MEL row 5) for the X rod and the GNSS receiver; Y and Z rods beside the battery | The 47 mm rods and the receiver have no other place in the 94.5 mm between the end frames; MCAD-02 |
 | D-9 | **Inertia ballast** (MEL row 36, chair decision C-13): two 10 g W-Ni-Cu discs Ø14 × 3.6 mm (non-magnetic; not W-Ni-Fe) on the inside face of the +Z end frame at (−17, +15.5) and (−17, +0.5) mm (pair centre at y +8 to cancel the harness distribution's Iyz, §5.3), z +44.8 … +48.4, each on two M2 Ti-6Al-4V screws, 22 mm from A2; machined to mass and trimmed (or removed) at integration from the measured tensor (VI-MCAD-03). Two 5 g Iyz trim-mass positions on the +Z end frame at y = ±45 mm, W-Ni-Cu (ASTM B777, non-magnetic binder) or pure tungsten, not W-Ni-Fe (the +Y one is 13 mm from A2) | §5.2, §5.4, §4.4 |
 | D-10 | No deployed-position latch; damped silicone stop (ζ ≥ 0.3); MoS₂ pins; legs 5 mm long | SQSO-MECH-001 B §4A–§5A |
@@ -150,7 +150,7 @@ with a 0.1 m ribbon. Neither fits layout B; a third arrangement does, and is ado
 | Option | Stack height in the 113.5 mm envelope | Alignment to the body axes | Vibration environment | Mass properties (deployed, CBE / MEV) | Result |
 |--------|---------------------------------------|----------------------------|-----------------------|----------------------------------------|--------|
 | (1) Raise the carrier, module, spreader and RF board 3 mm | Needs 3.0 mm (2.6 mm with zero clearance at the gyro). Free above the stack: 1.0 mm (RF shield top to the GNSS patch adapter) and 2.0 mm (RF parts to the magnetometer); below the OBC: 1.0 mm (EPS bottom parts to the X rod), 2.5 mm (to the GNSS receiver) and 1.4 mm (deck to the battery sense board). Raised 3 mm, the RF board overlaps the patch adapter by 2.0 mm and the magnetometer by 1.0 mm; lowering the EPS and OBC instead runs into the X rod after 1.0 mm. The 3.0 mm exists only with every one of these gaps at zero, or with a notched RF shield, a shorter patch adapter and an EPS keep-out over the rod | Unchanged (board-mounted) | Unchanged (gyro on the OBC) | CG z +0.6 mm; Iyy/max 1.072 / 1.063, axis 0.9° / 2.3° (better ratio: the upper stack moves away from the CG) | **Does not fit** without three other designs changing |
-| (2) Frame bracket and a 0.1 m FFSD-10-D ribbon to an FTSH header at X1 | The module with a mated ribbon socket is as tall as on its socket (about 14 mm), so the bracket needs a free 24 × 24 × 15.5 mm volume (module, connector, 1.5 mm bracket). A voxel search of the CAD (1 mm grid, every solid) finds none in layout B in any orientation; the largest 24 × 24 footprint is 13.9 mm high, through a lightening hole of the torquer deck between the battery sense board and the EPS, with no room for the bracket. The ribbon would also have to pass the EPS board through the 3.3 mm ±X wall gaps | A machined bracket on the frame could be held to about 0.1° (better than a board) | The deck is the softest internal structure (195 Hz, §8.2); a frame bracket elsewhere does not exist | On the deck: CG z −0.16 mm; axis 1.3° / 3.1° (the gyro moves 24 mm toward −Z, adding Iyz) | **Does not fit** |
+| (2) Frame bracket and a 0.1 m FFSD-10-D ribbon to an FTSH header at X1 | The module with a mated ribbon socket is as tall as on its socket (about 14 mm), so the bracket needs a free 24 × 24 × 15.5 mm volume (module, connector, 1.5 mm bracket). A voxel search of the CAD (1 mm grid, every solid) finds none in layout B in any orientation; the largest 24 × 24 footprint is 13.9 mm high, through a lightening hole of the torquer deck between the battery sense board and the EPS, with no room for the bracket. The ribbon would also have to pass the EPS board through the 3.3 mm ±X wall gaps | A machined bracket on the frame could be held to about 0.1° (better than a board) | The deck is the softest internal structure (247 Hz in the design case, §8.2); a frame bracket elsewhere does not exist | On the deck: CG z −0.16 mm; axis 1.3° / 3.1° (the gyro moves 24 mm toward −Z, adding Iyz) | **Does not fit** |
 | **(3) Gyro on its socket on the OBC, through a 27 × 27 mm window in the Jetson carrier, in a 2.0 mm carrier (adopted)** | No stack height change. Gyro at (−20, +30.5) mm, top at z +20.6; the window (x −33.5 … −6.5, y +17.0 … +44.0) clears it by 1.5 mm on every side; 2.0 mm beside and 3.0 mm below the Jetson module board's far edge (y +16.5; 3.6 mm in all); 3.4 mm from the module standoff MP2 at (−31.3, +12.6), whose pad sets the window's −Y edge (§4.5); 5.1 mm to the centre support at (0, +21). Nothing is above the gyro below the spreader (z +27.8): a socketed height up to 20 mm still clears it | As the OBC board: socket on a 1.6 mm board on six supports (§4.3.1) | The OBC board's response (below) | No change to the mass properties beyond the carrier's own | **Fits** (check OBC-C3, `results.json`); carrier Steinberg margin kept by the 2.0 mm board |
 
 **What the carrier gives up.** 729 mm² (8 %) of the carrier's 8,646 mm², in its +Y, −X quadrant outside the module
@@ -187,13 +187,13 @@ The FE puts the gyro's 10 g on the OBC shells under the window footprint and giv
 
 | Input axis | Response x | Response y | Response z |
 |------------|-----------|-----------|-----------|
-| X | **21.8 Grms** | 4.6 | 6.7 |
+| X | **21.9 Grms** | 4.6 | 6.8 |
 | Y | 2.5 | **24.0 Grms** | 8.8 |
-| Z | 2.6 | 4.9 | **37.2 Grms** |
+| Z | 2.6 | 4.9 | **36.9 Grms** |
 
 About 2.7–4.5 times the input in the input axis (the stack modes at 322–391 Hz; design case with the ballast, the
 harness distribution and the 2.0 mm EPS, which moves the stack drumming mode to 374 Hz and raises the Z response from
-24 to 37 Grms: the comparison with the Epson rating, V-OBC-16, is for the OBC designer with this figure). The bracket on the deck would have put it on the 169 Hz deck, and a frame bracket does not exist (option 2). The 3σ motion of the carrier's window edge
+24 to 37 Grms: the comparison with the Epson rating, V-OBC-16, is for the OBC designer with this figure). The bracket on the deck would have put it on the 247 Hz deck, and a frame bracket does not exist (option 2). The 3σ motion of the carrier's window edge
 relative to the gyro is 0.08 mm against the 1.5 mm clearance. The comparison with Epson's vibration and shock
 ratings for the M-G370 family is the OBC design's verification item V-OBC-16 (SQSO-OBC-BRD-001 §9.2; no isolator), with
 the EM board random test (VI-STR-02) and powered checks before and after.
@@ -230,11 +230,11 @@ the CAD gives them:
 | OBC §21 item | Stack constraint (this model) | Status |
 |--------------|-------------------------------|--------|
 | Outline, holes: PC/104 90.17 × 95.89 mm, four Ø3.18 mm holes, the two centre supports at (0, ±21), Ø6.4 / Ø7 mm copper-free rings; **no frame bond on the OBC** (OBC design B): every hole isolated, the OBC's ground reaches the frame only through the W3 ground wires and the EPS's single bond H1 | Same positions as the CAD; the CAD keeps Ø7 mm free of parts on both sides. The Al spacers are conductive, so the isolation is in the copper-free rings; a second bond, if ever wanted, must be at the EPS H1 column | Consistent |
-| Stack-up 6 layers, 1.6 mm | The FE and the Steinberg margins use 1.6 mm (OBC +0.35 with the two supports and the 2.0 mm carrier; §8.5) | Consistent |
+| Stack-up 6 layers, 1.6 mm | The FE and the Steinberg margins use 1.6 mm (OBC +0.72 CBE / +0.51 MEV with the two supports, the 2.0 mm carrier and the 2.0 mm EPS; §8.5) | Consistent |
 | Heights | Top side ≤ 3 mm (envelope) except X1 and the connectors: **connectors and X1 up to 9.0 mm under the 2.0 mm carrier** (its bottom face at z +17.6, its 1 mm bottom-side envelope plus 1 mm clearance; there is no window frame); OBC J2 at (+41.0, −33.5) with an 8 mm mated allocation (§6.9); the mated connectors J1–J10 (header, plug and cable bend) checked at layout against the Samtec and Molex drawings. **Bottom side ≤ 1.0 mm**: the EPS's 5 mm top envelope leaves 0.4 mm below it | Constraint for the layout |
 | X1 (gyro) "near the board centre on the spin-axis side" | At (−20, +30.5) mm, 24 × 24 mm, under the carrier window of §4.3; the board centre is under the Jetson module and the centre supports | Placed |
 | J1 on the edge facing the EPS's J3 (W3, 40-way ribbon, about 26 mm wide) | J1 cannot be on the bottom side (1.0 mm), and a mated FTSH/ribbon socket on the EPS top side does not fit under the OBC (6.4 mm between the substrates; mated height open, Samtec drawing). The ribbon can only leave the stack in the ±X wall gaps (3.3 mm, x ±45.4 … ±48.4; the ±Y gaps are 0.55 mm): J1 and J3 at the same ±X edge, at |y| < 24 mm (the harness bundles occupy |y| = 24 … 34), on the +X edge to stay clear of the Z rod (x −46.8 … −36.2, |y| < 5.3, up to z +3.0) | Constraint for the OBC and EPS layouts |
-| J2 "on the +Z-facing edge toward the RF board" (W4A, FTSH-107, about 9 mm wide) | J2 on the top side; the ribbon passes the carrier and the spreader in a ±X wall gap at |y| = 34 … 44 mm (the spreader flanges fill |y| < 20 at z +29.8 … +32.8, the harness bundles |y| = 24 … 34) | Constraint for the OBC and RF layouts |
+| J2 "on the +Z-facing edge toward the RF board" (W4A; now a Samtec TFM-108 right-angle header, SQSO-OBC-BRD-001 C) | J2 on the top side at (+41.0, −33.5); W4A runs flat on the +X shear panel at y −28.5 … −38.5 to RF J1 at the same x, y (§6.9; the spreader flanges fill |y| < 20 at z +29.8 … +32.8, the harness bundles |y| = 24 … 34) | Constraint for the OBC and RF layouts |
 | DRV8876s and J7 (rod leads) on the −X edge nearest the Z rod's top | The Z rod ends at z +3.0 under the OBC at (−41.5, 0), 1.0 mm below the OBC's bottom-side envelope: J7 on the top side or outside the rod footprint (x −46.8 … −36.2, |y| < 5.3) | Constraint for the layout |
 | Magnetometer: **RM3100 on board A2 at the +Z slot (+24, +27), z +41.05 … +48.4** (OBC design B, item C13; Version A had it in the OBC's (+X, −Y) corner) | A2 in the CAD (check MAG-A2): board 24 × 24 × 1.6 mm on the end frame, parts below it to z +41.05 (Sen-Z-f 3.0 × 3.0 × 5.75 mm, PNI datasheet), 0.65 mm above the 8 mm slot's floor and 2.0 mm above the RF board's top-side parts; three M2 Ti-6Al-4V screws at (+33.5, +17.5), (+14.5, +36.5), (+33.5, +36.5), heads on the +Z face outside the GNSS patch footprint (6.8 mm from it), brass nuts on the parts side, polyimide washers and an isolated back face (no frame bond, as for the OBC). The 20–30 mm keep-out on the carrier round (+33, −38) is withdrawn (OBC item E11) | Placed |
 | 20 mm non-ferromagnetic zone round A2 (OBC design §9.4) | Parts within 20 mm of A2 in the CAD, and what each must be: **RF shield lid and clips** (2.0 mm: nickel silver, brass or Al, not tin-plated steel; no ferrite-cored parts on the RF board under A2); **(+40, +43) stack column** (2.8 mm: Ti-6Al-4V stud for that column and Ti or brass nut at the +Z end; the stud carries about 13 % of the column's bending stiffness, 8 % in Ti; FE not re-run); **+Z end frame and rail fasteners** within 20 mm (vendor frame: Ti or A286 screws at the (+X, +Y) corner, no steel); **trim mass at (0, +45, +44)** (13 mm: W-Ni-Cu or pure W, D-9); the **inertia ballast** at (−17, +15.5) / (−17, +0.5) is 22 mm from A2 (outside the zone; W-Ni-Cu, non-magnetic, D-9); harness: only W6E's end (zone TE_PXPY, 0.3 mm from A2, to A2 J1) inside the zone (SQSO-HAR-001 2.0 §7.3); **GNSS patch adapter fasteners** (14 mm: brass or Ti); **wing W1 hinge**: pins A286 (13.5 mm from A2's outline; were 440C; SQSO-MECH-001 D §5A: pin MS +3.3 yield, torque margins unchanged, VI-MECH-03), secondary spring 17-7PH (16.1 mm from the outline, about 32 mm from the coils: a fixed bias that moves once, at deployment; accepted); **module standoff MP3** (17.5 mm, steel SMT spacer: brass of the same size, or accepted as a fixed bias); the carrier's MP1 (steel, about 18 mm below A2, not modelled) and the M.2 card: fixed biases (OBC design §9.4); Al and FR-4 parts (rails, shear panels, end frame, spreader, doublers, boards, cells) are non-magnetic; the body and wing cells' interconnects must not be Kovar or Invar within 20 mm (panel vendor) | For the frame, RF, panel, carrier designers and the frame RFQ |
@@ -316,7 +316,7 @@ GNSS patch bracket 2 = 30 g: **no MEL change**. If the chair prefers to grow row
 allocation, flanges unchanged), the MEV becomes 1,756.8 g and the margin to 2.00 kg +13.8 % (from +14.0 %).
 
 **Harness mass distribution (SQSO-HAR-001 2.0 M-6).** The four symmetric full-height bundles of the first issues are
-replaced by the harness design's 58 zones (§6.11), each carrying the mass of what is routed through it: every wire's
+replaced by the harness design's 61 zones (§6.11), each carrying the mass of what is routed through it: every wire's
 mass along its route in proportion to segment length (`routes.csv`, `wire_list.csv`), the harness-side connector halves
 at the route ends, A3 in its envelope, the tabs on the shear panels, sleeves and ties in proportion to the wire
 (`model.py`, `harness_distribution`). Result: 25 g of harness under the EPS (zones U_*, z ≈ −10), centred at x ≈ −7 mm,
@@ -387,7 +387,7 @@ battery centre is −32.9 mm, not −35, the boards sit higher, and the ballast 
 1.058 against 1.054). The difference that matters is the principal axis: 0.9–1.0° here against 13–15° there (§5.3). The
 baseline requirement (Iyy ≥ 1.03 × max, axis within 5°) is **met** at CBE and MEV for the full deployment; with one wing
 out the axis is 8.1° (W1) or 9.0° (W2) off (8.6° / 9.2° at MEV; MECHANISMS_ANALYSIS §8, a degraded mode with its own
-ADCS preset), and with the antennas out and both wings stowed 2.9° (3.7°).
+ADCS preset), and with the antennas out and both wings stowed 3.2° (4.0°) (§5.2 table).
 
 ### 5.3 Balancing the Principal Axis
 
@@ -581,7 +581,7 @@ with VI-STR-04 as its verification.**
 
 ### 6.9 Harness Routing
 
-The harness is the harness design's (`hardware/harness/HARNESS_DESIGN.md`, SQSO-HAR-001 2.0): 58 zones in the stack frame
+The harness is the harness design's (`hardware/harness/HARNESS_DESIGN.md`, SQSO-HAR-001 2.0): 61 zones in the stack frame
 of §4.1 (§6.11), routes and wire list in `routes.csv` and `wire_list.csv`. The four 3 × 10 mm bundles in the ±X wall
 gaps (x = ±45.4 … ±48.4) remain as four of those zones, now carrying only the harnesses with an OBC end, the Y-rod pair,
 W10E and W7A's burn pairs (≤ 51 % fill in any band); every EPS-only harness reaches the EPS's bottom-side connectors
@@ -619,7 +619,7 @@ the −X board edge into the −X wall gap at y +20 … +24 (70 cm pair) and y �
 frame, inboard 0.6 mm under the battery end caps and through the end frame's cut-out to the AntS ports; the two −X
 bands are kept free of harness (the −X bundles stay at |y| = 24 … 33.9 and touch them only at y ±24). All of these are
 in the CAD (`ribbon_W4A`, `OBC_J2_mated`, `RF_J1_mated`, `RF_J2_mated`, `RF_J3_J6_MMCX`, `coax_W10`): no interference
-(492 / 486 pairs). Mated heights stay allocations until the Samtec, Molex and MMCX drawings are checked (VI-MCAD-01).
+(529 / 523 pairs, §6.5). Mated heights stay allocations until the Samtec, Molex and MMCX drawings are checked (VI-MCAD-01).
 
 ### 6.10 Jetson Heat Path
 
@@ -634,7 +634,7 @@ thermal gasket and 3 × M2.5 per side (h ≈ 10,000) **1.10 W/K**, which meets t
 
 | Item | In the CAD (`model.py`) | Check |
 |------|-------------------------|-------|
-| M-1 Harness zones | 58 zones of `harness_calcs.py` (`ZONES`): 50 as `hz_*` parts carrying their routed mass, the six coax zones as `coax_W10`, W4AZ as `ribbon_W4A`, AP_A3 as `access_port`; **EPS bottom-side connector envelope** `EPS_bottom_connectors`: zones Z1–Z5 (the plan areas of U_MXPY, U_MXMY/2, U_PXPY, U_PXMY/2, U_PY, U_PYN) and J3 (x +33 … +45, \|y\| < 15.5), z −4.05 … −12.0 below the 1 mm parts layer (9.0 mm below the substrate) | Every zone box against every solid (`harness_calcs.cad_check`, run read-only against this CAD): no interference in any of the 58 zones; nearest solids 0.05–0.1 mm (the shear panels, EPS parts, column spacers, hinge doublers) |
+| M-1 Harness zones | 61 zones of `harness_calcs.py` (`ZONES`): the zones as `hz_*` parts carrying their routed mass, the six coax zones as `coax_W10`, W4AZ as `ribbon_W4A`, AP_A3 as `access_port`; **EPS bottom-side connector envelope** `EPS_bottom_connectors`: zones Z1–Z5 (the plan areas of U_MXPY, U_MXMY/2, U_PXPY, U_PXMY/2, U_PY, U_PYN) and J3 (x +33 … +45, \|y\| < 15.5), z −4.05 … −12.0 below the 1 mm parts layer (9.0 mm below the substrate) | Every zone box against every solid (`harness_calcs.cad_check`, run read-only against this CAD): no interference in any of the 61 zones (`harness_results.json`); nearest solids 0.05–0.1 mm (the shear panels, EPS parts, column spacers, hinge doublers) |
 | M-2 Shear-panel slots | Four 6 × 4 mm slots at z −12 … −8: +X at y −33 … −27, −X at y −15 … −9, +Y and −Y at x −33 … −27; 0.75 mm silicone or PTFE grommets (`slot_grommets`, mass in the harness ties) | PG zones 0.1 mm from the panels; frame RFQ item 15 |
 | M-3 Access port | `access_port` (group harness, 6.0 g of row 32 with W8A's and W11's ends): A3 envelope x −35 … −5, y −48.4 … −41.5, z −46.8 … −38; Micro-D 21 shell x −31 … −9, z −45.4 … −39.4 through a 22.4 × 6.4 mm shear-panel window and the 30.4 × 9.2 mm −Y body-panel window (z −47.0 … −37.8; the cells start at −37.1) | A3 0.1 mm from the −Z end frame and the −Y shear panel; 1.5 mm from the battery clamp bar; RBF at x +20 unchanged |
 | M-4 Tabs | `TB_tabs`: polyimide 6 × 10 mm at x ±(48.2 … 48.5), y +32 … +42, z −37 … −31 on the shear panels' inner faces; hinge-flex tail through a 1.5 × 2.8 mm slot at y +36.5 … +38.0, z −40.0 … −37.2 | Tab overlaps the hinge-side strip and 1.9 mm of the corner bundle's band A (5 % full) by design |
@@ -668,12 +668,12 @@ drawing tool at drawing release.
 
 Boundary condition, as in the dispenser: every rail node fixed in x and y (the guide rails), the rail-end nodes fixed in z
 (pusher plate and door), rotations free. Sensitivity: the eight rail ends fixed only (§8.6). Mesh: 10,860 nodes, 10,066
-shells, 192 beams, 60,144 degrees of freedom; FE mass 1,513.9 g, equal to the CAD and MEL CBE (the inertia ballast, the
+shells, 192 beams, 60,144 degrees of freedom; FE mass 1,520.0 g, equal to the CAD and MEL CBE (the inertia ballast, the
 W10 coax, W4A, the hinge springs, the harness zones, tabs and sun sensors lumped where the CAD puts them: each harness
 zone at three points along its run on what it is tied to, the shear panels in the wall gaps, the end frames, the boards it
 crosses; under the EPS the connector halves (6.8 g) on the EPS and the wire (21 g, with 3.8 g of row 31's allocation) on
-the deck straps, as the harness design's tie-down rules put it, SQSO-HAR-001 2.0 §10.3). MEV masses are not run (+15.5 % mass
-lowers the frequencies by about 7 %; the responses scale with the mass at the same acceleration).
+the deck straps, as the harness design's tie-down rules put it, SQSO-HAR-001 2.0 §10.3). The case `design_MEV` runs the same model at the MEV masses (1,754.9 g; first mode 162 Hz,
+§8.2, §8.5).
 
 Element verification (`fem.py --selftest-only`), same element code and mesh density:
 
@@ -722,7 +722,7 @@ launch-vehicle coupled-loads band (UG Appendix B). At MEV masses (`design_MEV`) 
 
 - **Quasi-static:** UG v11 Table 4-1, 10 g axial combined with 17 g lateral in eight directions (every 45°), both signs:
   16 cases, envelope.
-- **Random:** the protoflight test level of ETP Rev C §3.1 (envelope of MPE + 3 dB and the GEVS-B workmanship spectrum,
+- **Random:** the protoflight test level of ETP Rev E §3.1 (envelope of MPE + 3 dB and the GEVS-B workmanship spectrum,
   **8.18 Grms**; it exceeds MPE + 3 dB, 7.86 Grms, between 80 and 500 Hz), each axis, modal superposition over the 450
   modes with Q = max(10, √f) (Steinberg's Q for the boards, 10 for the structure), in the exact modal-covariance form;
   3σ.
@@ -850,7 +850,7 @@ Findings from the FE:
 | CAD model (UG Appendix C: STEP AP214 or lower, simplified to the outer mould line and interfaces, no internal parts, same coordinate system and units as the mass properties) | `smartqso_oml_stowed.step` and `smartqso_oml_deployed.step`: rails, end frames, panels, wings, hinges, AntS (with the deployed tapes), GNSS patch, switches, plungers, RBF and access port, in the CDS frame, mm. For a CubeSat in an EXOpod Nova the integrator uses it for the virtual fit check (Nova §2.3.1) and passes its own dispenser model to SpaceX | Replace the allocations with the vendors' models (frame, AntS, panels, wings); put in the RBF and access-port locations agreed with Exolaunch (LVR-068); re-export from the drawing-release model |
 | Mass properties (LVR-005: ±15 % at L-8 M) | Mass 1.52 kg CBE / 1.75 kg MEV (MEL v3.1 with the ballast, the harness design with its parts audit (M-11) and the cell retention), CG and full inertia tensor stowed and deployed, in the CAD frame (§5.2; `results.json`). The value to report is **1.75 kg ± 15 % (1.75 ± 0.26 kg)** (MASS_BUDGET §3.3) | Weighed components replace the CBE (MGA → 0); measured mass, CG and inertia at L-3.5 M (±5 %) and L-2 M |
 | Dynamic model (UG Appendix B: Craig–Bampton in NASTRAN .op4, content to 150 Hz) | The FE of §8: first mode 170 Hz, no mode below 150 Hz, so in the launch-vehicle band the spacecraft is a rigid mass (the mass properties above). Appendix B results are not guaranteed for payloads (UG: environments are enveloping) | If the integrator asks for a model: a NASTRAN bulk-data export of the `fem.py` mesh (nodes, shells, beams, masses) and a Craig–Bampton reduction in NASTRAN; not produced (no NASTRAN licence in the project) |
-| Environmental test approach | §8 analyses the protoflight random level of ETP Rev C (8.18 Grms) | — |
+| Environmental test approach | §8 analyses the protoflight random level of ETP Rev E (8.18 Grms) | — |
 
 ## 10. Review Items
 
@@ -935,9 +935,9 @@ Findings from the FE:
     AntS and GNSS patch mounting with isolating washers and sleeves (D-13); RF J1 right-angle TFM-108 in the enlarged
     shield notch x > +30 (RF D §4.3, taken in the CAD); the OBC's J2 right-angle (harness request O-1) is a mated-height
     change inside the existing 8 mm allocation. **Harness tie-down rule (§8.5):** under the EPS, only the connector
-    strain-relief ties are on the EPS; the wire dress in zones U_* is tied to the deck straps and the shear panels (the
-    EPS Steinberg margin is +0.23 so, −0.52 with the wire on the EPS); the deck then carries about 21 g (169 Hz,
-    0.46 mm 3σ): the GNSS receiver's random qualification against the deck response remains the check of finding 3.
+    strain-relief ties are on the EPS; the wire dress in zones U_* is tied to the deck straps and the shear panels (with the
+    1.6 mm EPS its Steinberg margin was +0.23 so, −0.52 with the wire on the EPS; with the 2.0 mm EPS of D-14, +0.51 and
+    +0.38, §8.5); the deck then carries about 21 g (247 Hz, 0.50 mm 3σ): the GNSS receiver's random qualification against the deck response remains the check of finding 3.
 
 16. **Review round 3 (for the chair):** (a) **EPS designer:** the EPS board is 2.0 mm (D-14; bottom face at z −3.4, top
     face unchanged at −1.4), bottom-side parts ≤ 0.6 mm over the X rod (x −24.5 … +24.5, y +29.75 … +42.25), bottom-side
@@ -999,3 +999,4 @@ Findings from the FE:
 |---------|------|--------|-------------|
 | A | 2026-10-27 | Mechanical design (CDR design completion) | Initial issue: parametric CAD of layout B with MEL masses; mass properties and principal-axis balancing; CDS envelope, tolerance-stack, standoff, interference, sweep and clearance checks; STEP (full and outer mould line) and SVG drawings; beam-shell FE model with modes, effective masses, quasi-static and random stresses and margins; L-8 M deliverable statement; RIDs SE-01 (mechanical), SE-12, STR-01, STR-10, STR-11, STR-16; findings MCAD-01 to MCAD-03 |
 | B | 2026-10-27 | Mechanical design (CDR design completion) | Chair follow-up: wing hinge designed (two OD 4.0 mm torsion springs, clock-spring flex in the −Z knuckle, damped stop, no latch; `hinge.py`), MCAD-01 and STR-13 closed by design with verification items; protrusion stack now governed by the springs (6.10 / 6.38 mm); skeleton torquer deck and row-5 re-split (MCAD-02 closed by reallocation); two centre supports at (0, ±21) mm adopted (chair decision) with 1.6 mm boards; Jetson to y = −6 mm; carrier 2.0 mm with the gyro window and no frame (the bonded frame withdrawn, §4.3.3); four AntS elements (2 m ±X, 70 cm ±Y; ratio 1.045 / 1.037 without ballast; chair decision C-13: 2 × 10 g W-Ni-Cu Z-axis ballast on the +Z end frame adopted, MEL row 36, ratio 1.056 / 1.047, D-9, §5.2); harness bundle (+X, −Y), W4A, RF connectors and W10 coax (ICX E12, RF C §4; §6.9); Ti stud at (+40, +43); FE re-run (§8); magnetometer board A2 in the +Z slot with its 20 mm non-ferromagnetic zone, W6E/W8A routing, no OBC frame bond (OBC item C13; §4.4, §6.9, VI-MCAD-07); window-frame screws H10–H13 amended into tapped pads (§4.3.3); Jetson carrier item M1 (spreader pedestal, gap pads, module standoffs, (0, −21) fastener, shims and thermal path; §4.5, VI-MCAD-06; gyro and window moved 3 mm toward +Y to clear the module standoff); gyro (OBC item C3) through a framed window in the carrier (§4.3, D-11) after the carrier raise and the bracket were shown not to fit, OBC placement constraints recorded (§4.4), gyro alignment item VI-MCAD-05; Steinberg allowable made thickness-dependent (2.0 mm reserve +0.41 to +0.58); mass properties, interference and FE results recomputed (with the C-13 ballast and the coax, ribbon and hinge springs lumped: FE mass = CAD 1,514.3 g, lowest MS +0.72, Steinberg +0.08 to +0.40, +Z end frame 402 Hz); **harness design SQSO-HAR-001 2.0 §15 M-1 to M-9 and D-2** (§6.11, D-12, D-13): harness zones with their routed mass, EPS bottom-side connector envelope, four grommeted shear-panel slots, A3 and its Micro-D 21 with the −Y window, tabs TB-W1/TB-W2, ±Z sun sensors (the −Z one beside the AntS on the −X body panel, field of view stated), W4A flat, isolated AntS and patch mounts (VI-MCAD-09); RF J1 TFM-108 right-angle and the shield notch x > +30 (RF D §4.3); MEL rows 32 (75.6 g) and 26 (9.0 g): CBE 1,513.9 g, MEV 1,747.8 g; ballast pair moved to y +15.5 / +0.5 to cancel the distribution's Iyz (ratio 1.055 / 1.046, axis 1.0° / 1.0°); FE re-run (first mode 169 Hz, the deck with the harness dress; lowest MS +1.00; Steinberg +0.08 to +0.37, the EPS +0.23 with the tie-down rule of §8.5); **review round 3** (P3S, STR, MCAD items): EPS 2.0 mm for the MEV Steinberg margins (D-14; carrier −0.07 at MEV with 1.6 mm, now +0.14), battery cell retention without adhesive (§4.6, D-15, MEL row 37, MS_sep +0.19 at 142 g), Z rod tied to the −X wall only (D-16, clip loads 19–21 N), GNSS receiver mount responses with the qualification action (MCAD-12), one mass-properties accuracy with the uncertainty in the pass criterion (VI-MCAD-03, STR-04), W2-only and no-wing tensors with growth (STR-27), `placement_mc.py` and the FE cases `design_MEV` and `design_harness_on_EPS` (P3S-09), W-Ni-Cu or pure W trim masses (P3S-11), one VI-STR-10 criterion (P3S-08), DS2 as a DPDT switch (M-10), row 32 at 76.1 g; CBE 1,519.4 g, MEV 1,754.2 g, ratio 1.056 / 1.047, axis 1.1° / 0.7°; FE lowest MS +0.97 (MEV +0.86), Steinberg +0.42 to +0.72 (MEV +0.14 to +0.51); hold-down line series spring placed on each burn board (§6.6, check SWP-2: 1.0 mm to the corner strip, 3.95 mm to the wing sweep; §11 item 17, VI-STR-07, data item DI-MECH-01), mass properties refreshed with the harness design's zone table after H-11; **harness parts audit M-11 (final inputs):** four D-200-82 splices and the tabs TB-RX/RY/RZ/ANT placed and checked (check SPL-1, §6.11, §11 item 18; TB-ANT's bond substrate open), deck strap extended for TB-RX, rows 32 77.0 g and 26 8.7 g, CBE 1,520.0 g, MEV 1,754.9 g, +14.0 %, ratio 1.056 / 1.047, axis 0.9° / 1.0°, FE re-run; M-11 follow-ups: TB-RY on the +X shear panel, TB-ANT on its G-10CR carrier under the battery end cap (bond substrate closed; VI-MCAD-08 criterion), HS_MX widened and SPL_PX added in the zone table, W2W2 in the (−X,+Y) bundle, sensor-lead reach on the hinge drawing (§11 items 3a, 18) |
+| C | 2026-10-27 | Documentation audit (post-CDR 2026) | Stale text aligned with the results files and the later sections: inputs cite BASELINE Rev E, ETP Rev E, LVR E, ANTENNA_DESIGN 2.3; harness zones 61 (`harness_results.json`; was 58); §6.9 interference pairs 529 / 523 as §6.5; §8.1 FE mass 1,520.0 g and the MEV case (`design_MEV`), which is run; §4.3 deck 247 Hz and the gyro responses of `fem_results.json` (21.9 / 24.0 / 36.9 Grms); §4.4 OBC J2 a right-angle TFM-108 at (+41.0, −33.5); §5.2 no-wing axis 3.2° / 4.0° as the table; §11 item 15 EPS Steinberg margins with the 2.0 mm EPS; D-7 notes the 2.0 mm boards. No model change |

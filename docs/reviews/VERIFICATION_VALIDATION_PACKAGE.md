@@ -1,5 +1,16 @@
 # SMART-QSO Verification and Validation Package
 
+> **Historical record (2026-01-02).** Superseded for current values by
+> [`docs/BASELINE_PARAMETERS.md`](../BASELINE_PARAMETERS.md) and
+> [`docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`](CDR/CDR_2026_DESIGN_REVIEW.md). It is the V&V package generated on
+> 2026-01-02 as a CDR baseline; nothing in it has been verified on hardware. No independent CDR has been held: the
+> project is in Phase B (pre-PDR), and the independent PDR (2027-01-12) and CDR (2027-09-28) are planned in
+> `mission/SCHEDULE.md` (BASELINE §1). The record is kept as written; its values, statuses, approvals and the dated
+> "superseded" notes in its body are those of their dates and are not to be cited. Still useful for: the verification
+> approach of that date. The current verification records are `docs/verification/VERIFICATION_VALIDATION_PLAN.md`
+> (SQSO-VVP-001), the generated `docs/verification/RTM.csv` and `docs/verification/VI_REGISTER.md`. Index of the
+> review documents: [README.md](README.md).
+
 > **Funding audit notice (2026-10-14): status claims not substantiated.**
 > Test counts, coverage, verification percentages and completion statements in this document were not
 > reproduced by the funding audit (measured: 14 registered unit-test suites, 44.5 % line coverage of the
@@ -7,7 +18,7 @@
 > `docs/funding_audit/FINDINGS_REGISTER.md` for the measured values.
 
 **Document ID**: SQSO-REV-004
-**Version**: 1.2
+**Version**: 1.3
 **Date**: 2026-01-02
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -354,3 +365,4 @@ FLIGHT SOFTWARE ROLLBACK PROCEDURE
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | Document ID changed from SQSO-VVP-001, which is the V&V Plan (`docs/verification/VERIFICATION_VALIDATION_PLAN.md`), to SQSO-REV-004 (finding PI-17). No content change |
 | 1.2 | 2026-10-25 | SMART-QSO Team | §9.2: dated note that the FreeRTOS and CMSIS dependencies are superseded (Embassy executor, no RTOS; CR-2026-002) |
+| 1.3 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): historical-record banner (superseded by BASELINE, SQSO-REV-CDR-002 and the current V&V plan, RTM and VI register); body unchanged |

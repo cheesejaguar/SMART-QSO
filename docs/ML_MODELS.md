@@ -4,6 +4,15 @@
 > page estimates energy per beacon as tokens × J/token with no boot, load or shutdown term; a cold-started Jetson spends
 > 87–96 % of its energy on those, about 230 J per beacon rather than 5–38 J. The 3B model below exceeds the 8 W input
 > budget. The flight baseline is a selector on the OBC; Jetson generation is a gated experiment.
+>
+> **Documentation audit (2026-10-27): historical planning note.** Below the federated-learning section, nothing on this
+> page is current; it is kept only for its early trade table. Current values: the Jetson is an Orin Nano 8 GB module in
+> the 7 W mode, not "Super" (BASELINE §6, TB-13); the Jetson candidates are SmolLM2-360M-Instruct or Qwen3-0.6B, INT4,
+> run with llama.cpp (`docs/payload/AI_MODEL_SELECTION.md`); generated text carries no numbers and no call sign, and
+> the OBC writes the call sign and every value from measurements (`docs/BEACON_SPEC.md` §3, §6); the gate is ≤ 0.1 Wh
+> per accepted beacon line, measured on the EM (BASELINE §6). The models in the first list (power forecast, signal
+> classifier, anomaly detector, TinyLM) are not in the flight baseline; the OBC selector is specified in
+> `docs/payload/OBC_SELECTOR_DESIGN.md`.
 
 - **Power Forecast (LSTM‑style, INT8, <100 kB)**
 - **Signal Classifier (tiny CNN, <50 kB)**

@@ -2,7 +2,7 @@
 ## Non-GSO Amateur-Satellite Network "SMART-QSO"
 
 **Document Number:** SQSO-REG-017
-**Revision:** A.3 (draft)
+**Revision:** A.4 (draft)
 **Date:** 2026-10-27
 **Purpose:** Source data for the SpaceCap electronic filing that the FCC submits to the ITU Radiocommunication Bureau
 under RR Articles 9 (advance publication) and 11 (notification), as required for the pre-space notification
@@ -66,8 +66,8 @@ transponder briefly muted; this is simpler and lower-power than a second transmi
 
 | Data | Typical amateur user station | Telecommand station |
 |------|------------------------------|---------------------|
-| Antenna | Handheld 2-element Yagi to fixed cross-Yagi; gain 5–12 dBi | Cross-Yagi with rotator, ≥ 15.5 dBic (variant A), or a stacked pair of cross-Yagis, ≥ 17.5 dBic (variant B) |
-| Transmit power (435 MHz) | 5–50 W | ≥ 64 dBm EIRP (2.5 kW) toward the spacecraft above 10° elevation (decision C-14): variant A, outside the 47 CFR 2.106 US270 areas, ≥ 100 W PEP at the feed into ≥ 15.5 dBic; variant B, inside them (the Bay Area site near Beale AFB, Fairbanks near Clear SFS), **≤ 50 W PEP** at the feed into ≥ 17.5 dBic (a stacked pair of cross-Yagis, ≤ 0.5 dB feed); EIRP ≈ 2.5–3.5 kW at boresight; transmitting only above 10° elevation (SQSO-GND-001 Rev F §3.1) |
+| Antenna | Handheld 2-element Yagi to fixed cross-Yagi; gain 5–12 dBi | Cross-Yagi with rotator, ≥ 15.5 dBic (variant A), or a stacked pair of cross-Yagis, ≥ 17.8 dBic (variant B) |
+| Transmit power (435 MHz) | 5–50 W | ≥ 64 dBm EIRP (2.5 kW) toward the spacecraft above 10° elevation (decision C-14): variant A, outside the 47 CFR 2.106 US270 areas, ≥ 100 W PEP at the feed into ≥ 15.5 dBic; variant B, inside them (the Bay Area site near Beale AFB, Fairbanks near Clear SFS), **≤ 50 W PEP** at the feed into ≥ 17.8 dBic (a stacked pair of cross-Yagis, ≤ 0.5 dB feed); EIRP ≈ 2.5–3.5 kW at boresight; transmitting only above 10° elevation (SQSO-GND-001 Rev H §3.1; BASELINE Rev E §7) |
 | Receive noise temperature (145.9 MHz) | 500–1000 K | 500 K with LNA (galactic noise alone is ≈ 480 K at 146 MHz, ITU-R P.372) |
 | Location | Worldwide | `[lat/long]` ×2 |
 
@@ -76,8 +76,8 @@ transponder briefly muted; this is simpler and lower-power than a second transmi
 1. Coordinated frequencies from the IARU letter.
 2. Maximum transmitter power and antenna configuration from the final RF design, measured in TP-RF-002 and TP-RF-004 (occupied bandwidth must not exceed the necessary bandwidth filed).
 3. Orbit from the launch agreement (launch-vehicle determination).
-4. Whether the FCC files under the ITU's short-duration-mission procedure (Resolution 32 (WRC-19): validity ≤ 3 years, no extension; notification may accompany the API and counts as received 4 months after the API is published) or the standard API/notification path (RR 9.1: API preferably ≥ 2 years before bringing into use, which a mid-2028 launch already misses; that is allowed). Res. 32 fits the 2-year design life; ask for the standard path if an extended mission is wanted. This is the FCC's choice; confirm with Space Bureau staff in the D3 consultation.
-5. API publication takes about 2–3 months after the Bureau receives the data; the FCC's own forwarding time is to be asked. Planned submission of this data to the FCC: 2027-01-19 (REGULATORY_ROADMAP Rev B §3).
+4. Whether the FCC files under the ITU's short-duration-mission procedure (Resolution 32 (WRC-19): validity ≤ 3 years, no extension; notification may accompany the API and counts as received 4 months after the API is published) or the standard API/notification path (RR 9.1: API preferably ≥ 2 years before bringing into use, which a late-2028 launch already misses; that is allowed). Res. 32 fits the 2-year design life; ask for the standard path if an extended mission is wanted. This is the FCC's choice; confirm with Space Bureau staff in the D3 consultation.
+5. API publication takes about 2–3 months after the Bureau receives the data; the FCC's own forwarding time is to be asked. Planned submission of this data to the FCC: 2027-01-19 (REGULATORY_ROADMAP Rev D §3).
 
 ---
 
@@ -89,3 +89,4 @@ transponder briefly muted; this is simpler and lower-power than a second transmi
 | A.1 | 2026-10-27 | CDR review (communications panel): power and EIRP, antenna, uplink range and CTCSS tone, receiver noise temperature, telecommand-station power limits, Res. 32 and API timing |
 | A.2 | 2026-10-27 | CDR 2026 consistency pass: altitude 475 km target, 465–485 km, period 93.9–94.3 min, uplink request windows (BASELINE Rev E §3, §7) |
 | A.3 | 2026-10-27 | §E telecommand station: the EIRP requirement of decision C-14 and the two station variants (≥ 100 W into ≥ 15.5 dBic outside US270; ≤ 50 W PEP into ≥ 17.5 dBic inside US270) |
+| A.4 | 2026-10-27 | Documentation audit (post-CDR 2026): §E variant B ≥ 17.8 dBic (BASELINE Rev E §7; was 17.5), GND-001 Rev H; §F the late-2028 planning launch and REGULATORY_ROADMAP Rev D |

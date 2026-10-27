@@ -1,7 +1,7 @@
 # Interface Control Document: OBC to RF Subsystem
 
 **Document ID**: SQSO-ICD-003
-**Version**: 2.3
+**Version**: 2.4
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR. Both sides are build-to designs: the OBC board SQSO-OBC-BRD-001 (`hardware/electrical/obc/OBC_BOARD_DESIGN.md` §13) with the master pin allocation SQSO-ICX-001 (`hardware/electrical/INTERCONNECT.md`), and the RF board SQSO-RF-BRD-001 (`hardware/electrical/rf/RF_BOARD_DESIGN.md` §4). Not built or measured. The firmware's pins are unchanged for this interface except the three readback inputs and (version 2.2) the receiver status inputs RX_CD and RX_FAULT.
@@ -20,15 +20,15 @@ the baseline: the flight software was built to a KISS TNC on a UART (change requ
 
 | Document | Title |
 |----------|-------|
-| SQSO-BL-001 Rev D | Baseline parameters (§7 governs RF values) |
-| SMART-QSO-RF-001 v2.0 | RF subsystem design (`docs/hardware/RF_DESIGN.md`) |
-| SQSO-RF-BRD-001 A | RF board build-to design (`hardware/electrical/rf/RF_BOARD_DESIGN.md`) |
-| SQSO-OBC-BRD-001 A | OBC board build-to design (`hardware/electrical/obc/OBC_BOARD_DESIGN.md`) |
-| SQSO-ICX-001 A | Spacecraft electrical interconnect and master pin allocation (`hardware/electrical/INTERCONNECT.md`) |
+| SQSO-BL-001 Rev E | Baseline parameters (§7 governs RF values) |
+| SMART-QSO-RF-001 v2.4 | RF subsystem design (`docs/hardware/RF_DESIGN.md`) |
+| SQSO-RF-BRD-001 F | RF board build-to design (`hardware/electrical/rf/RF_BOARD_DESIGN.md`) |
+| SQSO-OBC-BRD-001 E | OBC board build-to design (`hardware/electrical/obc/OBC_BOARD_DESIGN.md`) |
+| SQSO-ICX-001 D | Spacecraft electrical interconnect and master pin allocation (`hardware/electrical/INTERCONNECT.md`) |
 | SQSO-RF-TX-001 | RF transmitter design (`hardware/rf/TRANSMITTER_DESIGN.md`) |
 | SQSO-ICD-013 | Telecommand authentication and TX-OFF (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md`) |
 | SMART-QSO-ICD-006 | Beacon format (`docs/BEACON_SPEC.md`) |
-| SQSO-LBA-001 v3.0 | Link budget |
+| SQSO-LBA-001 v3.5 | Link budget (`docs/environment/LINK_BUDGET_ANALYSIS.md`) |
 | `software/flight/include/hal/hal_radio.h`, `hal_gpio.h`, `hal_adc.h`, `downlink.h`, `uplink.h`, `rf_control.h` | The OBC's interface as built |
 
 ## 3. Interface Summary
@@ -57,11 +57,11 @@ RF board, so no flight software is in the audio path (BUILD_VS_BUY §3.2).
 
 ### 4.1 Connector
 
-Harness W4A version 3: Samtec FTSH-108-01-L-DV-K (16 positions, 1.27 mm) at both ends, OBC J2 to RF J1, 28 AWG,
-0.06 m, three signal grounds interleaved and an analog return on pin 14; pins 15–16 (RX_CD, RX_FAULT) are new in
+Harness W4A version 4: Samtec TFM-108 right-angle headers (16 positions) at both ends with an SFSDT 30 AWG PTFE
+discrete-wire assembly, OBC J2 to RF J1, 0.075 m (SQSO-ICX-001 D §2, §3.2; was FTSH-108 with 28 AWG, 0.06 m), three signal grounds interleaved and an analog return on pin 14; pins 15–16 (RX_CD, RX_FAULT) are new in
 version 3 (version 2: FTSH-107, 14 positions; pins 1–14 unchanged). RADIO_EN and RF_TX_EN switch the RF rails on
-the EPS (W3 pins 10 and 14); the rails reach the RF board on W4B (EPS J19 to RF J2, Molex Pico-Clasp 6, 24 AWG:
-RADIO_3V3 on pin 1, PA_5V on pins 3–4). Pin numbers below are J1/J2 positions.
+the EPS (W3 pins 10 and 14); the rails reach the RF board on W4B (EPS J19 to RF J2, Molex Pico-Clasp 6 at both ends, 28 AWG twisted pairs, 0.145 m:
+RADIO_3V3 on pin 1, PA_5V on pins 3–4, each twisted with its return). Pin numbers below are J1/J2 positions.
 
 ### 4.2 Signals
 
@@ -75,7 +75,7 @@ RADIO_3V3 on pin 1, PA_5V on pins 3–4). Pin numbers below are J1/J2 positions.
 | 8 | TONE_OK | RF→OBC | **PC9** (EXTI9) | 3.1 V CMOS push-pull through 1 kΩ; high = CTCSS 67.0 Hz decoded | low with the TNC in reset or the radio off | 10 kΩ series, **100 kΩ pull-down** | 1 kΩ, 100 kΩ pull-down |
 | 9 | XPDR_KEY | RF→OBC | **PG12** (EXTI12) | as TONE_OK; high = repeat path keyed (EN_OK · TONE_OK · NOT_TOT) | low with the radio off | 10 kΩ, 100 kΩ pull-down | 1 kΩ |
 | 10 | PTT_EXCITER | RF→OBC | **PC7** (TIM8_CH2 input capture) | as TONE_OK; high = transmitter keyed (beacon or repeat, TX permitted) | low with the radio off | 10 kΩ, 100 kΩ pull-down | 1 kΩ |
-| 11 | TX_TEMP | RF→OBC | PA0 (ADC1 IN5) | 0.3–1.7 V, 10 mV/°C, 500 mV at 0 °C | — | 10 kΩ series, 10 nF | 1 kΩ / 100 nF |
+| 11 | TX_TEMP | RF→OBC | PA0 (ADC1 IN5) | 0.3–1.7 V, 10 mV/°C, 500 mV at 0 °C | open: 0 V (= −50 °C, read as a fault) | 10 kΩ series, 10 nF, 1 MΩ pull-down (RID SMA-B19; reads 1.1 % low) | 1 kΩ / 100 nF |
 | 12 | TX_FWD | RF→OBC | PC0 (ADC1 IN1) | 0–2.5 V, P = 0.16 V² W (2.5 V at 1 W) | — | 10 kΩ, 10 nF | 1 kΩ / 100 nF |
 | 13 | TX_REV | RF→OBC | PC1 (ADC1 IN2) | as TX_FWD; 1.25 V at 3:1 and 1 W | — | 10 kΩ, 10 nF | 1 kΩ / 100 nF |
 | 14 | AGND | — | — | monitor return | — | — | — |
@@ -94,7 +94,8 @@ cycled): together with the EPS lines, ≤ 2.7 mA (SQSO-OBC-BRD-001 §16). The AD
 TONE_OK, XPDR_KEY and PTT_EXCITER are wired to the OBC (§4.2, J pins 8–10). The firmware reads TONE_OK and XPDR_KEY
 into the transponder statistics (EXTI on each edge, or a poll each pass) and measures PTT_EXCITER's keyed time by
 input capture on TIM8_CH2, replacing the frame-length estimate of §5.3 and giving the 25 % duty and 5 s key-down
-checks a measurement. Reading them is flight-software work (SQSO-ICX-001 §6 row 18).
+checks a measurement. The firmware reads them (SQSO-ICX-001 §6 row 18): TIM8_CH2 captures PTT_EXCITER
+(`firmware/src/capture.rs`), and `sqso_fsw::ptt_watch` latches TX-OFF on unexplained keying or a stuck repeat key.
 
 RX_CD and RX_FAULT (version 2.2, flight-software request) report the receiver: RX_CD on EXTI0 for channel-busy
 detection and receive statistics, RX_FAULT on EXTI13 for receiver health. Both read low with the radio off, so the
@@ -181,9 +182,9 @@ transmitter first (`PTT_EXCITER = TX_PERMIT_HW · (TNC_PTT + XPDR_KEY · ¬TNC_P
 
 | Item | Closure |
 |------|---------|
-| Connector part and pin-out | **Closed**: W4A v3, FTSH-108 at both ends (§4.1, §4.2; SQSO-ICX-001 §3.2) |
-| RX_CD and RX_FAULT on the RF board | OBC side allocated (PG0, PF13; W4A pins 15, 16); **closed**: SQSO-RF-BRD-001 B §4.1 drives J1-15/16 (FTSH-108) |
-| Readback pins for TONE_OK, XPDR_KEY, PTT_EXCITER | **Closed in hardware**: PC9, PG12, PC7 (§4.3); the firmware reading them is open (flight-software change, SQSO-ICX-001 §6) |
+| Connector part and pin-out | **Closed**: W4A v4, TFM-108 at both ends with SFSDT (§4.1, §4.2; SQSO-ICX-001 §3.2) |
+| RX_CD and RX_FAULT on the RF board | OBC side allocated (PG0, PF13; W4A pins 15, 16); **closed**: SQSO-RF-BRD-001 B §4.1 drives J1-15/16 |
+| Readback pins for TONE_OK, XPDR_KEY, PTT_EXCITER | **Closed**: PC9, PG12, PC7 (§4.3), read by the firmware (`capture.rs`, `ptt_watch.rs`) |
 | ADC scaling of TX_TEMP, TX_FWD, TX_REV | **Closed**: the RF board's detector and sensor match `adc.rs` (RF board §7.6) |
 | TNC part | **Closed**: TNC MCU on the RF board (SQSO-RF-BRD-001 §13) |
 | VI-RF-11 "unkeys within 100 ms" vs the stalled-loop case | **Closed**: the lease is 40 ms (SRS-F081, flight software round 2; was 60 ms), so a stalled loop drops the transponder within 90 ms nominal and 98 ms with the monostable at its 58.0 ms worst, inside VI-RF-11's 100 ms (RF board §15 item 13) |
@@ -199,3 +200,4 @@ transmitter first (`PTT_EXCITER = TX_PERMIT_HW · (TNC_PTT + XPDR_KEY · ¬TNC_P
 | 2.1 | 2026-10-27 | CDR design completion (OBC board, SQSO-OBC-BRD-001) | §3 readbacks drawn; §4.1 connector W4A v2 (FTSH-107, 14 positions) and W4B; §4.2 pin-by-pin with the OBC and RF parts, readback levels, OBC series resistors; §4.3 readbacks wired to PC9, PG12, PC7 (RIDs RF-21, AV-05); §4.4 rails from the EPS board; §6 receiver ready ≤ 50 ms, EN_OK timing; §8 open items closed or carried; from SQSO-RF-BRD-001 §4 |
 | 2.2 | 2026-10-27 | CDR design completion, flight-software round 2 | §4.1 W4A version 3 (FTSH-108, 16 positions); §4.2 RX_CD (pin 15, PG0 EXTI0) and RX_FAULT (pin 16, PF13 EXTI13, low = healthy), back-power total 2.7 mA; §4.3 their use; §7 receiver-status test; §8 |
 | 2.3 | 2026-10-27 | CDR round 3, launch and operations (finding P3A-07) | §6 stalled-loop timing with the 40 ms heartbeat lease (87–98 ms, 90 ms nominal; SRS-F081; was "60 ms lease, 118 ms"); §8 the VI-RF-11 item closed (inside 100 ms) |
+| 2.4 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): §2 revisions of the governing documents (BASELINE E, RF board F, OBC board E, ICX D, LBA 3.5, RF design 2.4); §4.1 W4A v4 (TFM-108 with an SFSDT 30 AWG assembly, 0.075 m) and W4B 28 AWG twisted pairs per SQSO-ICX-001 D; §4.2 TX_TEMP 1 MΩ pull-down (SMA-B19); §4.3, §8 the readbacks are read by the firmware |

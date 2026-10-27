@@ -35,7 +35,7 @@ Verify internal and external watchdog timer operation and recovery.
 | 3 | Verify reset occurs | System resets | |
 | 4 | Measure timeout | 25.6 s (25600 ms; 24.1–27.8 s, IWDG reload 3200 / 256; before the TPS3850 supervisor's 29.3 s minimum) | |
 | 5 | Verify boot reason logged | WDT reset flag | |
-| 6 | Test external WDT (if present) | Backup reset | |
+| 6 | Test the external supervisor (TPS3850) with the IWDG kick withheld and the IWDG reset suppressed on the bench | Backup reset by the supervisor, not before its 29.3 s minimum (SQSO-ICX-001 D §4.3) | |
 
 ---
 
@@ -44,8 +44,8 @@ Verify internal and external watchdog timer operation and recovery.
 | Criterion | Requirement |
 |-----------|-------------|
 | WDT kick | Regular, < 10s period |
-| Timeout | 30s ±5s |
-| Reset recovery | < 30s boot |
+| Timeout | 24.1–27.8 s (IWDG, 25.6 s nominal; `software/flight/include/watchdog_mgr.h` `WDT_HW_TIMEOUT_MS`), before the supervisor's 29.3 s minimum (was 30 s ± 5 s, which disagreed with step 4) |
+| Reset recovery | Flight software running within 30 s (SYS-300) |
 | Boot reason | Correctly logged |
 
 ---

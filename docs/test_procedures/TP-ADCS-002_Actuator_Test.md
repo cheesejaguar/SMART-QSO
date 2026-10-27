@@ -12,7 +12,9 @@
 
 ## 1. PURPOSE
 
-Verify magnetorquer coil operation, polarity, and dipole moment.
+Verify magnetorquer operation, polarity, and dipole moment. The baseline actuators are three CubeSpace CR0002 rods
+(> 0.2 A·m²), with the 250-turn air-core coil (≥ 0.15 A·m²) as the alternate, driven by DRV8876-Q1 H-bridges with a
+hardware off-timer (`docs/BASELINE_PARAMETERS.md` §8; `hardware/electrical/obc/OBC_BOARD_DESIGN.md`).
 
 ---
 
@@ -37,6 +39,7 @@ Verify magnetorquer coil operation, polarity, and dipole moment.
 | 5 | Repeat for Y coil | Pass all checks | |
 | 6 | Repeat for Z coil | Pass all checks | |
 | 7 | PWM test (50% duty) | Half current | |
+| 8 | Command one 900 ms burst on each axis | Coil current zero within 900 ms + 2 ms of the command, ended by the driver's own off-timer (AV-V3) | |
 
 ---
 
@@ -47,7 +50,8 @@ Verify magnetorquer coil operation, polarity, and dipole moment.
 | Coil current | 100 mA ±10% |
 | Polarity | Correct per drawing |
 | PWM control | Linear with duty |
-| Dipole moment | 0.2 A·m² ±20% (SYS-411: at least 0.1 A·m² per axis) |
+| Dipole moment | > 0.2 A·m² per axis with the CR0002 rods, ≥ 0.15 A·m² with the air-core alternate (BASELINE §8); SYS-411: at least 0.1 A·m² per axis |
+| Burst end | Current zero within 902 ms of the command (AV-V3) |
 
 ---
 

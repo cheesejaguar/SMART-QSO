@@ -12,7 +12,10 @@
 
 ## 1. PURPOSE
 
-Characterize the battery pack capacity, internal resistance, and charge/discharge performance.
+Characterize the battery pack capacity, internal resistance, and charge/discharge performance. The pack is 4S1P Li-ion
+18650, ≈ 3.5 Ah, 14.4 V nominal, ≈ 50 Wh, charged to **4.10 V/cell (16.4 V)**, not 4.20 V (decision D8); cell
+over-voltage protection ≤ 4.25 V/cell; charging only between 0 °C and +45 °C (`docs/BASELINE_PARAMETERS.md` §5). Cell
+screening and acceptance are V-BSA-1 (`docs/environment/BATTERY_SAFETY_ASSESSMENT.md`).
 
 ---
 
@@ -20,7 +23,7 @@ Characterize the battery pack capacity, internal resistance, and charge/discharg
 
 | Equipment | Specification |
 |-----------|---------------|
-| Battery cycler | 0-5V, 0-5A per channel |
+| Battery cycler | 0-20 V pack (0-5 V per cell channel), 0-5 A |
 | Thermocouple logger | 4+ channels |
 | Thermal chamber | -20°C to +60°C |
 
@@ -32,10 +35,10 @@ Characterize the battery pack capacity, internal resistance, and charge/discharg
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
-| 1 | Charge to 4.2V @ C/5 | Full charge | |
+| 1 | Charge to 4.10 V/cell (16.4 V) @ C/5 (D8) | Full charge at the flight set point | |
 | 2 | Rest 30 min | Voltage stable | |
-| 3 | Discharge @ C/5 to 3.0V | Record capacity | |
-| 4 | Record capacity | > 3.0 Ah | |
+| 3 | Discharge @ C/5 to 3.0 V/cell | Record capacity | |
+| 4 | Record capacity | > 3.0 Ah (record; the ≈ 3.5 Ah rating is at 4.20 V) | |
 
 ### 3.2 Internal Resistance
 
@@ -49,7 +52,7 @@ Characterize the battery pack capacity, internal resistance, and charge/discharg
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
-| 1 | Repeat capacity @ -10°C | > 80% of 25°C | |
+| 1 | Repeat capacity @ -10°C (discharge only; charge at ≥ 0 °C, SYS-602) | > 80% of 25°C | |
 | 2 | Repeat capacity @ +45°C | > 90% of 25°C | |
 
 ---

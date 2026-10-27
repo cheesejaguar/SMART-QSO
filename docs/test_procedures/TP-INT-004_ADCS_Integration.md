@@ -27,8 +27,8 @@ This procedure defines the integration test for the Attitude Determination and C
 
 ## 3. APPLICABLE DOCUMENTS
 
-1. hardware/adcs/SENSOR_DESIGN.md
-2. hardware/adcs/ACTUATOR_DESIGN.md
+1. `docs/hardware/ADCS_DESIGN.md` (SMART-QSO-ADCS-001) and `docs/interfaces/ICD_OBC_ADCS.md` §12; `hardware/adcs/SENSOR_DESIGN.md` and `ACTUATOR_DESIGN.md` are earlier background
+2. `hardware/electrical/obc/OBC_BOARD_DESIGN.md`: the gyros, sun-sensor amplifiers and rod drivers are on the OBC board, the RM3100 magnetometer on board A2 at the +Z end frame
 3. TP-ADCS-001 (prerequisite)
 4. TP-INT-002 (prerequisite)
 
@@ -60,8 +60,8 @@ This procedure defines the integration test for the Attitude Determination and C
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
-| 1 | Install ADCS board | Secure mounting | |
-| 2 | Connect I2C harness | To OBC | |
+| 1 | Install magnetometer board A2 at the +Z end frame | Secure mounting | |
+| 2 | Connect harness W6E | A2 to OBC J10 | |
 | 3 | Connect magnetorquer harness | All 3 axes | |
 | 4 | Connect sun sensor harness | All 6 faces | |
 
@@ -70,7 +70,8 @@ This procedure defines the integration test for the Attitude Determination and C
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
 | 1 | Read magnetometer | Valid field | |
-| 2 | Compare to reference | ±5% accuracy | |
+| 2 | Compare to reference, coils off | ±5% accuracy (integration check; calibration is TP-ADCS-001, SYS-401) | |
+| 2a | Read the gyro (M-G370, SPI3) on the rate table | Within 0.2°/s of the table per axis (SYS-404) | |
 | 3 | Illuminate sun sensor +X | +X highest | |
 | 4 | Illuminate sun sensor -X | -X highest | |
 | 5 | Repeat for Y and Z | Correct response | |
@@ -91,6 +92,8 @@ This procedure defines the integration test for the Attitude Determination and C
 | 1 | Enable B-dot mode | Control active | |
 | 2 | Apply field variation | Torquer response | |
 | 3 | Verify control sign | Correct direction | |
+| 4 | Verify the magnetometer is sampled 50 ms after each 900 ms coil burst | Every conversion starts ≥ 50 ms after the coil current is below 1 % (AV-V2) | |
+| 5 | Verify no actuation before 120 s after a simulated separation | First coil command after 120 s (SRS-F086; BASELINE §4) | |
 
 ---
 

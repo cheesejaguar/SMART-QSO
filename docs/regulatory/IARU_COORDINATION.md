@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REG-001
-**Revision:** F
+**Revision:** G
 **Date:** 2026-10-27
 
 ---
@@ -12,12 +12,12 @@
 | Item | Status |
 |------|--------|
 | Coordination request | **Not submitted.** Draft on the mandatory IARU v40 form layout: [IARU_COORDINATION_REQUEST_v40.md](filings/IARU_COORDINATION_REQUEST_v40.md) |
-| Submitted by | The prospective space station licensee, KK6GDB (decision D1 in [LICENSING_PATHWAY_DETERMINATION.md](LICENSING_PATHWAY_DETERMINATION.md)). The form also needs at least two designated telecommand stations, **none agreed yet** |
+| Submitted by | The prospective space station licensee, KK6GDB (decision D1 in [LICENSING_PATHWAY_DETERMINATION.md](LICENSING_PATHWAY_DETERMINATION.md)). The form also needs at least two designated telecommand stations, at least 1,000 km apart, **none agreed yet**; written agreements due 2027-01-05 (`mission/SCHEDULE.md` DA-10; BASELINE Rev E §1) |
 | Submit to | IARU Satellite Advisor, satcoord@iaru.org (one global process; not "IARU Region 2" or AMSAT-NA) |
 | API/A number | None yet. The FCC files the API from the pre-space notification data ([ITU_APPENDIX4_DATA.md](filings/ITU_APPENDIX4_DATA.md)) |
-| Recommended submission | **2027-01-26**, after the PDR (2027-01-12) and a week after the early FCC pre-space filing that carries the API data ([REGULATORY_ROADMAP.md](REGULATORY_ROADMAP.md) Rev B §3) |
-| Expected duration | Median 57 days, 90th percentile about 112 days (39 coordinations completed 2025-08 to 2026-10, IARU status pages); letter expected 2027-03-25 to 2027-05-18 |
-| Frequencies to request | Downlink one frequency in 145.800–146.000 MHz (not 145.825); uplink one frequency in **435.222–435.778 MHz, or else 436.222–436.500 MHz** (BASELINE §7: the receive SAW and the receiver clock limit the band to 435.050–436.500 MHz, SQSO-RF-BRD-001; the EPS converters' 1.000 MHz harmonics leave these windows clear, SQSO-EPS-BRD-001, SQSO-EMC-001), at least 2 MHz below 3 × the downlink (SQSO-LBA-001 v3.0 §7) |
+| Recommended submission | **2027-01-26**, after the PDR (2027-01-12) and a week after the early FCC pre-space filing that carries the API data ([REGULATORY_ROADMAP.md](REGULATORY_ROADMAP.md) Rev D §3; `mission/SCHEDULE.md` DA-09) |
+| Expected duration | Median 57 days, 90th percentile about 112 days (39 coordinations completed 2025-08 to 2026-10, IARU status pages); letter expected 2027-03-25 to 2027-05-18; with no letter by 2027-05-18 the licensee asks the IARU Satellite Advisor for status (DA-09) |
+| Frequencies to request | Downlink one frequency in 145.800–146.000 MHz (not 145.825); uplink one frequency in **435.222–435.778 MHz, or else 436.222–436.500 MHz** (BASELINE §7: the receive SAW and the receiver clock limit the band to 435.050–436.500 MHz, SQSO-RF-BRD-001; the EPS converters' 1.000 MHz harmonics leave these windows clear, SQSO-EPS-BRD-001, SQSO-EMC-001), at least 0.9 MHz below 3 × the downlink (BASELINE Rev E §7; SQSO-RF-BRD-001 §7.5; CR-2026-008) |
 
 ## 2. Corrections to Rev A
 
@@ -31,7 +31,7 @@ misrepresentation to the IARU, and it has been withdrawn:
 | Primary downlink 145.825 MHz | 145.825 MHz carries ARISS/ISS packet and APRS digipeater traffic. The v40 draft asks the panel to assign a frequency in 145.800–146.000 MHz. |
 | FCC Part 97 "Application pending"; NTIA "Coordination in progress" | Nothing was filed. Part 97 uses notifications, not a license application, and NTIA does not apply. |
 | "First Beacon: Launch + 30 minutes" | Violates the CDS Rev 14.1 §2.4.5 rule of no transmission earlier than **45 minutes** after deployment. |
-| Link margin 14 dB with −145 dB path loss | Superseded by `docs/environment/LINK_BUDGET_ANALYSIS.md` v3.2 (analysis at the 475 km baseline target; the 485 km cap costs 0.1 dB): the 1200 bps beacon at 0.5 W closes from 5° elevation with +7.9 dB at the median spacecraft gain and +0.9 dB at the 10th-percentile gain; telecommand at 25 W has +2.6 dB at 10° in the worst case taken (10th-percentile gain, +6 dB interference) and +7.8 dB at 5° at the median gain. Free-space loss at 145.9 MHz is 141.8 dB at 5° and 129.3 dB overhead. |
+| Link margin 14 dB with −145 dB path loss | Superseded by `docs/environment/LINK_BUDGET_ANALYSIS.md` v3.5 (analysis at the 475 km baseline target; BASELINE Rev E §7): the 1200 bps beacon at 0.5 W closes from 5° elevation with +7.9 dB at the median spacecraft gain and +0.9 dB at the 10th-percentile gain; telecommand at ≥ 64 dBm EIRP (decision C-14) has ≥ +8.0 dB at 10° and ≥ +6.2 dB at 5° with the 10th-percentile gain and a 6 dB interference allowance. Free-space loss at 145.9 MHz is 141.8 dB at 5° and 129.3 dB overhead. |
 
 ---
 
@@ -45,3 +45,4 @@ misrepresentation to the IARU, and it has been withdrawn:
 | D | 2026-10-27 | Header revision brought up to the history (it said B after Rev C). Status: licensee designated, stations not; submission date, expected duration and frequency ranges; link margins to SQSO-LBA-001 v3.0 | CDR review, communications panel |
 | E | 2026-10-27 | CDR 2026 consistency pass: uplink request 435.222–435.778 MHz, else 436.222–436.500 MHz (BASELINE Rev E §7); link-budget altitude note | CDR documentation review |
 | F | 2026-10-27 | Link-margin row from SQSO-LBA-001 v3.2 at 475 km (RID SE-16) |
+| G | 2026-10-27 | Documentation audit (post-CDR 2026): uplink at least 0.9 MHz below 3 × f_down (BASELINE Rev E §7; was 2 MHz); link-margin row from LBA v3.5 with the 64 dBm EIRP telecommand (C-14; was 25 W, +2.6 dB); REGULATORY_ROADMAP Rev D; stations DA-10 and the IARU letter DA-09 | Documentation audit |

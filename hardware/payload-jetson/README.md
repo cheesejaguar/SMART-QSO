@@ -1,10 +1,29 @@
 # Jetson Orin Nano Super Payload Integration Guide
 
-> **CDR note (2026-10-27).** This guide is preliminary and partly wrong for flight: the flight carrier is
-> `hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md` (SQSO-JET-BRD-001 A), the module is an Orin Nano 8 GB flashed with
-> the original (non-Super) configuration in the 7 W mode, its input is 5 V made on the carrier from VBAT, it has no eMMC
-> (storage is an M.2 NVMe), and its role is the gated beacon-text experiment of BASELINE §6, not C&DH backup. The
-> performance, radiation and environmental figures of §2 are not NVIDIA's and are withdrawn (DS-11105-001 v1.5 governs).
+> **Superseded (documentation audit, 2026-10-27; extends the CDR note of the same day).** This guide predates the
+> baseline and is wrong for flight throughout, not only in §2; keep it as a record only. The flight payload is: an
+> NVIDIA **Jetson Orin Nano 8 GB** module (P/N 900-13767-0030-000) flashed with the **original (non-Super)
+> configuration** in the **7 W mode**, ≤ 8 W input including the carrier, no fan; 5 V made on the carrier from VBAT; no
+> eMMC (storage on an M.2 NVMe); a UART link to the OBC (BASELINE §6; `hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md`,
+> SQSO-JET-BRD-001). Its only role is the **gated experiment** of generative beacon text (SmolLM2-360M-Instruct or
+> Qwen3-0.6B, INT4), enabled only if the measured energy per accepted beacon line is ≤ 0.1 Wh; the flight baseline is
+> the template selector on the OBC (decision D5). It is **not** a C&DH backup, does not make mission decisions, and is
+> powered only in bursts of ≤ 10 min followed by ≥ 100 min off, sunlit and at SOC ≥ 55 %; it is off during launch
+> and LEOP. The power states, duty cycles (25–80 %), 15 W peaks, "science mode", the performance, radiation (100 krad)
+> and environmental figures, and the test claims below are withdrawn.
+>
+> **What this directory holds**
+>
+> | File | Status |
+> |------|--------|
+> | `README.md` (this file) | Superseded as above |
+> | `INTEGRATION_DESIGN.md` (SQSO-PAY-JET-001) | Partly superseded by the carrier design (its CDR note lists the sections) |
+> | `POWER_MANAGEMENT.md` (SQSO-JET-002) | Partly superseded (7 W mode, 6.5 W cap, commanded power-off) |
+> | `OPTIMIZE_JETSON.md` | Bench power-optimization guide with the flight configuration noted |
+>
+> **Governing documents**: `docs/BASELINE_PARAMETERS.md` §6; `docs/hardware/PAYLOAD_DESIGN.md` (§11–§12);
+> `hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md`; `docs/interfaces/ICD_OBC_JETSON.md`;
+> `docs/payload/AI_MODEL_SELECTION.md`; payload software in `software/payload/`.
 
 ## Executive Summary
 
@@ -263,7 +282,7 @@ EOL             | IDLE       | 2.0W      | 5.0W       | 10%
 
 ---
 
-*Document Version: 1.1 (CDR note 2026-10-27)*  
+*Document Version: 1.2 (documentation audit 2026-10-27: superseded notice; 1.1 CDR note 2026-10-27)*  
 *Last Updated: 2026-10-27*  
 *Prepared By: SMART-QSO Engineering Team*  
 *Reviewed By: [Name]*  

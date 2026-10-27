@@ -5,10 +5,11 @@ The CMocka suites in this directory are the specification of the flight software
 in `software/flight/include`, which are the C ABI of the Rust modules. They run on the host, on the simulated HAL
 (`software/rust/sqso-ffi/src/hal_sim.rs`). They use the [CMocka](https://cmocka.org) framework.
 
-There are 49 ctest entries: 45 CMocka suites with 695 `cmocka_unit_test` cases (two of them run as two
+There are 56 ctest entries: 52 CMocka suites with 758 `cmocka_unit_test` cases (two of them run as two
 entries each: `integration/test_executive_jetson.c` as `Executive_Jetson_link` and `Executive_Jetson_guard`, and
 `integration/test_downlink_sim.c` as `Downlink_TNC_served` and `Downlink_TNC_silent`), the
-`no_dynamic_memory` check, and `Simulation_Run`, the host simulation, which must reach a clean shutdown (2026-10-25).
+`no_dynamic_memory` check, and `Simulation_Run`, the host simulation, which must reach a clean shutdown (counted
+2026-10-27 with `ctest -N`).
 
 ## Running them
 
@@ -34,7 +35,7 @@ Useful configurations (all run in CI):
 | `-DENABLE_COVERAGE=ON` | gcov instrumentation of the C and LLVM source-based coverage of the Rust library, for the coverage gates |
 | `-DFLIGHT_BUILD=ON` | Flight configuration: the simulation is built with the cargo feature `flight` (runs until stopped) |
 
-The Rust also has its own unit tests (`cd software/rust && cargo test --workspace`, 197 tests) and fuzz targets
+The Rust also has its own unit tests (`cd software/rust && cargo test --workspace`, 624 `#[test]` functions on 2026-10-27) and fuzz targets
 (`software/rust/fuzz`).
 
 ## How tests are organised

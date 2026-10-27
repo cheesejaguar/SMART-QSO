@@ -1,10 +1,10 @@
 # Interface Control Document: OBC to ADCS Subsystem
 
 **Document ID**: SQSO-ICD-004
-**Version**: 1.5
+**Version**: 1.6
 **Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Draft for CDR. A build-to design, not built or tested; no independent CDR has been held (BASELINE Rev E §1)
 
 ## 1. Purpose
 
@@ -14,18 +14,20 @@ This document defines the interface between the On-Board Computer (OBC) and the 
 
 | Document | Title |
 |----------|-------|
-| SQSO-SRS-001 | System Requirements Specification |
-| SQSO-HW-ADCS-001 | ADCS Design (`docs/hardware/ADCS_DESIGN.md`) |
-| SQSO-HW-OBC-001 | OBC Design |
+| SQSO-REQ-002 | System Requirements Specification (`docs/requirements/SYSTEM_REQUIREMENTS.md`) |
+| SMART-QSO-SRS-001 | Software Requirements Specification (`docs/software/SOFTWARE_REQUIREMENTS.md`) |
+| SMART-QSO-ADCS-001 | ADCS Design (`docs/hardware/ADCS_DESIGN.md`) |
+| SQSO-CDH-OBC-001 | OBC Design (`hardware/obc/OBC_DESIGN.md`) |
 | SQSO-OBC-BRD-001 | OBC board build-to design (`hardware/electrical/obc/OBC_BOARD_DESIGN.md`) §9–§10 |
 | SQSO-ICX-001 | Spacecraft electrical interconnect, master pin allocation (`hardware/electrical/INTERCONNECT.md`) §3.4, §4 |
 
 ## 3. Interface Summary
 
-There is no ADCS board. The gyro module plugs into socket X1 on the OBC board; the backup gyro, the magnetometer, the
-sun-sensor amplifiers and their ADC, and the three magnetorquer H-bridges are parts of the OBC board (SQSO-ICX-001 §2).
-What leaves the OBC board is the sensor supply from the EPS (W6B), the three rods (W6C) and the six panel photodiodes
-(W6D). Pins are those of SQSO-ICX-001 §4, which governs.
+There is no ADCS board. The gyro module plugs into socket X1 on the OBC board; the backup gyro, the sun-sensor
+amplifiers and their ADC, and the three magnetorquer H-bridges are parts of the OBC board; the RM3100 magnetometer is on
+a small board (A2) at the +Z end frame on harness W6E (SQSO-ICX-001 §2, §3.4; SQSO-OBC-BRD-001 §9.4).
+What leaves the OBC board is the sensor supply from the EPS (W6B), the three rods (W6C), the six panel photodiodes
+(W6D) and the magnetometer board (W6E). Pins are those of SQSO-ICX-001 §4, which governs.
 
 ```
 INTERFACE BLOCK DIAGRAM
@@ -33,7 +35,7 @@ INTERFACE BLOCK DIAGRAM
 ┌──────────────────────────────── OBC board ─────────────────────────────────┐
 │  STM32L4R5ZI                                                                │
 │   SPI3 ──── Epson M-G370PDT0 gyro (X1)        SPI2 ──── Bosch BMI088 backup │
-│   I2C4 ──┬─ PNI RM3100 magnetometer 0x20                                    │
+│   I2C4 ──┬─ U34 ── W6E ── PNI RM3100 magnetometer 0x20 (board A2, MAG_EN PF14)│
 │          └─ ADS7138-Q1 ADC 0x10 ◄── 6 transimpedance amplifiers ◄── W6D     │
 │   TIM1 CH1–CH3 PWM, TIM15 burst ──── 3 × DRV8876-Q1 H-bridges ──── W6C rods │
 │   I2C1 ──── RV-3028-C7 mission clock 0x52     PG11 ──── TPS3850 supervisor  │
@@ -48,9 +50,10 @@ INTERFACE BLOCK DIAGRAM
 
 | Interface | OBC connector | Far end | Harness | Gauge |
 |-----------|---------------|---------|---------|-------|
-| Sensor supply 3V3_ADCS | J6, Pico-Clasp 2 | EPS J20 (SW4) | W6B | 26 AWG |
-| Magnetorquer rods | J7, Pico-Clasp 6 | CubeSpace CR0002 rods X, Y, Z | W6C (twisted pairs) | 26 AWG |
-| Coarse sun sensors | J8, Pico-Clasp 14 | six panel photodiodes | W6D (twisted pairs under one shield) | 28 AWG |
+| Sensor supply 3V3_ADCS | J6, Pico-Clasp 2 | EPS J20 (SW4) | W6B | 28 AWG |
+| Magnetorquer rods | J7, Pico-Clasp 6 | CubeSpace CR0002 rods X, Y, Z | W6C (twisted pairs) | 28 AWG |
+| Coarse sun sensors | J8, Pico-Clasp 12 | six panel photodiodes | W6D (six unshielded twisted pairs) | 28 AWG |
+| Magnetometer | J10, Pico-Clasp 6 | magnetometer board A2 J1 (RM3100) | W6E (three pairs) | 28 AWG |
 | Gyro module | X1, Samtec CLM-110-02-L-D socket | Epson M-G370PDT0 (FTMH-110 header) | none | — |
 | Coil supply VBAT_MTQ | J1-36, J1-39 (W3 from EPS J3) | EPS SW11 | W3 | 28 AWG |
 
@@ -66,7 +69,9 @@ Harness pins (SQSO-ICX-001 §3.4):
 | J7-3/4 | MTQ_Y_P / MTQ_Y_N | as X | U23 | rod Y |
 | J7-5/6 | MTQ_Z_P / MTQ_Z_N | as X | U24 | rod Z |
 | J8-1/2 … 11/12 | CSS_PX_K/A, MX, PY, MY, PZ, MZ | photocurrent ≤ 4.0 mA | U17–U19 TLV9002-Q1 (619 Ω) → U16 ADS7138-Q1 AIN0–AIN5 | panel photodiodes |
-| J8-13/14 | shield drains | — | GND at J8 only | — |
+| J10-1/2/6 | 3V3_MAG, GND | 3.3 V, < 1 mA | U35 latch-up switch (MAG_EN PF14, MAG_RB PF15) | board A2 |
+| J10-3/4 | SDA_M, SCL_M | I2C, 4.7 kΩ on the OBC side, 100 kHz | U34 TCA9517-Q1, its own buffered segment of I2C4 | RM3100 0x20 |
+| J10-5 | MG_DRDY | 3.3 V, high = conversion done | U33 → PD11 (EXTI11) | RM3100 DRDY |
 
 MCU pins (STM32L4R5ZIT6, SQSO-ICX-001 §4.1, §4.3):
 
@@ -87,8 +92,8 @@ MCU pins (STM32L4R5ZIT6, SQSO-ICX-001 §4.1, §4.3):
 | Parameter | Requirement |
 |-----------|-------------|
 | Length | ≤100 mm |
-| Type | Twisted pairs; W6D shielded, drains grounded at the OBC end only |
-| AWG | 26 AWG (W6B, W6C), 28 AWG (W6D) |
+| Type | Twisted pairs; W6D unshielded, no drains (SQSO-ICX-001 Version C) |
+| AWG | 28 AWG (W6B to W6E; SQSO-HAR-001 2.0) |
 | I2C pull-ups | 2.2 kΩ on the OBC (I2C4), 4.7 kΩ (I2C1) |
 
 ## 5. Electrical Interface
@@ -368,7 +373,7 @@ Gains and the Monte Carlo are in `docs/hardware/ADCS_DESIGN.md` (`sqso_fsw::adcs
 | Test | Criteria |
 |------|----------|
 | Detumble | From 10°/s, rate across +Y < 0.5°/s within 3 orbits |
-| Sun pointing | +Y within 15° of the Sun for ≥ 90 % of sunlit time (spin 8°/s) |
+| Sun pointing | ADCS-P002 as restated by decision C-23: pointing loss ≤ 5 % of sunlit generation and the Sun within 30° of +Y for ≥ 95 % of sunlit time, every Monte Carlo trial with the photodiode-and-albedo model (spin 8°/s; ADCS_DESIGN 1.9 §11.6; was +Y within 15° for ≥ 90 %) |
 | Sensor noise | <0.5°/s gyro, <100 nT mag |
 
 ## 12. CDR Update (2026-10-27): Interfaces as Designed and as Built
@@ -430,7 +435,7 @@ of one sense line; and the inhibits are then on the AntS supply, in hardware.
 | Item | Value |
 |------|-------|
 | Address | 0x31 (side A) and 0x32 (side B), on I2C3 alone (SQSO-ICX-001 D §6 row 30): side A first, side B when side A does not acknowledge, the sides taken in turn from one attempt to the next (SRS-F089) |
-| Temperature gate (decision C-18, SRS-F165) | before each attempt the AntS is powered (DEPLOY_EN) for 1 s and its controller's temperature read with **0xC0** (two bytes, low first, a 10-bit reading: **a documented assumption** of 10 mV/°C, 500 mV at 0 °C, 3.3 V full scale, until the delivered ICD confirms the command and its conversion, SQSO-MFG-003 §12 V-1 with AV-V7); at or above −17 °C the attempt goes ahead; colder or no valid answer defers it 50 min without spending it, at most 30 times (about 25 h), then it goes ahead whatever the reading; DEPLOY_RETRY 0x50 with a second byte 1 deploys at once; HK1 `AD` = deferrals/last temperature |
+| Temperature gate (decision C-18, SRS-F165) | before each attempt the AntS is powered (DEPLOY_EN) for 1 s and its controller's temperature read with **0xC0** (two bytes, low first, a 10-bit reading: **a documented assumption** of 10 mV/°C, 500 mV at 0 °C, 3.3 V full scale, until the delivered ICD confirms the command and its conversion, SQSO-MFG-003 §12 V-1 with AV-V7); at or above −17 °C the attempt goes ahead; colder or no valid answer defers it 50 min without spending it; after 30 deferrals (about 25 h) it goes ahead after 20 min of continuous sun, and after 3 unreadable temperatures it follows the thermal analysis's schedule (the first 20 min of sun from S + 69 min), a valid reading returning it to the gate (RID P3F-G-02); the deferral slot and flags are persisted across resets (P3F-A-04); DEPLOY_RETRY 0x50 with a second byte 1 deploys at once; the transmitters stay silent while the deployment is pending (decision C-19, SRS-F167); HK1 `AD` = deferrals/last temperature |
 | Sequence | after both wings (SRS-F089): ARM (0xAD), automatic deployment (0xA5, 10 s per element), then STATUS (0xC3) polled; on completion or the attempt limit: CANCEL (0xA9), DISARM (0xAC) |
 | Status word | two bytes, low first; element n (1–4): not deployed at bit 15 − 4(n − 1), time limit reached one below, burning two below; bit 0 armed |
 | Deployed | all four "not deployed" bits clear; housekeeping `DEP` carries the four-bit deployed mask |
@@ -461,3 +466,4 @@ of one sense line; and the inhibits are then on the AntS supply, in hardware.
 | 1.3 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §12.1 the software side as built: the firmware on the master pin allocation (SQSO-ICX-001 §6), the drivers of the gyros, magnetometer, sun-sensor ADC, magnetorquers and mission clock (built against the data sheets, not run on hardware), the magnetometer gating and bias, the supervisor; the calibration telecommands ADCS_SET_GYRO_ALIGN and ADCS_SET_MAG_BIAS |
 | 1.4 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, third part) | §12.1 and §12.3 the AntS on its own bus I2C3 with side B (0x32, RID SMA-B07); the temperature gate before each attempt (0xC0, a documented assumption until the ISIS ICD, decision C-18, SRS-F165); AV-V7 covers the temperature command |
 | 1.5 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fourth part) | §10 GNSS row: LPUART1 TX on PB11 (SQSO-ICX-001 D; was PG7) |
+| 1.6 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): status (no CDR held); §2 document numbers the documents carry; §3, §4 the magnetometer on board A2 via W6E and U34/U35, J8 Pico-Clasp 12 unshielded, 28 AWG (SQSO-ICX-001 D §3.4); §11.2 the pointing criterion of decision C-23; §12.3 the C-18 cap and unreadable-temperature paths (P3F-G-02), persistence (P3F-A-04) and the C-19 hold |

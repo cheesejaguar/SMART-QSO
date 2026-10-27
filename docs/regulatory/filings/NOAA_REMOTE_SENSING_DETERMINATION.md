@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REG-011
-**Revision:** A.1
+**Revision:** A.2
 **Date:** 2026-10-27
 **Status:** Internal determination. Written NOAA confirmation is recommended (§5).
 
@@ -26,7 +26,7 @@
 | GNSS receiver and patch antenna (D6) | Orbit determination | No: a radio receiver |
 | Thermistors, voltage/current monitors | Housekeeping | No |
 | RF receivers (transponder, telecommand) | Communications | No |
-| Jetson Orin Nano MIPI-CSI camera interface | **Not populated** (`hardware/payload-jetson/INTEGRATION_DESIGN.md`, connector table) | N/A: no imaging sensor installed |
+| Jetson Orin Nano MIPI-CSI camera interface | **Not populated** (`hardware/payload-jetson/INTEGRATION_DESIGN.md`, connector table; the carrier board has no camera connector, SQSO-JET-BRD-001 §11) | N/A: no imaging sensor installed |
 
 ## 3. Determination
 
@@ -48,7 +48,7 @@ Owner: Systems Engineering (Configuration Control Board).
 
 | # | Action | When | Status |
 |---|--------|------|--------|
-| 1 | Send NOAA CRSRA an informal consultation (15 CFR 960.5(a)), e.g. the CRSRA Initial Contact Form or email to crsra@noaa.gov, enclosing §2 and asking for written confirmation that no license is required | **2026-11-30** (REGULATORY_ROADMAP Rev B §3); reply expected by 2027-03-31 | Not started |
+| 1 | Send NOAA CRSRA an informal consultation (15 CFR 960.5(a)), e.g. the CRSRA Initial Contact Form or email to crsra@noaa.gov, enclosing §2 and asking for written confirmation that no license is required | **2026-11-30** (REGULATORY_ROADMAP Rev D §3); reply expected by 2027-03-31 | Not started |
 | 2 | File NOAA's written response in `docs/regulatory/filings/` and cite it in the launch-provider regulatory package | On receipt | Not started |
 
 ---
@@ -59,3 +59,4 @@ Owner: Systems Engineering (Configuration Control Board).
 |-----|------|-------------|
 | A | 2026-10-14 | Initial determination (funding audit) |
 | A.1 | 2026-10-27 | Sensor inventory updated for the gyro and GNSS decisions (D6, D9); still no imaging instrument; consultation date |
+| A.2 | 2026-10-27 | Documentation audit (post-CDR 2026): REGULATORY_ROADMAP Rev D; the carrier design has no camera connector |

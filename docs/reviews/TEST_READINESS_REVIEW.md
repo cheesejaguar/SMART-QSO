@@ -1,10 +1,18 @@
 # SMART-QSO Test Readiness Review Package
 
 **Document ID**: SQSO-TRR-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: Template (Pre-TRR)
+**Status**: Template (Pre-TRR). No TRR has been held
+
+> **Template for a future review: not held.** No test readiness review has been held, no flatsat or engineering model
+> exists, and nothing in this document records a result; every status, version and signature field is to be filled in
+> at the review. It belongs to the **EM integration and flatsat** of `mission/SCHEDULE.md` (EM_INT, 2027-06-01 to
+> 2027-07-27, procedure TP-FLATSAT-001), after the independent PDR (2027-01-12) and before the independent CDR
+> (2027-09-28); the same form serves later test campaigns (EM tests, FM integration). Design values are in
+> [BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md); the current review record is
+> [CDR_2026_DESIGN_REVIEW.md](CDR/CDR_2026_DESIGN_REVIEW.md). Index of the review documents: [README.md](README.md).
 
 ## 1. Purpose
 
@@ -25,8 +33,8 @@ This document provides the Test Readiness Review (TRR) package for the SMART-QSO
 
 ### 2.2 Entrance Criteria
 
-- [ ] CDR complete
-- [ ] Critical CDR actions closed
+- [ ] Independent PDR held (planned 2027-01-12) and its RIDs dispositioned
+- [ ] Verification items due before the campaign passed (`docs/verification/VI_REGISTER.md`)
 - [ ] Test articles assembled
 - [ ] Test procedures approved
 - [ ] Facilities scheduled
@@ -38,10 +46,10 @@ This document provides the Test Readiness Review (TRR) package for the SMART-QSO
 
 | Component | P/N | S/N | Status |
 |-----------|-----|-----|--------|
-| OBC EDU | AMA4B2KK-KBR | | [ ] Ready |
-| Jetson EDU | 945-13767-0005 | | [ ] Ready |
-| EPS Simulator | SQSO-EPS-SIM-001 | | [ ] Ready |
-| RF Interface | SQSO-RF-SIM-001 | | [ ] Ready |
+| OBC board EM (STM32L4R5ZI) | SQSO-OBC-BRD-001 | | [ ] Ready |
+| Jetson Orin Nano 8 GB module 900-13767-0030-000 on the carrier EM | SQSO-JET-BRD-001 | | [ ] Ready |
+| EPS board EM, or battery and array simulators | SQSO-EPS-BRD-001 | | [ ] Ready |
+| RF board EM (TNC, receiver, transmitter) | SQSO-RF-BRD-001 | | [ ] Ready |
 | Debug Interface | J-Link Plus | | [ ] Ready |
 | Power Supply | E36312A | | [ ] Ready |
 
@@ -49,22 +57,26 @@ This document provides the Test Readiness Review (TRR) package for the SMART-QSO
 
 | Software | Version | Loaded | Verified |
 |----------|---------|--------|----------|
-| Flight Software | 1.0.0-test | [ ] | [ ] |
-| Payload Software | 1.0.0-test | [ ] | [ ] |
-| Ground Software | 1.0.0 | [ ] | [ ] |
-| Test Scripts | 1.0.0 | [ ] | [ ] |
+| Flight Software (Git commit) | | [ ] | [ ] |
+| Payload Software | | [ ] | [ ] |
+| Ground Software | | [ ] | [ ] |
+| Test Scripts | | [ ] | [ ] |
 
 ### 3.3 Configuration Control
 
 | Item | Baseline | Deviations |
 |------|----------|------------|
-| Hardware | CDR | None |
-| Software | CDR | Test instrumentation |
-| Procedures | CDR | None |
+| Hardware | EM layout release | |
+| Software | | |
+| Procedures | | |
 
 ## 4. Test Procedure Status
 
 ### 4.1 Procedure Approval
+
+TP-001 to TP-007 are this template's placeholder numbers. The written procedures for the flatsat are
+`docs/test_procedures/TP-FLATSAT-001_Software_Development.md` and the TP-INT, TP-OBC, TP-RF and TP-EPS procedures in
+`docs/test_procedures/`; list those at the review.
 
 | Procedure | Version | Author | Reviewed | Approved |
 |-----------|---------|--------|----------|----------|
@@ -200,7 +212,7 @@ This document provides the Test Readiness Review (TRR) package for the SMART-QSO
 | TP-001 | Boot < 5s, all init OK |
 | TP-002 | All transitions per spec |
 | TP-003 | All channels valid |
-| TP-004 | AX.25 valid, 60s interval |
+| TP-004 | AX.25 valid; 60 s ACTIVE, 120 s IDLE, 180 s SAFE (BASELINE §8) |
 | TP-005 | All faults handled |
 | TP-006 | All modes within power budget |
 | TP-007 | 7 days stable, <0.01% errors |
@@ -291,3 +303,4 @@ QA: __________________ Date: _______
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial template |
+| 1.1 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): banner (template, not held; milestone: EM integration and flatsat, between the independent PDR and CDR); entrance criteria after the PDR (was "CDR complete"); test articles are the EM boards with the STM32L4R5ZI and the Jetson module 900-13767-0030-000 (were the Apollo4 AMA4B2KK-KBR and a Jetson developer kit); pre-filled versions and "None" deviations removed; beacon intervals per mode; §4.1 notes that TP-001 to TP-007 are placeholders |

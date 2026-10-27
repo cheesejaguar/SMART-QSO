@@ -1,8 +1,8 @@
 # SMART-QSO Anticipated Lessons (Lessons-Learned Register)
 
 **Document ID**: SQSO-LL-001
-**Version**: 1.1
-**Date**: 2026-10-16
+**Version**: 1.2
+**Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Living document. **Anticipated lessons only:** no development phase has been completed
 
@@ -156,8 +156,8 @@ charge (BASELINE §5). Whether these cover every operational scenario will be kn
 
 **Recommendation**: Define HAL interfaces early and stub every hardware dependency, so unit tests run without hardware.
 
-**Planned mitigation**: A HAL with a simulation back end exists; 31 CMocka suites (428 cases) run on the host without
-hardware (`docs/reviews/FLIGHT_SOFTWARE_DELIVERY.md` §4.2). Several hardware drivers are still stubs
+**Planned mitigation**: A HAL with a simulation back end exists (`software/rust/sqso-ffi/src/hal_sim.rs`); at the CDR
+2026 design review 56 C suites and 622 Rust tests ran on the host without hardware (SQSO-REV-CDR-002 §7.1). Several hardware drivers are still stubs
 (`docs/reviews/KNOWN_ISSUES.md` KI-001).
 
 ---
@@ -177,8 +177,10 @@ what is tested.
 
 **Recommendation**: Unit tests for every safety-related function, run in CI; measure coverage over every compiled source.
 
-**Planned mitigation**: CI runs the unit tests and fails below 65 % line coverage. Current line coverage is 68.2 %
-(ci.yml). The long-term target of > 80 % has not been reached.
+**Planned mitigation**: CI runs the unit tests, counts every compiled line, and fails below 90 % line coverage of the
+Rust flight crates and 80 % of the flight software as a whole, with 100 % of lines and conditions for the
+safety-critical files; the measured values are in `software/flight/tests/README.md` (94.8 % line on 2026-10-25). All
+of it is host testing: nothing has run on the flight target.
 
 ---
 
@@ -350,3 +352,4 @@ earlier plan to submit to the NASA Lessons Learned Information System is removed
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-16 | SMART-QSO Team | Funding audit PI-16: every lesson relabelled as anticipated; statements that phases or tests happened removed; false figures corrected (tests, coverage, MISRA, power margin); NASA Ames attributions and LLIS submission removed; lessons from other missions cited from public sources; summary corrected to 10 lessons |
 | 1.1, note | 2026-10-24 | SMART-QSO Team | LL-007: update for the Rust port (MISRA baseline 42, clang-tidy 0) |
+| 1.2 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): LL-005 and LL-006 test and coverage figures to the current CI gates and the CDR 2026 review counts |

@@ -1,10 +1,24 @@
 # SMART-QSO Parts List / Bill of Materials
 
 **Document ID**: SQSO-BOM-001
-**Version**: 1.1
-**Date**: 2026-10-26
+**Version**: 1.2
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Superseded (kept as a record; see the notice below)
+
+> **Superseded (documentation audit, 2026-10-27).** This list predates the baseline and the board designs: apart from
+> the battery and gyro rows of Version 1.1 it describes a different spacecraft (Apollo4 OBC, SPV1050 charger, 6 cells
+> and a 2-cell pack, Si4463 radio with a 2 W PA and a diplexer, custom tape-spring antenna and frame, LIS3MDL
+> magnetometer, PC/104 stack-through connectors). Do not use it for any part, quantity or mass. The current sources are:
+> - **Board parts and BOMs** (generated from the schematics): `hardware/electrical/eps/eps_board_bom.csv`
+>   (SQSO-EPS-BRD-001), `hardware/electrical/obc/obc_board_bom.csv`, `mag_board_bom.csv`, `a3_board_bom.csv`
+>   (SQSO-OBC-BRD-001), `hardware/electrical/rf/rf_board_bom.csv` (SQSO-RF-BRD-001),
+>   `hardware/electrical/jetson/jetson_carrier_bom.csv` (SQSO-JET-BRD-001);
+> - **Bought units** (frame, panels, AntS, rods, gyro, GNSS, Jetson module, cells): `docs/hardware/BUILD_VS_BUY.md` §1;
+> - **EEE parts assurance, screening and derating**: `docs/manufacturing/EEE_PARTS_LIST.md` (SQSO-MFG-002) §2A;
+> - **Harness parts and wire**: `hardware/harness/HARNESS_DESIGN.md` (SQSO-HAR-001) and `wire_list.csv`;
+> - **Mass**: `docs/environment/MASS_BUDGET.md` (SQSO-MB-001) MEL; **materials**: `docs/compliance/MATERIALS_LIST.md`;
+> - **Workmanship standards** (NASA-STD-8739.3 is cancelled): `docs/manufacturing/WORKMANSHIP_STANDARDS.md`.
 
 ## 1. Purpose
 
@@ -306,3 +320,4 @@ This document provides the complete parts list and bill of materials for SMART-Q
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 1.1 | 2026-10-26 | SMART-QSO Team | Battery (§4.2) and gyro (§8.1) rows to the baseline (D8, D9). The rest of this list predates the baseline (Apollo4 OBC, SPV1050, Si4463, diplexer) and is not yet corrected; `docs/hardware/BUILD_VS_BUY.md` governs the build-or-buy choices |
+| 1.2 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): marked superseded by the generated board BOMs, BUILD_VS_BUY §1, EEE_PARTS_LIST, HARNESS_DESIGN and MASS_BUDGET (notice at the top); body kept as a record |

@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-MFG-002
-**Revision:** G
+**Revision:** H
 **Date:** 2026-10-27
 **Reference:** NASA-STD-8739.10 (EEE Parts Assurance Standard, 2017), Level 4 commercial parts with project screening; GSFC EEE-INST-002 (2003, with Addendum 1, 2008) Level 3 as the screening guide; SMD SPD-39 (Class D mission assurance requirements, 2021) and *Guidance for Use of Commercial EEEE Parts in Class D Missions* v1.0 (2024-10-16); NASA/TM-20210018053 (Avionics Radiation Hardness Assurance Guidelines, 2021); SpaceX Rideshare Payload User's Guide v11 Table 5-5. MIL-STD-975 (cancelled) and "NASA Ames SmallSat Heritage" are withdrawn as references
 **Status:** CDR draft. §2A is the parts assurance policy; the part tables (§4–§11) predate the build-versus-buy decisions and are corrected by §2A.6–§2A.7
@@ -46,7 +46,7 @@ part-level screening is impractical:
 | Receiving inspection | Visual and marking check of 100 % of parts, dimension sample, certificate of conformance against the order |
 | Counterfeit avoidance | Buy only from the manufacturer or its franchised distributors; any other source needs an SAE AS6081-class inspection and an X-ray of a sample |
 | Lot control | One date/lot code per part type for the EM and FM where possible; record the lot of every part fitted (traveler) |
-| Board-level screening (replaces part burn-in) | Each flight board: functional test, ≥ 8 thermal cycles −30 to +70 °C powered at the extremes, then ≥ 200 h powered with the last 100 h failure-free (RELIABILITY_ANALYSIS v2.0 §6) Screening cycles stop at −30 °C, inside the parts' −40 °C rating; the −40 °C first-orbit case is tested by the protoflight plateau (ETP §3.4, deviation 8), not by screening |
+| Board-level screening (replaces part burn-in) | Each flight board: functional test, ≥ 8 thermal cycles −30 to +70 °C powered at the extremes, then ≥ 200 h powered with the last 100 h failure-free (RELIABILITY_ANALYSIS §6). Screening cycles stop at −30 °C, inside the parts' −40 °C rating; the −40 °C first-orbit case is tested by the protoflight plateau (ETP §3.4, deviation 8), not by screening |
 | Destructive physical analysis | One sample from each lot of the OBC MCU, FRAM, BMS AFE and RF PA, when a lot cannot be traced to a franchised source |
 | Derating | §12 of this list, applied with the hot-case temperatures of the thermal analysis |
 | Alerts | GIDEP and manufacturer errata checked at selection and before the FM build |
@@ -73,7 +73,7 @@ Verification: VI-SAF-07 (SQSO-SDP-002), prohibited-materials and terminal-finish
 ### 2A.4 Radiation
 
 Total dose: 4.69 krad(Si) in 2 years behind 2 mm Al at 475 km (4.91 at the 485 km cap; RADIATION_ANALYSIS F §4.1); design level 10 krad (`docs/environment/RADIATION_ANALYSIS.md`
-Rev C §4). Parts are accepted for TID with published data at ≥ 10 krad, or a heritage report, or a lot sample test
+Rev F §4). Parts are accepted for TID with published data at ≥ 10 krad, or a heritage report, or a lot sample test
 (RAD-V3). Every mission-critical rail has a latch-up current limiter with OBC-commanded power cycling, because SEL data
 are missing for most parts (NASA/TM-20210018053 approach for commercial parts).
 
@@ -91,14 +91,14 @@ finishes and materials.
 | Epson M-G370PDT0 | Primary gyro | D9 | Mission (ADCS degraded if lost) | TID pass at 5, 10, 20 krad (Epson); no SEL data | Selected |
 | Bosch BMI088 | Backup gyro | D9 | Non-critical while unpowered | None | Selected |
 | TI BQ76952PFBR (was BQ76920 class) | 4S BMS AFE, −40 … +85 °C | BATTERY_DESIGN §4.2; EPS board BOM | Mission and safety | None | Selected (EPS U1) |
-| TI BQ771806DPJR secondary over-voltage protector + Littelfuse ITV4030L1412NR three-terminal fuse (was 'not yet selected') | Dissimilar overcharge control | SQSO-BSA-001 H1 (EPS-11); EPS board BOM | Safety | — | Selected (EPS U2, F1, F3). **ITV4030 rated −10 … +65 °C**: below the −40 … +70 °C criterion, covered only by V-EPS-8 extended to −40 °C and +70 °C or a design change (§2A.9) |
-| TI SN74LVC1G123 | XPDR_EN heartbeat monostable | BUILD_VS_BUY §3.2 | Mission (transponder) | None | Candidate |
-| TI SN74LVC1G11 | Transponder key gate | BUILD_VS_BUY §3.2 | Mission | None | Candidate |
-| CML CMX138A | CTCSS decode and audio conditioning | BUILD_VS_BUY §3.2 | Mission | None | Candidate |
-| TI TMUX1219 | Audio select | BUILD_VS_BUY §3.2 | Mission | None | Candidate |
-| TI TPS22918 | Repeat-path load switch | BUILD_VS_BUY §3.2 | Non-critical | None | Candidate |
-| TI TPS25947 class eFuse | Jetson rail | Schematic S7 | Safety for the bus (isolation) | None | Candidate |
-| TI 74LVC1T45 | OBC–Jetson UART isolation (Ioff) | Schematic S7 (F13) | Mission | None | Candidate |
+| TI BQ771806DPJR secondary over-voltage protector + Littelfuse ITV4030L1412NR three-terminal fuse (was 'not yet selected') | Dissimilar overcharge control | SQSO-BSA-001 H1 (EPS-11); EPS board BOM | Safety | — | Selected: BQ771806 and F3 on the battery sense board (BATTERY_DESIGN 2.9 §7.2; SQSO-EPS-BRD-001 F; they were EPS U2 and F3), the ITV4030 also as the EOL fuse F1 on the EPS. **ITV4030 rated −10 … +65 °C**: below the −40 … +70 °C criterion, covered only by V-EPS-8 extended to −40 °C and +70 °C or a design change (§2A.9) |
+| TI SN74LVC1G123 | XPDR_EN heartbeat monostable | BUILD_VS_BUY §3.2 | Mission (transponder) | None | Selected (RF board BOM) |
+| TI SN74LVC1G11 | Transponder key gate | BUILD_VS_BUY §3.2 | Mission | None | Selected (RF board BOM) |
+| CML CMX138A | CTCSS decode and audio conditioning | BUILD_VS_BUY §3.2 | Mission | None | Selected (RF board BOM) |
+| TI TMUX1219 | Audio select | BUILD_VS_BUY §3.2 | Mission | None | Selected (RF board BOM) |
+| TI TPS22918 | Repeat-path load switch | BUILD_VS_BUY §3.2 | Non-critical | None | Selected (RF board and Jetson carrier BOMs) |
+| TI TPS16630 eFuse (EPS U19), with the carrier's TPS259474L breaker (carrier U2) | Jetson rail | Schematic S7; SQSO-EPS-BRD-001 §8.3; SQSO-JET-BRD-001 §12 | Safety for the bus (isolation) | None | Selected (EPS and carrier BOMs; the S7 sheet named a TPS25947-class part) |
+| TI 74LVC1T45 | OBC–Jetson UART isolation (Ioff) | Schematic S7 (F13) | Mission | None | Selected (OBC and carrier BOMs) |
 | Infineon FM25V20A | FRAM | RADIATION_ANALYSIS Rev F | Mission | None for the part (RAD-V3, RAD-V4) | Selected (OBC U3, mirror U36) |
 | SkyFox piNAV-NG/FM | GNSS receiver (assembly) | D6 | Non-critical | Vendor | Selected |
 | ISIS AntS | Antenna assembly | BUILD_VS_BUY §2.6 | Mission | Flight heritage | Selected |
@@ -107,7 +107,7 @@ finishes and materials.
 ### 2A.7 Corrections to the tables below
 
 - §4.1 STM32L4R5ZIT6: "TID ~30 krad (tested)" and "SEL threshold > 60 MeV·cm²/mg" have **no source**; RADIATION_ANALYSIS
-  Rev C §4.3 found no lot data for the L4R5 (open: RAD-V3). Treat as unknown until then.
+  Rev F §4.3 found no lot data for the L4R5 (open: RAD-V3). Treat as unknown until then.
 - §4.2 MSP430FR5969 backup MCU: not in the baseline architecture (BASELINE §6 has one OBC and a hardware watchdog);
   remove or justify.
 - The TID and SEL values for the other parts in §4–§9 have no sources and are treated as unknown.
@@ -115,6 +115,15 @@ finishes and materials.
 - §13.1: mission duration is the 2-year design life (BASELINE §2), and the dose is 4.69 krad(Si) behind 2 mm at 475 km (4.91 at 485 km).
 - §10 Connectors (ESQ-126 PC/104 stack connector, FTSH-105 debug header, U.FL RF connector) is superseded: there is no
   stack connector, and the flight connectors and their finishes are §2A.8.
+- §5.2 W25Q128 data flash and §5.1 "triple-voted" code: superseded; non-volatile data are in two FM25V20A FRAMs (OBC U3,
+  mirror U36; §2A.6). §6.1 BQ25703A charger: superseded by the EPS board's four TPS55340-Q1 trackers and the BQ76952
+  AFE; §6.2–§6.3 regulators: the EPS board's LMR43620-Q1 bucks (SQSO-EPS-BRD-001). §8.1 LIS3MDL: superseded by the PNI
+  RM3100 on the magnetometer board A2. §9.1 DRV8837: superseded by the DRV8876-Q1 bridges on the OBC. §9.2 nichrome
+  burn wire at 1 A for 5 s: superseded by four current-limited 0.8 A drivers, 10 s per resistor (BASELINE §4), and the
+  AntS's own release. §4.2's MSP430FR5969 is not the EPS controller (an MSP430FR2355, EPS U37).
+- §11.2 tantalum capacitors: **not used** (§2A.9: X7R or C0G only).
+- §13.1: the radiation analysis runs 465, 475 and 485 km with 500 and 525 km as bounds; inclination ≈ 97.31°
+  (BASELINE §3; RADIATION_ANALYSIS Rev F §2).
 
 ### 2A.8 Connector finishes (harness design SQSO-HAR-001 2.0 §3.1; §2A.3 item 5)
 
@@ -161,6 +170,12 @@ limits.
 ---
 
 ## 3. Parts Classification
+
+> **§3 to §14 are the Revision A tables (2026-01-02) and do not describe the flight design.** They predate the
+> build-versus-buy decisions and the round-2 board designs; §2A.6 and §2A.7 list what replaced them. The flight parts are
+> the lines of the board BOMs (`hardware/electrical/*/*_bom.csv`) and of the parts temperature audit
+> (`docs/manufacturing/PARTS_TEMPERATURE_AUDIT.md`, SQSO-MFG-003, and its CSV); the tables are to be rebuilt from them
+> in the FM issue of this list. §12 (derating) still applies.
 
 ### 3.1 Grade Levels
 
@@ -524,8 +539,8 @@ limits.
 
 | Parameter | Value |
 |-----------|-------|
-| Orbit altitude | 465–485 km, target 475 km (BASELINE Rev E §3); radiation analysed at 500 and 525 km as bounds |
-| Inclination | ≈ 97.4°, sun-synchronous (`docs/BASELINE_PARAMETERS.md` §3) |
+| Orbit altitude | 465–485 km, target 475 km (BASELINE Rev E §3); radiation analysed at 465, 475 and 485 km, with 500 and 525 km as bounds |
+| Inclination | ≈ 97.31° at 475 km, sun-synchronous (`docs/BASELINE_PARAMETERS.md` §3) |
 | Mission duration | 2 years design life (BASELINE §2) |
 | Total Ionizing Dose | 4.69 krad(Si) in 2 years behind 2 mm Al at 475 km, 4.91 at the 485 km cap (RADIATION_ANALYSIS Rev F §4.1) |
 | SEE flux | Low (LEO) |
@@ -566,3 +581,4 @@ limits.
 | E | 2026-10-27 | §2A.8 connector finishes: gold variants of every flight connector (Pico-Clasp, Micro-Fit right-angle, Samtec TFM/SFSDT replacing FTSH/FFSD, MMCX, Micro-D, splices); §10 marked superseded (harness design SQSO-HAR-001 2.0 §15 item P-1) | Harness design |
 | F | 2026-10-27 | Parts temperature audit (RID P3T-01, SQSO-MFG-003 A): new §2A.9 temperature grades, exceptions with their coverage, owners and dates; §2A.6 AFE, secondary protector and fuse rows as selected on the EPS board (ITV4030 −10 … +65 °C); §2A.8 Pico-Clasp gold terminal 501193 (501334 is tin), Samtec TFM/SFSDT plating codes to confirm, SFSDT Teflon only; §2A.2 screening range noted; §6.4 cell ranges | EEE parts engineer, CDR round 3 |
 | G | 2026-10-27 | §2A.8 harness-side part numbers (SQSO-HAR-001 §15 P-3): Pico-Clasp terminal 501193-9000, Micro-Fit terminal 43030-0003, W10E plug Molex 73415-2261; splice D-436-36 (M81824/1-1) rejected for its tin-plated barrel (TE drawing Rev F, ASTM B545), TE Raychem D-200-82 (nickel) instead, with the AS81824/1 deviation and the 28 AWG range open to the harness designer | EEE parts engineer, CDR round 3 |
+| H | 2026-10-27 | Documentation audit (post-CDR 2026): §3–§14 marked as the Revision A tables, not the flight design, with the BOMs and SQSO-MFG-003 as the parts of record; §2A.6 statuses from the board BOMs (RF-board logic, CMX138A, TMUX1219, TPS22918, 74LVC1T45 selected; Jetson eFuse TPS16630 and carrier breaker TPS259474L in place of the TPS25947 class; BQ771806 and F3 on the battery sense board); §2A.7 the other superseded table entries and the tantalum row; §2A.4 and §2A.7 cite RADIATION_ANALYSIS Rev F; §13.1 altitudes analysed and inclination 97.31° | Documentation audit |

@@ -7,6 +7,7 @@
 **Status:** CDR Baseline
 
 **Requirements verified:** SYS-200, SYS-201, SYS-203
+**Verification item:** VI-RF-04 (`docs/verification/VI_REGISTER.md`): spectrum at the antenna port, and radiated with the antennas deployed, at 1 W
 
 ---
 
@@ -32,10 +33,11 @@ Verify RF transmitter spurious and harmonic emissions comply with specifications
 |------|--------|----------|-----|
 | 1 | Connect TX to analyzer via attenuator | | |
 | 2 | Enable TX at the maximum power setting (≤ 1 W, SYS-201) | Carrier at the IARU-coordinated downlink frequency f_c (TBD until coordination, TBD-SYS-001; SYS-200) | |
-| 3 | Measure 2nd harmonic (2 × f_c, 291.6–292.0 MHz) | < -40 dBc (SYS-203) and ≤ 25 µW (47 CFR 97.307(e): < -46 dBc at 1 W, `docs/BASELINE_PARAMETERS.md` §7) | |
-| 4 | Measure 3rd harmonic (3 × f_c, 437.4–438.0 MHz, in the uplink band) | As step 3; target < -60 dBc (`docs/BASELINE_PARAMETERS.md` §7) | |
-| 5 | Sweep 9 kHz - 1 GHz | All spurious < -50 dBc | |
+| 3 | Measure 2nd harmonic (2 × f_c, 291.6–292.0 MHz) and 4th harmonic (4 × f_c, 583.2–584.0 MHz) | ≤ −46 dBc and ≤ 25 µW at 1 W (SYS-203; 47 CFR 97.307(e); VI-RF-04) | |
+| 4 | Measure 3rd harmonic (3 × f_c, 437.4–438.0 MHz, next to the uplink band) at the antenna port | ≤ −70 dBc (SYS-203 Rev G; `docs/BASELINE_PARAMETERS.md` §7; VI-RF-04) | |
+| 5 | Sweep 9 kHz - 1 GHz | All spurious ≤ −46 dBc and ≤ 25 µW (SYS-203) | |
 | 6 | Record all emissions > -60 dBc | Document | |
+| 7 | Engineering model only, antennas deployed: repeat steps 3 and 4 radiated, with a calibrated receive antenna (VI-RF-04) | As steps 3 and 4 | |
 
 ---
 
@@ -43,9 +45,9 @@ Verify RF transmitter spurious and harmonic emissions comply with specifications
 
 | Criterion | Requirement |
 |-----------|-------------|
-| 2nd harmonic | < -40 dBc (SYS-203) and ≤ 25 µW (47 CFR 97.307(e); < -46 dBc at 1 W) |
-| 3rd harmonic | As 2nd harmonic; target < -60 dBc (BASELINE §7) |
-| All spurious | < -50 dBc |
+| 2nd and 4th harmonics | ≤ −46 dBc and ≤ 25 µW at 1 W (SYS-203; 47 CFR 97.307(e)) |
+| 3rd harmonic | ≤ −70 dBc at the antenna port (SYS-203 Rev G; BASELINE §7) |
+| All spurious | ≤ −46 dBc and ≤ 25 µW (SYS-203) |
 
 ---
 

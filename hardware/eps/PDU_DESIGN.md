@@ -2,10 +2,10 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-PDU-001
-**Version:** 1.5
+**Version:** 1.6
 **Date:** 2026-10-27
 **Status:** CDR Baseline — parts selected in the EPS board design `hardware/electrical/eps/EPS_BOARD_DESIGN.md`
-(SQSO-EPS-BRD-001 E), which governs part-level values; `docs/hardware/EPS_DESIGN.md` v2.5 §4–§6 governs the architecture
+(SQSO-EPS-BRD-001 G), which governs part-level values; `docs/hardware/EPS_DESIGN.md` v2.5 §4–§6 governs the architecture
 
 ---
 
@@ -54,7 +54,7 @@ Version 1.0 defined a 2S bus (6.0–8.4 V), a 3.3 V LDO from 5 V and an optional
 |--------|------|------|-------------|--------------|------------------------|------------------|---------|
 | SW1 + eFuse U19 | Jetson carrier | VBAT | 0.62 A | 0.93 A | SW1 2.0 A; eFuse 1.20 A (1.10–1.30) latch-off | OBC re-enables | OFF |
 | SW2 | Receiver, synthesizer, TNC, exciter | 3V3_AO | 0.038 A | 0.05 A | 0.12 A (0.10–0.14) | 1.3 s, auto | OFF at reset; on at boot |
-| SW3 | PA (hardware TX-OFF) | 5V_PA | 0.35 A | 0.55 A | 0.99 A (0.92–1.07) | 0.28 s, auto | OFF |
+| SW3 | PA (hardware TX-OFF) | 5V_PA | 0.37 A (1.84 W DC at 0.5 W RF, SQSO-RF-BRD-001) | 0.55 A (EPS board design bound; 0.49 A at 1 W RF) | 0.99 A (0.92–1.07) | 0.28 s, auto | OFF |
 | SW4 | ADCS sensors (on the OBC, W6B) | 3V3_AO | 0.04 A | 0.049 A | 0.30 A (0.27–0.34) | 0.28 s, auto | OFF at reset |
 | SW5 | Battery heater (207 Ω) | VBAT | 0.07 A | 0.08 A | 0.148 A, plus F4 0.25 A and a +40 °C cutout in series | auto-retry | OFF |
 | SW6 | Burn buck → four drivers | VBAT | 0 | 0.5 A per burn at the pack | 2.0 A; 0.8 A per resistor; 12 s one-shot | thermal | OFF |
@@ -311,3 +311,4 @@ Version 1.0 defined a 2S bus (6.0–8.4 V), a 3.3 V LDO from 5 V and an optional
 | 1.3 | 2026-10-27 | CDR design (EPS board) | SQSO-ICX-001 interconnect (SQSO-EPS-BRD-001 B): SW11 magnetorquer supply (TPS1H000-Q1, 0.36 A), SW4 sensors only (§4.1, §4.2) |
 | 1.4 | 2026-10-27 | CDR design (EPS board): battery-output fuse F2 changed to FM12A72V5.0A for breaking capacity (§6) |
 | 1.5 | 2026-10-27 | CDR design (EPS board): load shed on the Jetson's two switches only, the PA not shed; AntS supply also by the EPS controller (SQSO-EPS-BRD-001 E) |
+| 1.6 | 2026-10-27 | Documentation audit (post-CDR 2026): status cites SQSO-EPS-BRD-001 G (was E); SW3 nominal current from the RF board's 1.84 W DC at 0.5 W RF (was 0.35 A) |

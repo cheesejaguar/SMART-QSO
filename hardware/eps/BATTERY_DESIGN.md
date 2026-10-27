@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-BAT-001
-**Version:** 2.10
+**Version:** 2.11
 **Date:** 2026-10-27
 **Status:** Battery definition and cycle-life analysis for the baseline in `docs/BASELINE_PARAMETERS.md` §5 (finding TB-08). **Analysis, not measured; no cell has been bought or tested.**
 
@@ -79,8 +79,8 @@ repeated if another cell is chosen.
 
 ### 3.2 Energy Budget
 
-Orbit at 500 km: period 94.6 min, eclipse 35.8 min at β = 0 (the longest), 5,559 orbits a year
-(`hardware/eps/SOLAR_ARRAY_DESIGN.md` §9.2). Loads are the BASELINE §5 allocations. The battery-to-load conversion
+Orbit at 475 km (BASELINE §3): period 94.1 min (`docs/environment/LINK_BUDGET_ANALYSIS.md` §2), eclipse 35.8 min at
+β = 0 (the longest; the eclipse half-angle of `hardware/eps/SOLAR_ARRAY_DESIGN.md` §9.2 at 475 km), 5,589 orbits a year. Loads are the BASELINE §5 allocations. The battery-to-load conversion
 efficiency is taken as 0.90 **[assumption]**.
 
 | Case | Load | Duration | Battery energy | DoD (49.7 Wh) |
@@ -92,12 +92,21 @@ efficiency is taken as 0.90 **[assumption]**.
 | **Nominal limit (BASELINE §5)** | | | 4.97 Wh | 10 % |
 
 The eclipse DoD is 1.3–2.0 %, a fifth of the 10 % nominal limit or less. Jetson bursts add shallow discharges in sunlight
-that the array recharges in the same sunlit period. Charge current is limited by the array to at most 5.76 W / 14.4 V =
+that the array recharges in the same sunlit period.
+
+*Documentation audit note (2026-10-27).* This table is a hand bound from the pre-baseline allocations: the bounding
+eclipse row uses a 0.5 W heater (the heater is 207 Ω, 0.70–1.30 W across the bus, BASELINE §8) and the burst rows a
+120 s burst with a 1.5 W transponder (now bursts of ≤ 10 min followed by ≥ 100 min off, BASELINE §6, and 1.84 W DC at
+0.5 W RF, BASELINE §5). The depth of discharge of record is the mission simulation's: ≤ 2.3 % (≤ 3.7 % in the full SIL
+run), deepest in any contingency 2.8 % (BASELINE §5), and 3.2 % per eclipse with the wings and the ADCS both failed
+(decision D8). All are well inside the 10 % nominal limit; the conclusions below do not change.
+
+Charge current is limited by the array to at most 5.76 W / 14.4 V =
 0.40 A (≈ C/9); the eclipse discharge current is about 0.08 A (≈ C/45).
 
 ### 3.3 Cycle-Life Analysis
 
-**Cycles.** At 500 km the battery sees one eclipse per orbit, **5,559 a year and 11,118 in two years**, assuming an
+**Cycles.** At 475 km the battery sees one eclipse per orbit, **5,589 a year and 11,178 in two years**, assuming an
 eclipse every orbit (conservative: some SSO local times have eclipse-free seasons). This is the cycle count Version 1.0
 compared with "> 500 cycles".
 
@@ -110,8 +119,8 @@ The assumption must be confirmed by test (§9.3).
 
 | Case | Discharge per orbit | EFC per year | EFC in 2 years | Against 500 EFC (specification point) |
 |------|---------------------|--------------|----------------|---------------------------------------|
-| Nominal: 1.00 W eclipse only | 0.663 Wh | 0.663 × 5,559 / 49.7 = 74 | 148 | 3.4× |
-| Bounding: 1.50 W eclipse plus sun-pointed Jetson bursts at the 10 % duty limit (4.7 bursts per orbit × 0.176 Wh) with the transponder on during every burst | 0.994 + 0.831 = 1.825 Wh | 204 | 408 | 1.2× |
+| Nominal: 1.00 W eclipse only | 0.663 Wh | 0.663 × 5,589 / 49.7 = 75 | 149 | 3.4× |
+| Bounding: 1.50 W eclipse plus sun-pointed Jetson bursts at the 10 % duty limit (4.7 bursts per orbit × 0.176 Wh) with the transponder on during every burst | 0.994 + 0.831 = 1.825 Wh | 205 | 410 | 1.2× |
 
 **Capacity needed at end of life.** The nominal 10 % DoD limit is met as long as the pack holds at least 0.994 Wh / 0.10
 = **9.9 Wh, 20 % of beginning-of-life capacity**, in the bounding eclipse case. At the specification's end point
@@ -233,8 +242,8 @@ pin for it yet (RID EPS-06).
 | Parameter | Value |
 |-----------|-------|
 | Heater Power | ≈ 1 W at 14.4 V (≈ 207 Ω polyimide film, two elements on different cells); on the EPS: SW5 current limit 0.148 A, fuse F4 0.25 A and a series +40 °C hardware cutout (Q22 from NTC1) (SQSO-EPS-BRD-001 §10) |
-| Activation Temp | Flight software today: on below +2 °C, off above +6 °C. Recommended: **+5/+9 °C** (SQSO-THA-001 v2.0 §6.1: the +2 °C point leaves the pack at +0.1 °C in the simulated commissioning and below 0 °C with a 0.10 W/K mount) |
-| Power at the bus extremes | 0.72 W at 12.0 V, 0.95 W at 14.0 V, 1.30 W at 16.4 V; worst cold case duty 43–59 % (below the 70 % of GSFC-STD-7000B §2.6.4.1) except with the wings stowed (100 %) |
+| Activation Temp | On below **+5 °C**, off above **+9 °C** (decision C-11; flight software `sqso_fsw::heater`, SRS-F130). The earlier +2/+6 °C left the pack at +0.1 °C in the simulated commissioning and below 0 °C with a 0.10 W/K mount (SQSO-THA-001 §6.1) |
+| Power at the bus extremes | 0.70 W at 12.0 V, 0.95 W at 14.0 V, 1.30 W at 16.4 V (BASELINE §8); worst cold case duty 45–58 % at 14.0 V and 55 % at the 12.0 V floor (below the 70 % of GSFC-STD-7000B §2.6.4.1) except with the wings stowed (100 %) (SQSO-THA-001 v2.5 §5) |
 | Thermostat Type | NTC-based control |
 
 ---
@@ -407,3 +416,4 @@ lot uniformity OCV < 1 %, mass < 2 %, capacity < 5 %, resistance < 15 %).
 | 2.8 | 2026-10-27 | CDR design (EPS board): F0B a diverse part (FM08A125V5A, Littelfuse, MIL-PRF-23419/8) so the two positive-leg fuses are independent by design (SQSO-FMEA-003); the EPS's open-tap ladder noted (§5.1, §7.2); §7.1 cell retention replaced by the mechanical retention of SQSO-MECH-CAD-001 §4.6 (no adhesive or potting) |
 | 2.9 | 2026-10-27 | CDR design (EPS board): the secondary over-voltage protector BQ771806, its heater driver and F3 move onto the battery sense board (own taps; F3 at the pack's temperature, blowing only inside its rating; SQSO-MFG-003 item 1) (§4.2, §7.2) |
 | 2.10 | 2026-10-27 | CDR design (EPS board): F3 on a thermal island ≥ 25 mm from the cells (SMA-B21), F3 in the short loops never interrupts (SMA-B22), 4 × 2.2 MΩ ladder on the protector's taps (SMA-B24) (§7.2) |
+| 2.11 | 2026-10-27 | Documentation audit (post-CDR 2026): §3.2–§3.3 orbit 475 km (was 500 km: 5,589 orbits a year), note that the energy table is a pre-baseline hand bound and the mission simulation's DoD governs; §6.3 heater set points +5/+9 °C as implemented (C-11, was "+2/+6 °C today") and 0.70 W at the 12.0 V floor |

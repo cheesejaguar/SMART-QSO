@@ -47,8 +47,8 @@ Verify complete functionality of the On-Board Computer (OBC) subsystem including
 
 | Step | Action | Expected Result | Measured | P/F |
 |------|--------|-----------------|----------|-----|
-| 1 | Verify main loop rate | 1 Hz ± 10% | ______ Hz | |
-| 2 | Check task scheduling | All tasks executing | ______ | |
+| 1 | Verify main loop pass period | 20 ms wait plus the pass time; each pass within 20 ms (SRS-P001; `software/flight/docs/RTOS_ARCHITECTURE.md` §6.1) | ______ ms | |
+| 2 | Check the stages of the main loop | One Embassy task, every stage run each pass in the order of RTOS_ARCHITECTURE §4.2 (no RTOS) | ______ | |
 | 3 | Monitor CPU usage | < 80% utilization | ______ % | |
 | 4 | Check memory usage | < 90% RAM utilized | ______ % | |
 | 5 | Verify no stack overflow | Stack markers intact | ______ | |
@@ -68,40 +68,44 @@ Verify complete functionality of the On-Board Computer (OBC) subsystem including
 
 | Interface | Baud Rate | TX Test | RX Test | P/F |
 |-----------|-----------|---------|---------|-----|
-| Debug | 115200 | ______ | ______ | |
-| Jetson | 115200 | ______ | ______ | |
-| EPS | 9600 | ______ | ______ | |
+| Console and key loading (USART3, access port) | Per SQSO-ICX-001 | ______ | ______ | |
+| Jetson (USART1; OBC transmits 8N2) | 115200 | ______ | ______ | |
+| RF board (USART2) | Per SQSO-ICX-001 | ______ | ______ | |
+| GNSS receiver (LPUART1) | Per SQSO-ICX-001 | ______ | ______ | |
 
 #### 4.4.2 I2C Interfaces
 
 | Device | Address | Read | Write | P/F |
 |--------|---------|------|-------|-----|
-| Magnetometer | 0x1E | ______ | ______ | |
-| Temperature | 0x48 | ______ | ______ | |
-| EEPROM | 0x50 | ______ | ______ | |
+| EPS controller (I2C2) | 0x48 | ______ | ______ | |
+| RTC RV-3028 (I2C1) | 0x52 | ______ | ______ | |
+| Magnetometer RM3100 (I2C4, board A2) | 0x20 | ______ | ______ | |
+| Sun-sensor ADC ADS7138 (I2C4) | Per SQSO-ICX-001 | ______ | ______ | |
+| AntS controllers (I2C3) | 0x31, 0x32 | ______ | ______ | |
 
 #### 4.4.3 SPI Interfaces
 
 | Device | Speed | Read | Write | P/F |
 |--------|-------|------|-------|-----|
-| Flash | 10 MHz | ______ | ______ | |
-| ADC | 1 MHz | ______ | ______ | |
+| FRAM U3 and mirror U36 (FM25V20A, SPI1) | 20 MHz | ______ | ______ | |
+| Gyro M-G370PDT0 (SPI3) | Per SQSO-ICX-001 | ______ | ______ | |
+| Backup gyro BMI088 (SPI2) | Per SQSO-ICX-001 | ______ | ______ | |
 
 #### 4.4.4 GPIO Interfaces
 
 | Signal | Direction | Test | Result | P/F |
 |--------|-----------|------|--------|-----|
-| EPS_EN | Output | Toggle | ______ | |
-| RF_EN | Output | Toggle | ______ | |
-| JETSON_EN | Output | Toggle | ______ | |
-| DEPLOY_SW | Input | Read | ______ | |
-| RBF_SW | Input | Read | ______ | |
+| PAYLOAD_EN, JETSON_PWR | Output | Toggle | ______ | |
+| RADIO_EN, RF_TX_EN | Output | Toggle | ______ | |
+| ADCS_EN, GNSS_EN, HEATER_EN | Output | Toggle | ______ | |
+| DEPLOY_EN and the four burn lines (into dummy loads) | Output | Toggle | ______ | |
+| DEPLOY_SENSE, UMBILICAL_SENSE | Input | Read | ______ | |
 
 ### 4.5 Data Persistence [SYS-312, SRS-F060, SRS-F061]
 
 | Step | Action | Expected Result | Measured | P/F |
 |------|--------|-----------------|----------|-----|
-| 1 | Write test data to flash | Write succeeds | ______ | |
+| 1 | Write test data to FRAM (both copies) | Write succeeds | ______ | |
 | 2 | Read back test data | Data matches | ______ | |
 | 3 | Verify CRC protection | CRC valid | ______ | |
 | 4 | Power cycle OBC | Data retained | ______ | |
@@ -119,8 +123,8 @@ Verify complete functionality of the On-Board Computer (OBC) subsystem including
 ## 5. Pass/Fail Criteria
 
 - Boot time: < 30 seconds
-- Main loop rate: 1 Hz ± 10%
-- Watchdog timeout: < 30 seconds
+- Main loop: each pass within 20 ms (SRS-P001)
+- Watchdog timeout: 24.1–27.8 s (IWDG; TP-OBC-004)
 - All interfaces functional
 - Data persistence verified
 - Fault detection operational

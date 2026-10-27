@@ -1,108 +1,62 @@
-# Edge LLM Payload (Jetson Orin Nano Super + llama.cpp)
+# Jetson Payload Software (beacon text experiment)
 
-- Declocked, DVFS‑limited profiles; aggressive power‑gating of GPU/CPU clusters
-- IPC with OBC via UART/SPI; watchdog supervised; optional reboot on thermal trip
-- Thermal: radiator strap + thermistor feedback; duty‑cycle heavy workloads
+The Jetson side of the SMART-QSO AI payload: an NVIDIA **Jetson Orin Nano 8 GB module** on a custom carrier, in the
+**7 W power mode**, ≤ 8 W input including the carrier (`docs/BASELINE_PARAMETERS.md` §6; the "Super" flash
+configuration is not used, TB-13). Generative beacon text on the Jetson is a **gated experiment**, not the flight
+baseline: the flight baseline is the template selector on the OBC (decision D5, `docs/payload/AI_MODEL_SELECTION.md`,
+`docs/payload/OBC_SELECTOR_DESIGN.md`). The experiment is enabled only if the measured energy per accepted beacon line
+is ≤ 0.1 Wh (BASELINE §6). If the Jetson is off or faults, the OBC sends its own template beacons.
 
-## Data flow and constraints
-- OBC sends health fields (see `software/rust/sqso-ffi/src/executive.rs`): `CALL, TIME, MODE, SOC, SUN, RF, PWR, QSO`
-- Payload formats a short prompt and queries the LLM to produce a single sentence:
-  - ASCII‑only, ≤ 120 bytes; begins with `de <CALL>:` and ends with `73!` unless `MODE=SAFE`
-  - Always emits the machine‑parsable tail per `docs/BEACON_SPEC.md`
-- Operations policy: enable LLM only when sunlit and margins are healthy (e.g., `SOC ≥ 60%`, payload temp < 55 °C); otherwise use template fallback
+Software class: NPR 7150.2D Class C (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1).
 
-System prompt (example):
-```text
-You are SMART‑QSO, a 1U CubeSat. Given health fields (TIME, MODE, SOC, SUN, RF, PWR, QSO, CALL),
-write one short, human‑readable status line that begins with 'de <CALL>:' and ends with '73!'
-unless MODE=SAFE. Keep ≤120 ASCII bytes; no emojis; plain text.
-```
+## What is here
 
-## Short version: minimizing Joules/token with llama.cpp (3B model)
-- Quantize weights to 4–5 bits (GGUF): start with `Q4_K_M`; for a touch more quality use `Q5_K_M`
-- Full accelerator offload (CUDA/Metal/HIP/Vulkan): offload all layers to avoid CPU↔GPU transfers
-- Quantize the KV‑cache: start with `q8_0` (safe), try `q4_0` for more savings after validation
-- Speculative decoding: pair the 3B main model with a 1B draft (e.g., Llama‑3.2‑1B `Q2_K/Q3_K`)
-- Tune batching: right‑size `--batch-size` (host) and `--ubatch-size` (device) to fit VRAM; keep `ubatch ≤ batch`
-- Keep context tight and cache prompts: use smaller `--ctx-size`; reuse the system prompt via server cache/slots
+| File | Purpose |
+|------|---------|
+| `agent.py` | Beacon agent: answers the OBC's `BEACON_REQ` with a `BEACON_RSP` carrying beacon text only; `TELEMETRY` updates the health used for the prompt. Runs as `python -m software.payload.agent` (stdin/stdout) or under the supervisor |
+| `obc_link.py` | OBC-Jetson line protocol (`docs/interfaces/ICD_OBC_JETSON.md` §4), through `sqso_protocol` (the OBC's Rust code) |
+| `crc16.py` | CRC-16/CCITT-FALSE of the link (ICD §4.4), through `sqso_protocol` |
+| `content_filter.py` | The content rules of `docs/BEACON_SPEC.md` §6, the same Rust filter the OBC runs |
+| `formatter.py` | Prompts and health-derived fallback text (`docs/BEACON_SPEC.md` §5) |
+| `llama_runner.py` | Optional llama.cpp wrapper: grammar with no digits, temperature 0.3; without a model it returns no text |
+| `health_interface.py`, `supervisor.py` | UART interface and process lifecycle (status, shutdown) |
+| `platform_config.py`, `config/` | Jetson platform settings at boot (6.5 W VDD_IN cap, 7 W nvpmodel mode, PCIe C4 overlay; SQSO-JET-BRD-001) |
+| `ansible/deploy_payload.yml` | Deployment to a Jetson (venv, `sqso_protocol`, llama-cpp-python, `run_payload.sh`, `sqso-platform.service`) |
+| `tests/`, `testdata/` | pytest suites (run in CI by `.github/workflows/program-checks.yml`) |
 
-## Concrete starting points
+## Behaviour
 
-> The examples below use a 3B model for development only. It exceeds the flight budget (8 W input, 0.1 Wh per
-> beacon). The flight candidates are SmolLM2-360M-Instruct and Qwen3-0.6B (decision D5,
-> `docs/payload/AI_MODEL_SELECTION.md`), and the agent defaults to the first.
+- The OBC sends `TELEMETRY` and `BEACON_REQ` lines (ICD §4). The Jetson returns text only; the OBC adds the call sign
+  `KK6GDB-11` and the measured telemetry, applies the content rules again and falls back to a template if the text
+  fails (`docs/BEACON_SPEC.md` §3, §5, §6). Beacon text is at most 176 characters and carries no numbers.
+- Without a model, or when the model's output fails the rules, the agent sends health in words ("Safe mode, conserving
+  power." and similar), never a canned status.
+- The OBC, not the Jetson, decides when the Jetson is powered: sunlit, SOC ≥ 55 %, Jetson temperature ≥ −15 °C at
+  power-on, each power-on ≤ 10 minutes including boot, then ≥ 100 minutes off, with per-rail current and temperature
+  limits (BASELINE §6, AI burst).
+- Default model: `/models/SmolLM2-360M-Instruct-Q4_K_M.gguf`, a D5 candidate (Qwen3-0.6B is the other); override with
+  `LLAMA_MODEL`. Other settings: `LLAMA_CTX` (1024), `LLAMA_GPU_LAYERS` (0), `LLAMA_CACHE_K`, `LLAMA_CACHE_V`.
 
-### NVIDIA (CUDA)
+## Build and test
+
+`sqso_protocol` is built from the Rust workspace (maturin) and is not on PyPI, so install it first. From the
+repository root:
+
 ```bash
-# build (one‑time)
-cmake -B build -DLLAMA_CUBLAS=ON -DCMAKE_BUILD_TYPE=Release && cmake --build build -j
-
-# run a server with full GPU offload, kv‑cache quantized, and healthy batching
-./build/bin/llama-server \
-  -m /models/Llama-3.2-3B-Instruct-Q4_K_M.gguf \
-  --gpu-layers 999 \
-  --ctx-size 4096 \
-  --batch-size 512 --ubatch-size 64 \
-  --cache-type-k q8_0 --cache-type-v q8_0
+pip install ./software/rust/sqso-py
+pip install -e software/payload          # add [llm] for llama-cpp-python, [dev] for the dev tools
+python -m pytest -q software/payload/tests
 ```
 
-Tip: fitting all weights in VRAM is best for speed/energy; pick a quant small enough to do that.
+Run the agent on a line stream (for example the recorded OBC lines):
 
-### Apple Silicon (Metal)
 ```bash
-# build (one‑time)
-cmake -B build -DLLAMA_METAL=ON -DCMAKE_BUILD_TYPE=Release && cmake --build build -j
-
-./build/bin/llama-server \
-  -m /models/Llama-3.2-3B-Instruct-Q4_K_M.gguf \
-  --gpu-layers 999 \
-  --ctx-size 4096 \
-  --batch-size 512 --ubatch-size 64 \
-  --cache-type-k q8_0 --cache-type-v q8_0
+python -m software.payload.agent < software/payload/testdata/obc_lines.txt
 ```
 
-### Add speculative decoding (big energy saver)
-```bash
-./build/bin/llama-speculative \
-  -m  /models/Llama-3.2-3B-Instruct-Q4_K_M.gguf \
-  -md /models/Llama-3.2-1B-Instruct-Q2_K.gguf \
-  --gpu-layers 999 --draft-gpu-layers 999 \
-  --ctx-size 4096 --batch-size 512 --ubatch-size 64
-```
+## Measuring energy per beacon (D5 gate)
 
-Expect 1.5–3× speedups in many cases.
-
-### Python (llama-cpp-python) with KV‑cache quant + speculative
-```python
-from llama_cpp import Llama
-from llama_cpp.llama_speculative import LlamaPromptLookupDecoding
-
-ll = Llama(
-    model_path="Llama-3.2-3B-Instruct-Q4_K_M.gguf",
-    n_ctx=4096, n_gpu_layers=99,
-    type_k="q8_0", type_v="q8_0",  # KV cache quantization
-)
-draft = LlamaPromptLookupDecoding(ll)  # or a 1B draft model
-out = ll.create_completion("CALL=SMARTQ-1 TIME=2025-08-18Z MODE=ACTIVE SOC=78 SUN=1 RF=1 PWR=GOOD QSO=12",
-                           draft_model=draft)
-```
-
-## Tuning checklist (energy first)
-1. Quant choice: `Q4_K_M` → test → `Q5_K_M` if quality loss is noticeable; avoid `Q8_0` unless needed
-2. All layers on GPU if possible; partial offload can waste energy through transfers
-3. KV‑cache quant: start `q8_0`, then try `q4_0` with validation/speculative lookahead
-4. Batch/ubatch: increase until tokens/s plateaus; keep headroom to prevent OOM
-5. Speculative decoding with a small draft (≈1B) for interactive, low‑J/token operation
-6. Prompt discipline: smaller contexts and reused system prompts = less KV memory/compute
-
-## Measuring J/token quickly
-- Log power while generating and divide integrated watt‑seconds by tokens emitted:
-```bash
-nvidia-smi --query-gpu=power.draw --format=csv -l 1 &  # log Watts
-# compare to llama.cpp tokens/s; integrate over time → Joules/token
-```
-
-## Operating modes
-- Primary model: **Llama‑3.2‑3B Instruct (Q4_K_M/Q5_K_M)** via llama.cpp
-- Fallbacks: **Llama‑3.2‑1B** or **TinyLlama‑1.1B** under tighter power/thermal limits
-- Template fallback: MCU emits a concise, compliant line whenever the payload is disabled
+The gate is the energy per *accepted* beacon line at the carrier input, boot to power-off, over ≥ 30 EM bursts
+(VI-02; BASELINE §6), with an external meter in series with the power-gated rail; `tegrastats` misses the bootloader,
+the carrier regulators and the switch losses and serves only as a cross-check. The procedure is
+`docs/payload/AI_MODEL_SELECTION.md` §5.

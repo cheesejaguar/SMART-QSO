@@ -1,8 +1,8 @@
 # SMART-QSO Flight Software API Documentation
 
 **Document ID**: SMART-QSO-API-DOC-001
-**Version**: 1.1
-**Date**: 2026-10-24
+**Version**: 1.2
+**Date**: 2026-10-27
 **Classification**: Engineering
 
 ## Overview
@@ -73,10 +73,16 @@ logic in `software/rust/sqso-fsw` or `software/rust/sqso-protocol`.
 - **sensors**, **gnss** - Sensor table and GNSS receiver
 - **deployment**, **separation_switch** - Deployment sequence
 - **watchdog_mgr** - Hardware and task watchdog management
+- **hk_store** - Stored housekeeping in FRAM and its dump (`DUMP_TLM`)
+- **ops_state** - Operations state across resets (the commissioning hold)
+- **passivation**, **eps_lockout** - End-of-life passivation by telecommand; clearing the EPS's latched recharge lockout
+- **fram_health** - FRAM health and the degraded mode without it
 
 ### Communication
 - **uplink**, **ax25**, **input_validation**, **cmd_auth**, **cmd_dictionary**, **cmd_handler** - Uplink command reception, authentication and dispatch
 - **rf_control**, **rf_silence**, **contact_monitor** - Transmitter permission and inhibits
+- **receiver** - Supervision of the 435 MHz command receiver
+- **station_id** - Spacecraft station identity (KK6GDB-11)
 - **downlink** - The downlink transmitter: the gate before the KISS TNC, key-down and duty limits, power select, VSWR and thermal protection
 - **telemetry** - Downlink telemetry frame generation
 - **beacon**, **beacon_filter** - Beacon message composition and content filter
@@ -134,6 +140,8 @@ safe_memcpy(dest, dest_size, src, count);
 
 ## Build Configuration
 
+From `software/flight` (the repository-wide commands are in `software/rust/README.md`):
+
 ```bash
 # Debug build with coverage (C and the Rust library)
 cmake -B build -DCMAKE_BUILD_TYPE=Debug -DENABLE_COVERAGE=ON
@@ -163,13 +171,14 @@ cd ../rust/firmware && cargo build --release
 ## Software Classification
 
 This software is **Class C** per NPR 7150.2D Appendix D: CubeSat flight software on a proposed Class D payload. The
-determination and its rationale are in `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1 (2026-10-25). Whether the
-software is safety-critical is a separate determination under NASA-STD-8739.8, still open (SDP §3.2).
+determination and its rationale are in `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1 (2026-10-25). Safety
+criticality is a separate determination under NASA-STD-8739.8 (SDP §3.2, 2026-10-25): the components that implement
+the software hazard controls are safety-critical, the rest is mission-critical.
 
 ## Contact
 
 SMART-QSO Team
-https://github.com/smart-qso
+https://github.com/cheesejaguar/SMART-QSO
 
 ---
 
@@ -182,3 +191,4 @@ https://github.com/smart-qso
 | 1.0 | — | Initial version |
 | 1.1 | 2026-10-24 | The flight software is Rust: the API is the C ABI of the Rust modules; architecture and module list as built (non-existent modules removed); Rust coding standard; firmware build |
 | 1.1, note | 2026-10-25 | Software classification: NPR 7150.2D Class C with a pointer to the SDP §3.1 rationale; safety criticality open |
+| 1.2 | 2026-10-27 | Documentation audit (post-CDR 2026): modules added since 1.1 (hk_store, ops_state, passivation, eps_lockout, fram_health, receiver, station_id); safety criticality as determined in SDP §3.2; build commands' working directory; repository URL |

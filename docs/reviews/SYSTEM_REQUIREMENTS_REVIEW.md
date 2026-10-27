@@ -1,13 +1,23 @@
 # SMART-QSO System Requirements Review Package
 
+> **Historical record (2026-01-02).** Superseded for current values by
+> [`docs/BASELINE_PARAMETERS.md`](../BASELINE_PARAMETERS.md) and
+> [`docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`](CDR/CDR_2026_DESIGN_REVIEW.md). It is the SRR package generated on
+> 2026-01-02, after the CDR record (finding PI-03); its "Completed" status and checked criteria are not true. No SRR
+> has been held: the project is in Phase B (pre-PDR), and the independent PDR (2027-01-12) and CDR (2027-09-28) are
+> planned in `mission/SCHEDULE.md` (BASELINE §1). The record is kept as written; its values, statuses, approvals and
+> the dated "superseded" notes in its body are those of their dates and are not to be cited. Still useful for: the
+> mission objectives and requirement set of that date; the current requirements are `docs/requirements/` and the
+> generated `docs/verification/RTM.csv`. Index of the review documents: [README.md](README.md).
+
 > **Funding audit notice (2026-10-14): internal self-assessment, not an independent review.**
 > This record was generated on 2026-01-02 without named independent reviewers, signatures, or a
 > RID/RFA log. Its PASS/APPROVED/COMPLETE statements are **not substantiated** and must not be cited
 > to funders or regulators as review outcomes. See `docs/funding_audit/FUNDING_AUDIT_REPORT.md` and
-> finding F-PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
+> finding PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
 
 **Document ID**: SQSO-SRR-001
-**Version**: 1.1
+**Version**: 1.2
 **Date**: 2026-01-02
 **Classification**: Unclassified
 **Status**: Completed (Reference)
@@ -293,3 +303,4 @@ All actions resolved by PDR.
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Reference document |
 | 1.1 | 2026-10-16 | SMART-QSO Team | §3.1 objectives corrected to SQSO-REQ-001 §4.2; MO-5 added (finding VV-06) |
+| 1.2 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): historical-record banner (superseded by BASELINE and SQSO-REV-CDR-002; no SRR held); notice cites finding PI-03 (was F-PI-03); body unchanged |
