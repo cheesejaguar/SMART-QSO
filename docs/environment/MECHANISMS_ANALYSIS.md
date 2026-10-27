@@ -174,8 +174,11 @@ qualification item (VI-STR-13). Consequences for this design:
 
 ### 7.2 Clocking and Clearance
 
-- **Clocking:** the VHF elements must lie along ±X, parallel to the deployed wings. Along ±Y they make +Y the
-  intermediate axis of inertia (MASS_BUDGET §6.3; Iyy/Izz = 0.89) and the sun-pointing spin fails (§6.4 of that document).
+- **Clocking:** the 2 m (VHF) elements must lie along ±X, parallel to the deployed wings. Any 2 m element along ±Y makes
+  +Y the intermediate axis of inertia and the sun-pointing spin fails: Iyy/Izz = 0.89 with two elements along ±Y, 0.97–0.98
+  for options B and C of `hardware/rf/ANTENNA_DESIGN.md` v2.0 §3 (one element along +Y, or a quadrature pair along +X and
+  +Y), with 52–60 % of sunlit time within 15° instead of 100 % (MASS_BUDGET §6.4, item 6). The antenna design recommends
+  option C for the link; this is a conflict for the chair (STR-01).
 - **Clearance:** along ±X the VHF elements run in the −Z face plane (z ≈ −55 mm), 4–6 mm below the lower edge of a stowed
   wing (z = −49 mm). If the antennas deploy first (the present order: antenna burn at T + 30:01, wings at T + 30:06 in the
   mission simulation), the tapes oscillate under the stowed wings and the wings then sweep over them with a few

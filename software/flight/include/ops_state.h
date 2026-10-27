@@ -15,7 +15,8 @@
  * Stored as a two-slot NVM record in FLASH_REGION_OPS. A blank record (a
  * bench unit before ARM_FLIGHT) means no hold; a corrupt one means held
  * (a lost record must not release a held spacecraft). Before
- * ops_state_init() the hold reads as set.
+ * ops_state_init() the hold reads as not set, as for a blank record: the
+ * executive calls ops_state_init() before it starts the mode manager.
  *
  * @requirement SRS-F082 The software shall hold the mode at IDLE, the payload and the transponder off from ARM_FLIGHT until an authenticated commissioning release
  * @requirement SRS-F083 The software shall let the ground stop and allow the transponder by telecommand, persisted across resets

@@ -274,6 +274,13 @@ optimistic for the tilted principal axes of §6.1.
 | Layout B rods MEV, dipole 10 mA·m² | 1.033 | 6.6° | 27° | 93.9 % | 36° | 4.43 W |
 | Layout B rods MEV, tip-off σ 10°/s to 30°/s | 1.033 | 2.6° | 9.4° | 100 % | 11° | 4.50 W |
 | Layout B rods (end-mass variant with rods at −44 mm: 2.95, 4.35, 4.14), flight `INERTIA` changed to (3.2, 4.6, 4.4) | 1.052 | 2.5° | 9.3° | 100 % | 12° | 4.50 W |
+| Layout B rods, AntS option A of SQSO-RF-ANT-001 v2.0 §3 (one 2 m element along +X), CBE (2.87, 4.06, 3.85) | 1.054 | 2.6° | 9.8° | 100 % | 12° | 4.50 W |
+| Same, MEV (3.30, 4.62, 4.43) | 1.044 | 2.5° | 9.2° | 100 % | 11° | 4.50 W |
+| Layout B rods, AntS **option B** (one 2 m element along +Y), CBE (3.16, 3.76, 3.85) | 0.978 | **36.1°** | 158° | **58.5 %** | 179° | 3.19 W |
+| Same, MEV (3.61, 4.31, 4.42) | 0.974 | **43.1°** | 154° | **51.6 %** | 179° | 3.22 W |
+| Layout B rods, AntS **option C** (2 m elements along +X and +Y, quadrature), CBE (3.16, 4.06, 4.14) | 0.980 | **38.5°** | 156° | **54.9 %** | 179° | 3.22 W |
+| Same, MEV (3.60, 4.62, 4.73) | 0.976 | **34.0°** | 154° | **59.6 %** | 179° | 3.36 W |
+| Option C CBE with 8°/s spin and nutation gain 3·10⁻⁴ | 0.980 | 26.2° | 163° | 75.3 % | 179° | 3.62 W |
 
 Findings:
 
@@ -287,6 +294,15 @@ Findings:
 5. A gain change also tolerates the degenerate case: at Iyy/Izz = 1.005, 8°/s spin with nutation gain 3·10⁻⁴ N·m·s gave
    2.0° mean and 100 % within 15° (worst eclipse exit 31°). That is for the ADCS discipline to evaluate (8°/s is where
    BUILD_VS_BUY §6.3 expected the 1 Hz sun-sensor sampling to start to matter).
+6. **Any 2 m element along ±Y defeats the sun-pointing.** The antenna design (`hardware/rf/ANTENNA_DESIGN.md` v2.0 §3)
+   recommends option C (2 m elements along ±X and ±Y in quadrature) or option B (one along +Y) for the link fading.
+   Both make +Y the intermediate axis (Iyy/Izz 0.97–0.98): mean Sun angle 34–43°, 52–60 % of sunlit time within 15°,
+   worst-trial generation 3.2–3.4 W instead of 4.5 W; the gain change of item 5 does not recover it (75 %). Option A
+   (one 2 m element along ±X) gives 1.03–1.05 and the published result. This is a conflict between the link and the
+   attitude design for the chair (STR-01): with the AntS (elements only in the plane of the ±Z face), either the 2 m
+   element lies along ±X and the fading of option A is accepted, or a Y element is compensated by ≈ 0.5 × 10⁻³ kg·m² of
+   Iyy (≈ 200 g of ballast at the ±Z ends, which the 15.9 % rods margin would almost exhaust), or the ADCS law is
+   re-designed for spin about an intermediate axis and shown by Monte Carlo.
 
 Reproduce with `software/simulation/cdr/structures/adcs_mc_inertia.sh` (it copies the Rust workspace, patches the copy
 and runs every case above; it needs a tree that compiles). The runs above were made on the tree of 2026-10-27 04:45 UTC.

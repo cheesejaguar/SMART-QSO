@@ -2,9 +2,9 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-WP-001
-**Revision:** A
-**Date:** 2026-01-02
-**Reference:** NASA-STD-8739 Family
+**Revision:** B
+**Date:** 2026-10-27
+**Reference:** NASA-STD-8739.6B and the standards it invokes (§2)
 
 ---
 
@@ -16,12 +16,13 @@ This Workmanship Plan defines the quality standards and inspection criteria for 
 
 | Standard | Title | Application |
 |----------|-------|-------------|
-| NASA-STD-8739.1 | Workmanship for Staking and Conformal Coating | PCB protection |
-| NASA-STD-8739.3 | Soldered Electrical Connections | Solder joints |
-| NASA-STD-8739.4 | Crimping, Interconnecting Cables | Harness assembly |
-| IPC J-STD-001 Space | Soldering Requirements | Alternate soldering std |
-| IPC-A-610 Class 3 | Acceptability of Electronic Assemblies | Inspection criteria |
-| ANSI/ESD S20.20 | ESD Control Program | ESD protection |
+| NASA-STD-8739.6B (effective 2021-02-04) | Implementation Requirements for NASA Workmanship Standards | Invokes the IPC standards below with their space addenda, training and ESD control |
+| IPC J-STD-001 (current revision) with the Space and Military Applications Electronic Hardware Addendum | Requirements for Soldered Electrical and Electronic Assemblies | All flight soldering (replaces NASA-STD-8739.3, cancelled) |
+| IPC-A-610, Class 3 | Acceptability of Electronic Assemblies | Inspection criteria |
+| NASA-STD-8739.4A (2016), with IPC/WHMA-A-620 and its space addendum | Crimping, Interconnecting Cables, Harnesses, and Wiring | Harness assembly |
+| NASA-STD-8739.1B | Workmanship Standard for Polymeric Application on Electronic Assemblies | Conformal coating, staking, bonding |
+| ANSI/ESD S20.20 (current revision), with the NASA-STD-8739.6B additions | ESD Control Program | ESD protection |
+| NASA-STD-5020B practice | Threaded fastening systems | Preload and locking features |
 
 ## 3. Soldering Requirements
 
@@ -29,7 +30,7 @@ This Workmanship Plan defines the quality standards and inspection criteria for 
 
 | Parameter | Requirement |
 |-----------|-------------|
-| Standard | NASA-STD-8739.3 or IPC J-STD-001 Space |
+| Standard | IPC J-STD-001 with the space addendum (NASA-STD-8739.6B) |
 | Workmanship Class | Class 3 (High Reliability) |
 | Personnel | Certified to applicable standard |
 | Equipment | Calibrated, ESD-safe |
@@ -38,7 +39,7 @@ This Workmanship Plan defines the quality standards and inspection criteria for 
 
 | Material | Specification |
 |----------|---------------|
-| Solder alloy | Sn63Pb37 or SAC305 (lead-free) |
+| Solder alloy | Sn63Pb37 only on flight boards (no SAC305: tin-whisker control) |
 | Flux | RMA or ROL0 per J-STD-004 |
 | Solder paste | Type 3 or 4 per J-STD-005 |
 | Cleaning | Per IPC-A-610 |
@@ -129,7 +130,7 @@ This Workmanship Plan defines the quality standards and inspection criteria for 
 | Standard | NASA-STD-8739.4 |
 | Wire type | Per materials list (Teflon insulated) |
 | Routing | No sharp bends, service loops |
-| Tie-down | Nylon ties or lacing cord |
+| Tie-down | Lacing cord with E595 data (no nylon ties: MATERIALS_LIST Rev B §7) |
 
 ### 6.2 Crimping
 
@@ -156,7 +157,7 @@ This Workmanship Plan defines the quality standards and inspection criteria for 
 | Parameter | Requirement |
 |-----------|-------------|
 | Torque | Per fastener specification |
-| Thread locker | Loctite 242 (unless thermal cycling) |
+| Thread locker | None without E595 data; locking inserts and staking (WORKMANSHIP_STANDARDS §6.3) |
 | Verification | Calibrated torque driver |
 | Documentation | Torque values recorded |
 
@@ -264,7 +265,7 @@ This Workmanship Plan defines the quality standards and inspection criteria for 
 
 | Role | Certification |
 |------|---------------|
-| Soldering operators | IPC J-STD-001 or NASA-STD-8739.3 |
+| Soldering operators | IPC J-STD-001 space addendum certified (NASA-STD-8739.6B) |
 | Inspectors | IPC-A-610 CIS |
 | Wire harness | NASA-STD-8739.4 |
 | ESD handlers | ESD awareness |
@@ -286,3 +287,4 @@ This Workmanship Plan defines the quality standards and inspection criteria for 
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-27 | §2 standards corrected (8739.6B, J-STD-001 space addendum, 8739.4A, 8739.1B; 8739.3 cancelled); Sn63Pb37 only; lacing instead of nylon ties; Loctite 242 removed | CDR S&MA review |

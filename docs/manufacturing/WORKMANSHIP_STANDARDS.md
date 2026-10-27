@@ -1,14 +1,16 @@
 # SMART-QSO Workmanship Standards
 
 **Document ID**: SQSO-WKS-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR Baseline
 
 ## 1. Purpose
 
-This document establishes the workmanship standards for SMART-QSO per NASA-STD-8739.1 (Workmanship for Ground Support Equipment), NASA-STD-8739.3 (Soldering), and IPC standards for CubeSat-class hardware.
+This document establishes the workmanship standards for SMART-QSO per NASA-STD-8739.6B and the standards it invokes
+(§2). Version 1.0 cited NASA-STD-8739.1 as "Workmanship for Ground Support Equipment" (it is the polymeric-application
+standard) and NASA-STD-8739.3 for soldering (cancelled); both are corrected.
 
 ## 2. Applicable Standards
 
@@ -16,11 +18,13 @@ This document establishes the workmanship standards for SMART-QSO per NASA-STD-8
 
 | Standard | Title | Application |
 |----------|-------|-------------|
-| NASA-STD-8739.3 | Soldered Electrical Connections | All soldering |
-| IPC-A-610 | Acceptability of Electronic Assemblies | PCB inspection |
-| IPC J-STD-001 | Requirements for Soldered Connections | Process control |
-| NASA-STD-8739.4 | Crimping and Wire Harness | Harness assembly |
-| NASA-STD-8739.1 | Workmanship Standard | General |
+| NASA-STD-8739.6B (effective 2021-02-04) | Implementation Requirements for NASA Workmanship Standards | Invokes the IPC standards below with their space addenda, training and ESD control |
+| IPC J-STD-001 (current revision) with the Space and Military Applications Electronic Hardware Addendum | Requirements for Soldered Electrical and Electronic Assemblies | All flight soldering (replaces NASA-STD-8739.3, cancelled) |
+| IPC-A-610, Class 3 | Acceptability of Electronic Assemblies | Inspection criteria |
+| NASA-STD-8739.4A (2016), with IPC/WHMA-A-620 and its space addendum | Crimping, Interconnecting Cables, Harnesses, and Wiring | Harness assembly |
+| NASA-STD-8739.1B | Workmanship Standard for Polymeric Application on Electronic Assemblies | Conformal coating, staking, bonding |
+| ANSI/ESD S20.20 (current revision), with the NASA-STD-8739.6B additions | ESD Control Program | ESD protection |
+| NASA-STD-5020B practice | Threaded fastening systems | Preload and locking features |
 
 ### 2.2 Classification Level
 
@@ -37,7 +41,7 @@ This document establishes the workmanship standards for SMART-QSO per NASA-STD-8
 
 | Parameter | Requirement |
 |-----------|-------------|
-| Solder alloy | Sn63/Pb37 or SAC305 |
+| Solder alloy | Sn63/Pb37 only on flight boards (tin-whisker control; SAC305 not used: `docs/compliance/MATERIALS_LIST.md` Rev B §2.2) |
 | Flux | Type RMA or ROL0 |
 | Tip temperature | 315-370°C (600-700°F) |
 | Contact time | 2-5 seconds typical |
@@ -186,10 +190,10 @@ Cracks              No             Yes
 
 | Joint Type | Method |
 |------------|--------|
-| Structural | Loctite 222 (low strength) |
-| Adjustable | Locknut |
-| High vibration | Loctite 242 (medium) |
-| Permanent | Loctite 262 (high) |
+| Structural | Locking helicoil or prevailing-torque insert plus staking with Scotch-Weld 2216 (E595-compliant) |
+| Adjustable | Prevailing-torque (all-metal) locknut |
+| Polymer-bushed joints (battery mount, Ti-6Al-4V screws) | Low preload, staking, locking insert; re-torque check after thermal cycling; **no thread-locker alone** |
+| Thread-lockers | Only grades with ASTM E595 data in the NASA database or a vendor certificate. Loctite 222, 242 and 262 are not on Henkel's NASA outgassing-approved list and are not used until such data exist |
 
 ### 6.4 Torque Sequence
 
@@ -306,7 +310,7 @@ Storage:
 
 | Criterion | Accept | Reject |
 |-----------|--------|--------|
-| Solder joints | Per NASA-STD-8739.3 | Defects per std |
+| Solder joints | Per IPC J-STD-001 space addendum and IPC-A-610 Class 3 | Defects per std |
 | Components | Correct, undamaged | Wrong/damaged |
 | Markings | Legible, correct | Missing/wrong |
 | Cleanliness | Per level spec | Contamination |
@@ -380,3 +384,4 @@ NONCONFORMANCE PROCESS
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
+| 1.1 | 2026-10-27 | CDR S&MA review | §2 standards corrected (NASA-STD-8739.6B, J-STD-001 space addendum, 8739.4A, 8739.1B; 8739.3 cancelled; 8739.1 title); Sn63Pb37 only; thread-locking rules without non-compliant Loctite grades |

@@ -76,6 +76,8 @@ pub enum Action {
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub struct Sessions {
     on_since_ms: Option<u64>,
+    /// The session's first accepted fix, ms
+    first_fix_ms: Option<u64>,
     next_due_ms: u64,
     requested: bool,
     /// Sessions in a row without a fix
@@ -97,6 +99,7 @@ impl Sessions {
     pub const fn new() -> Sessions {
         Sessions {
             on_since_ms: None,
+            first_fix_ms: None,
             next_due_ms: FIRST_SESSION_DELAY_MS,
             requested: false,
             no_fix_run: 0,
@@ -121,6 +124,7 @@ impl Sessions {
 
     fn end(&mut self, now_ms: u64, next_ms: u64, outcome: Outcome) -> Action {
         self.on_since_ms = None;
+        self.first_fix_ms = None;
         self.next_due_ms = now_ms.saturating_add(next_ms);
         match outcome {
             Outcome::Fix => {
@@ -139,7 +143,10 @@ impl Sessions {
             if !inp.allowed {
                 return self.end(now_ms, RETRY_MS, Outcome::Stopped);
             }
-            if let Some(fix) = inp.fix_ms.filter(|&f| f >= since) {
+            if self.first_fix_ms.is_none() {
+                self.first_fix_ms = inp.fix_ms.filter(|&f| f >= since);
+            }
+            if let Some(fix) = self.first_fix_ms {
                 if now_ms.saturating_sub(fix) >= AFTER_FIX_MS {
                     return self.end(now_ms, Self::period(inp.leop), Outcome::Fix);
                 }
@@ -183,7 +190,10 @@ mod tests {
         assert_eq!(s.step(t + 60_000, &GO), Action::None, "acquiring");
         let fix = Inputs { fix_ms: Some(t + 80_000), ..GO };
         assert_eq!(s.step(t + 90_000, &fix), Action::None, "a few more records");
-        assert_eq!(s.step(t + 110_000, &fix), Action::PowerOff(Outcome::Fix));
+        // Later fixes do not extend the session: it ends 30 s after the first
+        let later = Inputs { fix_ms: Some(t + 105_000), ..GO };
+        assert_eq!(s.step(t + 109_999, &later), Action::None);
+        assert_eq!(s.step(t + 110_000, &later), Action::PowerOff(Outcome::Fix));
         assert_eq!((s.sessions, s.fixes, s.no_fix_run), (1, 1, 0));
         // Next one an orbit later (LEOP); a fix older than the session does not count
         let old = Inputs { fix_ms: Some(t + 80_000), ..GO };

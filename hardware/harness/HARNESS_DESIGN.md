@@ -2,9 +2,9 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-HAR-001
-**Version:** 1.0
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.1
+**Date:** 2026-10-27
+**Status:** Draft. Version 1.1 changes the mechanical routing only (§4.1 length, §6, §8, §9 note), from the CDR structures review; the electrical definitions are unchanged
 
 ---
 
@@ -87,8 +87,8 @@ This document defines the electrical harness and interconnect design for the SMA
 
 | Parameter | Value |
 |-----------|-------|
-| Connector | Molex Micro-Fit 6-pin |
-| Length | 80 mm ± 5 mm |
+| Connector | Molex Micro-Fit 6-pin (at the EPS end only; no stack connector on the pack) |
+| Length | **≥ 100 mm flying leads** (was 80 ± 5 mm), routed as a service loop between the isolated battery bracket and the EPS (`docs/hardware/BUILD_VS_BUY.md` §4.3: the harness is part of the ≈ 0.03 W/K mount conductance) |
 | Current | 3A max |
 
 ### 4.2 H2 - EPS to OBC
@@ -235,11 +235,26 @@ This document defines the electrical harness and interconnect design for the SMA
 
 | Zone | Location | Contents |
 |------|----------|----------|
-| A | +X channel | Solar array harness |
-| B | -X channel | Solar array harness |
+| A | +X channel | Solar array harness (+X body panel; wing W1 jumper at the +X/+Y hinge) |
+| B | -X channel | Solar array harness (−X body panel; wing W2 jumper at the −X/+Y hinge) |
 | C | +Y channel | OBC-Jetson, debug |
-| D | -Y channel | Power distribution |
-| E | Center stack | Inter-board connections |
+| D | -Y channel | Power distribution; RBF and umbilical at the −Y access window |
+| E | Center stack | Inter-board connections (clear of the centre supports of boards > 50 g) |
+| F | −Z end | Battery flying leads (H1), AntS power and I²C, −Z deployment switches |
+| G | +Z end | GNSS coax to the patch, +Z deployment switch |
+
+### 6.3 Mechanical Routing Rules (CDR structures review)
+
+| Rule | Reason | Source |
+|------|--------|--------|
+| The wing harness crosses each hinge as a **polyimide flex jumper** (not a wire bundle), ≥ 5 mm bend radius, torque ≤ 1.5 mN·m at −40 °C over the 90° travel | A bundle of eight 26 AWG wires adds ≈ 20 mN·m and defeats the springs (torque margin +0.29 assumes 1.5 mN·m) | `docs/environment/MECHANISMS_ANALYSIS.md` §4.2 |
+| Each wing string is back-wired (return conductor along the string) and the pair is routed together to the EPS | Residual magnetic dipole ≤ 3 mA·m² | `docs/hardware/BUILD_VS_BUY.md` §6.4 |
+| No harness in the sweep of the wings or of the AntS tape elements; ≥ 5 mm clearance to the stowed wing hold-down and burn resistors | Deployment clearance | MECHANISMS_ANALYSIS §7.2 |
+| Battery leads tied to the battery bracket only on its isolated side, never bridging to the frame with metal clamps | Thermal isolation of the pack | BUILD_VS_BUY §4.3 |
+| No tie-down to the PCB-stack studs between boards; use the brackets and the end frames | The stack columns carry the stack loads | `docs/environment/STRUCTURAL_ANALYSIS.md` §7 |
+| Cable ties: non-removable Nylon 6/6 or ETFE, installed before the vibration test | UG v11 §5.2.3 | SpaceX Rideshare Payload User's Guide v11 |
+| Harness and ties stay inside the 6.5 mm envelope on ±X/±Y and below the ±Z rail ends | CDS Rev 14.1 §2.2.3 | STRUCTURAL_ANALYSIS §13 |
+| Harness does not block the vent paths between stack levels | Vent area ≥ 22.3 mm² | STRUCTURAL_ANALYSIS §11 |
 
 ---
 
@@ -272,7 +287,7 @@ This document defines the electrical harness and interconnect design for the SMA
 | Board exit | Adhesive tie-down within 15mm |
 | Connector | Backshell or potting |
 | Flex points | Service loop |
-| Hinge crossing | Strain relief bracket |
+| Hinge crossing | Polyimide flex jumper clamped on both sides of the hinge (§6.3); strain-relief bracket on the body side |
 
 ### 8.2 Tie-Down Materials
 
@@ -299,6 +314,9 @@ This document defines the electrical harness and interconnect design for the SMA
 | H8 - Solar arrays | 12 |
 | Tie-downs, misc | 5 |
 | **Total** | **55 g** |
+
+The controlled MEL carries 80 g CBE (`docs/environment/MASS_BUDGET.md` v3.0 row 32): this table has no GNSS coax, AntS
+harness, wing flex jumpers or switch harness.
 
 ---
 
@@ -370,3 +388,4 @@ This document defines the electrical harness and interconnect design for the SMA
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
+| 1.1 | 2026-10-27 | CDR structures review (STR-25), mechanical routing only: battery flying leads ≥ 100 mm with no stack connector (§4.1); routing zones F and G and the mechanical routing rules (hinge flex jumper, back-wired strings, deployment-sweep clearance, isolated battery, cable ties per UG v11 §5.2.3, envelope, vent paths) (§6.2, §6.3); hinge crossing (§8.1); mass note against the MEL (§9) |

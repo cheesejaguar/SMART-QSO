@@ -56,6 +56,14 @@ run B_coils_mev  "3.475e-3,3.752e-3,3.519e-3" "3.606e-3,5.154e-3,5.049e-3"
 run B_rods_mev_dip10  "3.209e-3,3.487e-3,3.208e-3" "3.335e-3,4.889e-3,4.733e-3" --dipole 0.010
 run B_coils_mev_dip10 "3.475e-3,3.752e-3,3.519e-3" "3.606e-3,5.154e-3,5.049e-3" --dipole 0.010
 run B_rods_mev_tip30  "3.209e-3,3.487e-3,3.208e-3" "3.335e-3,4.889e-3,4.733e-3" --tipoff-sigma 10 --tipoff-max 30
+# AntS configuration options of hardware/rf/ANTENNA_DESIGN.md v2.0 section 3 (layout B, rods)
+run antA_rods_cbe "2.788e-3,3.040e-3,2.756e-3" "2.865e-3,4.059e-3,3.851e-3"
+run antA_rods_mev "3.209e-3,3.487e-3,3.208e-3" "3.295e-3,4.622e-3,4.426e-3"
+run antB_rods_cbe "2.788e-3,3.040e-3,2.756e-3" "3.158e-3,3.763e-3,3.847e-3"
+run antB_rods_mev "3.209e-3,3.487e-3,3.208e-3" "3.605e-3,4.307e-3,4.422e-3"
+run antC_rods_cbe "2.788e-3,3.040e-3,2.756e-3" "3.156e-3,4.057e-3,4.138e-3"
+run antC_rods_mev "3.209e-3,3.487e-3,3.208e-3" "3.603e-3,4.619e-3,4.730e-3"
+run antC_rods_cbe_spin8 "2.788e-3,3.040e-3,2.756e-3" "3.156e-3,4.057e-3,4.138e-3" --spin 8 --nutation 3e-4
 # gain sweep at the near-degenerate inertia (layout A, rods, MEV)
 SQSO_I_STOWED="3.077e-3,3.355e-3,3.208e-3" SQSO_I_DEPLOYED="3.203e-3,4.757e-3,4.733e-3" \
   "$B" --trials 40 --gyro mg370 --spin 6,8 --nutation 1e-4,3e-4,1e-3 --momentum 0.005,0.01 | tail -n +2 | sed 's/^/A_rods_mev_sweep,/'

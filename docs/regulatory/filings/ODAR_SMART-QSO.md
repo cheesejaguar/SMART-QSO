@@ -17,7 +17,7 @@
 | 4.3-1a, 4.3-1b | Released debris in LEO | None released | — | Compliant |
 | 4.3-2 | Debris near GEO | N/A | — | N/A |
 | 4.4-1 | Accidental explosion < 0.001 | **1.4 × 10⁻⁴** over a 10-year bound | ×7 | Compliant by analysis (§4) |
-| 4.4-2 | Passivation design | Option 2 (energy controlled by the battery protections) met by design; option 1 (charge-path disconnect) **designed as a placeholder only** | — | Compliant via option 2; option 1 open (§4) |
+| 4.4-2 | Passivation design | Option 2 (energy controlled by the battery protections) met by design; option 1 (two-key passivation telecommand, TELECOMMAND_AUTHENTICATION v0.7 §6.4, then the SYS-800 charge disconnect) **designed, not implemented** | — | Compliant via option 2; option 1 open (§4) |
 | 4.4-3, 4.4-4 | Planned breakups | None | — | N/A |
 | 4.5-1 | Collision with objects ≥ 10 cm < 0.001 | **≤ 1.2 × 10⁻⁴** (worst case: 525 km, 2.0 kg, wings failed, F10.7 = 70) | ×8 | Compliant by analysis **[DAS]** (§5) |
 | 4.5-2 | Small-debris impact preventing disposal < 0.01 | Disposal is passive; no function is needed after wing deployment at T + 30 min | — | Compliant by design (§5) |
@@ -120,13 +120,24 @@ to release debris or break up the spacecraft.
 - **Option 2 is met by design:** a 50 Wh pack of four sealed 18650 cells, with over-voltage, under-voltage, over-current,
   short-circuit and temperature protections in hardware, cannot release debris by the analysis above even if never
   passivated (the 10-year bound already assumes no passivation half the time).
-- **Option 1, the FCC's "permanent discharge state" (97.207(g)(1)(iii)), is the baseline (BASELINE §5)** but exists only
-  as a placeholder: fuse F1 "EOL passivation, non-resettable (TBD)" in schematic S1, with no arming circuit and no flight
-  software. SQSO-BSA-001 H9 specifies it (armed and fired by two independent signals; V-BSA-7). At end of mission an
-  authenticated telecommand (and, if adopted after the D3 consultation, the autonomous backup M = 180 days after the
-  loss-of-contact inhibit, never in the first year) opens F1 permanently, disables the transmitters, and the loads then
-  drain the pack to the BMS under-voltage cut-off. If the spacecraft fails before end of mission, passivation by
-  command is impossible and option 2 is the claim.
+- **Option 1, the FCC's "permanent discharge state" (97.207(g)(1)(iii)), is the baseline (BASELINE §5, SYS-800) but
+  is designed, not implemented.** No passivation telecommand exists in the flight software, and the mission simulation
+  models the latch; the EPS has only a placeholder (fuse F1 in schematic S1, its part still to be defined, no
+  arming circuit). The proposed design is `docs/interfaces/TELECOMMAND_AUTHENTICATION.md` v0.7 §6.4:
+  1. `PASSIVATE_ARM` (0x34), authenticated with the **operational key**, argument `EOL!`;
+  2. `PASSIVATE_EXECUTE` (0x35), authenticated with the **recovery key**, within 600 s of the arm in the same contact
+     (two keys from two custodians: a two-person rule for an irreversible act); refused in the first 365 days unless a
+     ground-set flag allows it;
+  3. on execute: the `TX_DISABLE` latch first, then the SYS-800 non-resettable charge-path disconnect (F1, armed and
+     fired by two independent signals per SQSO-BSA-001 H9, V-BSA-7); the loads stay on and drain the pack to the BMS
+     under-voltage cut-off, after which the receiver goes dark.
+- **The passivation command is the 4.4-2 control.** The autonomous backup (M = 180 days after the loss-of-contact
+  inhibit, BASELINE §7, proposed, not implemented) is **not needed** for 4.4-2: it would act only when the bus works but
+  no command can be received (receiver or key failure, about 5 % of missions in the reliability model), and in that case
+  option 2 already holds, since the explosion probability above assumes no passivation in half the missions. Being
+  irreversible and triggered by an absence of commands, it adds a premature-passivation failure mode for little debris
+  benefit. Recommendation: do not implement it (for the chair; D3 consultation).
+- If the spacecraft fails before end of mission, passivation is impossible and option 2 is the claim.
 
 **4.4-3, 4.4-4:** N/A.
 
@@ -334,7 +345,7 @@ N/A.
 |---|------|-------|
 | 1 | Obtain NASA DAS 3.2.6 (NASA Software Catalog usage agreement) and reproduce §4–§7 with the controlled MEL | S&MA |
 | 2 | Decide the deployment band and cap (RID ODA-01) and put it in the launch contract | PI, launch |
-| 3 | Design and implement the non-resettable charge-path disconnect (F1, two independent signals) and the recharge lockout | EPS, FSW |
+| 3 | Implement the passivation telecommands (0x34/0x35, TELECOMMAND_AUTHENTICATION §6.4), the non-resettable charge-path disconnect (F1, two independent signals) and the recharge lockout; correct the pre-space notification's passivation statement until then | EPS, FSW, licensee |
 | 4 | Ask the FCC (D3 consultation) which reading of "completion of the mission" applies to a failed spacecraft | Licensee |
 | 5 | Replace the cycle-26 assumption with the NOAA/NASA prediction when issued; DAS uses its own solar-flux table | S&MA |
 | 6 | Separate burn drivers for the two wings (lowers the wings-failed probability from 1.6 % to ≈ 0.1 %) | EPS |

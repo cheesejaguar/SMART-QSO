@@ -64,9 +64,11 @@
 //!
 //! The battery mount (THERMAL_DESIGN 1.3 §7.2; `docs/hardware/BUILD_VS_BUY.md`
 //! §4): the pack sits on isolating bushings (G-10CR or PEEK 450G with
-//! Ti-6Al-4V screws), designed for about 0.03 W/K to the frame. The model
-//! keeps [`BATTERY_MOUNT_W_K`] = 0.05 W/K of conduction, conservative for the
-//! cold case, and 0.02 W/K to the stack. A 1.0 W/K thermal pad (the earlier
+//! Ti-6Al-4V screws), designed for about 0.03 W/K to the frame, radiation
+//! included. The model keeps the 0.05 W/K it has always used in all,
+//! conservative for the cold case: [`BATTERY_MOUNT_W_K`] = 0.042 W/K of
+//! conduction (bushings, screws, harness) plus ≈ 0.008 W/K of radiation
+//! (below), and 0.02 W/K to the stack. A 1.0 W/K thermal pad (the earlier
 //! design) kept the pack below 0 °C for a fifth of every orbit, so the charge
 //! regulator refused the Sun (SYS-602).
 //! * Battery radiation: the pack's exterior (≈ 75 × 70 × 22 mm,
@@ -84,9 +86,9 @@ use super::earth::{ALBEDO, EARTH_IR_W_M2, plate_view_factor};
 use super::math::{SIGMA, T0_K, V3};
 use super::solar::{self, N_STRINGS, StringOut};
 
-/// Battery pack to the frame by conduction, W/K (isolating mount; see the
-/// module notes)
-pub const BATTERY_MOUNT_W_K: f64 = 0.05;
+/// Battery pack to the frame by conduction, W/K (isolating mount; with the
+/// radiation the total is the model's 0.05 W/K; see the module notes)
+pub const BATTERY_MOUNT_W_K: f64 = 0.042;
 /// Battery pack to the OBC stack, W/K
 pub const BATTERY_STACK_W_K: f64 = 0.02;
 /// Radiating area of the battery pack's exterior, m² (≈ 75 × 70 × 22 mm)
@@ -1108,9 +1110,9 @@ mod tests {
             cases.push(c);
         }
         for (name, w, wings, g) in [
-            ("C20 cold, beta 0, wings stowed, 0.95 W, set points +5/+9 C", 0.95, false, 0.05),
+            ("C20 cold, beta 0, wings stowed, 0.95 W, set points +5/+9 C", 0.95, false, BATTERY_MOUNT_W_K),
             ("C21 cold, beta 0, mount 0.10 W/K, 0.95 W, set points +5/+9 C", 0.95, true, 0.10),
-            ("C22 cold, beta 0, nominal, 0.95 W, set points +5/+9 C", 0.95, true, 0.05),
+            ("C22 cold, beta 0, nominal, 0.95 W, set points +5/+9 C", 0.95, true, BATTERY_MOUNT_W_K),
             ("C23 cold, beta 0, nominal mount 0.03 W/K, 0.95 W, set points +5/+9 C", 0.95, true, 0.03),
         ] {
             let mut c = cold(name, Att::SpinPointed, Mode::Safe, w);

@@ -57,9 +57,17 @@ pub struct OpsState {
 }
 
 impl OpsState {
-    /// Before init: held (nothing may run ACTIVE before the record is read)
+    /// Before init: no hold, as for a blank record. The executive reads the
+    /// record before it starts the mode manager, so in flight nothing asks
+    /// for ACTIVE before [`OpsState::init`]; module tests that never load a
+    /// record see a bench unit
     pub const fn new(region: u32) -> OpsState {
-        OpsState { region, hold: true, xpdr_disabled: false, initialized: false }
+        OpsState { region, hold: false, xpdr_disabled: false, initialized: false }
+    }
+
+    /// Whether the record has been read
+    pub const fn initialized(&self) -> bool {
+        self.initialized
     }
 
     fn record(&self) -> [u8; 4] {
@@ -115,9 +123,9 @@ impl OpsState {
         self.save(flash)
     }
 
-    /// Whether the commissioning hold is in force (also before init)
+    /// Whether the commissioning hold is in force
     pub const fn hold(&self) -> bool {
-        self.hold || !self.initialized
+        self.hold
     }
 
     /// Whether the ground allows the transponder (false while held)
@@ -148,12 +156,12 @@ mod tests {
     }
 
     #[test]
-    fn held_before_init_free_on_a_blank_record() {
+    fn free_before_init_and_on_a_blank_record() {
         let mut f = MemFlash::<256>::new();
         let mut s = OpsState::new(REGION);
-        assert!(s.hold() && !s.xpdr_allowed());
+        assert!(!s.hold() && s.xpdr_allowed() && !s.initialized());
         assert_eq!(s.init(&mut f), Loaded::Blank);
-        assert!(!s.hold() && s.xpdr_allowed());
+        assert!(!s.hold() && s.xpdr_allowed() && s.initialized());
     }
 
     #[test]

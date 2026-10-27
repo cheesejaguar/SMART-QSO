@@ -26,7 +26,7 @@ the verification evidence its row names.
 |--------|-------|-------|
 | Hazards analysed | 16 (§5); HR-01, HR-02, HR-03, HR-05, HR-06 and HR-16 are catastrophic in at least one phase | §4 method |
 | Catastrophic hazard causes meeting their required tolerance **as designed** | External short (two-fault tolerant below the fuse); structural release and materials (design for minimum risk, analysis and test open). **Not met:** RF before 45 min and premature deployment (one inhibit short of three); overcharge (single-fault tolerant until the secondary protector EPS-11 is added); internal short after deep discharge (no recharge lockout) | §6 |
-| Gaps that block the safety review | (1) third RF and deployable inhibit not designed (S1 "Inhibit 3 (TBD)"); (2) the shared wing burn line draws ≈ 5.8 A against the 5 A pack fuse and BMS trip, with no hardware on-time limit; (3) no recharge lockout after a deep over-discharge and no dissimilar secondary over-voltage protector (EPS-11, EPS-12); (4) cell lot acceptance below JSC 20793 practice in BATTERY_DESIGN (SQSO-BSA-001 §4 fixes it); (5) UN 38.3 status of a one-off pack for shipping | §6, §12 RIDs |
+| Gaps that block the safety review | (1) third RF and deployable inhibit not designed (S1 shows a dashed "Inhibit 3" with its placement open); (2) the shared wing burn line draws ≈ 5.8 A against the 5 A pack fuse and BMS trip, with no hardware on-time limit; (3) no recharge lockout after a deep over-discharge and no dissimilar secondary over-voltage protector (EPS-11, EPS-12); (4) cell lot acceptance below JSC 20793 practice in BATTERY_DESIGN (SQSO-BSA-001 §4 fixes it); (5) UN 38.3 status of a one-off pack for shipping | §6, §12 RIDs |
 | RF exposure to personnel | 1 W at 145.9 MHz is exempt from routine evaluation beyond **0.65 m** (47 CFR 1.1307(b)(3)(i)(C)); radiating tests at ≥ 1 m or into a load | HR-09 |
 | Accidental-explosion probability on orbit | **1.4 × 10⁻⁴** (< 10⁻³; NASA-STD-8719.14C Req. 4.4-1), 9 × 10⁻⁵ of it from over-discharge then recharge, which a recharge lockout removes | ODAR §4; `software/simulation/cdr/sma/explosion_probability.py` |
 
@@ -89,7 +89,7 @@ BATT+ ─ F2 5 A fuse ─ RT1 PTC ─ RBF (ground only) ─ DS1 (rail switch, VB
 BATT− (BMS CHG/DSG FETs) ─ DS2 (rail switch, return) ─ bus return
 VBAT bus ─ OBC ─ TX_EN (PA supply switch, after the 45 min software timer) ─ PA ─ VHF antenna
 VBAT bus ─ SW6 DEPLOY_EN (high side) ─ 2 × 5 Ω burn resistors in parallel ─ Q low-side NMOS ─ return   (one driver for both wings; one for the antennas)
-Charge path: solar strings ─ MPPT ─ BATT+ (upstream of DS1/DS2; F1 end-of-life passivation fuse "non-resettable (TBD)")
+Charge path: solar strings ─ MPPT ─ BATT+ (upstream of DS1/DS2; F1 end-of-life passivation fuse, part not yet defined)
 ```
 
 | Path | Physical inhibits that count (CDS §2.3.7–2.3.8) | Do not count | Required | Gap |
@@ -301,8 +301,11 @@ These are in addition to the VI-LV items of SQSO-LVR-001 §10.
   flight-ready for ≥ 45 days encapsulated (LVR-071).
 - **Missing design elements** (RIDs SMA-05, SMA-06; EPS-09, EPS-11, EPS-12 of SQSO-BSA-001): burn-line current and
   on-time limit; dissimilar secondary over-voltage protector; recharge lockout after deep over-discharge; hardware
-  low-voltage load disconnect; and the end-of-life charge-path disconnect (F1, "non-resettable (TBD)" in S1), which is a debris
-  requirement (ODAR §4) rather than a launch-safety one.
+  low-voltage load disconnect; and the end-of-life charge-path disconnect (F1 in S1, part not yet defined), which is a debris
+  requirement (ODAR §4) rather than a launch-safety one. Its command sequence is designed, not implemented:
+  PASSIVATE_ARM (0x34, operational key), then PASSIVATE_EXECUTE (0x35, recovery key) within 600 s, which latches TX-OFF
+  first and then fires the SYS-800 disconnect (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md` v0.7 §6.4). It cannot
+  act before deployment: the bus is unpowered behind the inhibits and the command is refused in the first 365 days.
 
 ## 9. Ground Operations and Hazardous Procedures
 
@@ -334,7 +337,7 @@ battery and Jetson limits) and never for launch safety.
 
 | RID | Severity | Finding | Required action | Disposition |
 |-----|----------|---------|-----------------|-------------|
-| SMA-01 | 1 | Third RF and deployable inhibit not designed (S1 "Inhibit 3 (TBD)"); SW6 and Q are one OBC-dependent control | Add DS3 (§3.2) | For the chair (EPS/structures) |
+| SMA-01 | 1 | Third RF and deployable inhibit not designed (S1 shows a dashed "Inhibit 3" with its placement open); SW6 and Q are one OBC-dependent control | Add DS3 (§3.2) | For the chair (EPS/structures) |
 | SMA-05 | 1 | The two parallel 5 Ω wing burn resistors on one driver draw ≈ 5.8 A at 14.4 V, above the 5 A pack fuse F2 and the 5 A BMS trip; no hardware on-time limit | Current limit 0.5–1 A per resistor (S5 F7) and a hardware on-time cut-off; VI-SAF-04 | For the chair (EPS) |
 | SMA-06 | 2 | No recharge lockout after a cell falls below ≈ 2.0 V (the precharge mode charges any cell under 3.0 V); it is the largest term of the explosion probability (ODAR §4) | Latched charge lockout (same as EPS-12), cleared only by ground command | For the chair (EPS) |
 | SMA-07 | 2 | Cell screening in BATTERY_DESIGN §9.1 has no vibration, vacuum, self-discharge or lot statistics | Adopt SQSO-BSA-001 §4 (V-BSA-1, -3) | Verification item |
