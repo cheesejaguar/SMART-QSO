@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-RF-003
-**Version:** 1.2
+**Version:** 1.3
 **Date:** 2026-10-27
 **Status:** Layout and fabrication guidelines for the RF board. Electrical requirements are in `docs/hardware/RF_DESIGN.md` v2.0 §2, which governs where this document differs (corrected in Version 1.1). Version 1.2: the schematic, parts and layout rules of record are `hardware/electrical/rf/RF_BOARD_DESIGN.md` (SQSO-RF-BRD-001), which supersedes §3–§10 of this document where they differ; the tables below are corrected to it.
 
@@ -198,8 +198,9 @@ Total:      1.6 mm
 
 | Connector | Type | Purpose |
 |-----------|------|---------|
-| J3, J4 | SMA female end launch, gold | 2 m balun outputs (+X, −X elements) |
-| J5, J6 | SMA female end launch, gold | 70 cm balun inputs (+Y, −Y elements) |
+| J3, J4 | MMCX female jack, Molex 73415-1473, straight through-hole, top side, gold, non-magnetic; at (−34.5, −19.0) / (−34.5, −25.0) mm in a −X notch of the shield frame | 2 m balun outputs (+X, −X elements) |
+| J5, J6 | Same part, at (−34.5, +19.0) / (−34.5, +25.0) mm, outside the shield | 70 cm balun inputs (+Y, −Y elements) |
+| — | Cables: 1.37 mm micro-coax with Molex 73414-0351 right-angle MMCX plugs, down the −X wall gap (W10 v3; SQSO-RF-BRD-001 C §4.3) | To the AntS (MMCX ports assumed, VI-RFB-13) |
 | — | U.FL pads (DNP) | EM test at the LPF input and FL1 output |
 
 ### 6.2 Interface Connectors
@@ -343,3 +344,4 @@ Total:      1.6 mm
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 1.1 | 2026-10-27 | CDR review (communications panel): transmitter and receiver specifications to RF_DESIGN v2.0 (no 2 W level, 97.307(e) spurious, 3rd harmonic ≤ −70 dBc, ±1.0 ppm, receiver sensitivity, selectivity and RX filter); no T/R switch (full duplex on separate antennas); thermal at 1 W; interface lines per SQSO-ICD-003 v2.0 |
 | 1.2 | 2026-10-27 | CDR design completion, RF board | Tables corrected to the board design SQSO-RF-BRD-001: synthesizer, modulator, PA, filter, key components, board size (PC/104), 6-layer FR-4 stack-up, connectors, shield material (no tin-plated steel), dissipation |
+| 1.3 | 2026-10-27 | CDR design completion, RF board | §6.1 RF connectors to SQSO-RF-BRD-001 C §4.3: MMCX jacks (Molex 73415-1473) with positions, 1.37 mm cables with MMCX plugs (W10 v3), replacing SMA end launch |

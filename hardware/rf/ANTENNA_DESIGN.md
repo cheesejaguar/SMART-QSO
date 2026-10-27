@@ -79,7 +79,7 @@ the losses for handheld stations (SQSO-LBA-001 §5.3, finding 2).
 
 | Item | Design (SQSO-RF-BRD-001 §9; W10 v2) |
 |------|-------------------------------------|
-| 2 m pair (+X, −X) | Fed in antiphase from a lumped lattice balun on the RF board (68 nH, 18 pF; 50 Ω to 72 Ω balanced, 0.25 dB), through two RG-316 cables of 0.22 m matched within 2 mm (0.5°) |
+| 2 m pair (+X, −X) | Fed in antiphase from a lumped lattice balun on the RF board (68 nH, 18 pF; 50 Ω to 72 Ω balanced, 0.25 dB), through two 1.37 mm cables (≤ 0.22 m, Molex 73414-0351 MMCX plugs) from MMCX jacks J3/J4 on the board, matched within 2 mm (0.5°); W10 v3, SQSO-RF-BRD-001 C §4.3 |
 | 70 cm pair (+Y, −Y) | Same, 22 nH, 6.0 pF, 0.30 dB; cables matched within 2 mm (1.5°) |
 | If ISIS supplies the phasing on the AntS | One cable per band; the board's baluns are depopulated (0 Ω links fitted). RFQ question 1 |
 | Static bleed | 100 kΩ to ground at each RF connector on the board |

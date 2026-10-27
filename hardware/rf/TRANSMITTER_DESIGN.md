@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-RF-TX-001
-**Version:** 1.4
+**Version:** 1.5
 **Date:** 2026-10-27
 **Status:** CDR Baseline
 
@@ -337,18 +337,18 @@ transmitters below 30 MHz and does not apply.)
 
 | Parameter | Value |
 |-----------|-------|
-| Type | SMA female end launch, gold plated, two (J3, J4: balun outputs A/B) |
+| Type | MMCX female jack, Molex 73415-1473, straight through-hole on the RF board's top side, brass/BeCu gold, non-magnetic; two (J3, J4: balun outputs A/B, at (−34.5, −19.0) and (−34.5, −25.0) mm; SQSO-RF-BRD-001 C §4.3) |
 | Impedance | 50Ω |
 | Frequency Range | DC - 6 GHz |
-| Power Rating | 10W |
+| Power Rating | 1 W at 146 MHz used (0.5 W per jack); 170 Vrms |
 
 ### 13.2 Cable
 
 | Parameter | Value |
 |-----------|-------|
-| Type | RG-316, two cables (antiphase pair through the board's lattice balun), matched within 2 mm (W10 v2) |
-| Length | 0.22 m (layout B: RF board at +Z, AntS at −Z) |
-| Loss | 0.11 dB at 146 MHz |
+| Type | 1.37 mm micro-coax (silver-plated copper inner, FEP/PFA), Molex 73414-0351 right-angle MMCX plugs at both ends; two cables (antiphase pair through the board's lattice balun), matched within 2 mm, down the −X wall gap at y −20 … −24 mm (W10 v3) |
+| Length | ≤ 0.22 m budgeted, 109–179 mm needed (layout B: RF board at +Z, AntS at −Z) |
+| Loss | 0.44 dB worst at 146 MHz, port to antenna (cable 0.17, plugs 0.08, in-phase mismatch 0.19 dB) |
 
 ---
 
@@ -384,3 +384,4 @@ transmitters below 30 MHz and does not apply.)
 | 1.2 | 2026-10-26 | §10.1: XPDR_EN, the transponder enable, and the gates the OBC applies to it (found by the mission simulation) |
 | 1.3 | 2026-10-27 | CDR review (communications panel): requirements to BASELINE §7 (no 2 W level), deviation ±3.0 kHz (the filed 10K4F2D), stability ±1.0 ppm, spurious per 97.307(e) (≥ 46 dBc at 1 W, not −43 dBc), 3rd harmonic ≤ −70 dBc and phase-noise targets from the desense analysis, LPF analysed as written; tests tied to the verification items of SQSO-LBA-001 §8 and RF_DESIGN §6 |
 | 1.4 | 2026-10-27 | CDR design completion, RF board | Selected design (SQSO-RF-BRD-001): LMX2571 + PCM1808 exciter, RD01MUS3 PA with APC, 40 MHz reference, elliptic LPF with harmonic traps (replaces the §7.3 ladder), sense-line detectors; §10.1 XPDR_EN as implemented (100 Hz square wave on PE4 from TIM7 with a 60 ms lease; board monostable ≈ 50 ms with pull-down; a held level is disabled); DC power 1.76 W at 0.5 W RF recorded against the 1.5 W allocation |
+| 1.5 | 2026-10-27 | CDR design completion, RF board | §13 antenna interface to SQSO-RF-BRD-001 C §4.3 and W10 v3: MMCX jacks (Molex 73415-1473) and 1.37 mm cables with MMCX plugs replace SMA and RG-316 (the 3.3 mm wall gaps); loss port to antenna 0.44 dB worst |
