@@ -108,8 +108,8 @@ HF-13), so the wings-deployed columns govern the P ≥ 0.9 test.
 
 **Power closure (SQSO-PBA-001 v2.6 §6):** ACTIVE at the duty limits 2.60 W sun-pointed (**+45 %**; +43 % in the worst
 pointing trial, C-23), 1.91 W tumbling (**+27 %**); IDLE 1.18 W; SAFE 0.79 W; EMERGENCY 0.72 W, heater included. Margin ≥ 20 % in every mode at end of life
-and at LTAN 22:30 ± 1 h; SYS-100 (2.23 W: the 1.86 W allocation × 1.2, CR-2026-009) met with 11 % to spare. These are the bottom-up loads with the RF board's designed transponder draw (1.84 W DC at 0.5 W RF); by the BASELINE method (gen / load − 1) the margins are +48 % (+46 %) and +30 % (PBA 2.6 §4).5). As flown by the flight software in the mission
-simulation: depth of discharge ≤ 2.3 % (≤ 3.7 % in the full SIL run), deepest in any contingency 2.8 %. Wings stowed: SAFE and IDLE only (ACTIVE
+and at LTAN 22:30 ± 1 h; SYS-100 (2.23 W: the 1.86 W allocation × 1.2, CR-2026-009) met with 11 % to spare. These are the bottom-up loads with the RF board's designed transponder draw (1.84 W DC at 0.5 W RF); by the BASELINE method (gen / load − 1) the margins are +48 % (+46 %) and +30 % (PBA 2.6 §4). As flown by the flight software in the mission
+simulation: depth of discharge ≤ 2.3 % (≤ 3.5 % in the full SIL run, SQSO-SIL-001 G), deepest in any contingency 2.8 %. Wings stowed: SAFE and IDLE only (ACTIVE
 would be −42 %). A Jetson rail stuck on is shed in hardware below 13.6 V (EPS_DESIGN §6); the PA is not shed (CR-2026-016). The allocations behind the
 original closure:
 
