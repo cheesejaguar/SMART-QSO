@@ -41,6 +41,11 @@
 //! - [`receiver`]: command-receiver supervision, recovery and failure evidence (`receiver.h`)
 //! - [`hk_store`]: stored housekeeping records and their dump (`hk_store.h`)
 //! - [`ack`]: the command acknowledgement frame (`cmd_handler.h`)
+//! - [`bus`]: the SPI and I2C traits the device drivers use
+//! - [`mg370`], [`bmi088`], [`rm3100`], [`ads7138`]: the ADCS sensors' drivers
+//! - [`mtq`]: the magnetorquer drive (duty, direction, polarity state)
+//! - [`rv3028`]: the mission clock (reset time stamps)
+//! - [`ina228`]: the EPS's pack and array power monitors
 
 #![no_std]
 #![forbid(unsafe_code)]
@@ -48,9 +53,12 @@
 
 pub mod ack;
 pub mod adcs;
+pub mod ads7138;
 pub mod ants;
 pub mod assert_handler;
 pub mod beacon;
+pub mod bmi088;
+pub mod bus;
 pub mod contact_monitor;
 pub mod deployment;
 pub mod downlink;
@@ -66,9 +74,12 @@ pub mod gnss_schedule;
 pub mod heater;
 pub mod hk_store;
 pub mod housekeeping;
+pub mod ina228;
 pub mod keys;
+pub mod mg370;
 pub mod mission_data;
 pub mod mode;
+pub mod mtq;
 pub mod nvm;
 pub mod ops_state;
 pub mod passivation;
@@ -77,6 +88,8 @@ pub mod payload_schedule;
 pub mod receiver;
 pub mod rf_control;
 pub mod rf_silence;
+pub mod rm3100;
+pub mod rv3028;
 pub mod safe_string;
 pub mod scheduler;
 pub mod sensors;
