@@ -2,14 +2,22 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-BS-001
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B
+**Date:** 2026-10-27
 
 ---
 
 ## 1. Overview
 
 This document defines the Git branching strategy for SMART-QSO flight software development, ensuring traceability and configuration control per NPR 7150.2.
+
+**Status (Revision B, 2026-10-27).** As practised, the repository has one long-lived branch, `main`; work is done on
+short-lived branches and merged by pull request to `main`, gated by the required CI checks (`.github/workflows/`).
+There is no `develop` branch, no release or hotfix branch and no tag yet (`docs/software/SOFTWARE_VERSION_DESCRIPTION.md`
+§2.1: the first configuration tag is planned at PDR). The develop, release and hotfix flow of §2 to §4, the approval
+counts of §6.2 and the protection rules of §7 (two reviewers, signed commits) are the plan and have not been checked
+against the repository settings. Commit messages: `docs/development/COMMIT_MESSAGES.md` (SQSO-DEV-004) governs; §5
+below is a summary of it. The release steps are `docs/development/RELEASE_PROCEDURE.md`.
 
 ## 2. Branch Structure
 
@@ -266,3 +274,4 @@ PATCH: Bug fixes (backward compatible)
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): status note: branches and tags as practised (only `main`, no tags); §2 to §7 the plan; commit messages per SQSO-DEV-004 |

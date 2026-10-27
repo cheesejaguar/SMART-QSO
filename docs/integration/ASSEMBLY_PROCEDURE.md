@@ -1,10 +1,18 @@
 # SMART-QSO Assembly Procedure
 
 **Document ID**: SQSO-ASM-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Draft; not yet exercised (no CDR has been held; no hardware exists)
+
+> **Procedure for an assembly not yet performed.** No flight or engineering unit has been built (`docs/BASELINE_PARAMETERS.md`
+> §1); every inspection box, serial number and signature is blank. The build order below is generic: the stack of
+> layout B governs (`hardware/mechanical/MECHANICAL_DESIGN.md` §4.1, from −Z to +Z: ISIS AntS on the −Z end frame,
+> battery and clamp with the Y and Z rods beside it, torquer deck with the X rod and the GNSS receiver, EPS board, OBC
+> board with the M-G370PDT0 gyro, Jetson carrier and module, heat spreader, RF board, magnetometer board A2 with the
+> 2 × 10 g inertia ballast and the GNSS patch at the +Z end frame; shear and body panels on ±X and ±Y, the two solar
+> wings over ±X), with the harness of `hardware/harness/HARNESS_DESIGN.md`. Where this procedure differs, they govern.
 
 ## 1. Purpose
 
@@ -61,11 +69,15 @@ This document defines the assembly procedure for SMART-QSO flight unit integrati
 | EPS board | EPS-001 | 1 | [ ] |
 | OBC board | OBC-001 | 1 | [ ] |
 | RF board | RF-001 | 1 | [ ] |
-| ADCS board | ADCS-001 | 1 | [ ] |
+| Magnetometer board A2 (RM3100) | A2 | 1 | [ ] |
+| CR0002 magnetorquer rods | — | 3 | [ ] |
+| Inertia ballast, W-Ni-Cu 10 g (decision C-13) | — | 2 | [ ] |
 | Jetson assembly | PL-001 | 1 | [ ] |
 | Harness set | HAR-001 | 1 | [ ] |
-| Antenna assembly | ANT-001 | 1 | [ ] |
-| Solar panels | SOL-001 | 6 | [ ] |
+| ISIS AntS antenna system | — | 1 | [ ] |
+| Body solar panels (2 cells each, 4 long faces) | — | 4 | [ ] |
+| Deployable solar wings (2 cells per side) | — | 2 | [ ] |
+| Battery pack (4S1P 18650) with clamp | — | 1 | [ ] |
 | Fastener kit | FAS-001 | 1 | [ ] |
 | Thermal interface | TIM-001 | 1 | [ ] |
 
@@ -130,7 +142,7 @@ ASSEMBLY FLOW
 | Step | Action | Criteria | Inspector |
 |------|--------|----------|-----------|
 | 1.1 | Inspect structure for damage | No dents, scratches >0.1mm | [ ] |
-| 1.2 | Verify rail dimensions | 100×100×113.5mm ±0.1mm | [ ] |
+| 1.2 | Verify rail dimensions | 100 × 100 × 113.5 mm per CDS Rev 14.1 (SYS-080) | [ ] |
 | 1.3 | Clean structure with IPA | No residue visible | [ ] |
 | 1.4 | Verify threaded inserts | All inserts present, no cross-threads | [ ] |
 | 1.5 | Install standoffs per drawing | Correct locations, torqued | [ ] |
@@ -206,25 +218,25 @@ ASSEMBLY FLOW
 | 5.3 | Position RF board | Aligned with standoffs | [ ] |
 | 5.4 | Install fasteners | M2×6, torque 0.1 Nm | [ ] |
 | 5.5 | Connect power harness | Correct polarity | [ ] |
-| 5.6 | Connect SPI harness | Secure connection | [ ] |
-| 5.7 | Route antenna cables | No sharp bends | [ ] |
+| 5.6 | Connect the OBC harness (USART2, enables, readbacks) | Secure connection | [ ] |
+| 5.7 | Route the four MMCX antenna cables in the −X wall-gap bands | Bend radius at or above the cable minimum (V-HAR-10) | [ ] |
 | 5.8 | Document RF S/N | S/N: _______ | [ ] |
 
 **Caution**: Handle RF connectors with care - do not over-torque
 
 ---
 
-### 5.6 Step 6: ADCS Installation
+### 5.6 Step 6: ADCS Installation (rods, gyro and magnetometer board A2)
 
 **Duration**: 30 minutes
 
 | Step | Action | Criteria | Inspector |
 |------|--------|----------|-----------|
-| 6.1 | Verify ADCS board tested | Test report available | [ ] |
+| 6.1 | Verify the A2 board and the rods tested | Test report available | [ ] |
 | 6.2 | Note magnetometer orientation | Per drawing | [ ] |
 | 6.3 | Position ADCS board | Aligned with standoffs | [ ] |
 | 6.4 | Install fasteners | M2×6, torque 0.1 Nm | [ ] |
-| 6.5 | Connect I2C harness | Secure connection | [ ] |
+| 6.5 | Connect harness W6E (A2 to OBC J10) | Secure connection | [ ] |
 | 6.6 | Verify magnetorquer polarity | Per schematic | [ ] |
 | 6.7 | Document ADCS S/N | S/N: _______ | [ ] |
 
@@ -256,11 +268,11 @@ ASSEMBLY FLOW
 
 | Step | Action | Criteria | Inspector |
 |------|--------|----------|-----------|
-| 8.1 | Verify antenna tested | Pattern verified | [ ] |
-| 8.2 | Stow antenna elements | Per stowage procedure | [ ] |
-| 8.3 | Install deployment mechanism | Aligned with mount | [ ] |
-| 8.4 | Connect RF cables | Torque SMA 0.5 Nm | [ ] |
-| 8.5 | Connect deployment harness | Burn wire verified | [ ] |
+| 8.1 | Verify the AntS acceptance data | Vendor data reviewed (VI-STR-13) | [ ] |
+| 8.2 | Stow antenna elements | Per the ISIS stowage procedure | [ ] |
+| 8.3 | Install the AntS on the −Z end frame | Vendor pattern (MECHANICAL_DESIGN §4.1) | [ ] |
+| 8.4 | Connect RF cables | MMCX mated (VI-RFB-13) | [ ] |
+| 8.5 | Connect the AntS harness (3V3_ANTS, I2C3) | Status reads stowed | [ ] |
 | 8.6 | Verify stowage secure | Constraint verified | [ ] |
 | 8.7 | Install RBF pin | Deployment inhibited | [ ] |
 
@@ -276,12 +288,12 @@ ASSEMBLY FLOW
 |------|--------|----------|-----------|
 | 9.1 | Verify solar cells tested | I-V data available | [ ] |
 | 9.2 | Clean mounting surfaces | IPA, lint-free | [ ] |
-| 9.3 | Install +X panel | Aligned, fastened | [ ] |
-| 9.4 | Install -X panel | Aligned, fastened | [ ] |
-| 9.5 | Install +Y panel | Aligned, fastened | [ ] |
-| 9.6 | Install -Y panel | Aligned, fastened | [ ] |
-| 9.7 | Install +Z panel | Aligned, fastened | [ ] |
-| 9.8 | Install -Z panel (if applicable) | Aligned, fastened | [ ] |
+| 9.3 | Install +X body panel | Aligned, fastened | [ ] |
+| 9.4 | Install -X body panel | Aligned, fastened | [ ] |
+| 9.5 | Install +Y body panel | Aligned, fastened | [ ] |
+| 9.6 | Install -Y body panel | Aligned, fastened | [ ] |
+| 9.7 | Install the two wings on their hinges, stowed over ±X, with two burn resistors and the restraint line each | Stowed within the envelope; resistors 4–6.9 Ω | [ ] |
+| 9.8 | Verify the AntS tapes pass 4–6 mm under the stowed wings | Clearance (BASELINE §7; MECHANICAL_DESIGN §6.7) | [ ] |
 | 9.9 | Connect solar harness | Verify polarity | [ ] |
 | 9.10 | Verify no shadows | Clearance check | [ ] |
 
@@ -300,7 +312,7 @@ ASSEMBLY FLOW
 | 10.3 | Foreign Object Debris (FOD) check | None present | [ ] |
 | 10.4 | Install access panels | Aligned, fastened | [ ] |
 | 10.5 | Install RBF pin | In place | [ ] |
-| 10.6 | Install deployment switches | Actuated | [ ] |
+| 10.6 | Install the three deployment switches DS1–DS3 on three rails | Actuated (BASELINE §4) | [ ] |
 | 10.7 | Verify rail cleanliness | Per CDS | [ ] |
 | 10.8 | Final visual inspection | Workmanship check | [ ] |
 | 10.9 | Document as-built config | Complete | [ ] |
@@ -315,7 +327,7 @@ ASSEMBLY FLOW
 
 | Property | Requirement | Measured | Pass |
 |----------|-------------|----------|------|
-| Total mass | ≤2.0 kg | | [ ] |
+| Total mass | ≤ 2.0 kg (SYS-002); MEV 1,755 g (BASELINE §4) | | [ ] |
 | CG-X | ±20 mm | | [ ] |
 | CG-Y | ±20 mm | | [ ] |
 | CG-Z | ±20 mm | | [ ] |
@@ -324,11 +336,11 @@ ASSEMBLY FLOW
 
 | Check | Expected | Result | Pass |
 |-------|----------|--------|------|
-| Power on | Boot to SAFE | | [ ] |
+| Power on (GSE, switches held as released) | Boot to DETUMBLE | | [ ] |
 | Console access | Messages visible | | [ ] |
 | EPS telemetry | Valid values | | [ ] |
 | RF test (dummy load) | Output verified | | [ ] |
-| Deployment inhibit | TX disabled | | [ ] |
+| Deployment switches actuated | No power to any load, no RF (SYS-225) | | [ ] |
 
 ### 6.3 Documentation
 
@@ -375,3 +387,4 @@ Project Manager: _____________ Date: _______
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
+| 1.1 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): status "CDR Baseline" replaced; banner: layout B stack of MECHANICAL_DESIGN §4.1 governs the order; parts list with the A2 magnetometer board, CR0002 rods, ballast, ISIS AntS, four body panels and two wings (was an ADCS board and six panels); RF harness and MMCX cables (was SPI and SMA); three deployment switches; boot to DETUMBLE |

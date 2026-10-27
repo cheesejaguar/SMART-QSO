@@ -2,8 +2,8 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-INT-006
-**Revision:** B
-**Date:** 2026-01-02
+**Revision:** C
+**Date:** 2026-10-27
 **Reference:** NPR 7150.2, NPR 7123.1, NASA Ames SmallSat Heritage
 
 ---
@@ -64,10 +64,10 @@ This document covers:
 ```
 <TEST_ID>_<DATE>_<TIME>_<TYPE>.<EXT>
 
-Examples:
-TP-EPS-001_20260115_143022_telemetry.csv
-TP-ENV-002_20260120_091500_vibration.dat
-TP-SYS-001_20260125_160000_report.pdf
+Examples (illustrative names; no test has been run):
+TP-EPS-001_YYYYMMDD_143022_telemetry.csv
+TP-ENV-002_YYYYMMDD_091500_vibration.dat
+TP-SYS-001_YYYYMMDD_160000_report.pdf
 ```
 
 ### 4.3 Metadata Requirements
@@ -76,10 +76,10 @@ TP-SYS-001_20260125_160000_report.pdf
 {
     "test_id": "TP-EPS-001",
     "run_id": "TP-EPS-001-R003",
-    "date": "2026-01-15",
+    "date": "YYYY-MM-DD",
     "time_utc": "14:30:22",
-    "operator": "J. Smith",
-    "witness": "A. Jones",
+    "operator": "<name>",
+    "witness": "<name>",
     "configuration": {
         "sw_version": "1.2.0",
         "hw_revision": "C",
@@ -121,7 +121,7 @@ test_data/
 │   ├── inspections/
 │   └── deployments/
 └── archive/                # Compressed archives
-    ├── 2026-Q1/
+    ├── YYYY-Qn/
     └── ...
 ```
 
@@ -354,3 +354,4 @@ AR-001/
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Document number changed from SQSO-INT-005, which `ANOMALY_RESOLUTION.md` also carried, to SQSO-INT-006 (finding PI-17). No content change | SMART-QSO Team |
+| C | 2026-10-27 | Documentation audit (post-CDR 2026): example file names, metadata and archive folders made placeholders (they carried 2026 dates and names that read as runs of TP-EPS-001, TP-ENV-002 and TP-SYS-001; no test has been run) | Documentation audit |

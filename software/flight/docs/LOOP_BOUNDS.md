@@ -114,7 +114,8 @@ The firmware's main task loops on `Executive::step()` and `Timer::after_millis(2
 
 1. **Stage supervision**: each stage of a pass checks in with the watchdog manager. A stage that misses its period 3
    times in a row stops the hardware refresh (SW-15).
-2. **Hardware watchdog**: the IWDG resets the OBC 30 s after the last refresh, so a pass that never returns ends in a
+2. **Hardware watchdog**: the IWDG resets the OBC 25.6 s after the last refresh (`WDT_HW_TIMEOUT_MS`; refreshed at the
+   supervisor's WDI edges every 10 s), so a pass that never returns ends in a
    reset.
 3. **Ground command**: safe-mode transition capability.
 
@@ -216,7 +217,7 @@ loop {
 |---------|------|--------|---------|
 | A | 2026-01-02 | SMART-QSO Team | Initial release |
 | B | 2026-10-24 | SMART-QSO Team | The flight software is Rust: inventory of the Rust loops by form and bound (§2, §3, §8); flight and simulation loops of the Rust executive and firmware (§4); Rust patterns (§6, §7). Revision A's C inventory removed (its files are gone, and several functions it named did not exist). Rule 2 is checked by review |
-| C | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): §1 status of the inventory, current counts and the loops added since Revision B |
+| C | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): §1 status of the inventory, current counts and the loops added since Revision B; §4.2 watchdog 25.6 s (was 30 s) |
 
 ---
 

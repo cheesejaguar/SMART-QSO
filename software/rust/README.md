@@ -31,11 +31,13 @@ a bounds-checked error, or at worst a controlled reset (see [Rules](#rules)).
 
 `firmware/` is the flight image. It uses embassy-stm32 0.6 (features `stm32l4r5zi`, `dual-bank`, `time-driver-tim2`: TIM1, TIM3, TIM8 and TIM15 belong to the magnetorquers and the captures),
 embassy-executor 0.10, embassy-time 0.5 and cortex-m-rt. There is one async main task (`firmware/src/main.rs`). It
-starts the independent watchdog (IWDG) at its longest timeout (about 32 s) before the clock set-up, so a PLL that never
-locks resets the OBC. It then brings the chip up (80 MHz from the 4 MHz MSI through the PLL, M = 1, N = 40, R = 2),
+starts the independent watchdog (IWDG) at its operating timeout, 25.6 s (reload 3200; 24.1–27.8 s over the LSI
+tolerance, below the TPS3850 supervisor's 29.3 s minimum: `hardware/obc/OBC_DESIGN.md`), before the clock set-up, so a
+PLL that never locks resets the OBC. It then brings the chip up (80 MHz from the 4 MHz MSI through the PLL, M = 1, N = 40, R = 2),
 installs the HAL drivers and calls `Executive::start()`. After that it loops on `step()` and
-`Timer::after_millis(20).await`, and the core sleeps in the executor between passes. The watchdog manager sets the
-operating timeout (30 s, `WDT_HW_TIMEOUT_MS`).
+`Timer::after_millis(20).await`, and the core sleeps in the executor between passes. The watchdog manager refreshes the IWDG
+only at the supervisor's WDI falling edges, every 10 s while every stage checks in (`WDT_HW_TIMEOUT_MS`, SRS-F050,
+SRS-F146).
 
 The HAL (`hal/*.h`) is implemented in Rust as `#[no_mangle]` `hal_*` functions:
 

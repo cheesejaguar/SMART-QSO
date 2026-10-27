@@ -245,7 +245,7 @@ coverage of the Rust crates is 81.1 % (gate 80 %), and each safety-critical file
 | Firmware not run on hardware | Pin map provisional; timing and power not measured; stack bounded by analysis only (5,812 B of 8 KB, 2026-10-27; `software/flight/docs/MEMORY_POLICY.md` §6.2) | Hardware bring-up (`software/rust/README.md`, Next steps) |
 | Beacon interval | 60 s ACTIVE, 120 s IDLE, 180 s SAFE (BASELINE §8) | Operating constraint |
 | Beacon text | At most 176 characters (`docs/BEACON_SPEC.md`) | Operating constraint |
-| Hardware watchdog | 30 s timeout (`WDT_HW_TIMEOUT_MS`) | Operating constraint |
+| Hardware watchdog | 25.6 s timeout (`WDT_HW_TIMEOUT_MS`; 24.1–27.8 s), refreshed at the supervisor's WDI edges every 10 s | Operating constraint |
 | Jetson duty | ≤ 5 % tumbling, ≤ 10 % sun-pointed; sunlit and SOC ≥ 55 % only (BASELINE §5, §6) | Power constraint |
 
 ### 7.3 Content Not Carried from the Superseded SVD
@@ -254,7 +254,7 @@ coverage of the Rust crates is 81.1 % (gate 80 %), and each safety-critical file
 |---------------------------------------------------------|--------|
 | Version 1.0.0 and Git tag `v1.0.0-cdr` | No such tag exists; the code says 0.2.0-dev |
 | Flash and RAM memory map (1 MB / 256 KB) | Does not match the baseline OBC, STM32L4R5ZI (BASELINE §6); see SQSO-FSW-006 (`software/flight/docs/MEMORY_POLICY.md`) |
-| "5-second hardware watchdog", "200-byte beacon limit", "fixed 60-second beacon" | Conflict with the 30 s watchdog, the 176-character text limit and the per-mode beacon intervals above |
+| "5-second hardware watchdog", "200-byte beacon limit", "fixed 60-second beacon" | Conflict with the 25.6 s watchdog, the 176-character text limit and the per-mode beacon intervals above |
 | CDR memory and CPU estimates; 78 of 90 requirements verified; unit-test totals | No analysis or test report in the repository supports them |
 | FreeRTOS 10.5.1 in the build environment | No RTOS is integrated (§7.2) |
 | "No deviations" | MISRA deviations are logged in SQSO-FSW-010 (`software/flight/docs/MISRA_DEVIATIONS.md`) |
@@ -380,5 +380,5 @@ software/flight/
 | B | 2026-10-16 | Merged with `docs/reviews/SOFTWARE_VERSION_DESCRIPTION.md`, which carried the same number (finding PI-17): payload and ground identification, build environment and limitations added; Git tag corrected to none; unsupported test counts and open-issue claim removed; §7.3 lists what was not carried and why | SMART-QSO Team |
 | C | 2026-10-24 | The flight software is Rust: §3.5 current source by crate; tests, tools, Rust release profile, runtime dependencies with versions, hardware drivers, static-analysis baselines, measured line coverage, limitations, change summary and deployment updated. Skeleton tables kept as history | SMART-QSO Team |
 | D | 2026-10-27 | Stack worst case 5,444 B (was 5,004 B) after the CDR flight-software changes | SMART-QSO Team (CDR avionics review) |
-| E | 2026-10-27 | Documentation audit (post-CDR 2026): §3.2 test counts (52 suites, 758 cases, 56 ctest entries, 624 Rust tests); §3.3 Rust configuration files; §4.1 CMake 3.16+; §5.2 ADCS drivers; §7.2 interrupts and stack 5,812 B; §8.2 marked as history | SMART-QSO Team |
+| E | 2026-10-27 | Documentation audit (post-CDR 2026): §3.2 test counts (52 suites, 758 cases, 56 ctest entries, 624 Rust tests); §3.3 Rust configuration files; §4.1 CMake 3.16+; §5.2 ADCS drivers; §7.2 interrupts, stack 5,812 B and the 25.6 s watchdog; §8.2 marked as history | SMART-QSO Team |
 | C, note | 2026-10-25 | §7.2: no RTOS (Embassy executor) is the baseline (BASELINE §6, CR-2026-002) | SMART-QSO Team |

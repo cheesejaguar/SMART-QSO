@@ -1,7 +1,7 @@
 # OBC Selector and Transponder Scheduler: Detailed Design
 
 **Document ID**: SQSO-PAY-SEL-001
-**Version**: B
+**Version**: C
 **Date**: 2026-10-27
 **Status**: CDR detailed design; not implemented (fabrication-phase task, §11)
 
@@ -136,7 +136,7 @@ leaf 2 bytes. Traversal is a fixed-depth loop, no recursion.
 |------|-------|-------|
 | Model table (flash, `.rodata`) | H1 16 × 12 × (7 × 5 + 8 × 2) = 9.8 kB; H2, H3 32 × (15 × 5 + 16 × 2) = 3.4 kB each; header, ranges, calibration, CRC 0.2 kB: **≈ 17 kB** | 0.8 % of 2 MB flash; the release text is 106 kB of the 256 kB SRS-C004 limit, so the selector code and table fit with 120 kB to spare |
 | RAM | features 32 B, logits 64 B, F10 history 15 × 20 × 2 B = 600 B (persisted), state 64 B: **< 1 kB** | of 640 kB; live state goes in SRAM2 with the rest (RID AV-07) |
-| Stack | < 128 B (no recursion) | inside the 8 KB SRS-C003 budget (worst case today 5,444 B, `scripts/stack_usage.py`) |
+| Stack | < 128 B (no recursion) | inside the 8 KB SRS-C003 budget (worst case 5,812 B on 2026-10-27, `scripts/stack_usage.py`; `software/flight/docs/MEMORY_POLICY.md` §6.2) |
 | CPU | H1 192 trees × 3 nodes + H2, H3 64 × 4 nodes = 832 node visits ≈ 10 cycles each: **≈ 8,300 cycles = 0.10 ms at 80 MHz** | at most three heads in one 20 ms pass: 0.5 % of the pass |
 | Energy | 0.10 ms at ≈ 30 mW (80 MHz) ≈ **3 µJ a decision** | SQSO-AUD-006 §2 (45 µJ ROM) |
 
@@ -238,3 +238,4 @@ here is the CDR deliverable.
 |---------|------|--------|---------|
 | A | 2026-10-27 | SMART-QSO Team (CDR avionics and flight-software review) | Initial issue: selector and transponder-scheduler detailed design (inputs, outputs, model form, abstention, hard limits, budget, training, validation, verification, failure behaviour) |
 | B | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fifth part) | §6.4 added: decisions and abstentions per head in HK2 `SL` (SRS-F170, RID SMA-15 reopened) |
+| C | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): §6 stack worst case to the current image (5,812 B) |

@@ -1,10 +1,10 @@
 # SMART-QSO Ground Station Operations Manual
 
 **Document ID**: SQSO-GSOM-001
-**Version**: 1.7
+**Version**: 1.8
 **Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR draft for the designated telecommand stations (none agreed yet; `docs/ground/GROUND_STATION_DESIGN.md` Rev F). Frequencies are planning values until the IARU letter. Command procedures follow SQSO-ICD-013, which governs.
+**Status**: CDR draft for the designated telecommand stations (none agreed yet; `docs/ground/GROUND_STATION_DESIGN.md` Rev H). Frequencies are planning values until the IARU letter. Command procedures follow SQSO-ICD-013, which governs.
 
 ## 1. Purpose
 
@@ -91,11 +91,13 @@ This manual provides step-by-step procedures for operating the SMART-QSO ground 
      □ Verify audio device connected
      □ Verify KISS TCP port open (8001)
 
-□ 5. Start decoder software
-     $ cd smart-qso-ground
-     $ python beacon_decoder.py --kiss localhost:8001 &
-     □ Verify decoder running
+□ 5. Start frame logging
+     □ Log every received frame (hex, with UTC time) from the TNC's KISS port to
+       beacon_log_YYYYMMDD_HHMMSS (the station's own logger)
      □ Verify log file created
+     Note: the repository has no live KISS decoder yet. software/ground/tools/
+     beacon_decoder.py decodes hex frames afterwards (-f FILE, --stdin) and does
+     not yet parse the docs/BEACON_SPEC.md §3 telemetry field.
 ```
 
 ### 3.3 T-15 Minutes: Antenna Positioning
@@ -204,8 +206,7 @@ At LOS (elevation < 0°):
 ### 5.1 Data Processing
 
 ```
-□ 1. Stop decoder
-     □ Ctrl-C to stop beacon_decoder.py
+□ 1. Stop frame logging
      □ Verify log file saved
 
 □ 2. Archive data
@@ -213,9 +214,11 @@ At LOS (elevation < 0°):
          ~/smart-qso/passes/
 
 □ 3. Process telemetry
-     $ python telemetry_display.py \
-         --input beacon_log_YYYYMMDD_HHMMSS.json \
-         --output pass_report.html
+     $ python software/ground/tools/beacon_decoder.py "<frame hex>"
+       (one frame per call: the AX.25 header and addresses, as JSON)
+     □ Read the telemetry fields (docs/BEACON_SPEC.md §3, §4) from each
+       information field; software/ground/telemetry_display.py is a library
+       with no command line yet
 
 □ 4. Review telemetry
      □ Check all values in limits
@@ -523,7 +526,7 @@ See CP-001 in Contingency Procedures document.
 1. The licensee informs both telecommand stations at once (24-hour contact).
 2. On the next pass of either station: build `TX_DISABLE` with the next counter; if no key is usable, send the keyless
    `TX_DISABLE` (SQSO-ICD-013 §6). Repeat each pass (new counters) until no beacon is heard on two passes.
-3. Longest wait for a commanding pass: 13.0 h with one station, 9.9 h with two (GROUND_STATION_DESIGN Rev D §5).
+3. Longest wait for a commanding pass: 13.0 h with one station, 9.9 h with two (GROUND_STATION_DESIGN Rev H §5, unchanged since Rev D).
 4. The licensee files the post-space notification within 24 hours of the termination (97.207(g)(3)).
 
 ### 9.2 Spacecraft Emergency
@@ -594,3 +597,4 @@ If telemetry indicates emergency:
 | 1.5 | 2026-10-27 | CDR S&MA analysis (decision C-14 restated) | Station variants A (100 W into ≥ 15.5 dBic) and B (≤ 50 W PEP into a stacked pair at US270 sites), rotator accuracy ±2° for B, power checks; degraded mode above 12° |
 | 1.6 | 2026-10-27 | CDR round 3, ground software (RIDs GND-04, LV-04, RFB-05) | UTC-derived counters in the command procedure (§7.2), clock maximum error ≤ 0.5 s (§2.2, §3.4); the command acknowledgement used to verify (§7.2); quick reference with the whole dictionary, 0x08 to 0x0B, 0x14, 0x24 to 0x26, 0x34, 0x35, 0x50, 0x60, 0x70, 0x71 (§7.3); uplink frequency offset from the measured downlink (§7.4); orbit determination and the 24 h ephemeris procedure (§5.3, SQSO-GND-002); troubleshooting and the checklist card |
 | 1.7 | 2026-10-27 | CDR flight software, round 3 (third part) | DEPLOY_RETRY's force flag past the AntS temperature gate (decision C-18), HK1 `AD` |
+| 1.8 | 2026-10-27 | Documentation audit (post-CDR 2026) | Status and §9.1a cite GROUND_STATION_DESIGN Rev H; §3.2 step 5 and §5.1 no longer call `beacon_decoder.py --kiss` or a `telemetry_display.py` command line, which do not exist: frame logging, then the hex decoder |

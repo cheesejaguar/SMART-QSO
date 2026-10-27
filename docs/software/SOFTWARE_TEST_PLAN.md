@@ -1,7 +1,7 @@
 # Software Test Plan (STP)
 
 **Document Number**: SMART-QSO-STP-001
-**Version**: 1.3
+**Version**: 1.4
 **Date**: 2026-10-27
 **Status**: Preliminary
 
@@ -131,13 +131,13 @@ did not. The safety-critical components (`docs/software/SOFTWARE_DEVELOPMENT_PLA
 - **Coverage**: lcov/gcov
 - **Mocking**: CMocka mock functions
 
-**As implemented (Version 1.1).** The CMocka suites in `software/flight/tests` (45 suites, 695 cases, plus the
-`no_dynamic_memory` check and the `Simulation_Run` host simulation: 49 ctest entries, as `test_executive_jetson` and
+**As implemented (Version 1.1).** The CMocka suites in `software/flight/tests` (52 suites, 758 cases, plus the
+`no_dynamic_memory` check and the `Simulation_Run` host simulation: 56 ctest entries on 2026-10-27, as `test_executive_jetson` and
 `test_downlink_sim` run as two each) are the specification of the flight software. They run unchanged against
 the Rust library through the C headers. The HAL is the simulated HAL `software/rust/sqso-ffi/src/hal_sim.rs`, whose
 `hal_sim_*` hooks inject inputs and faults; there is no `mocks/` directory. In addition:
 
-- **Rust unit tests**: 197, in `sqso-protocol` and `sqso-fsw` (`cargo test --workspace`).
+- **Rust unit tests**: 624 `#[test]` functions in the workspace on 2026-10-27 (`cargo test --workspace`).
 - **Fuzzing**: 12 cargo-fuzz targets: one per parser, and `fixed_format` (`software/rust/fuzz/fuzz_targets`), 30 s each in CI with
   property checks.
 - **Contract test**: `test_rust_contract.c` and `test_rust_contract_adcs.c` compare struct layouts and constants between
@@ -581,3 +581,4 @@ Attachments:
 | 1.1 | 2026-10-24 | SMART-QSO Team | The flight software is Rust: coverage gates as implemented (line, Rust ≥ 90 %, C and Rust ≥ 80 %; branch not measured); the C suites as the specification, Rust unit tests, fuzzing, contract test, sanitizers; Rust coverage commands and tools |
 | 1.2 | 2026-10-25 | SMART-QSO Team | Branch coverage measured and gated (75 %, 76.3 % measured) in a pinned-nightly build |
 | 1.3 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fifth part) | §11 added: the flight software's hardware verification items VI-FSW-01 to VI-FSW-04 (AV-03, OBCB-02, SMA-B02, SMA-B10), for the VI register |
+| 1.4 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): test counts (56 ctest entries, 52 suites, 758 cases; 624 Rust tests) |

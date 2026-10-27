@@ -38,7 +38,9 @@ spacecraft. They are kept as design intent; the C sketches are not the implement
 - **Fault log.** 100 entries of 96 B, each with its CRC-32, in FRAM (`fault_log.rs`,
   `software/flight/docs/MEMORY_POLICY.md` §8.1); not 256 entries of 16 B (§7.1).
 - **Watchdog.** No tasks: the stages of the one main loop check in with the watchdog manager (1 s, health 20 s; three
-  misses stop the refresh); IWDG 30 s (`software/flight/docs/RTOS_ARCHITECTURE.md` §8). There is no 10 s software
+  misses stop the refresh); IWDG 25.6 s (`WDT_HW_TIMEOUT_MS`), refreshed only at the TPS3850 supervisor's WDI edges
+  every 10 s; the supervisor (minimum 29.3 s) is the backstop (`software/flight/docs/RTOS_ARCHITECTURE.md` §8,
+  `hardware/obc/OBC_DESIGN.md`). The 30 s of §3.1 and §8.1 is the Revision A value. There is no 10 s software
   watchdog (§8.1).
 - **Memory.** SRAM2 parity with an NMI reset and a once-a-minute check of the persisted safety state
   (`MEMORY_POLICY.md` §10); no ECC correction of RAM.

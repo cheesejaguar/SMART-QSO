@@ -1,10 +1,10 @@
 # SMART-QSO Software Maintenance Plan
 
 **Document ID**: SQSO-SMP-001
-**Version**: 1.1
-**Date**: 2026-10-24
+**Version**: 1.2
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Draft (plan; no independent CDR has been held, `docs/BASELINE_PARAMETERS.md` §1)
 
 ## 1. Purpose
 
@@ -16,14 +16,20 @@ planned flight version. **On-orbit update of the OBC software is not implemented
 (`software/flight/docs/BOOTLOADER_REQUIREMENTS.md` §1.1), and the command dictionary has no upload commands. The OBC
 rows of §5 are plans. §11.2 and §12.1 are updated to the toolchain as built.
 
+**Version 1.2 (2026-10-27).** No on-orbit update path exists for the Jetson either: the uplink carries only the
+authenticated telecommands of `software/flight/command_dictionary.json` (none transfers files), and at 1200 bps a
+100 MB transfer is not credible. Community model updates are not in the flight baseline (`docs/BASELINE_PARAMETERS.md`
+§2); any future upload would be data only, adopted solely by authenticated telecommand from a designated station
+(47 CFR 97.211). §2.1 and §5.1 are corrected accordingly.
+
 ## 2. Scope
 
 ### 2.1 Software Covered
 
 | Software | Version | Maintainability |
 |----------|---------|-----------------|
-| Flight Software (OBC) | 1.0.0 | On-orbit update capable |
-| Payload Software (Jetson) | 1.0.0 | On-orbit update capable |
+| Flight Software (OBC) | 0.2.0-dev (1.0.0 planned) | Ground update before launch only (no bootloader, no upload commands) |
+| Payload Software (Jetson) | 1.0.0 (`software/payload/pyproject.toml`) | Ground update before launch only |
 | Ground Software | 1.0.0 | Ground update |
 | Test Software | 1.0.0 | Ground only |
 
@@ -135,10 +141,10 @@ PROBLEM REPORT FLOW
 
 | Component | Update Method | Size Limit |
 |-----------|---------------|------------|
-| OBC firmware | Bootloader upload | 256 KB |
-| OBC parameters | Command upload | 4 KB |
-| Jetson software | File transfer | 100 MB |
-| Jetson parameters | Command upload | 4 KB |
+| OBC firmware | Bootloader upload (plan; no bootloader exists) | 256 KB |
+| OBC parameters | The telecommands that set a value (`SET_BEACON`, `SET_CONTACT_TIMEOUT`, `ADCS_SET_*`) | per command |
+| Jetson software | None (no file transfer on the uplink) | — |
+| Jetson parameters | None | — |
 
 ### 5.2 Update Procedure
 
@@ -369,3 +375,4 @@ Examples:
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 1.1 | 2026-10-24 | SMART-QSO Team | The flight software is Rust on the Embassy executor: on-orbit OBC update not implemented (no bootloader, no upload commands); skills and tools updated (Rust, Embassy, probe-rs) |
+| 1.2 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): status Draft (no CDR held); §1 no Jetson upload path, model updates not in the baseline; §2.1 and §5.1 corrected |

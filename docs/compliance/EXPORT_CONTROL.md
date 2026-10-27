@@ -1,6 +1,9 @@
 # Export Control Assessment
 ## SMART-QSO CubeSat Mission
 
+> **Historical record (2026-01-02).** Superseded for current values by `docs/BASELINE_PARAMETERS.md` and
+> `docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`. Still useful for the list of export regulations and the reasoning steps; the current classification is SQSO-REG-012 (`docs/regulatory/filings/EXPORT_CLASSIFICATION_MEMO.md`). Its "no encryption" notes predate the HMAC-SHA-256 telecommand authentication (SQSO-ICD-013), which authenticates and does not encrypt.
+
 > **Funding audit notice (2026-10-14): classifications superseded.**
 > This assessment's EAR99 classification of the spacecraft and the Jetson module, and its NASA Ames points of contact,
 > are withdrawn. See `docs/regulatory/filings/EXPORT_CLASSIFICATION_MEMO.md` (spacecraft ECCN 9A515.a.5, Jetson

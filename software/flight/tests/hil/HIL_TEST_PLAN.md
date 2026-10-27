@@ -45,8 +45,9 @@ this plan. Three probe scripts exist for HIL-004, HIL-040 and HIL-044 (§4.4). C
   (`software/rust/firmware/src/stack.rs`, `software/flight/docs/MEMORY_POLICY.md` §6). HIL-004 overruns the budget;
   HIL-044 reads the high-water mark through the probe and compares it with the static worst case
   (`scripts/stack_usage.py`).
-- **Watchdog.** HIL-043 expects a kick at least every 1 s; the firmware refreshes the IWDG on every 20 ms pass while no
-  stage is stalled (`software/flight/docs/RTOS_ARCHITECTURE.md` §8), and a stalled stage stops the kicks on purpose.
+- **Watchdog.** The firmware refreshes the IWDG (25.6 s, `WDT_HW_TIMEOUT_MS`) only at the external supervisor's WDI
+  falling edges, every 10 s while no stage is stalled (SRS-F050, SRS-F146; `software/flight/docs/RTOS_ARCHITECTURE.md`
+  §8), and a stalled stage stops the kicks on purpose. HIL-043's criterion is set to that design.
 - **Bring-up (1.3).** The first-day order of checks on the board, the NUCLEO-L4R5ZI's differences from the flight pin
   map (the ST-LINK virtual COM port is LPUART1 on PG7/PG8, not the USART3 console) and what to record are in
   `software/rust/firmware/BRINGUP.md`. The firmware times every main-loop pass for HIL-040 (`SQSO_LOOP_TIMING`,
@@ -107,7 +108,7 @@ Planned; none of these exists yet. The scripts that exist are the three probe sc
 |----|------|-------------|---------------|
 | HIL-001 | Cold Start | Power-on initialization | Initialization completes within 30 s (SRS-F001); the mode manager leaves BOOT for DETUMBLE then IDLE, or for SAFE if SOC is below the SAFE threshold (`software/rust/sqso-fsw/src/mode.rs`); the reset count increments (SRS-F004) and the boot reason is logged (SRS-F005) |
 | HIL-002 | Warm Start | Reset after fault | State restored from NVM |
-| HIL-003 | Watchdog Timeout | No SW activity | Hardware reset occurs |
+| HIL-003 | Watchdog Timeout | No SW activity | IWDG reset within 24.1–27.8 s of the last refresh, before the TPS3850 supervisor (29.3 s minimum) |
 | HIL-004 | Stack Overflow | Halt with the probe, set SP to 0x2003E010 (16 bytes above the guard at 0x2003DFE0, in SRAM2), resume (§4.4, `guard_test.py`) | MPU guard faults; IWDG resets the processor; the next boot reports a watchdog reset (`hal_reset_cause`) |
 
 ### 3.2 EPS Interface Tests
@@ -144,7 +145,7 @@ Planned; none of these exists yet. The scripts that exist are the three probe sc
 | HIL-040 | Main Loop Timing | Time of each `Executive::step()` pass, from the DWT cycle counter (`SQSO_LOOP_TIMING`; §4.4, `loop_timing.py`) | ≤ 20 ms per pass, no overrun counted (SRS-P001) |
 | HIL-041 | Beacon Interval | Periodic beacon | Within ±1s of target |
 | HIL-042 | Telemetry Rate | Telemetry generation | 1Hz ± 10% |
-| HIL-043 | Watchdog Kick | WDT service interval | < 1s between kicks |
+| HIL-043 | Watchdog Kick | WDT service interval (IWDG refresh and WDI edge on PG11) | 10 s ± one 20 ms pass between kicks while every stage checks in; never more than 24.1 s (SRS-F050, SRS-F146) |
 | HIL-044 | Stack High Water | Run every timing and fault-injection test, then read the painted budget (0x2003E000-0x2003FFFF) with the probe; used bytes = 8192 - 4 x (leading words still 0x57ACC0DE) (§4.4, `stack_high_water.py`) | Used ≤ the worst case in `stack_usage.txt` of the image under test, and ≤ 8 KB (SRS-C003) |
 
 ### 3.6 Fault Injection Tests
@@ -292,7 +293,7 @@ the reset cause the firmware recorded, not IWDGRSTF. Without a board, `--dump` (
 | 1.2 | 2026-10-25 | SMART-QSO Team | HIL-040 pass criterion 20 ms, as SRS-P001 requires (was 100 ms); HIL-004 against the MPU stack guard; HIL-044 stack high-water mark added (SRS-C003) |
 | 1.3 | 2026-10-25 | SMART-QSO Team | §4.4 probe procedures for HIL-004, HIL-040 and HIL-044 (scripts in `software/rust/firmware/tools/`); HIL-040 measured per `Executive::step()` pass with the DWT cycle counter, ≤ 20 ms and no overrun; §1.4 points to the bring-up checklist (`software/rust/firmware/BRINGUP.md`). HIL-001 criterion matches the mode manager (BOOT to DETUMBLE to IDLE, or SAFE on low SOC) and SRS-F001's 30 s (was SAFE within 5 s) |
 | 1.4 | 2026-10-25 | SMART-QSO Team | §3.7 downlink transmitter tests HIL-060 to HIL-064 (CR-2026-005); HIL-030 and HIL-031 through the TNC |
-| 1.5 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): target STM32L4R5ZI in §1.2, §2.2 and §7 (Apollo4 and STM32L476 removed); HIL-004 and HIL-044 addresses to the SRAM2 stack (0x2003E000, as the probe scripts and BRINGUP); §2.3 and §4.2 marked as planned; pin map per SQSO-ICX-001 |
+| 1.5 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): target STM32L4R5ZI in §1.2, §2.2 and §7 (Apollo4 and STM32L476 removed); HIL-004 and HIL-044 addresses to the SRAM2 stack (0x2003E000, as the probe scripts and BRINGUP); §2.3 and §4.2 marked as planned; pin map per SQSO-ICX-001; HIL-003 and HIL-043 to the 25.6 s IWDG refreshed at the 10 s WDI edges |
 
 ---
 

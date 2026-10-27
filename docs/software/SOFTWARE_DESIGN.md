@@ -739,8 +739,8 @@ Each module has corresponding unit tests:
 - test_uart_comm.c
 - test_crc32.c
 
-As built (Version 1.1): 45 CMocka suites in `software/flight/tests` (695 cases), one or more per module, run unchanged
-against the Rust through the C headers, plus 358 Rust unit tests and 12 fuzz targets (`software/flight/tests/README.md`).
+As built (2026-10-27): 52 CMocka suites in `software/flight/tests` (758 cases, 56 ctest entries), one or more per module, run unchanged
+against the Rust through the C headers, plus 624 Rust `#[test]` functions and 12 fuzz targets (`software/flight/tests/README.md`).
 The "Mock HAL" of §9.2 is the simulated HAL, `software/rust/sqso-ffi/src/hal_sim.rs`.
 
 ### 9.2 Mock Architecture
@@ -821,4 +821,4 @@ void process_event(Event_t event) {
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-24 | SMART-QSO Team | The flight software is Rust: §1.4 implementation by layer; §2.3 module hierarchy as built; §3 titles name the Rust files; notes on §6 (timing as built), §7 (the STM32L4R5ZI memory and measured image) and §9 (tests as built) |
-| 1.2 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): §1.4 Version 1.2 note; §3.1.2 the six modes of `mode.rs` (no SHUTDOWN); §3.2.3 EMERGENCY; §3.4.3 the sensor table of `sensors.yaml` (2S limits removed); §7 note to the current image |
+| 1.2 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): §1.4 Version 1.2 note; §3.1.2 the six modes of `mode.rs` (no SHUTDOWN); §3.2.3 EMERGENCY; §3.4.3 the sensor table of `sensors.yaml` (2S limits removed); §7 note to the current image; §9 test counts |

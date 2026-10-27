@@ -1,10 +1,15 @@
 # SMART-QSO System Test Cases
 
 **Document ID**: SQSO-STC-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Draft; not yet run (no CDR has been held; no hardware exists)
+
+> **Test cases not yet run.** No hardware exists (`docs/BASELINE_PARAMETERS.md` §1); every result and signature field
+> is blank. The "Requirement" cells cite IDs from an earlier numbering (SYS-001 to SYS-016, SW-, PL-, RF-, EPS-, SAF-,
+> ICD-001 to -003) that do not carry those meanings in SQSO-REQ-002 or SMART-QSO-SRS-001; trace through
+> `docs/verification/RTM.csv` and the VCRM. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended), which governs.
 
 ## 1. Purpose
 
@@ -55,11 +60,11 @@ This document defines the System Test Cases for SMART-QSO, providing detailed te
 | 1 | Apply power | Power rails stable | [ ] |
 | 2 | Monitor boot | Boot messages on console | [ ] |
 | 3 | Verify time | Boot < 30 seconds | [ ] |
-| 4 | Check mode | MODE = SAFE | [ ] |
+| 4 | Check mode | MODE = DETUMBLE (then IDLE) | [ ] |
 | 5 | Check telemetry | All fields valid | [ ] |
 | 6 | Check watchdog | Kicking confirmed | [ ] |
 
-**Pass Criteria**: System boots to SAFE mode within 30 seconds
+**Pass Criteria**: Flight software running within 30 seconds (SYS-300)
 
 ---
 
@@ -105,7 +110,7 @@ This document defines the System Test Cases for SMART-QSO, providing detailed te
 | 3 | Decode packet | AX.25 valid | [ ] |
 | 4 | Check callsign | Correct ID | [ ] |
 | 5 | Check content | Telemetry + message | [ ] |
-| 6 | Time period | 60-120s ± 5s | [ ] |
+| 6 | Time period | 60 / 120 / 180 s ± 5 s in ACTIVE / IDLE / SAFE (SYS-211) | [ ] |
 
 **Pass Criteria**: Beacons transmitted and decoded correctly
 
@@ -129,8 +134,8 @@ This document defines the System Test Cases for SMART-QSO, providing detailed te
 | 3 | Wait for ready | JETSON_READY | [ ] |
 | 4 | Send context | Data transmitted | [ ] |
 | 5 | Receive response | AI text returned | [ ] |
-| 6 | Transmit beacon | AI content included | [ ] |
-| 7 | Verify power | < 10% duty | [ ] |
+| 6 | Transmit beacon | Jetson lines included after the OBC filter (gated experiment, D5) | [ ] |
+| 7 | Verify power | ≤ 8 W; duty ≤ 5 % tumbling, ≤ 10 % sun-pointed (BASELINE §5, §6) | [ ] |
 
 **Pass Criteria**: AI-generated content in beacon, duty cycle met
 
@@ -176,7 +181,7 @@ This document defines the System Test Cases for SMART-QSO, providing detailed te
 |------|---------|----------|------|
 | 1 | GET_TLM | Telemetry returned | [ ] |
 | 2 | SET_MODE(IDLE) | Mode changed | [ ] |
-| 3 | SET_BEACON(90) | Period changed | [ ] |
+| 3 | SET_BEACON(90) | Period changed (accepted range 10–120 s, SYS-211 note) | [ ] |
 | 4 | GET_LOG | Log entries returned | [ ] |
 | 5 | Invalid command | NAK returned | [ ] |
 
@@ -222,11 +227,11 @@ This document defines the System Test Cases for SMART-QSO, providing detailed te
 **Test Steps**:
 | Mode | Budget | Measured | Margin | Pass |
 |------|--------|----------|--------|------|
-| SAFE | <0.2W | | | [ ] |
-| IDLE | <0.4W | | | [ ] |
-| ACTIVE | <0.8W | | | [ ] |
-| AI Burst | <7W | | | [ ] |
-| Average | <0.5W | | | [ ] |
+| SAFE | 0.79 W | | | [ ] |
+| IDLE | 1.18 W | | | [ ] |
+| ACTIVE | 2.50 W sun-pointed, 1.82 W tumbling (duty limits) | | | [ ] |
+| Jetson burst | ≤ 8 W at the carrier input | | | [ ] |
+| Generation, EOL | 2.48 W tumbling, 3.84 W sun-pointed (margin ≥ 20 %) | | | [ ] |
 
 **Pass Criteria**: All modes within power budget with margin
 
@@ -246,11 +251,11 @@ This document defines the System Test Cases for SMART-QSO, providing detailed te
 | Timing | Requirement | Measured | Pass |
 |--------|-------------|----------|------|
 | Boot time | <30s | | [ ] |
-| Mode transition | <5s | | [ ] |
-| Beacon period | 60-120s ± 5s | | [ ] |
+| Mode transition | < 1 s (SRS-P004) | | [ ] |
+| Beacon period | 60 / 120 / 180 s ± 5 s (SYS-211) | | [ ] |
 | Command response | <1s | | [ ] |
-| Watchdog timeout | 5s ± 0.5s | | [ ] |
-| AI response | <30s | | [ ] |
+| Watchdog timeout | 24.1–27.8 s (IWDG) | | [ ] |
+| Jetson burst | ≤ 10 min including boot (SYS-502, SYS-512) | | [ ] |
 
 **Pass Criteria**: All timing requirements met
 
@@ -270,7 +275,6 @@ This document defines the System Test Cases for SMART-QSO, providing detailed te
 | Configuration | Expected | Measured | Pass |
 |---------------|----------|----------|------|
 | AFSK 1200 | 1200 bps | | [ ] |
-| GFSK 9600 | 9600 bps | | [ ] |
 | Beacon size | <256 bytes | | [ ] |
 | Daily volume | <252 KB | | [ ] |
 
@@ -293,7 +297,7 @@ This document defines the System Test Cases for SMART-QSO, providing detailed te
 **Test Steps**:
 | Step | Action | Expected | Pass |
 |------|--------|----------|------|
-| 1 | Scan I2C bus | EPS at 0x50 | [ ] |
+| 1 | Scan I2C2 | EPS controller at 0x48 (OBC_BOARD_DESIGN) | [ ] |
 | 2 | Read voltage | Valid value | [ ] |
 | 3 | Read current | Valid value | [ ] |
 | 4 | Read SOC | 0-100% | [ ] |
@@ -311,18 +315,18 @@ This document defines the System Test Cases for SMART-QSO, providing detailed te
 | **Title** | OBC to RF Interface |
 | **Priority** | P1 |
 | **Requirement** | ICD-002 |
-| **Objective** | Verify SPI interface to RF |
+| **Objective** | Verify the OBC to RF board interface (USART2 to the TNC, enables and readbacks; SQSO-ICX-001) |
 
 **Test Steps**:
 | Step | Action | Expected | Pass |
 |------|--------|----------|------|
-| 1 | Read RF ID | Si4463 ID | [ ] |
-| 2 | Configure TX | Success | [ ] |
-| 3 | Write FIFO | Accepted | [ ] |
+| 1 | Query the TNC (STM32L431) | Identity and status returned | [ ] |
+| 2 | Configure TX (LMX2571 exciter) | Success | [ ] |
+| 3 | Send a frame to the TNC | Accepted | [ ] |
 | 4 | Trigger TX | RF output | [ ] |
 | 5 | Read status | TX complete | [ ] |
 
-**Pass Criteria**: Full RF control via SPI
+**Pass Criteria**: Full RF control over the RF board interface
 
 ---
 
@@ -367,11 +371,11 @@ This document defines the System Test Cases for SMART-QSO, providing detailed te
 |------|--------|----------|------|
 | 1 | Normal operation | WDT kicked | [ ] |
 | 2 | Halt OBC (debugger) | No kicks | [ ] |
-| 3 | Wait 5 seconds | Reset occurs | [ ] |
+| 3 | Wait 28 seconds | Reset occurs (IWDG 24.1–27.8 s) | [ ] |
 | 4 | Verify boot | Boot counter +1 | [ ] |
-| 5 | Verify mode | SAFE mode | [ ] |
+| 5 | Verify mode | Reset cause logged; mode per the state machine | [ ] |
 
-**Pass Criteria**: Watchdog resets system within 5 seconds
+**Pass Criteria**: Watchdog resets the system within 27.8 seconds, before the TPS3850 supervisor's 29.3 s
 
 ---
 
@@ -388,11 +392,11 @@ This document defines the System Test Cases for SMART-QSO, providing detailed te
 **Test Steps**:
 | Step | Condition | Expected | Pass |
 |------|-----------|----------|------|
-| 1 | Overvoltage (>4.2V/cell) | Charge stops | [ ] |
-| 2 | Undervoltage (<2.5V/cell) | Load shed | [ ] |
-| 3 | Overcurrent (>2A) | Limit active | [ ] |
-| 4 | Over temperature (>45°C) | Charge stops | [ ] |
-| 5 | Software SOC limit (20%) | SAFE mode | [ ] |
+| 1 | Overvoltage (> 4.25 V/cell; charge set point 4.10 V/cell) | Charge stops | [ ] |
+| 2 | Undervoltage (bus < 13.6 V; pack < 11.2 V) | Jetson rail shed; BMS cut | [ ] |
+| 3 | Overcurrent (> 4 A BMS; 5 A fuse) | Limit active | [ ] |
+| 4 | Temperature outside 0 to +45 °C | Charge stops | [ ] |
+| 5 | Software SOC limit (25 %) | SAFE mode | [ ] |
 
 **Pass Criteria**: All battery protections function
 
@@ -411,10 +415,10 @@ This document defines the System Test Cases for SMART-QSO, providing detailed te
 **Test Steps**:
 | Step | Condition | Expected | Pass |
 |------|-----------|----------|------|
-| 1 | Deploy switch pressed | TX inhibited | [ ] |
-| 2 | RBF pin inserted | TX inhibited | [ ] |
-| 3 | SAFE mode | TX disabled | [ ] |
-| 4 | 30-min timer | TX allowed after | [ ] |
+| 1 | Each of DS1, DS2, DS3 pressed alone | TX inhibited (three physical inhibits, SYS-225) | [ ] |
+| 2 | RBF pin inserted | TX inhibited (not counted as an inhibit) | [ ] |
+| 3 | TX_DISABLE latched | TX off in every mode, across resets (SYS-204) | [ ] |
+| 4 | 45-min RF silence | TX allowed only after 45 min and after the AntS reports deployed (SYS-224; C-19) | [ ] |
 
 **Pass Criteria**: All RF inhibits function correctly
 
@@ -507,3 +511,4 @@ QA: ___________ Date: ___
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
+| 1.1 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): status "CDR Baseline" replaced, not-yet-run banner (the requirement cells use an earlier numbering); values from BASELINE Rev E: mode powers (were 0.2/0.4/0.8/7 W), beacon 60/120/180 s, watchdog 24.1–27.8 s (was 5 s), battery protection 4.25 V/cell and 0–45 °C, three deployment switches and the 45-min silence (was 30 min); EPS controller at 0x48; RF board interface (was an SPI Si4463, not in the design); 9600 bps GFSK removed |

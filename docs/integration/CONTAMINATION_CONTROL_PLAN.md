@@ -1,7 +1,7 @@
 # SMART-QSO Contamination Control Plan
 
 **Document ID**: SQSO-CCP-001
-**Version**: 2.0
+**Version**: 2.1
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR draft. §1–§3 corrected by the CDR S&MA review (governing documents and the launch-provider requirements); the procedures of §4–§14 are unchanged and not yet exercised
@@ -23,7 +23,7 @@ standards.
 | Integrator user guide and ICD (EXOpod Nova or equivalent) | Dispenser cleanliness at integration; supersedes this plan where stricter |
 | IEST-STD-CC1246E | Product cleanliness levels (particulate level and NVR letter) |
 | ISO 14644-1:2015 | Cleanroom classification |
-| ASTM E595-15(2021) | Outgassing data (`docs/compliance/MATERIALS_LIST.md` Rev B) |
+| ASTM E595-15(2021) | Outgassing data (`docs/compliance/MATERIALS_LIST.md`, SQSO-MAT-001 Rev E) |
 | ASTM E1235 | Gravimetric NVR measurement for witness plates |
 | SQSO-ASM-001 | Assembly procedure |
 
@@ -420,3 +420,4 @@ Anomalies: ___________________________
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 2.0 | 2026-10-27 | CDR S&MA review | Governing documents corrected: NASA-STD-8739.6 (workmanship implementation) removed as a contamination standard; SpaceX UG v11 §5.3/Table 5-5 containerized-CubeSat exemption and its limits, CDS 2.1.7 and §3.2, the integrator ICD, IEST-STD-CC1246E, ISO 14644-1, ASTM E595/E1235 added; delivery cleanliness and bakeout stated |
+| 2.1 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): materials list cited at its current revision, SQSO-MAT-001 Rev E (was Rev B) |

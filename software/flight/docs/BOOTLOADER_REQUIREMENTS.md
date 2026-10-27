@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-BOOT-001
-**Revision:** B
-**Date:** 2026-10-24
+**Revision:** C
+**Date:** 2026-10-27
 **Reference:** NPR 7150.2, NASA-HDBK-4002A
 
 ---
@@ -21,8 +21,11 @@ addresses of the map in §2.1. There is no backup or golden image, no boot confi
 and no firmware update protocol. The command dictionary (`software/flight/command_dictionary.json`) has no update
 commands.
 
-What exists that bears on §6.2 and §7: the firmware starts the independent watchdog at its longest timeout (about 32 s)
-before the clock set-up, so a boot that hangs resets the OBC (`software/rust/firmware/src/wdt.rs`). The reset cause is
+What exists that bears on §6.2 and §7: the firmware starts the independent watchdog at reset, before the clock set-up,
+at its operating timeout of 25.6 s (`WDT_HW_TIMEOUT_MS`; reload 3200, 24.1–27.8 s over the LSI tolerance), and the
+flight software refreshes it only at the TPS3850 supervisor's WDI falling edges, its initialisation checkpoints and
+then every 10 s (SRS-F050, SRS-F146; `software/rust/firmware/src/wdt.rs`; supervisor minimum 29.3 s,
+`hardware/obc/OBC_DESIGN.md`). A boot that hangs therefore resets the OBC. The reset cause is
 read from the RCC CSR flags (`hal_reset.h`), and the RF-silence and deployment logic use it. The C code blocks below are
 the Revision A design.
 
@@ -366,3 +369,4 @@ void enter_bootloader_safe_mode(void) {
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-24 | §1.1 implementation status: no bootloader exists; the Rust firmware starts from reset at 0x08000000; boot watchdog and reset cause are what exists. Requirements unchanged | SMART-QSO Team |
+| C | 2026-10-27 | Documentation audit (post-CDR 2026): §1.1 the watchdog as built: 25.6 s IWDG from reset, refreshed at the supervisor's WDI edges (was "about 32 s") | SMART-QSO Team |

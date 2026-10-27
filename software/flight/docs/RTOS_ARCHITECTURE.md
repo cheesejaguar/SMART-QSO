@@ -72,7 +72,7 @@ Reasons, from the design as built:
 
 The image has one async task, `main` (`#[embassy_executor::main]`). It runs these steps in order:
 
-1. Start the IWDG at its longest timeout (about 32 s, `wdt::start_boot_watchdog`) before anything else, so a PLL that
+1. Start the IWDG at its operating timeout (25.6 s, `wdt::start_boot_watchdog`) before anything else, so a PLL that
    never locks resets the OBC.
 2. `embassy_stm32::init(clocks())`: clocks, the time driver, the peripherals.
 3. Install the HAL drivers (GPIO first, with enable and burn lines low; FRAM; SPI; I2C; the four UARTs; the ADC).
@@ -173,15 +173,17 @@ C test suites exercise it. The executive does not use it: the main loop runs its
 
 The watchdog manager (`software/rust/sqso-ffi/src/watchdog_mgr.rs` on `software/rust/sqso-fsw/src/watchdog.rs`) keeps a
 table of the stages in §4.2. The executive registers them in `init_watchdog`: `main`, `uplink`, `payload` and `beacon`
-with a period of 1 s, and `health` with 20 s. Then it starts the hardware watchdog with a 30 s timeout
-(`WDT_HW_TIMEOUT_MS`).
+with a period of 1 s, and `health` with 20 s. The hardware watchdog runs at 25.6 s (`WDT_HW_TIMEOUT_MS`; reload 3200,
+24.1–27.8 s over the LSI tolerance), started at reset (§4.1); its count keeps running through the initialisation.
 
 - Each pass ends with `wdt_mgr_kick()`. Once a second it checks every registered stage. A stage that has not checked in
   within its period counts a miss. After 3 misses in a row (`MISS_THRESHOLD`) it is stalled. The stall is logged, and
   the pre-reset callback saves mission data and the EPS state.
-- The hardware watchdog is refreshed on every pass while no stage is stalled. A stalled stage stops the refresh, and
-  the IWDG resets the OBC within its 30 s timeout.
-- If a pass never returns (a hang inside a stage), nothing refreshes the IWDG, and it resets the OBC after 30 s.
+- The hardware watchdog is refreshed only at a falling edge of the external supervisor's WDI line (TPS3850, PG11),
+  every 10 s while no stage is stalled (`KICK_INTERVAL_MS`, SRS-F050, SRS-F146). A stalled stage stops both, and the
+  IWDG resets the OBC within 25.6 s of the last refresh; the supervisor (minimum 29.3 s, `hardware/obc/OBC_DESIGN.md`)
+  is the backstop if the IWDG fails.
+- If a pass never returns (a hang inside a stage), nothing refreshes the IWDG, and it resets the OBC within 25.6 s.
 - Before the flight software starts, the boot watchdog (§4.1) covers the clock set-up and the driver installation.
 
 ### 8.2 Hardware
@@ -226,7 +228,7 @@ Between passes the task waits on `Timer::after_millis(20)`, and the executor put
 | B | 2026-10-24 | Rewritten for the design as built: no RTOS; the Embassy executor with one task, interrupt-driven UARTs and the time driver; the stages of a pass and their watchdog supervision; timing. The FreeRTOS design of Revision A, never implemented, kept as a history note (§13) | SMART-QSO Team |
 | C | 2026-10-27 | Stack worst case 5,444 B (was 5,004 B) after the CDR flight-software changes | SMART-QSO Team (CDR avionics review) |
 | D | 2026-10-27 | Flight software round 3: image sizes, initial SP 0x20040000 (the stack in SRAM2, RID AV-13), worst-case stack 6,236 B | SMART-QSO Team |
-| E | 2026-10-27 | Documentation audit (post-CDR 2026): embassy-stm32 features as in `firmware/Cargo.toml` (TIM2 time driver); LPUART1, TIM7 and NMI interrupts; §4.2 stages as in `Executive::step()` (ADCS, heater, burst schedule, housekeeping, GNSS, transponder, safety checks); §3.2 and §7 image and stack of the current tree (MEMORY_POLICY I); §10 the MPU stack guard (was "not detected") | SMART-QSO Team |
+| E | 2026-10-27 | Documentation audit (post-CDR 2026): embassy-stm32 features as in `firmware/Cargo.toml` (TIM2 time driver); LPUART1, TIM7 and NMI interrupts; §4.2 stages as in `Executive::step()` (ADCS, heater, burst schedule, housekeeping, GNSS, transponder, safety checks); §3.2 and §7 image and stack of the current tree (MEMORY_POLICY I); §10 the MPU stack guard (was "not detected"); §4.1 and §8 the 25.6 s IWDG refreshed at the 10 s WDI edges (was 30 s, a 32 s boot watchdog and a refresh every pass) | SMART-QSO Team |
 | B, note | 2026-10-25 | §3.1: the Embassy executor with no RTOS is the baseline (BASELINE §6, OBC-F001, CR-2026-002) | SMART-QSO Team |
 
 ---

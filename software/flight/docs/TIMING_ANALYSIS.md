@@ -27,7 +27,7 @@ The flight software as built is Rust on the Embassy executor with one task (`sof
 | Pass period | 20 ms plus the time of the pass (not a fixed rate) | same |
 | Pass deadline | SRS-P001: the main control loop executes within 20 ms | `software/rust/sqso-fsw/src/executive.rs` (`@requirement`) |
 | Stage supervision | `main`, `uplink`, `payload` and `beacon` must check in within 1 s, and `health` within 20 s. Three misses in a row stop the hardware refresh | `software/rust/sqso-ffi/src/executive.rs` (`init_watchdog`), `software/rust/sqso-fsw/src/watchdog.rs` |
-| Hardware watchdog | 30 s (`WDT_HW_TIMEOUT_MS`); 32 s boot watchdog before the clock set-up | `software/rust/firmware/src/wdt.rs` |
+| Hardware watchdog | 25.6 s (`WDT_HW_TIMEOUT_MS`; 24.1–27.8 s), started at reset before the clock set-up and refreshed only at the supervisor's WDI falling edges, every 10 s (SRS-F050); TPS3850 supervisor minimum 29.3 s (`hardware/obc/OBC_DESIGN.md`) | `software/rust/firmware/src/wdt.rs`, `software/rust/sqso-fsw/src/watchdog.rs` |
 | Core clock | 80 MHz (MSI 4 MHz, PLL M = 1, N = 40, R = 2). embassy-stm32 sets the flash wait states | `software/rust/firmware/src/main.rs` |
 | Interrupts | USART1, USART2, USART3 and LPUART1 (buffered receive and transmit), the TIM2 time driver, TIM7 (the `XPDR_EN` heartbeat) and the NMI (SRAM2 parity, flash ECC). No flight-software stage runs in interrupt context | `software/flight/docs/RTOS_ARCHITECTURE.md` §5 |
 
@@ -331,5 +331,5 @@ Complete
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-24 | §1.1: no time has been measured; §3 to §10 are estimates for a multi-task design that was not built. Timing of the software as built (one Embassy task, a 20 ms wait after each pass, stage supervision, watchdog), and the measurements still to be made on hardware | SMART-QSO Team |
-| C | 2026-10-27 | Documentation audit (post-CDR 2026): §1.1 interrupts as in RTOS_ARCHITECTURE §5; the loop-timing instrumentation for the open measurement | SMART-QSO Team |
+| C | 2026-10-27 | Documentation audit (post-CDR 2026): §1.1 interrupts as in RTOS_ARCHITECTURE §5; the loop-timing instrumentation for the open measurement; watchdog 25.6 s refreshed at the 10 s WDI edges (was 30 s and a 32 s boot watchdog) | SMART-QSO Team |
 

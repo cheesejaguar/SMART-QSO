@@ -205,7 +205,7 @@ pass (health check 10 s, Jetson telemetry 60 s, beacon by mode).
 
 | Watchdog | Timeout | Action |
 |----------|---------|--------|
-| Hardware WDT | 30000 ms | Reset |
+| Hardware WDT (IWDG) | 25600 ms (`WDT_HW_TIMEOUT_MS`; refreshed at the supervisor's WDI edges every 10 s) | Reset; TPS3850 supervisor backstop (minimum 29.3 s) |
 | Stage supervision | 1 s (health 20 s); 3 misses stop the hardware refresh | Reset by the IWDG |
 | Jetson telemetry | 5 s without telemetry (`payload_guard.rs`) | Jetson powered off |
 | Loss of contact | 30 days at launch, 14 days after commissioning (`SET_CONTACT_TIMEOUT`, 1-90) | Transmit inhibit, receiver on (BASELINE §7) |
@@ -314,4 +314,4 @@ No RF before 45 min (CDS 2.4.5; `rf_silence.rs`). Wings first, then the antennas
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-24 | The flight software is Rust: parameters are C header constants mirrored in Rust and checked by the contract test; §3 build-time settings as built (CMake options, cargo feature, host environment variables); items not in the code identified. No parameter value changed | SMART-QSO Team |
-| C | 2026-10-27 | Documentation audit (post-CDR 2026): §4 to §9 values replaced from the baseline and the code (SOC mode thresholds, 1 W maximum, beacon intervals, call sign, UARTs, spin rate, watchdog and contact timeouts, deployment timers, Jetson and model settings); FAULT_LOG_SIZE 100 | SMART-QSO Team |
+| C | 2026-10-27 | Documentation audit (post-CDR 2026): §4 to §9 values replaced from the baseline and the code (SOC mode thresholds, 1 W maximum, beacon intervals, call sign, UARTs, spin rate, watchdog (25.6 s) and contact timeouts, deployment timers, Jetson and model settings); FAULT_LOG_SIZE 100 | SMART-QSO Team |

@@ -279,7 +279,7 @@ static is read at least once a minute by the main loop, which is not proven for 
   STM32CubeProgrammer `-ob SRAM2_PE=0`); the boot console and HK2 `PE` report the state (SRS-F154). Every boot that finds it off logs "SRAM2 parity off (option bit SRAM2_PE)".
 - **NMI.** An SRAM2 parity error (SYSCFG_CFGR2.SPF), a flash double-bit ECC error (FLASH_ECCR.ECCD, with its address)
   or a clock-security failure raises the NMI. The handler records the cause in SRAM1 (tag, cause, complement, address:
-  outside the linked RAM, so neither erased nor zeroed at boot) and resets at once (`SCB::sys_reset`), without the 30 s
+  outside the linked RAM, so neither erased nor zeroed at boot) and resets at once (`SCB::sys_reset`), without the 25.6 s
   wait for the watchdog. Every output to the EPS and the radio is low through the reset (the EPS boards pull them down).
 - **Next boot.** Once the fault log is loaded, the record is read and cleared, and "Reset by NMI: SRAM2 parity error"
   (or flash ECC, clock security) is logged at CRITICAL; the latched error flags are cleared. The state is then what
@@ -349,4 +349,4 @@ a disagreement toward the safe side (SRS-F133):
 | F | 2026-10-27 | §3.1 the stack moved into SRAM2 (initial SP 0x20040000; RID AV-13), SRAM3 unused; §3.2 budget of the round-3 image; §6 worst case 6,236 B, the budget and guard addresses; §8.1 region ADCS_CAL; §10.3 the programming procedure sets `SRAM2_PE`; §10.5 the stack no longer unprotected | SMART-QSO Team (CDR flight software, round 3) |
 | G | 2026-10-27 | §3.1 the second FRAM U36 (RID SMA-B10); §8.2 every record mirrored, read from the mirror when the first FRAM fails, the degraded mode without either (SRS-F160); §3.2 and §6 the image and worst-case stack of round 3, second part | SMART-QSO Team (CDR flight software, round 3, second part) |
 | H | 2026-10-27 | §3.2 and §6 the image and worst-case stack of round 3, third part (text 207,284 B, data 26,400 B, bss 17,052 B; 6,332 B of 8 KB), the statics' end 0x2003A9BC (Revision G named these without changing the figures) | SMART-QSO Team (CDR flight software, round 3, third part) |
-| I | 2026-10-27 | Documentation audit (post-CDR 2026): §5.1 TNC transmit buffer 1,024 B (was 16 B) and the GNSS UART buffers, as in `firmware/src/main.rs`; §3.2, §6 and §11.3 the image after round 3, fifth part (text 211,604 B, data 27,192 B, bss 17,052 B; stack 5,812 B; `__ebss` 0x2003ACD4), from a local build | SMART-QSO Team |
+| I | 2026-10-27 | Documentation audit (post-CDR 2026): §5.1 TNC transmit buffer 1,024 B (was 16 B) and the GNSS UART buffers, as in `firmware/src/main.rs`; §3.2, §6 and §11.3 the image after round 3, fifth part (text 211,604 B, data 27,192 B, bss 17,052 B; stack 5,812 B; `__ebss` 0x2003ACD4), from a local build; §10.3 the 25.6 s watchdog | SMART-QSO Team |

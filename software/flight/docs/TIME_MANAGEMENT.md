@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-TIME-001
-**Revision:** B
-**Date:** 2026-10-24
+**Revision:** C
+**Date:** 2026-10-27
 **Reference:** NPR 7150.2, CCSDS 301.0-B-4
 
 ---
@@ -29,6 +29,13 @@ validity states, and the calendar and ISO 8601 functions of §4 to §9. There is
 dictionary (`software/flight/command_dictionary.json`). The GNSS driver (`gnss.h`) parses the receiver's GPS time of
 week and week number, but nothing uses them as a time source yet. Sections 2 to 11 are the design of Revision A, kept as
 design intent. §3.2 is updated to the implementation.
+
+**Revision C (2026-10-27).** Since flight software round 3 the target reads the RV-3028-C7 real-time clock (I2C1,
+0x52) at every boot: it takes the clock's time stamp of the reset, clears its power-on and event flags, and checks its
+1 Hz CLKOUT against the MCU's timer capture every 60 s, logging a disagreement above 2 % (SRS-F145,
+`software/rust/sqso-fsw/src/rv3028.rs`, `hal_capture.h`). The RTC is not yet the spacecraft time: the mission clock is
+still time since boot, and there is still no time-set telecommand. On the ground, telecommand counters are derived
+from UTC (SQSO-ICD-013 §5.2.1), which needs no onboard UTC.
 
 ## 2. Time System Overview
 
@@ -446,3 +453,4 @@ Drift rate: ~4.75 seconds/day maximum
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-24 | §1.1 implementation status of the Rust flight software: the Embassy time base (64-bit, 32,768 Hz), the 64-bit mission clock since boot, persisted elapsed-time counters; RTC, UTC, synchronization, time tags and validity not implemented. §3.2 updated to the implementation | SMART-QSO Team |
+| C | 2026-10-27 | Documentation audit (post-CDR 2026): §1.1 the RV-3028-C7 boot read and clock check (SRS-F145); still no onboard UTC or time-set command | SMART-QSO Team |

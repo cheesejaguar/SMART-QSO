@@ -1,6 +1,10 @@
 # Orbital Debris Assessment Report
 ## SMART-QSO CubeSat Mission
 
+> **Historical record (2026-01-02).** Superseded for current values by `docs/BASELINE_PARAMETERS.md` and
+> `docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`. Still useful for the structure of an ODAR and the history of finding RG-06; the current assessment is SQSO-REG-018 (`docs/regulatory/filings/ODAR_SMART-QSO.md`, Draft D: 475 km target, 485 km cap, FCC 5-year rule). Its "COMPLIANT" and sign-off statements
+> record nothing: no assessment was accepted or signed.
+
 > **Funding audit notice (2026-10-14): superseded.** Replaced by `docs/regulatory/filings/ODAR_SMART-QSO.md`.
 > This revision cited NASA-STD-8719.14A and 47 CFR Part 25 instead of NASA-STD-8719.14C and 47 CFR 97.207(g); applied a
 > 25-year rule instead of the FCC 5-year rule; listed component masses summing to 0.92 kg against 1.33 kg; omitted the
