@@ -17,13 +17,13 @@ This ConOps follows the lightweight style used by NASA Ames smallsat missions (e
    - Before launch: final charge to 60 % ± 5 % SOC at the integrator about 47 days before launch; no access afterwards. Unpowered in the dispenser, all inhibits open (≤ 20 µA drain); separation SOC ≥ 40 %
    - Deployment from the dispenser; the OBC boots on switch release. No magnetorquer actuation for 120 s (SpaceX UG v11 §3.3.4). No RF for 45 minutes: the whole radio stays unpowered, receiver included (CDS 2.4.5); once complete, the silence is latched
    - Solar wings deploy no earlier than 30 minutes after switch release (CDS 2.4.4), then the antennas (ISIS AntS, I²C-commanded), with retries spread over sunlight and a ground-commanded retry
-   - Detumble with B-dot magnetorquer control (from 10°/s within 3 orbits; about 1 h in the mission simulation); spin-stabilized coarse sun-pointing of +Y
+   - Detumble with B-dot magnetorquer control (from 10°/s within 3 orbits; detumbled 0.25 h after separation in the mission simulation, 1.2 h at the slowest in the ADCS Monte Carlo and 2.1 h from a 50°/s tip-off, BASELINE §8); spin-stabilized coarse sun-pointing of +Y
    - First beacons in IDLE, template text, every 120 s (SAFE, every 180 s, if the separation SOC is below 25 %); receiver on from the end of the silence. The spacecraft holds IDLE, with the Jetson and the transponder off, until an authenticated command releases the commissioning hold
-   - First pass over the Bay Area 0.7–12.2 h after separation (median 5.2 h); first commanding pass median 6.3 h, earlier with the second station. First operator ephemeris within 24 h of first contact (SpaceX UG v11 §9.5.7.2), from the onboard GNSS fixes
+   - First pass over the Bay Area 0.7–12.1 h after separation (median 5.3 h); first commanding pass median 6.4 h, at the latest 13.7 h (`docs/operations/MISSION_TIMELINE.md` 2.3 §10, with a 15° mask; sooner at the 10° commanding rule and with the second station). First operator ephemeris within 24 h of first contact (SpaceX UG v11 §9.5.7.2), from the onboard GNSS fixes
    - Partner and community stations confirm reception and a power-positive state
 
 2) Commissioning — ~2 weeks (`docs/operations/COMMISSIONING_PLAN.md`)
-   - Telecommand checkout from each designated station: authenticated `GET_STATUS`, a `TX_DISABLE`/`TX_ENABLE` cycle to prove TX‑OFF, beacon interval and power level commands, a housekeeping dump
+   - Telecommand checkout from each designated station: authenticated `GET_HOUSEKEEPING` (an HK1 frame and the command acknowledgement), a `TX_DISABLE`/`TX_ENABLE` cycle to prove TX‑OFF, beacon interval and power level commands, a stored-housekeeping dump (`DUMP_TLM`)
    - TX-OFF proven from each station before the transponder is opened to users; operator ephemeris after every pass and at least every 24 h until cataloged; object claimed with the 18th SDS within 30 days
    - Characterize power and thermal; calibrate solar and battery telemetry
    - Beacon conformance: deviation, bandwidth, cadence, call sign
@@ -43,7 +43,7 @@ This ConOps follows the lightweight style used by NASA Ames smallsat missions (e
 
 5) Deorbit & Passivation — End of Life
    - Final identification beacon
-   - Permanent passivation by a two-step authenticated command (`PASSIVATE_ARM` with the operational key, then `PASSIVATE_EXECUTE` with the recovery key within 600 s; SQSO-ICD-013 §6.4): TX-OFF, then the battery charge path disconnected (non‑resettable), battery left discharging (47 CFR 97.207(g)(1)(iii))
+   - Permanent passivation by a two-step authenticated command (`PASSIVATE_ARM` with the operational key, then `PASSIVATE_EXECUTE` with the recovery key within 600 s; SQSO-ICD-013 v0.10 §6.4, `passivation.rs`): **while still transmitting**, the battery charge path is disconnected (non‑resettable one-shot fuse, fired in sunlight through two independent lines); the result (EOL_STATE and the fuse state) is reported in three final housekeeping frames a minute apart; then TX‑OFF is latched for good and the battery is left discharging (47 CFR 97.207(g)(1)(iii)). The execute is sent early in a sunlit pass so that the fire (60–120 s) and the final report (3 min) are heard (`docs/operations/END_OF_LIFE_PLAN.md` §3.2)
    - Passive re‑entry with the solar wings deployed, no later than 5 years after mission end. There is no separate drag device
 
 ## 3. Modes of Operation
@@ -70,12 +70,12 @@ Mode transitions follow the SOC thresholds (ACTIVE at ≥ 55 % sunlit; IDLE belo
 - OBC always on. It enforces every hard limit itself; no AI output can override them
 - Beacon text: an OBC selector picks among pre‑approved templates (flight baseline, D5). Jetson‑generated text is a gated experiment, enabled only if the measured energy per accepted beacon is ≤ 0.1 Wh. Both sides apply the same content filter, and generated text carries no numbers; the OBC writes all values from measurements (`docs/BEACON_SPEC.md` §6)
 - Transponder: the selector proposes the window schedule and QSO priority; the OBC applies the power gates (sunlit, SOC ≥ 55 %, duty ≤ 25 %)
-- Jetson bursts: ≤ 120 s including boot, sunlit, SOC ≥ 55 %; the OBC cuts the rail on its own current and temperature measurements
+- Jetson bursts: each power-on ≤ 10 minutes including boot, producing a batch of ≥ 10 lines, then ≥ 100 minutes off, and ended earlier by the energy gate (360 J per line of a full batch); sunlit, SOC ≥ 55 %, Jetson ≥ −15 °C at power-on; the OBC cuts the rail on its own current and temperature measurements (BASELINE §6)
 - Fail‑graceful: if the Jetson is off, faulty or its text fails the filter, the beacon uses a template and the transponder runs on fixed rules
 - As built (2026‑10‑25): the OBC sends its fixed templates in turn; the selector and the transponder scheduler are not implemented, and the flight software has not run on hardware
 
 ## 6. Ground Segment & Operations
-- Telecommand stations: at least two designated amateur stations at least 1,000 km apart, each able to command alone (Santa Clara and NASA Ames, 13 km apart, count as one site), with cross‑Yagis, rotators, 50 W PEP on 70 cm and Doppler pre-correction; agreements by 2027-01-05, not yet named (D1). Only they hold keys
+- Telecommand stations: at least two designated amateur stations at least 1,000 km apart, each able to command alone (Santa Clara and NASA Ames, 13 km apart, count as one site), radiating ≥ 64 dBm EIRP toward the spacecraft on 70 cm and commanding only above 10° (decision C-14): ≥ 100 W PEP at the feed into ≥ 15.5 dBic outside the 47 CFR 2.106 US270 areas, or ≤ 50 W PEP at the transmitter output into a ≥ 17.8 dBic stacked pair inside them (the Bay Area, near Beale AFB); rotators; Doppler pre-correction with the uplink offset estimated from the measured downlink (`docs/ground/GROUND_STATION_DESIGN.md` §2–§3); agreements by 2027-01-05, not yet named (D1). Only they hold keys
 - Users: any licensed amateur with an FM handheld or mobile rig and a small Yagi
 - Community and SatNOGS stations receive and decode beacons; logs published openly
 - Operations: verify beacon content, cadence and power trends; command mode, beacon interval, power level and payload as needed; renew contact within the loss‑of‑contact period (`docs/operations/MISSION_OPERATIONS_PLAN.md`)
@@ -85,7 +85,7 @@ Mode transitions follow the SOC thresholds (ACTIVE at ≥ 55 % sunlit; IDLE belo
 - Power shortfall: modes step down by SOC; transponder and Jetson off; recovery with hysteresis
 - Thermal over‑limit: Jetson off; transponder duty reduced; resume within limits
 - RF anomaly or interference: a telecommand station sends TX‑OFF; transmissions resume only on authenticated `TX_ENABLE`
-- No telecommand for N days: the transmitter inhibits itself; the receiver stays on for the next contact
+- No telecommand for N days: the transmitter inhibits itself; the receiver stays on for the next contact. Exception (RID REL-04, declared in the IARU request and put to the FCC consultation): if the receiver is known failed (a recovery cycle made, its health line in fault, the N days expired), the beacon and housekeeping frames continue, the transponder stays off and TX‑OFF still works if a command gets through
 - Jetson fault or latch‑up: the OBC powers it off; template beacons continue
 
 ## 8. Compliance
@@ -97,6 +97,8 @@ Mode transitions follow the SOC thresholds (ACTIVE at ≥ 55 % sunlit; IDLE belo
 - End‑of‑life passivation and re‑entry within 5 years of mission end (47 CFR 97.207(g))
 
 ---
+
+*Revision note (2026‑10‑27, CDR round 3, finding P3A-07 and RID REG-12): telecommand stations to decision C-14 (≥ 64 dBm EIRP, two station variants, commands above 10°) instead of "50 W PEP"; Jetson bursts to the BASELINE §6 limits (≤ 10-minute power-ons and the energy gate) instead of "≤ 120 s"; detumble 0.25 h in the simulation (was "about 1 h"); pass statistics from MISSION_TIMELINE 2.3; the commissioning checkout with `GET_HOUSEKEEPING` and `DUMP_TLM`; passivation fires the charge disconnect while transmitting, reports the result, then latches TX‑OFF (was TX‑OFF first); the REL-04 exception in §7.*
 
 *Revision note (2026‑10‑27): the design review against the CDR criteria (`docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`) changed the launch chain (EXOpod Nova on a Transporter, planning date about 2028-11), the altitude (475 km target, 485 km cap), the LEOP sequence (120 s actuator hold, latched RF silence, wings before antennas, commissioning hold, GNSS ephemeris), the telecommand stations (two sites ≥ 1,000 km apart) and passivation (two-step command).*
 
