@@ -397,7 +397,9 @@ static uint32_t wdi_falling_edges(uint32_t seconds, bool checkin)
 static void test_external_supervisor_kicked_only_while_healthy(void **state)
 {
     (void)state;
-    assert_false(hal_gpio_get(GPIO_PIN_WDI)); /* low from the start */
+    assert_int_equal(hal_gpio_init(), SMART_QSO_OK);
+    assert_int_equal(wdt_mgr_start(), SMART_QSO_OK); /* WDI configured, the count from now */
+    assert_false(hal_gpio_get(GPIO_PIN_WDI));        /* low from the start */
     assert_int_equal(wdi_falling_edges(9U, true), 0U);
     assert_int_equal(wdi_falling_edges(23U, true), 2U); /* at 11 s and 22 s */
     (void)wdi_falling_edges(5U, false);                 /* the task stalls */

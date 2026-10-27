@@ -278,8 +278,10 @@ Decision: **no isolation; a verification item instead (V-OBC-16)**. An isolator 
 mount for a 10 g module tuned well below 326 Hz is tens of hertz to about 150 Hz), would need a flexible link in place
 of the socket (the module has only its rigid header), and would make the 0.1° alignment of VI-MCAD-05 depend on the
 elastomer's creep and temperature; the 1.5 mm window clearance also leaves no room for isolator travel. V-OBC-16: the
-OBC EM with an M-G370 of the flight lot fitted on X1 with its two screws (thread-locked, the module edge staked to the
-socket with the board's staking compound), random vibration at the FE-predicted module levels (the stack input at
+OBC EM with an M-G370 of the flight lot fitted on X1 with its two screws (locked by prevailing-torque, all-metal
+self-locking female threads in the board-side standoffs, no anaerobic thread-locker (MATERIALS_LIST: Loctite 242 is
+non-compliant for outgassing); screw heads and the module edge staked with Scotch-Weld 2216, staking only, not
+structural), random vibration at the FE-predicted module levels (the stack input at
 protoflight level and duration, or a board-level input shaped to give ≥ 22.2 / 25.0 / 21.7 Grms at the module), and a
 shock test to the launch provider's SRS when it is issued; functional tests before and after on a rate table: bias
 change ≤ 0.01 °/s (10 % of the 0.1 °/s budget of SENSOR_DESIGN §4.1), scale factor change ≤ 0.2 %, noise within 10 %
@@ -573,7 +575,7 @@ SQSO-EPS-BRD-001 §6.5); it is the "harness part" A3 of SQSO-HAR-001 2.0 §3.2, 
 | Protection, charge group | D3 SMF24A UMB_CHG → PACK_N (24 V VRWM against the 16.8 V charge voltage, 70 %; 38.9 V clamp below the EPS's 40 V VBAT parts; EPS F5 1 A and D16 behind it, so it cannot drain the pack); D4 SMF24A UMB_VMON → PACK_N (the line has the EPS's 100 kΩ from BAT_F; leakage ≤ 1 µA worst at VRWM, far less at 16.8 V: for the EPS storage-drain budget, item C18); D5 TPD1E05U06-Q1 UMB_SHUT → PACK_N |
 | Separation | **PACK_N is never joined to GND on A3** (the EPS's DS2 is the only GND–PACK_N path, SQSO-EPS-BRD-001 §6.4); no copper of the two groups within 0.5 mm of each other (≤ 16.8 V between them with DS2 open); the Micro-D shell and the mounting holes have no copper connection: the shell bonds to the frame through the panel only |
 | Heights | parts on the board's inner face only, ≤ 1.4 mm (USON, X1SON, SOD-123FL), inside the 7 mm depth with the receptacle body and the board |
-| Mounting | two Ti M2 screws through the shear panel, the receptacle flange and A3 (holes on the flange pattern, copper-free), thin nuts with thread-locker on A3's inner face; A3 is held by the connector, which takes the mating force |
+| Mounting | two jackposts (Ti, M2 or the receptacle's flange thread) through the −Y shear panel into the receptacle flange's threaded inserts, their outer female thread taking the GSE plug's jackscrews; **locking by a prevailing-torque (self-locking) thread** (self-locking jackposts or inserts), **no anaerobic thread-locker** (MATERIALS_LIST: Loctite 242 non-compliant, outgassing); a Scotch-Weld 2216 witness and staking bead at each jackpost (staking only, not structural). A3 is soldered to the receptacle's PCB tails and carries no fastener or nut (none would fit the 7 mm depth); its corner holes stay copper-free |
 | Current | 0.5 A charge on two contacts per pole (0.25 A each, 8 % of 3 A); signals < 5 mA |
 | Verification | V-OBC-18 (§22) |
 
@@ -722,7 +724,7 @@ Version A's guidance conflicted with them it has been changed (marked "Version B
 | V-OBC-13 | Thermal vacuum of the OBC EM at −20…+60 °C with the coils driven | all functions; DRV8876 case ≤ 70 °C | §17 | OBC EM |
 | V-OBC-14 | ESD: IEC 61000-4-2 ± 8 kV contact at each connector pin (unpowered) | no damage; functional | §16 | OBC EM (one unit) |
 | V-OBC-15 | Back-power into the unpowered OBC (= V-ICX-3) | ≤ 3.0 mA, 3V3_OBC < 0.5 V | §16 | flatsat |
-| V-OBC-16 | Gyro random vibration and shock: OBC EM with a flight-lot M-G370 on X1 (screws thread-locked, staked), random at the FE-predicted module levels (≥ 22.2 / 25.0 / 21.7 Grms in axis) for the protoflight duration, shock to the launch SRS; header continuity monitored | before/after on a rate table: bias change ≤ 0.01 °/s, scale factor change ≤ 0.2 %, noise within 10 %, no DIAG_STAT flags or SPI errors; no continuity interruption > 1 µs | §9.2; with VI-STR-02 | OBC EM |
+| V-OBC-16 | Gyro random vibration and shock: OBC EM with a flight-lot M-G370 on X1 (screws in prevailing-torque self-locking threads, staked with Scotch-Weld 2216; no thread-locker), random at the FE-predicted module levels (≥ 22.2 / 25.0 / 21.7 Grms in axis) for the protoflight duration, shock to the launch SRS; header continuity monitored | before/after on a rate table: bias change ≤ 0.01 °/s, scale factor change ≤ 0.2 %, noise within 10 %, no DIAG_STAT flags or SPI errors; no continuity interruption > 1 µs | §9.2; with VI-STR-02 | OBC EM |
 | V-OBC-17 | Spreader NTC: carrier off and on, RT1 (or a decade box) at −40, −15, 25, 70, 95 °C equivalents; open and short at J3 | reading within ± 0.5 K of the reference at −15 and 70 °C; open reads < −50 °C, short > 150 °C; reading unchanged with the carrier off | §11.3, E10 | flatsat with the carrier |
 | V-OBC-18 | Access-port board A3: continuity of every Micro-D pin to its OBC J9 / EPS J13 pin through W8A and W11; isolation GND–PACK_N, debug group to charge group and both to the shell, at 50 V; ESD ± 8 kV contact at each Micro-D pin (unpowered); charge at 0.5 A through the GSE plug | continuity as SQSO-ICX-001 §3.6; isolation ≥ 100 MΩ (GND–PACK_N ≥ 100 kΩ with the EPS connected and DS2 open, V-EPS-4); no damage; charge drop ≤ 50 mV across A3 | §15.1 | flatsat |
 
@@ -771,7 +773,7 @@ changes in SQSO-ICX-001 §6. In addition:
 | C16 | RF board | RF designer | no ferromagnetic top-side parts or shield clips within 20 mm of (+24, +27) (A2 is 4 mm above the RF board's parts there); PA supply and return paired; J1 of the RF board in the (+X, −Y) corner to meet the OBC's J2 ribbon (§21) |
 | C17 | Spreader NTC | carrier designer / flight software | E10 taken as proposed; the TE resistance table for GA10K3MCD1 to replace the assumed β = 3976 K in the conversion |
 | C18 | EPS storage drain and the A3 protection | EPS designer | D4 (SMF24A on UMB_VMON) leaks ≤ 1 µA worst at its 24 V standoff (far less at 16.8 V) through the EPS's 100 kΩ from BAT_F: add to the LVR-071 storage-drain budget (≤ 20 µA), or accept |
-| C19 | A3 size | harness and mechanical designers | A3 is 30 × 8.8 mm (the CAD envelope's height), not the 30 × 12 mm of SQSO-HAR-001 2.0 §3.2; mounting by two Ti M2 screws through the panel, the Micro-D flange and A3 |
+| C19 | A3 size and mounting | harness and mechanical designers | A3 is 30 × 8.8 mm (the CAD envelope's height), not the 30 × 12 mm of SQSO-HAR-001 2.0 §3.2; mounted by two self-locking Ti jackposts through the panel into the Micro-D flange (no nuts, no thread-locker; Scotch-Weld 2216 staking only), in place of SQSO-HAR-001's "two Ti M2 screws" |
 
 ## 25. Not Verified and Open
 

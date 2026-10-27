@@ -198,8 +198,9 @@ def items() -> List[Item]:
            [box(1.0, (30.0, 30.0, -46.0), (25, 25, 8))], mga=0.20, mga_low=0.0))
     a(Item("25", "Gyro, Epson M-G370PDT0", "1", 10.0, "C1", "10 g (BUILD_VS_BUY 5.2)",
            [box(1.0, (-25.0, 25.0, -2.0), (24, 24, 10))]))
-    a(Item("26", "ADCS sensor brackets and cables", "1 set", 5.0, "E1", "Estimate (sun sensors are the "
-           "panel photodiodes, row 6)", [box(1.0, (0, 0, 0), (80, 80, 80))]))
+    a(Item("26", "ADCS sensor brackets and cables", "1 set", 9.0, "E1", "Sensor cables W6B-W6E 6.6 g (SQSO-HAR-001 "
+           "2.0 sec. 11), magnetometer board A2 fasteners 2.0 g, +-Z sun-sensor carriers 0.4 g (the side sun sensors "
+           "are the panel photodiodes, row 6)", [box(1.0, (0, 0, 0), (80, 80, 80))]))
     a(Item("27r", "Magnetorquer rods, CubeSpace CR0002 (3)", "3", 49.5, "C1",
            "16.5 g each (BUILD_VS_BUY 2.7)",
            [bar(1 / 3, (0.0, -38.0, -44.0), "x", 70.0, 10.0), bar(1 / 3, (-38.0, 0.0, -44.0), "y", 70.0, 10.0),
@@ -217,8 +218,9 @@ def items() -> List[Item]:
     a(Item("31", "GNSS cable, adapter and bracket", "1", 26.0, "E1", "Balance of the 70 g GNSS allocation",
            [box(1.0, (0, 0, 46.0), (60, 60, 6))]))
     # Distributed ------------------------------------------------------------------------
-    a(Item("32", "Harness (incl. 100 mm battery flying leads, wing flex jumpers)", "1", 80.0, "E1",
-           "MB v2.0 row 20 (HARNESS_DESIGN 9 lists 55 g without the GNSS and wing jumpers)",
+    a(Item("32", "Harness (incl. 120 mm battery flying leads, access-port board A3)", "1", 75.6, "E1",
+           "SQSO-HAR-001 2.0 sec. 11: wire, W10 coax, harness-side connector halves, A3, tabs, lacing "
+           "(wing flex jumpers in rows 10/11, W6B-W6E in row 26, W10E in row 31)",
            [box(1.0, (0, 0, -5.0), (90, 90, 90))]))
     a(Item("33", "Thermal control (tapes, interface materials, MLI patches)", "1", 30.0, "E1",
            "MB v2.0 row 21", [box(1.0, (0, 0, 0.0), (90, 90, 90))]))

@@ -130,21 +130,22 @@ static void test_execute_order_and_for_good(void **state)
     assert_int_equal(passivation_phase(), PASSIVATION_REPORTING);
     assert_true(rf_control_tx_permitted());
     assert_false(passivation_passivated());
+    /* (the simulated clock also runs in real time: margins of 1 s) */
     assert_int_equal(passivation_take_report(), 1U);
     assert_int_equal(passivation_take_report(), 0U);
-    smart_qso_sim_advance_ms(PASSIVATION_REPORT_INTERVAL_MS - 1U);
+    smart_qso_sim_advance_ms(PASSIVATION_REPORT_INTERVAL_MS - 1000U);
     assert_int_equal(passivation_take_report(), 0U);
-    smart_qso_sim_advance_ms(1U);
+    smart_qso_sim_advance_ms(1000U);
     assert_int_equal(passivation_take_report(), 2U);
     smart_qso_sim_advance_ms(PASSIVATION_REPORT_INTERVAL_MS);
     passivation_tick(true);
     assert_int_equal(passivation_take_report(), 3U);
     assert_true(rf_control_tx_permitted());
-    smart_qso_sim_advance_ms(PASSIVATION_REPORT_WINDOW_MS - (2U * PASSIVATION_REPORT_INTERVAL_MS) - 1U);
+    smart_qso_sim_advance_ms(PASSIVATION_REPORT_WINDOW_MS - (2U * PASSIVATION_REPORT_INTERVAL_MS) - 1000U);
     passivation_tick(true);
     assert_int_equal(passivation_take_report(), 0U);
     assert_true(rf_control_tx_permitted());
-    smart_qso_sim_advance_ms(1U);
+    smart_qso_sim_advance_ms(1000U);
     passivation_tick(true);
 
     /* Then TX-OFF and the inhibit */
@@ -183,10 +184,10 @@ static void test_unconfirmed_fire_is_reported_then_silenced(void **state)
         smart_qso_sim_advance_ms(200U);
         passivation_tick(true);
         assert_true(hal_gpio_get(GPIO_PIN_EOL_FIRE));
-        smart_qso_sim_advance_ms(PASSIVATION_FIRE_MAX_MS - 1U);
+        smart_qso_sim_advance_ms(PASSIVATION_FIRE_MAX_MS - 1000U);
         passivation_tick(true);
         assert_true(hal_gpio_get(GPIO_PIN_EOL_FIRE));
-        smart_qso_sim_advance_ms(1U);
+        smart_qso_sim_advance_ms(1000U);
         passivation_tick(true);
         assert_false(hal_gpio_get(GPIO_PIN_EOL_FIRE));
         assert_false(hal_gpio_get(GPIO_PIN_EOL_ARM));
