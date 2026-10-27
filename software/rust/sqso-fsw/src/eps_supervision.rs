@@ -37,6 +37,8 @@ pub const TRK_KEY: u8 = 0x96;
 pub const TRK_MASK: u8 = 0x0F;
 /// `EPS_SUPV`
 pub const REG_SUPV: u8 = 0x8F;
+/// `CHG_INHIBIT`, the charge-inhibit causes (read for HK2 `CI`)
+pub const REG_CHG_INHIBIT: u8 = 0x7A;
 /// `CHG_INHIBIT` bit 6: NTC1 implausible (its window released to the AFE)
 pub const CHG_INHIBIT_NTC1_IMPLAUSIBLE: u8 = 0x40;
 

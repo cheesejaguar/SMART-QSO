@@ -1,7 +1,7 @@
 # Mission Simulation (Software in the Loop)
 
 **Document ID**: SQSO-SIL-001
-**Version**: D
+**Version**: E
 **Date**: 2026-10-27
 **Status**: Draft
 
@@ -41,7 +41,10 @@ Settings (`--set`): `seed`, `altitude_km`, `ltan_h`, `integration_soc`, `storage
 `contact_outage_days`, `contact_outage_start_day`, and for the design trades `battery_scale`, `charge_v_cell`,
 `array_years`, `gyro`, `adcs_failed`, `wings_failed`, `payload_stuck_on`, and since Version C `rx_failed_day` (the
 command receiver fails for good on that day; its health line goes high), `rx_sefi` (receiver hangs from radiation, on
-by default) and `dump_every_days` (the ground's DUMP_TLM plan) (`sqso-sil/src/config.rs`). The ADCS Monte Carlo is a
+by default) and `dump_every_days` (the ground's DUMP_TLM plan), and since Version E `wing_a_failed` (the A resistors
+heat but never part their lines), `eol_heater_ohms` (the end-of-life fuse's heater, 11.2–20.0 Ω), `separate_at_eclipse`
+(separation at the first umbra entry after the deployment time) and `separation_soak_c` (the structure and the AntS at
+that temperature at separation: the dispenser cold soak) (`sqso-sil/src/config.rs`). The ADCS Monte Carlo is a
 separate binary, `sqso_adcs_mc` (`docs/hardware/BUILD_VS_BUY.md` §6).
 
 The failed-receiver contingency of RID REL-04 (Version C):
@@ -54,6 +57,16 @@ The failed-receiver contingency of RID REL-04 (Version C):
 Its `rx-failed-beacon` check must pass; its `contact` anomaly (the inhibit's flag does set) and the commands warning
 are the expected consequences of a receiver that hears nothing.
 
+The AntS temperature gate (decision C-18, Version E): an eclipse separation after a cold dispenser soak.
+
+```bash
+./target/sil/sqso_sil --scenario commissioning --set separate_at_eclipse=true --set separation_soak_c=-30
+```
+
+Its `ants-gate` check must pass (the AntS deferred while below −17 °C, deployed once warm). Its `beacon-gap` anomaly is
+the expected consequence of transmitting into the stowed antennas: the downlink's VSWR protection stops the downlink
+for 10 minutes at a time until the AntS is out (finding SIL-37).
+
 ## 2. How the flight software is in the loop
 
 The simulation links `sqso-ffi`, the flight software behind the C headers, and runs its executive
@@ -63,11 +76,12 @@ in the flight logic knows it is simulated. The simulation reaches it only where 
 | Interface | How |
 |-----------|-----|
 | Time | A virtual clock (`sqso_ffi::sil`): it starts at 150 ms at each boot, as the target's does, and advances by the simulation step. Steps are 1 s, or 0.1 s while the downlink is busy or a burn wire is on |
-| EPS controller | Its telemetry registers on I²C bus 0, address 0x48 (`sqso_fsw::eps_telemetry`, SMART-QSO-ICD-001 §4.2): battery voltage, current, temperature, SOC, array voltage and current (the current measured at the bus, so array power is battery voltage × array current), bus, status bits; the EOL_STATE register 0x7C (arm latch, fired) the EPS model sets |
+| EPS controller | Its telemetry registers on I²C bus 0, address 0x48 (`sqso_fsw::eps_telemetry`, SMART-QSO-ICD-001 §4.2): battery voltage, current, temperature, SOC, array voltage and current (the current measured at the bus, so array power is battery voltage × array current), bus, status bits, IMON_JET; the EOL_STATE register 0x7C (arm latch, fired, F1 intact, key) with the key at 0x7E (the simulated controller, `hal_sim`); the two INA228s (pack and array), their dies at the OBC/EPS stack node's temperature (the passivation fire's board condition) |
 | ADC | Battery, array and bus monitors, board temperatures, the transmitter's TX_TEMP, TX_FWD and TX_REV |
-| GPIO | The flight software's outputs (load switches, PA rail, power select, the four wing burn lines, heater, transponder enable, the end-of-life lines EOL_ARM and EOL_FIRE, the lockout-clear LOCK_CLR) are read back each step; the sense lines (separation, umbilical, antenna and wing switches, the receiver's carrier detect RX_CD and health line RX_FAULT) are driven. The pins without an STM32 pin yet are the logical pins 19 to 24 of `hal_gpio.h` |
+| GPIO | The flight software's outputs (load switches, PA rail, power select, the four wing burn lines, heater, transponder enable, the end-of-life lines EOL_ARM and EOL_FIRE, the lockout-clear LOCK_CLR) are read back each step; the sense lines (separation DEPLOY_SENSE high = released, umbilical, the wings' series switches SOLAR_SENSE low = both deployed, the receiver's carrier detect RX_CD and health line RX_FAULT) are driven, with no internal pulls (SQSO-ICX-001 §3.7) |
 | ADCS sensors | Magnetometer, coarse sun sensors and gyro, in the body frame (`adcs_set_sim_sensors`) |
-| Radio | Downlink frames are taken from the TNC path and put on the air by the radio model; uplink frames (authenticated telecommands under the operational key, and PASSIVATE_EXECUTE under the recovery key, each key with its own counter; AX.25 with FCS) are injected into the receiver, when it is powered, not hung and not failed |
+| AntS | Its status word (0xC3) and, since Version E, its controller's temperature (0xC0, the AntS thermal node) on I²C3, both sides (0x31, 0x32) |
+| Radio | Downlink frames are taken from the TNC path and put on the air by the radio model; the TNC answers the STATUS loop query (KISS SetHardware 0x06/0x01, answer 0x81: version, criteria, noise floor, carrier and frame counts, uptime); uplink frames (authenticated telecommands under the operational key, and PASSIVATE_EXECUTE under the recovery key, each key with its own counter; AX.25 with FCS) are injected into the receiver, when it is powered, not hung and not failed |
 | Jetson | A pseudo-terminal: the flight software opens it as its Jetson port through its own serial driver and the payload model answers on the other end |
 | GSE | Key provisioning, activation and the flight arming over the umbilical before launch |
 | Non-volatile memory | The fault log, EPS configuration, mission data and state snapshot are files in the run's directory, kept across the simulated resets |
@@ -77,21 +91,22 @@ in the flight logic knows it is simulated. The simulation reaches it only where 
 | Model | Basis | Code |
 |-------|-------|------|
 | Orbit | Mean elements, J2 secular drift, drag decay of the semi-major axis (wings deployed, 0.0247 m², NASA-STD-8719.14C average area); 475 km sun-synchronous, LTAN 22:30 (Version B: 500 km) | `env/orbit.rs` |
-| Atmosphere | Diffusive-equilibrium density with the Bates profile, driven by the solar cycle | `env/atmosphere.rs` |
+| Atmosphere | Diffusive-equilibrium density with the Bates profile, driven by the solar activity of the filed lifetime (Version E): the NOAA SWPC predicted monthly F10.7, 2026-04 to 2030-12, as the ODAR's analysis embeds it (`software/simulation/cdr/sma/debris_lifetime.py`), then half-cosine cycles (minima 68 sfu, cycle 26 maximum 140 sfu at 2035.5, cycle 27 repeating it) | `env/atmosphere.rs` |
 | Sun, eclipse | Low-precision solar coordinates (Astronomical Almanac); conical umbra and penumbra | `env/sun.rs`, `env/eclipse.rs` |
 | Magnetic field | IGRF-14 tilted dipole with secular variation | `env/magfield.rs` |
-| Attitude | Rigid body (Euler's equations, RK4) with the stowed and deployed inertia tensors of the CAD (MASS_BUDGET v3.1 §6.1, the mean of CBE and MEV, products included), the angular momentum conserved when the wings deploy; magnetorquer torque from the flight software's dipole; residual dipole, gravity-gradient and aerodynamic torques; 10°/s tip-off | `env/attitude.rs`, `adcs_mc.rs` |
+| Attitude | Rigid body (Euler's equations, RK4) with the final CAD's inertia (MASS_BUDGET §6.1 and §6.5, CDR round 3; principal axes, products left out): stowed (2.960, 3.292, 2.970) × 10⁻³ kg·m²; deployed the mean of CBE (2.852, 4.199, 3.977) and MEV (3.274, 4.756, 4.543), (3.0645, 4.479, 4.2615) × 10⁻³, the flight software's `INERTIA`; one wing out (W1 or W2, STR-27) (3.027, 4.165, 3.910) or (3.027, 4.166, 3.911) × 10⁻³ (their products tilt the major axis 8.3° and 9.1°, left out here; the Monte Carlo of ADCS_DESIGN §11.2 has them). The angular momentum is kept as each wing swings out; magnetorquer torque from the flight software's dipole; residual dipole, gravity-gradient and aerodynamic torques; 10°/s tip-off | `env/attitude.rs`, `adcs_mc.rs` |
 | ADCS sensors | Magnetometer (50 nT noise, 300 nT bias), six coarse sun sensors (5°), gyro (Epson M-G370PDT0 model: turn-on bias, bias instability, noise, scale factor, quantisation; `--set gyro=`) | `adcs_mc.rs` |
 | Solar array | 16 cells in 8 strings on the body faces and the two wings, with incidence, shadowing by the body, albedo, temperature and radiation degradation | `env/solar.rs` |
 | Battery | 4S1P INR18650-35E equivalent circuit with ageing (cycle and calendar fade) | `env/battery.rs` |
-| EPS | MPPT, charge regulator (0.40 A CC, 4.10 V a cell CV, 0–45 °C window), BMS (2.8 V UV, 3.0 V reconnect, 4 A OC), regulators, load switches, fuel gauge; the end-of-life charge disconnect of SQSO-EPS-BRD-001 §7: an EOL_ARM rising edge sets the arm latch, and with the latch set and EOL_FIRE high the thermal cut-off's heater (35 Ω on the pack) opens the charge path after 30 s, reported in EOL_STATE. Nothing else passivates (Version B fired a modelled latch on the end-of-life TX_DISABLE) | `hw/eps.rs`, `mission.rs` |
-| Thermal | 12-node lumped network: six panels, two wings, battery, OBC stack, RF board, Jetson; solar, albedo and Earth IR loads; heaters and dissipation. The battery heater is a resistance of 207 Ω on the pack (V²/R: 1.3 W at 16.4 V, 0.9 W at 13.6 V; Version B: a fixed 0.5 W), switched by the flight software at +5 / +9 °C | `env/thermal.rs`, `mission.rs` |
+| EPS | MPPT, charge regulator (0.40 A CC, 4.10 V a cell CV, 0–45 °C window), BMS (2.8 V UV, 3.0 V reconnect, 4 A OC), regulators, load switches, fuel gauge; the Jetson at its carrier's input from VBAT through SW1 and the eFuse U19 (IMON_JET), the magnetorquers from VBAT (SW11, their I²R through the bridges for the burst, Version E); the hardware load shed (SQSO-EPS-BRD-001 E §8.4): SHED_N low after VBAT below 13.6 V for 5 s, high again above 14.4 V, gating SW1 and U19 only (not the PA, RID SMA-B05); the end-of-life charge disconnect (SQSO-EPS-BRD-001 D §7): the controller takes the key at EOL_KEY and sets the arm latch on an EOL_ARM rising edge while its key is up; with the latch set and EOL_FIRE high the fuse F1's heater (ITV4030, 11.2–20.0 Ω, 15.6 Ω nominal, `eol_heater_ohms`) warms, and inside its 6–35 W firing window the charge path opens after 30 s, reported in EOL_STATE. Nothing else passivates | `hw/eps.rs`, `mission.rs` |
+| Thermal | 13-node lumped network (Version E): six panels, two wings, battery, OBC stack, RF board, Jetson and the ISIS AntS on the −Z face (THERMAL_ANALYSIS 2.4 §4.4: 77 J/K, black anodize α 0.88 ε 0.85; its 98 × 98 mm outer face and four 7 mm edges replace the −Z face's surface, its back radiates to the −Z frame, σ · 0.74 · 0.0096 m², and its mount conducts 0.02 W/K); solar, albedo and Earth IR loads; heaters and dissipation. The battery heater is a resistance of 207 Ω on the pack (V²/R: 0.70 W at 12.0 V, 1.3 W at 16.4 V), switched by the flight software at +5 / +9 °C. The thermal analyst's round-3 cases (wing sub-nodes, the LEOP case L4) are folded in as `tests/thermal_round3.rs` (`cargo test -p sqso-sil --release --test thermal_round3 -- --ignored`) | `env/thermal.rs`, `mission.rs`, `tests/thermal_round3.rs` |
 | Radio | KISS TNC and VHF PA (keying, airtime at 1200 bps, DC draw, PA heat, detectors); the FM transponder keying the PA on a CTCSS-valid carrier while `XPDR_EN` is high | `hw/radio.rs` |
-| Link | 2 m downlink and 70 cm uplink after SQSO-LBA-001 v3.0: the spacecraft antennas along +X (VHF) and −X (UHF) with their patterns (floor −20 dBi), the polarization loss of a linear antenna against each station's (circular or linear) with Faraday rotation through the pass, the demodulators' required C/N₀ (1200 bps AFSK with and without FEC, telecommand: 52.9, 55.0, 53.0 dB-Hz with 1 dB implementation loss) and their BER curves, 6 dB of uplink interference; frame success from the BER over the frame's bits | `env/link.rs` |
-| Ground | Nine stations (one with telecommand, KK6GDB-1: 50 W, 14 dBic transmit, 12 dBic receive, 500 K, Doppler-corrected; the others linear 5 dBi, 1000 K); passes, beacon reception, the commanding plan with the daily DUMP_TLM of the newest 48 records (from the HK1 `ST=` field) and the end-of-life plan (PASSIVATE_ARM, then PASSIVATE_EXECUTE 10 s later, within the 600 s window) | `env/ground.rs`, `env/link.rs`, `ops.rs` |
+| Link | 2 m downlink and 70 cm uplink after SQSO-LBA-001 v3.4 (Version E; v3.0 before): the AntS's 2 m tapes along ±X and 70 cm tapes along ±Y (the spin axis) with their patterns (floor −20 dBi), the polarization loss of a linear antenna against each station's (circular or linear) with Faraday rotation through the pass, the demodulators' required C/N₀ (1200 bps AFSK with and without FEC, telecommand) and their BER curves; the spacecraft receiver as designed, 948 K (598 K at the antenna terminals plus the 350 K in-band interference allowance) with 2 dB of implementation loss; frame success from the BER over the frame's bits. Telecommand only above 10° elevation (decision C-14) | `env/link.rs` |
+| Ground | Nine stations (one with telecommand, KK6GDB-1, at decision C-14's minimum (SQSO-GND-001 Rev F §3.1 variant B): 50 W PEP through a 0.5 dB feed into 17.8 dBic, 64.0 dBm EIRP toward the spacecraft after 0.3 dB of pointing, 12 dBic receive, 500 K, Doppler-corrected; the others linear 5 dBi, 1000 K); passes, beacon reception, the commanding plan with the daily DUMP_TLM of the newest 48 records (from the HK1 `ST=` field) and the end-of-life plan (PASSIVATE_ARM, then PASSIVATE_EXECUTE 10 s later, within the 600 s window) | `env/ground.rs`, `env/link.rs`, `ops.rs` |
 | Transponder users | Regional demand (North America, Europe, Japan and others), local-time activity, weekends; carrier present for a share of the time, 20 s overs | `qso.rs` |
-| Deployables | Separation switches, the AntS antennas, and two wings on four independent burn lines (one resistor each, SQSO-EPS-BRD-001), fed through the 7.0 V burn buck (86 %, 2.8 A limit; about 0.51 A at the pack per resistor at 12.8 V, 0.67 A at the board design's worst case), the EPS's 12 s one-shot per line, release energy and cold factor | `hw/deploy.rs` |
-| Jetson | Boot, idle and inference power; STATUS and BEACON_RSP answers on the line, 3 % unsafe texts for the filter | `jetson.rs` |
+| Deployables | Separation switches, the AntS antennas (released at the AntS node's temperature), and two wings, each with its own restraint, on four independent burn lines (one resistor each, SQSO-EPS-BRD-001), fed through the 7.0 V burn buck (86 %, 2.8 A limit; about 0.51 A at the pack per resistor at 12.8 V, 0.67 A at the board design's worst case), the EPS's 12 s one-shot per line, 10 s burns (decision C-17), release energy and cold factor; the wings' hinge switches in series (SOLAR_SENSE reads deployed only with both out) | `hw/deploy.rs` |
+| Jetson | At the carrier's input (SQSO-JET-BRD-001 §13, the module capped at 6.5 W; Version E): 4.5 W booting, the capped burst 7.19–7.48 W (drawn once per power-on in that range) for the whole burst, 3.5 W idle as a latch-up's baseline; JET_PG 0.1 s after the rail; `SHUTDOWN` runs `poweroff` for 3 s, then the carrier latches off; the input current's field at the magnetometer (JETB-09); STATUS and BEACON_RSP answers on the line, 3 % unsafe texts for the filter | `jetson.rs` |
+| GNSS receiver | piNAV-NG (decision D6): after an 80 s cold start a GGA and a `$PSLSP` state record every 10 s; the positions from its own arc, propagated with J2 from the orbit model's state at power-on (Version E: the mean-element orbit has no short-period J2, so the flight software's J2-consistent velocity would disagree with it by up to 0.5 m/s) | `mission.rs` |
 | Radiation | Single-event functional interrupts of the OBC (about one in 90 days), Jetson latch-ups (about one in 60 powered days) and command-receiver hangs (about one in 120 days, cleared only by a power cycle), weighted by the South Atlantic Anomaly and the polar horns; total dose after RADIATION_ANALYSIS Rev C §4 (trapped 1,830 rad a year, region-weighted, plus 797 rad a year solar and galactic; depth scaling exponent 1.35) | `env/radiation.rs` |
 
 ## 4. What is measured
@@ -121,6 +136,7 @@ Each run writes to its output directory:
 | Transponder | Never radiating while not permitted; radiating in eclipse or below 55 % SOC ≤ 0.5 % of its keyed time; keyed ≤ 25 % of an orbit; ≥ 70 % of the uplink demand repeated while its gates hold |
 | Operations | No loss-of-contact inhibit; ≥ 90 % of telecommands executed, no authentication failure; no watchdog reset or brownout; every Jetson latch-up cleared; Jetson energy per accepted beacon ≤ 0.1 Wh (BASELINE §6; a warning, not a pass, when no AI beacon was sent); OBC availability ≥ 99 % |
 | CDR round 2 (Version C) | `burn-lines`: at most one wing burn resistor on at once (EPS board); `rx-recovery`: every receiver hang cleared by the flight software's power cycle within 26 h (FSW-09: 24 h of silence, then the cycle; one still open at the end of a run is allowed); `rx-failed-beacon`: with `rx_failed_day` set, the receiver known failed, beacons radiated, gaps between them ≤ 600 s while it is, and the transponder never keyed (REL-04); without it, the receiver never declared failed; `acks`: acknowledgements radiated for ≥ 90 % of the commands executed (a warning below: TX_DISABLE gets none); `dumps`: dump frames radiated after commissioning |
+| CDR round 3 (Version E) | `load-shed`: hardware load sheds of SW1 and U19 before passivation (a warning above 0: the stuck-on payload contingency shows it acting); `gnss-frame`: a GNSS state frame (SRS-F158) per fix session, its position within 1 m of the receiver's record and its derived ECEF velocity within 0.5 m/s of the receiver's arc; `ants-gate`: the AntS told to deploy only at or above −17 °C, or after 30 deferrals (decision C-18; the AntS node's temperature at separation + 31 min, an ungated release, is reported with it); `antennas` allows 2 h plus 50 min per AntS deferral. `duty` counts exactly the last 60 s (Version D's window held 61 steps) and reports when its worst window ended |
 | End of life | Passivated by telecommand (Version C: the two-key sequence through the flight software, not a modelled latch); no charge into the pack after passivation; re-entry within 5 years of the end of the mission (the FCC's five-year rule; CLAUDE.md, mission phase 3) |
 
 ## 6. Findings and changes
@@ -159,6 +175,26 @@ Version C (2026-10-27, flight software round 2):
 | SIL-21 | Failed-receiver contingency: the beacon silenced for 5.2 days after the loss-of-contact inhibit, before the receiver counted as known failed | The receiver's silence was counted from boot, and a single-event OBC reset restarted it, so the evidence waited a whole contact timeout again | The known-failed test uses the contact monitor's persisted expiry instead (SRS-F116); after a reset it waits for one new recovery cycle (24 h). Rerun: known failed 1 s after the inhibit, 37,812 beacons in 26.5 days, longest gap 66 s, transponder 0 s |
 | SIL-22 | Version B's passivation could not fail | The simulation fired a modelled latch on the end-of-life TX_DISABLE; the flight software had no passivation | PASSIVATE_ARM and PASSIVATE_EXECUTE in the plan; the latch fires only through EOL_ARM and EOL_FIRE; the `passivation` check requires it by telecommand |
 | SIL-23 | The burn current at the pack was the resistor current | Version B fed the resistors from the pack directly | The burn buck model: the pack current is the resistor power over the buck efficiency and the pack voltage; one resistor at a time |
+
+Version E (2026-10-27, flight software round 3):
+
+| # | Showed | Cause | Change |
+|---|--------|-------|--------|
+| SIL-24 | Both wings released by any one burn line; the wings sensed deployed with one out | The model had one restraint for both wings and one sense switch | Each wing its own restraint (W1A/W1B, W2A/W2B), the hinge switches in series (SOLAR_SENSE low only with both out), each release an event; the angular momentum kept as each wing swings out |
+| SIL-25 | Magnetorquer power independent of the coils | The load was the commanded dipole's fraction of a fixed power | Each rod's I²R through its bridge for the 900 ms burst, from VBAT (SW11), with the bridges' awake current (SQSO-OBC-BRD-001 B §10) |
+| SIL-26 | Jetson energy per beacon optimistic | The module drew its inference power only while a line was generated | The carrier document's figures at the carrier's input: 4.5 W booting, the capped 7.19–7.48 W for the whole burst (RID JETB-11), JET_PG and the `poweroff` sequence |
+| SIL-27 | The decay did not use the solar activity of the filed lifetime | The atmosphere followed `orbit_lifetime.py`'s cycle points (cycle 25 maximum 185 sfu) | The ODAR's NOAA SWPC predicted F10.7 table, then the assumed cycles (atmosphere row of §3) |
+| SIL-28 | Attitude with a uniform-box inertia | Version D derived the tensors from a box and two plates | The final CAD's tensors (stowed, deployed, one wing out; attitude row of §3), the deployed diagonal shared with the flight software |
+| SIL-29 | The passivation could be fired by the OBC alone in the model | The latch set on any EOL_ARM edge | The two-processor arm: the latch sets only with the controller's key up (EOL_KEY 0x3C, 0xC3) and an EOL_ARM rising edge (RID P3E-11, SRS-F157) |
+| SIL-30 | F1 with a 35 Ω heater would not fire at the pack's voltage | The data sheet's heater is 11.2–20.0 Ω with a 6–35 W firing window | 15.6 Ω nominal, both ends checked inside the window across 13.6–16.4 V (`eol_heater_ohms`) |
+| SIL-31 | The final passivation report counted as frames while not permitted | The check forbade every frame once the charge path opened, but the report follows the opening by design (RID REG-12) | Forbidden only after the report window (180 s) plus 60 s |
+| SIL-32 | The passivation fire never ended in the model's run: the charge path open, the fire still waiting for sunlight | The opened path removes the array, and with it the sunlight the flight software sees | Flight software: the EPS reporting the path open ends the fire whatever the sunlight (SRS-F111) |
+| SIL-33 | `ai-energy` understated about 2.4 times (commissioning: 0.026 Wh over 6,390 beacons) | HK2 frames, new in round 3, were counted as AI beacons | HK2 classified as housekeeping, the GNSS state frame as its own kind: 0.064 Wh over 2,633 beacons in that run |
+| SIL-34 | A GNSS state frame per session needed checking | New frame (RID LV-04, SRS-F158) | `gnss-frame` check against the receiver's records; the receiver's arc propagated with J2 (§3), after which the derived velocity agrees within 0.001 m/s (it was up to 0.54 m/s against the mean-element orbit, the model's error) |
+| SIL-35 | The link margin at the receiver as designed | LBA v3.0 assumed a better receiver and other antenna axes | LBA v3.4 values (link row of §3): 8.3 dB of telecommand margin at 10°, 6.5 dB at 5°, 64.0 dBm EIRP |
+| SIL-36 | The separation and wing sense lines read with the wrong polarity | The model drove them as the flight software expected before RID SMA-B02 | DEPLOY_SENSE high = released, SOLAR_SENSE low = both deployed, as the EPS drives them, and no internal pulls in the flight software |
+| SIL-37 | Eclipse separation after a cold soak (`separate_at_eclipse`, `separation_soak_c` −30 °C): the AntS at −18.2 °C at separation + 31 min; the flight software deferred it one slot and deployed it at +1.4 °C, 80.7 min after separation. The beacon gap was then 1,312 s | The gate works (decision C-18). The gap: from the end of the RF silence (45 min) until the AntS was out the downlink keyed into the stowed antennas, its VSWR protection tripped (above 3:1) and stopped the downlink for 10 minutes, twice | Reported for a decision (RF lead): accept the VSWR stops while the AntS is deferred (up to 25 h at the cap), or hold the downlink until the AntS reads deployed. Not changed in the flight software |
+| SIL-38 | The full run's worst 60 s downlink duty 25.3 %, over the 25 % check | The check's window held 61 one-second steps (61 s of keying counted against 60 s); the flight software's limit is a credit of one 60 s window at 25 % (SRS-I025) | The window counts exactly 60 s and reports when it ended; the reference run's value is in §7 |
 
 Without the EPS controller answering (the stand-in power model of the development simulation, SW-01) the executive
 keeps its previous behaviour: detumble completes in the first pass and the payload follows the power mode. The C
@@ -204,15 +240,26 @@ The fault log of the run (its texts and counts are in `summary.json`) needs a re
 
 - The models are not correlated with hardware. The battery mount (SIL-03), the transponder's repeat-path hardware
   behind `XPDR_EN` (SIL-08) and the gyro (SIL-05) are design assumptions to confirm (TB-07; TRANSMITTER_DESIGN §10.1).
-- The receiver supervision's inputs (carrier detect RX_CD, health line RX_FAULT) are modelled as two lines; the RF
-  board (SQSO-RF-BRD-001 §4.1) has no such lines yet (TONE_OK is the candidate carrier evidence) and the OBC has no
-  pins for them. The contingency shows the logic, not the hardware.
+- The receiver supervision's inputs (carrier detect RX_CD, health line RX_FAULT) are two lines and the TNC's STATUS
+  answer has fixed fields (version, criteria, noise floor at its calibrated value, counts, uptime); the answer's byte
+  layout is defined on the OBC side and is to be confirmed with the TNC firmware. The contingency shows the logic, not
+  the hardware.
+- The reference run separates warm: every node at the storage temperature, the AntS at +4.2 °C at separation + 31 min,
+  where THERMAL_ANALYSIS 2.4 §4.4 predicts −44 °C after the dispenser's cold soak and an eclipse separation. The
+  simulation's structure soak (`separation_soak_c`) is cruder than the analysis (only the structure and the AntS
+  start cold), so its AntS warms faster (−18.2 °C at 31 min with −30 °C); the gate's behaviour, not the temperature,
+  is what SIL-37 shows. The AntS temperature reading's command and conversion are a documented assumption until the
+  ISIS ICD (SQSO-MFG-003 §12 V-1).
+- The attitude model uses principal axes: the products of inertia (the one-wing tensors tilt the major axis 8.3° and
+  9.1°) are in the ADCS Monte Carlo of ADCS_DESIGN §11.2, not here.
+- The thermal network's AntS node changes the −Z face's balance; the folded round-3 cases (`tests/thermal_round3.rs`)
+  were the analyst's 12-node results and now run on 13 nodes.
 - The end-of-life fuse and its heater (35 Ω, 30 s) and the battery heater (207 Ω) are design values; the burn buck's
   efficiency (86 %) is a data-sheet value at the burn load.
 - The ADCS gains and the spin (8°/s in the flight software since the CDR; 6°/s in Version B) are set by simulation only (SIL-13 to SIL-17). The attitude model has no flexible
   modes, no sensor misalignment and no magnetorquer remanence. The tip-off distribution and the inertia are
   assumptions.
-- The thermal network is lumped (12 nodes) and its internal conductances are assumptions.
+- The thermal network is lumped (13 nodes) and its internal conductances are assumptions.
 - The Jetson's inference and the onboard AI selector are represented by their power and their answers on the line,
   not by models.
 - The battery's calendar fade depends on the state of charge only linearly in the model. Published data show a

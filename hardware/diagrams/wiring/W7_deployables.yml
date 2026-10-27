@@ -96,17 +96,18 @@ cables:
     notes: "M22759/33-24 (Micro-Fit minimum); pairs twisted; 0.88 A for 12 s, one resistor at a time; under the EPS, along the +X wall gap below the EPS (within 20 mm of y = 0) and down the (+X, -Y) bundle to the burn board; loop 50 mohm, 44 mV"
   W7A_S:
     gauge: 24 AWG
-    length: 0.095
+    length: 0.135
     colors: [OG, BN]
-    notes: "sense pair, twisted, down the +X hinge-side strip"
+    notes: "sense pair, twisted, down the +X hinge-side strip and along the D-200-82 splice pair on the -Z end frame (y +34 ... +5) to the splices' far ends"
   W7B_B:
     gauge: 24 AWG
     length: 0.09
     colors: [VT, BK, VT, BK]
   W7B_S:
     gauge: 24 AWG
-    length: 0.155
+    length: 0.125
     colors: [OG, BN]
+    notes: "sense pair, twisted, into the top ends of the D-200-82 splice pair standing in the widened -X hinge-side strip (z -41.0 ... -11.8)"
   W7C:
     gauge: 28 AWG
     length: 0.155

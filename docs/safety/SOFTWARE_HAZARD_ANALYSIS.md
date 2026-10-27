@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-SHA-001
-**Revision:** E
+**Revision:** F
 **Date:** 2026-10-27
 **Classification:** Class D Mission
 **Reference:** NASA-STD-8739.8B (replaced NASA-STD-8719.13, cancelled 2020)
@@ -460,6 +460,9 @@ concurrence with the SDP §3.2 list.
 | SMA-B19 | SW-HAZ-010 (downlink held for temperature) | A failed TX_TEMP no longer holds the downlink for ever, nor hides a hot PA: an implausible reading (open line, out of range, too fast a rise, far from the board) is a sensor fault and the hold uses the board temperature plus 15 °C (SRS-F161) | T: `test_downlink`, Rust unit tests |
 | SMA-B09 | SW-HAZ-004 (watchdog) | The OBC writes the EPS controller's heartbeat every 30 s; the controller power-cycles the OBC after 600 s without one (at most 3 times a day); the IWDG timeout is 25.6 s (24.1–27.8 s), below the external supervisor's 29.3 s minimum (SRS-F162) | T: `sqso-ffi` unit test `heartbeat_ants_power_and_trackers`; flatsat with the OBC halted |
 | THM-03 | SW-HAZ-008 (safe mode) | With the wings stowed and the battery's orbit minimum below +3 °C the mode is held at SAFE so the heater gets the whole surplus (SRS-F163) | T: Rust unit tests of `cold_hold` |
+| SMA-B20 (Revision F) | SW-HAZ-013 (passivation not completed) | The fire waits for the EPS board at 0 °C (F1's rating), but the condition cannot block the passivation: a cold board is waited for at most 6 h of each 24 h attempt, an unreadable temperature not at all, then the fire goes ahead in sunlight; the reason is reported in HK1 `PS` and the final report (SRS-F111) | T: `test_passivation` (cold 6 h then fires, warm at once, unreadable fires), Rust unit tests of `passivation.rs` (safety-critical coverage) |
+| C-18 (Revision F) | SW-HAZ-007 (deployment) | The AntS is deployed only at ≥ −17 °C by its own temperature; colder or unknown defers by 50-minute slots without spending an attempt, and the deferral cannot block the antenna for good: after 30 deferrals (about 25 h) it deploys anyway, and DEPLOY_RETRY's force flag deploys at once (SRS-F165); the 30-minute wait and the wings-first order unchanged | T: `test_deployment` (`test_ants_temperature_gate`), Rust unit tests of `deployment.rs` (safety-critical coverage), the mission simulation's `ants-gate` check |
+| R_FAULT 220 kΩ (Revision F) | SW-HAZ-002 (ADCS) | A sensor rail's turn-on takes up to 0.55 s: a readback low within 0.6 s of the enable is not a trip and no sensor is used before 0.6 s (SRS-F164) | T: Rust unit test `a_rail_is_used_only_after_its_turn_on` |
 
 ### 9.7 Summary of the Additions
 
@@ -482,6 +485,7 @@ concurrence with the SDP §3.2 list.
 | C | 2026-10-27 | §9: C-009-1 lease 40 ms and drop within 90 ms; `transponder.rs` and `ops_state.rs` on the safety-critical list (FSW-05); C-010-4 the REL-04 exception (beacon kept with the receiver known failed); §9.5 new: SW-HAZ-013 end-of-life passivation (REG-01, EPS-06); the summary is §9.6 | SMART-QSO Team (CDR flight software, round 2) |
 | D | 2026-10-27 | §9.5 SW-HAZ-013: the passivation order of RID REG-12 (the fire while transmitting, the final report, then TX-OFF, also after an unconfirmed fire), control C-013-4 (the emissions cease whatever fails), the pins allocated, `passivation.rs` (both crates) on the safety-critical list | SMART-QSO Team (CDR flight software, round 3) |
 | E | 2026-10-27 | §9.5 C-013-2 the two-processor arm (RID P3E-11, SRS-F157); §9.6 new: the changes from the board FMEA (SMA-B02 sense polarity and separation latch, B10 FRAM mirror and degraded mode, B11 receiver evidence, B19 TX_TEMP plausibility, B09 EPS heartbeat and IWDG timeout) and THM-03 (the wings-stowed cold hold); the summary is §9.7 | SMART-QSO Team (CDR flight software, round 3, second part) |
+| F | 2026-10-27 | §9.6: SMA-B20 the passivation's EPS-board condition bounded (6 h, unreadable not blocking); C-18 the AntS temperature gate with its cap and force flag; the sensor-rail turn-on (R_FAULT 220 kΩ); SMA-B09 row: the IWDG at 25.6 s before the supervisor's 29.3 s |
 
 ---
 

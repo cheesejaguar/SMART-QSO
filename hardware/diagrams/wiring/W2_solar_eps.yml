@@ -91,7 +91,7 @@ cables:
     gauge: 28 AWG
     length: 0.125
     colors: [RD, RD, OG, OG, BK, BK, BK, WH]
-    notes: "hinge-side strip HS(-X), then under the EPS to J9 (zone Z5)"
+    notes: "from the -Y end of TB-W2 up the (-X, +Y) bundle, z -34 ... -10 (HS(-X) holds the W2 sensor-splice pair), then under the EPS to J9 (zone Z5)"
 
 connections:
   - - PNL_PX: [1-5]

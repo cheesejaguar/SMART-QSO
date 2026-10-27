@@ -1334,6 +1334,7 @@ impl Executive {
             separation: separation_switch::status(),
             pa_sensor: downlink::pa_sensor_status(),
             supv: eps_supervision::status(),
+            chg_inhibit: eps_supervision::chg_inhibit_register(),
             tnc: receiver::tnc_status().0,
             rx_lines: (receiver::tnc_status().1, receiver::tnc_status().2),
         }

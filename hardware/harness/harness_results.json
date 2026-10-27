@@ -1114,18 +1114,18 @@
    "ratio": 0.005
   },
   "W6D-11": {
-   "I_allow_A": 0.964,
-   "N": 14,
+   "I_allow_A": 0.9,
+   "N": 20,
    "contact_ratio": 0.008,
    "i_max_A": 0.00525,
-   "ratio": 0.005
+   "ratio": 0.006
   },
   "W6D-12": {
-   "I_allow_A": 0.964,
-   "N": 14,
+   "I_allow_A": 0.9,
+   "N": 20,
    "contact_ratio": 0.008,
    "i_max_A": 0.00525,
-   "ratio": 0.005
+   "ratio": 0.006
   },
   "W6E-01": {
    "I_allow_A": 0.9,
@@ -1650,7 +1650,7 @@
      "battery_sense_board"
     ],
     [
-     4.12,
+     4.0,
      "torquer_deck"
     ]
    ]
@@ -1902,6 +1902,19 @@
     ]
    ]
   },
+  "SPL_PX": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.2,
+     "endplate_mz"
+    ],
+    [
+     0.2,
+     "shear_px"
+    ]
+   ]
+  },
   "S_MXC": {
    "interferes": [],
    "nearest": [
@@ -1925,6 +1938,19 @@
     [
      0.5,
      "torquer_deck"
+    ]
+   ]
+  },
+  "TB_ANT": {
+   "interferes": [],
+   "nearest": [
+    [
+     0.1,
+     "battery_clamp"
+    ],
+    [
+     0.7,
+     "AntS_housing"
     ]
    ]
   },
@@ -2715,39 +2741,15 @@
    "wires": 14,
    "zone": "DX_MXPY"
   },
-  "EF_MXC/A": {
-   "allow_mm2": 29.4,
-   "area_mm2": 3.441,
-   "band": "A",
-   "harnesses": [
-    "W7C"
-   ],
-   "ratio": 0.117,
-   "wires": 8,
-   "zone": "EF_MXC"
-  },
-  "HS_MX/A": {
-   "allow_mm2": 9.0,
-   "area_mm2": 4.98,
-   "band": "A",
-   "harnesses": [
-    "W2W2",
-    "W7B"
-   ],
-   "ratio": 0.553,
-   "wires": 10,
-   "zone": "HS_MX"
-  },
   "HS_MX/B": {
-   "allow_mm2": 9.0,
-   "area_mm2": 4.98,
+   "allow_mm2": 10.08,
+   "area_mm2": 1.54,
    "band": "B",
    "harnesses": [
-    "W2W2",
     "W7B"
    ],
-   "ratio": 0.553,
-   "wires": 10,
+   "ratio": 0.153,
+   "wires": 2,
    "zone": "HS_MX"
   },
   "HS_PX/A": {
@@ -2884,25 +2886,27 @@
   },
   "MXPY/A": {
    "allow_mm2": 17.82,
-   "area_mm2": 0.86,
+   "area_mm2": 4.301,
    "band": "A",
    "harnesses": [
+    "W2W2",
     "W6D"
    ],
-   "ratio": 0.048,
-   "wires": 2,
+   "ratio": 0.241,
+   "wires": 10,
    "zone": "MXPY"
   },
   "MXPY/B": {
    "allow_mm2": 17.82,
-   "area_mm2": 5.161,
+   "area_mm2": 8.602,
    "band": "B",
    "harnesses": [
+    "W2W2",
     "W6B",
     "W6D"
    ],
-   "ratio": 0.29,
-   "wires": 12,
+   "ratio": 0.483,
+   "wires": 20,
    "zone": "MXPY"
   },
   "MXPY/C": {
@@ -3194,6 +3198,17 @@
    "wires": 2,
    "zone": "PX_J45"
   },
+  "SPL_PX": {
+   "allow_mm2": 15.792,
+   "area_mm2": 1.54,
+   "band": "",
+   "harnesses": [
+    "W7A"
+   ],
+   "ratio": 0.097,
+   "wires": 2,
+   "zone": "SPL_PX"
+  },
   "S_MXC/A": {
    "allow_mm2": 64.8,
    "area_mm2": 3.441,
@@ -3239,6 +3254,17 @@
    "ratio": 0.102,
    "wires": 9,
    "zone": "S_MXMY"
+  },
+  "TB_ANT/A": {
+   "allow_mm2": 36.0,
+   "area_mm2": 3.441,
+   "band": "A",
+   "harnesses": [
+    "W7C"
+   ],
+   "ratio": 0.096,
+   "wires": 8,
+   "zone": "TB_ANT"
   },
   "TE_MXMY1": {
    "allow_mm2": 11.04,
@@ -3739,14 +3765,14 @@
   "W7A-02": 150.0,
   "W7A-03": 150.0,
   "W7A-04": 150.0,
-  "W7A-05": 95.0,
-  "W7A-06": 95.0,
+  "W7A-05": 135.0,
+  "W7A-06": 135.0,
   "W7B-01": 90.0,
   "W7B-02": 90.0,
   "W7B-03": 90.0,
   "W7B-04": 90.0,
-  "W7B-05": 155.0,
-  "W7B-06": 155.0,
+  "W7B-05": 125.0,
+  "W7B-06": 125.0,
   "W7C-01": 155.0,
   "W7C-02": 155.0,
   "W7C-03": 155.0,
@@ -3782,13 +3808,13 @@
   "by_mel_row": {
    "26": 6.3,
    "31": 2.3,
-   "32": 76.9
+   "32": 77.0
   },
   "extras": {
    "PTFE over-sleeve on the four pack leads": 0.3,
    "access-port board A3 (FR-4 30 x 8.8 x 1.6 mm, Micro-D 21 socket receptacle, ESD parts, two Ti jackposts, staking)": 5.8,
    "heat shrink and identification sleeves (one per wire end)": 4.2,
-   "lacing tape spot ties and Scotch-Weld 2216 tie-down dots (104 points x 0.10 g)": 10.4,
+   "lacing tape spot ties and Scotch-Weld 2216 tie-down dots (105 points x 0.10 g)": 10.5,
    "termination tabs TB-W1, TB-W2 (polyimide, 6 x 10 mm, bonded; TB-RX/RY/RZ and TB-ANT are in the connector masses)": 0.4
   },
   "mel_cbe": {
@@ -3887,11 +3913,11 @@
    },
    "W7A": {
     "conn_g": 1.56,
-    "wire_g": 2.35
+    "wire_g": 2.59
    },
    "W7B": {
     "conn_g": 1.56,
-    "wire_g": 2.0
+    "wire_g": 1.82
    },
    "W7C": {
     "conn_g": 0.51,
@@ -3910,7 +3936,7 @@
     "wire_g": 0.23
    }
   },
-  "total": 85.5
+  "total": 85.6
  },
  "problems": []
 }

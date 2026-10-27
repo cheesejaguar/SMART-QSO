@@ -45,7 +45,7 @@ Rust release profile (`software/rust/Cargo.toml`; the firmware's `software/rust/
 `debug-assertions = false`. The toolchain is pinned by `software/rust/rust-toolchain.toml` (1.97.0, target
 `thumbv7em-none-eabihf`).
 
-Image (release, 2026-10-27, flight software round 3): text 190,532 B, data 24,776 B, bss 17,012 B. Vector table at
+Image (release, 2026-10-27, flight software round 3, third part): text 207,156 B, data 26,400 B, bss 17,052 B. Vector table at
 0x08000000, initial SP 0x20040000, entry `Reset`. Linked with cortex-m-rt's `link.x` and the firmware's own `memory.x`
 (2 MB flash; RAM SRAM2 alone, 64 KB with parity, holding the statics and the 8 KB stack). CI checks the entry point, the vector table, the initial SP, the presence of the flight symbols, and the absence
 of `malloc`, `free`, `_sbrk` and `printf` (job STM32L4 Cross-Compile (library)).

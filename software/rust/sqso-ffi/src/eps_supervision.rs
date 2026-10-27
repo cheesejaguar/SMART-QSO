@@ -60,6 +60,16 @@ pub(crate) fn supv_register() -> Option<u8> {
     ok.then_some(v[0])
 }
 
+/// CHG_INHIBIT (0x7A), if the controller answers (HK2 `CI`: bit 6 is NTC1
+/// implausible, its window handed to the AFE, SQSO-EPS-BRD-001 E §5.3)
+pub(crate) fn chg_inhibit_register() -> Option<u8> {
+    let reg = [supv::REG_CHG_INHIBIT];
+    let mut v = [0u8; 1];
+    // SAFETY: reg and v are live buffers (the HAL)
+    let ok = unsafe { c::hal_i2c_write_read(EPS_BUS, EPS_ADDRESS, reg.as_ptr(), 1, v.as_mut_ptr(), 1) } == rc::OK;
+    ok.then_some(v[0])
+}
+
 /// HK2 `SV`: EPS_SUPV (`None`: no answer) and the refused heartbeats
 pub(crate) fn status() -> (Option<u8>, u32) {
     (supv_register(), HEARTBEAT.with(|h| h.failures).unwrap_or(0))

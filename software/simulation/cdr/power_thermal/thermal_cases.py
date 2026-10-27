@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""CDR thermal design cases on the mission simulation's 12-node network (SQSO-THA-001 v2.0).
+"""CDR thermal design cases on the mission simulation's 13-node network (SQSO-THA-001 v2.0; the AntS node since 2.4).
 
 Runs the ignored test `env::thermal::tests::cdr_thermal_cases` of `sqso-sil`
 (the cases are defined there, next to the network they use), parses its
@@ -28,6 +28,7 @@ LIMITS = {
     "Jetson": (-20.0, 50.0, -40.0, 60.0, "SYS-600/601; module Tj −25…105 (DS-11105-001 v1.7); flight-software spreader limit 70"),
     "body": (-40.0, 80.0, -60.0, 100.0, "THERMAL_DESIGN §1.1 structure"),
     "wing": (-40.0, 85.0, -100.0, 100.0, "SOLAR_ARRAY_DESIGN §1.1 (to be confirmed with AZUR SPACE qualification)"),
+    "AntS": (-20.0, 60.0, -50.0, 85.0, "ISIS AntS qualified operating −20…+60, storage −50…+85 (SQSO-MFG-003 §12 V-1); operating only for the deployment (gated at −17 °C, decision C-18), storage otherwise"),
 }
 PANELS = ["+X", "-X", "+Y", "-Y", "+Z", "-Z"]
 
@@ -74,12 +75,17 @@ def main():
         rows = {"battery": (v["battery"][0], v["battery"][2]), "OBC": (v["OBC"][0], v["OBC"][2]),
                 "RF": (v["RF"][0], v["RF"][2]), "Jetson": (v["Jetson"][0], v["Jetson"][2]),
                 "body": body, "wing": wing}
+        if "AntS" in v:
+            rows["AntS"] = (v["AntS"][0], v["AntS"][2])
         worst = None
         for node, (lo, hi) in rows.items():
             lim = LIMITS[node]
             if node == "battery":
                 # heater-controlled at the cold end: judged by the heater duty and 0 °C, not by +10 °C
                 m_lo, m_hi = lo - lim[0], lim[1] - hi - UNCERTAINTY_C
+            elif node == "AntS":
+                # unpowered after the deployment: judged against its storage range
+                m_lo, m_hi = lo - lim[2] - UNCERTAINTY_C, lim[3] - hi - UNCERTAINTY_C
             elif node == "Jetson" and not name.startswith(("H",)):
                 # unpowered in SAFE/EMERGENCY/LEOP: survival limit at the cold end
                 m_lo, m_hi = lo - LIMITS["Jetson"][2] - UNCERTAINTY_C, lim[1] - hi - UNCERTAINTY_C
