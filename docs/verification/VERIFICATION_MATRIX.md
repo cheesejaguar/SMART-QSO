@@ -2,9 +2,9 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-VCRM-001
-**Revision:** C
+**Revision:** D
 **Date:** 2026-10-27
-**Reference:** NPR 7123.1D §3.2 (Product Verification process), Table G-7 success criterion 5; `docs/BASELINE_PARAMETERS.md` Rev D
+**Reference:** NPR 7123.1D §3.2 (Product Verification process), Table G-7 success criterion 5; `docs/BASELINE_PARAMETERS.md` Rev E (amended)
 
 > **This VCRM is the only verification-status record** (FINDINGS_REGISTER PI-06). Other documents point here
 > instead of quoting percentages. A requirement counts as verified only when its row cites a committed artifact:
@@ -48,355 +48,355 @@ current.
 |--------|--------|---------------|------|-----------------------|--------|
 | MO-1 | V* | ORB | after launch | Mission success criteria L3 (docs/mission/MISSION_SUCCESS_CRITERIA.md) | Not verified |
 | MO-2 | V* | ORB | after launch | Mission success criteria L2 | Not verified |
-| MO-3 | V* | DITL + ORB | 2027-12 to 2028-01; after launch | Fault injection with AI off (TP-SYS-002); on orbit | Not verified |
+| MO-3 | V* | DITL + ORB | 2028-02; after launch | Fault injection with AI off (TP-SYS-002); on orbit | Not verified |
 | MO-4 | V* | ORB | after launch | Experiment report | Not verified |
 | MO-5 | V* | ORB | after launch | SatNOGS reception statistics | Not verified |
-| MRD-001 | A | CDR | 2027-08-03 | Reliability, radiation, battery-cycle and lifetime analyses | Not verified |
-| MRD-002 | D | DITL | 2027-12 to 2028-01 | TP-SYS-002, TP-DITL-001 (7 days without contact) | Not verified |
+| MRD-001 | A | CDR | 2027-09-28 | Reliability, radiation, battery-cycle and lifetime analyses | Not verified |
+| MRD-002 | D | DITL | 2028-02 | TP-SYS-002, TP-DITL-001 (7 days without contact) | Not verified |
 | MRD-003 | A | PDR | 2027-01-12 | ODAR, NASA DAS 3.2.6 run | Not verified |
 | MRD-010 | A | CON | 2027-05-31 | Launch contract orbit | Not verified |
 | MRD-011 | A | CON | 2027-05-31 | Launch contract drop-off altitude; lifetime analysis | Not verified |
 | MRD-012 | A | PDR | 2027-01-12 | Coverage analysis (proposed wording, TBR-MRD-002) | Not verified |
 | MRD-013 | A | PDR + CON | 2027-01-12; 2027-05-31 | DAS run; contract altitude clause (SYS-907) | Not verified |
-| MRD-020 | T | CI + FMI | continuous; 2027-11 to 2028-01 | Beacon interval tests; TP-SYS-001 | Not verified |
-| MRD-021 | T | CI + FMI | continuous; 2027-11 to 2028-01 | Beacon content tests; TP-SYS-001 | Not verified |
-| MRD-022 | T | DITL + ORB | 2027-12 to 2028-01; after launch | TP-GS-001 over-the-air with an amateur station; first pass | Not verified |
-| MRD-023 | I | REG | 2027-01 to 2028-01 | IARU coordination letter | Not verified |
-| MRD-024 | I | PSR | 2028-03-21 | Regulatory compliance matrix (Part 97) | Not verified |
-| MRD-025 | I | CI + PSR | continuous; 2028-03-21 | Frame-format tests; inspection of the beacon and command formats | Not verified |
-| MRD-030 | D | DITL | 2027-12 to 2028-01 | Transponder end-to-end over the air | Not verified |
-| MRD-031 | T | FMI | 2027-11 to 2028-01 | TP-RF-004 modulation and deviation | Not verified |
-| MRD-032 | D | DITL | 2027-12 to 2028-01 | Transponder end-to-end with a licensed amateur station | Not verified |
-| MRD-033 | D | SIL + DITL | 2026-11 to 2027-01; 2027-12 to 2028-01 | SIL year run; TP-SYS-002 | Not verified |
-| MRD-034 | D | CI + DITL | continuous; 2027-12 to 2028-01 | AI-off fallback tests; TP-SYS-002 fault injection | Not verified |
-| MRD-040 | D | FMI | 2027-11 to 2028-01 | TP-SYS-001 | Not verified |
+| MRD-020 | T | CI + FMI | continuous; 2027-12 to 2028-02 | Beacon interval tests; TP-SYS-001 | Not verified |
+| MRD-021 | T | CI + FMI | continuous; 2027-12 to 2028-02 | Beacon content tests; TP-SYS-001 | Not verified |
+| MRD-022 | T | DITL + ORB | 2028-02; after launch | TP-GS-001 over-the-air with an amateur station; first pass | Not verified |
+| MRD-023 | I | REG | 2027-01 to 2028-06 | IARU coordination letter | Not verified |
+| MRD-024 | I | PSR | 2028-05-19 | Regulatory compliance matrix (Part 97) | Not verified |
+| MRD-025 | I | CI + PSR | continuous; 2028-05-19 | Frame-format tests; inspection of the beacon and command formats | Not verified |
+| MRD-030 | D | DITL | 2028-02 | Transponder end-to-end over the air | Not verified |
+| MRD-031 | T | FMI | 2027-12 to 2028-02 | TP-RF-004 modulation and deviation | Not verified |
+| MRD-032 | D | DITL | 2028-02 | Transponder end-to-end with a licensed amateur station | Not verified |
+| MRD-033 | D | SIL + DITL | 2026-11 to 2027-01; 2028-02 | SIL year run; TP-SYS-002 | Not verified |
+| MRD-034 | D | CI + DITL | continuous; 2028-02 | AI-off fallback tests; TP-SYS-002 fault injection | Not verified |
+| MRD-040 | D | FMI | 2027-12 to 2028-02 | TP-SYS-001 | Not verified |
 | MRD-041 | D | SIL | 2026-11 to 2027-01 | SIL year run, selector power predictions against the model | Not verified |
 | MRD-042 | D | SIL | 2026-11 to 2027-01 | SIL year run, demand model | Not verified |
 | MRD-043 | D | SIL | 2026-11 to 2027-01 | 60-day scheduler simulation, Gini ≤ 0.35 (proposed wording, TBR-MRD-003) | Not verified |
-| MRD-044 | D | CI + DITL | continuous; 2027-12 to 2028-01 | Template selector tests; TP-SYS-002 | Not verified |
-| MRD-045 | A | FS + DITL | 2027-04 to 2027-06; 2027-12 to 2028-01 | Hard-limit fault injection (proposed wording, TBR-MRD-004) | Not verified |
-| MRD-050 | A,T | CDR + DITL | 2027-08-03; 2027-12 to 2028-01 | Power budget re-issue and SIL; TP-EPS-002 | Not verified |
-| MRD-051 | A,T | CDR + FMI | 2027-08-03; 2027-11 to 2028-01 | SIL eclipse cases; TP-EPS-003 | Not verified |
-| MRD-052 | D | CI + DITL | continuous; 2027-12 to 2028-01 | Mode-gate tests; TP-SYS-002 | Not verified |
-| MRD-053 | D | CI + DITL | continuous; 2027-12 to 2028-01 | Jetson gate tests; TP-JETSON-001 | Not verified |
-| MRD-060 | A,T | CDR + ORB | 2027-08-03; after launch | ADCS Monte Carlo of the flight code; HIL closed loop; commissioning | Not verified |
-| MRD-061 | A | CDR | 2027-08-03 | ADCS Monte Carlo; TP-ADCS-003 | Not verified |
-| MRD-062 | T | CDR + ORB | 2027-08-03; after launch | ADCS Monte Carlo (spin sun-pointing); commissioning | Not verified |
-| MRD-070 | D | DITL | 2027-12 to 2028-01 | TP-GS-001 | Not verified |
-| MRD-071 | D | DITL | 2027-12 to 2028-01 | TP-GS-001 with the published decoder | Not verified |
-| MRD-072 | I | REG | 2027-01 to 2028-01 | SatNOGS and AMSAT coordination record | Not verified |
-| MRD-080 | I | PSR | 2028-03-21 | Integrator acceptance checklist | Not verified |
-| MRD-081 | I | CDR | 2027-08-03 | ODAR §4 (no released parts); SYS-081 inspection | Not verified |
-| MRD-082 | D | FMI | 2027-11 to 2028-01 | Passivation test with the EOL switch on the EM, inspection on the FM | Not verified |
+| MRD-044 | D | CI + DITL | continuous; 2028-02 | Template selector tests; TP-SYS-002 | Not verified |
+| MRD-045 | A | FS + DITL | 2027-06 to 2027-07; 2028-02 | Hard-limit fault injection (proposed wording, TBR-MRD-004) | Not verified |
+| MRD-050 | A,T | CDR + DITL | 2027-09-28; 2028-02 | Power budget re-issue and SIL; TP-EPS-002 | Not verified |
+| MRD-051 | A,T | CDR + FMI | 2027-09-28; 2027-12 to 2028-02 | SIL eclipse cases; TP-EPS-003 | Not verified |
+| MRD-052 | D | CI + DITL | continuous; 2028-02 | Mode-gate tests; TP-SYS-002 | Not verified |
+| MRD-053 | D | CI + DITL | continuous; 2028-02 | Jetson gate tests; TP-JETSON-001 | Not verified |
+| MRD-060 | A,T | CDR + ORB | 2027-09-28; after launch | ADCS Monte Carlo of the flight code; HIL closed loop; commissioning | Not verified |
+| MRD-061 | A | CDR | 2027-09-28 | ADCS Monte Carlo; TP-ADCS-003 | Not verified |
+| MRD-062 | T | CDR + ORB | 2027-09-28; after launch | ADCS Monte Carlo (spin sun-pointing); commissioning | Not verified |
+| MRD-070 | D | DITL | 2028-02 | TP-GS-001 | Not verified |
+| MRD-071 | D | DITL | 2028-02 | TP-GS-001 with the published decoder | Not verified |
+| MRD-072 | I | REG | 2027-01 to 2028-06 | SatNOGS and AMSAT coordination record | Not verified |
+| MRD-080 | I | PSR | 2028-05-19 | Integrator acceptance checklist | Not verified |
+| MRD-081 | I | CDR | 2027-09-28 | ODAR §4 (no released parts); SYS-081 inspection | Not verified |
+| MRD-082 | D | FMI | 2027-12 to 2028-02 | Passivation test with the EOL switch on the EM, inspection on the FM | Not verified |
 | MRD-083 | I | PDR | 2027-01-12 | ODAR (size ≥ 10 cm); Space-Track registration | Not verified |
 | MRD-084 | A | PDR | 2027-01-12 | NASA DAS 3.2.6 re-entry survival | Not verified |
 | MRD-085 | A | PDR | 2027-01-12 | NASA DAS 3.2.6 collision probability; conjunction plan | Not verified |
-| MRD-090 | I | REG | 2027-01 to 2028-01 | IARU coordination letter | Not verified |
-| MRD-091 | I | REG | 2027-01 to 2028-01 | FCC pre-space notification on file | Not verified |
-| MRD-092 | I | REG | 2027-01 to 2028-01 | ITU API publication via the FCC | Not verified |
-| MRD-093 | I | REG | 2027-01 to 2028-01 | ODAR filed with the pre-space notification | Not verified |
-| MRD-094 | T | CI + FMI | continuous; 2027-11 to 2028-01 | TP-RF-006 TX-OFF | Not verified |
-| MRD-095 | I,T | REG + FMI | 2027-01 to 2028-01; 2027-11 to 2028-01 | Station designation letters; TP-RF-006 authentication | Not verified |
-| MRD-096 | I | REG | 2027-01 to 2028-01 | FCC filings with dates | Not verified |
-| MRD-097 | T,I | CI + PSR | continuous; 2028-03-21 | Content-filter test vectors (BEACON_SPEC §6); inspection | Not verified |
-| MRD-098 | I,T | PSR | 2028-03-21 | Integrator ICD verification matrix | Not verified |
-| MRD-099 | I | PSR | 2028-03-21 | Delivery record | Not verified |
+| MRD-090 | I | REG | 2027-01 to 2028-06 | IARU coordination letter | Not verified |
+| MRD-091 | I | REG | 2027-01 to 2028-06 | FCC pre-space notification on file | Not verified |
+| MRD-092 | I | REG | 2027-01 to 2028-06 | ITU API publication via the FCC | Not verified |
+| MRD-093 | I | REG | 2027-01 to 2028-06 | ODAR filed with the pre-space notification | Not verified |
+| MRD-094 | T | CI + FMI | continuous; 2027-12 to 2028-02 | TP-RF-006 TX-OFF | Not verified |
+| MRD-095 | I,T | REG + FMI | 2027-01 to 2028-06; 2027-12 to 2028-02 | Station designation letters; TP-RF-006 authentication | Not verified |
+| MRD-096 | I | REG | 2027-01 to 2028-06 | FCC filings with dates | Not verified |
+| MRD-097 | T,I | CI + PSR | continuous; 2028-05-19 | Content-filter test vectors (BEACON_SPEC §6); inspection | Not verified |
+| MRD-098 | I,T | PSR | 2028-05-19 | Integrator ICD verification matrix | Not verified |
+| MRD-099 | I | PSR | 2028-05-19 | Delivery record | Not verified |
 
 ### 3.2 System requirements (SQSO-REQ-002)
 
 | Req ID | Method | Planned event | Date | Procedure or analysis | Status |
 |--------|--------|---------------|------|-----------------------|--------|
-| SYS-001 | I,T | FMI + PSR | 2027-11 to 2028-01; 2028-03-21 | TP-MECH-001 fit check; CIFP inspection | Not verified |
-| SYS-002 | T | PFE | 2028-01 to 2028-02 | TP-ENV-001 mass | Not verified |
-| SYS-003 | T | PFE | 2028-01 to 2028-02 | TP-ENV-001 CG | Not verified |
-| SYS-004 | I,T | FMI | 2027-11 to 2028-01 | TP-MECH-003 | Not verified |
-| SYS-005 | I | FMI | 2027-11 to 2028-01 | TP-INT-006 | Not verified |
-| SYS-080 | I | FMI + PSR | 2027-11 to 2028-01; 2028-03-21 | CIFP dimensional inspection; vendor certificates (rails) | Not verified |
-| SYS-081 | I,T | PFE | 2028-01 to 2028-02 | Post-vibe inspection; TP-ENV-002 | Not verified |
-| SYS-082 | I | CDR | 2027-08-03 | Materials and hazards list | Not verified |
-| SYS-083 | T | PFE | 2028-01 to 2028-02 | Helmholtz-cage or gaussmeter survey (ENVIRONMENTAL_TEST_PLAN §3.9) | Not verified |
-| SYS-084 | A | CDR | 2027-08-03 | Venting analysis | Not verified |
-| SYS-085 | I,T | FMI + PFE | 2027-11 to 2028-01; 2028-01 to 2028-02 | TP-MECH-003; inhibit monitoring during vibe (SYS-704) | Not verified |
-| SYS-086 | I,T | CDR | 2027-08-03 | Schematic inspection (no RTC on battery power, or limits met) | Not verified |
-| SYS-087 | I | FMI | 2027-11 to 2028-01 | TP-INT-006; integrator access-port drawing | Not verified |
-| SYS-088 | I,T | FMI | 2027-11 to 2028-01 | TP-EPS-001 protection; cell data | Not verified |
-| SYS-089 | I | PSR | 2028-03-21 | Configuration log after protoflight test | Not verified |
-| SYS-010 | A | CDR | 2027-08-03 | Reliability and lifetime analyses | Not verified |
-| SYS-011 | A | CDR | 2027-08-03 | Parts derating analysis | Not verified |
-| SYS-012 | A | CDR | 2027-08-03 | Thermal-cycle fatigue analysis (solder joints, cells) | Not verified |
-| SYS-013 | A | CDR | 2027-08-03 | Radiation analysis re-issue | Not verified |
-| SYS-020 | A | CDR | 2027-08-03 | Hardware and software FMEA, single-point-failure list (proposed wording, TBR-SYS-002) | Not verified |
-| SYS-021 | D | CI + FS | continuous; 2027-04 to 2027-06 | Watchdog tests; TP-OBC-004 | Not verified |
-| SYS-022 | D | CI + FS | continuous; 2027-04 to 2027-06 | Upset recovery tests; fault injection on target | Not verified |
+| SYS-001 | I,T | FMI + PSR | 2027-12 to 2028-02; 2028-05-19 | TP-MECH-001 fit check; CIFP inspection | Not verified |
+| SYS-002 | T | PFE | 2028-03 to 2028-04 | TP-ENV-001 mass | Not verified |
+| SYS-003 | T | PFE | 2028-03 to 2028-04 | TP-ENV-001 CG | Not verified |
+| SYS-004 | I,T | FMI | 2027-12 to 2028-02 | TP-MECH-003 | Not verified |
+| SYS-005 | I | FMI | 2027-12 to 2028-02 | TP-INT-006 | Not verified |
+| SYS-080 | I | FMI + PSR | 2027-12 to 2028-02; 2028-05-19 | CIFP dimensional inspection; vendor certificates (rails) | Not verified |
+| SYS-081 | I,T | PFE | 2028-03 to 2028-04 | Post-vibe inspection; TP-ENV-002 | Not verified |
+| SYS-082 | I | CDR | 2027-09-28 | Materials and hazards list | Not verified |
+| SYS-083 | T | PFE | 2028-03 to 2028-04 | Helmholtz-cage or gaussmeter survey (ENVIRONMENTAL_TEST_PLAN §3.9) | Not verified |
+| SYS-084 | A | CDR | 2027-09-28 | Venting analysis | Not verified |
+| SYS-085 | I,T | FMI + PFE | 2027-12 to 2028-02; 2028-03 to 2028-04 | TP-MECH-003; inhibit monitoring during vibe (SYS-704) | Not verified |
+| SYS-086 | I,T | CDR | 2027-09-28 | Schematic inspection (no RTC on battery power, or limits met) | Not verified |
+| SYS-087 | I | FMI | 2027-12 to 2028-02 | TP-INT-006; integrator access-port drawing | Not verified |
+| SYS-088 | I,T | FMI | 2027-12 to 2028-02 | TP-EPS-001 protection; cell data | Not verified |
+| SYS-089 | I | PSR | 2028-05-19 | Configuration log after protoflight test | Not verified |
+| SYS-010 | A | CDR | 2027-09-28 | Reliability and lifetime analyses | Not verified |
+| SYS-011 | A | CDR | 2027-09-28 | Parts derating analysis | Not verified |
+| SYS-012 | A | CDR | 2027-09-28 | Thermal-cycle fatigue analysis (solder joints, cells) | Not verified |
+| SYS-013 | A | CDR | 2027-09-28 | Radiation analysis re-issue | Not verified |
+| SYS-020 | A | CDR | 2027-09-28 | Hardware and software FMEA, single-point-failure list (proposed wording, TBR-SYS-002) | Not verified |
+| SYS-021 | D | CI + FS | continuous; 2027-06 to 2027-07 | Watchdog tests; TP-OBC-004 | Not verified |
+| SYS-022 | D | CI + FS | continuous; 2027-06 to 2027-07 | Upset recovery tests; fault injection on target | Not verified |
 | SYS-023 | D | CI | continuous | CRC tests | Not verified |
-| SYS-100 | A,T | CDR + FMI | 2027-08-03; 2027-11 to 2028-01 | Solar-array analysis; TP-EPS-004 | Not verified |
-| SYS-101 | I | FMI | 2027-11 to 2028-01 | Inspection | Not verified |
-| SYS-102 | T | FS + FMI | 2027-04 to 2027-06; 2027-11 to 2028-01 | TP-EPS-001, TP-EPS-004 | Not verified |
-| SYS-103 | A,T | CDR + FMI | 2027-08-03; 2027-11 to 2028-01 | Power analysis; TP-EPS-004 | Not verified |
-| SYS-110 | I | FMI | 2027-11 to 2028-01 | Inspection | Not verified |
-| SYS-111 | A,T | CDR + FMI | 2027-08-03; 2027-11 to 2028-01 | SIL eclipse; TP-EPS-003 | Not verified |
-| SYS-112 | A | SIL + DITL | 2026-11 to 2027-01; 2027-12 to 2028-01 | SIL year run; TP-EPS-002 | Not verified |
-| SYS-113 | D | FS + FMI | 2027-04 to 2027-06; 2027-11 to 2028-01 | TP-EPS-001 | Not verified |
-| SYS-114 | D | CI + FS | continuous; 2027-04 to 2027-06 | SOC estimator tests; TP-EPS-003 | Not verified |
-| SYS-120 | T | FS + FMI | 2027-04 to 2027-06; 2027-11 to 2028-01 | TP-EPS-001 | Not verified |
-| SYS-121 | T | FS + FMI | 2027-04 to 2027-06; 2027-11 to 2028-01 | TP-EPS-001 | Not verified |
-| SYS-122 | D | FS + FMI | 2027-04 to 2027-06; 2027-11 to 2028-01 | TP-EPS-001 | Not verified |
-| SYS-123 | T | FS + FMI | 2027-04 to 2027-06; 2027-11 to 2028-01 | TP-EPS-001 | Not verified |
-| SYS-124 | D | FS + FMI | 2027-04 to 2027-06; 2027-11 to 2028-01 | TP-EPS-001 | Not verified |
-| SYS-200 | T | FMI + PFE | 2027-11 to 2028-01; 2028-01 to 2028-02 | TP-RF-001; pre/post environmental | Not verified |
-| SYS-201 | T | FMI + PFE | 2027-11 to 2028-01; 2028-01 to 2028-02 | TP-RF-002 | Not verified |
-| SYS-202 | T | FMI | 2027-11 to 2028-01 | TP-RF-004 | Not verified |
-| SYS-203 | T | EMT + PFE | 2027-06 to 2027-08; 2028-01 to 2028-02 | TP-RF-003 (EM and FM) | Not verified |
-| SYS-205 | T | CI + DITL | continuous; 2027-12 to 2028-01 | TP-RF-006, time-accelerated | Partial (CI) |
-| SYS-204 | T | CI + FMI | continuous; 2027-11 to 2028-01 | TP-RF-006 | Partial (CI) |
-| SYS-206 | T | FMI + PFE | 2027-11 to 2028-01; 2028-01 to 2028-02 | TP-RF-001 over temperature | Not verified |
-| SYS-210 | T | CI + FMI | continuous; 2027-11 to 2028-01 | Frame tests; TP-RF-001 | Partial (CI) |
-| SYS-211 | D | CI + DITL | continuous; 2027-12 to 2028-01 | Interval tests; TP-SYS-002 | Not verified |
-| SYS-212 | I,T | CI + FMI | continuous; 2027-11 to 2028-01 | Call-sign tests; TP-RF-001 | Partial (CI) |
-| SYS-213 | D | CI + FMI | continuous; 2027-11 to 2028-01 | Telemetry format tests | Not verified |
-| SYS-214 | D | CI + FMI | continuous; 2027-11 to 2028-01 | Info-field tests | Not verified |
-| SYS-215 | D | CI + DITL | continuous; 2027-12 to 2028-01 | Fallback tests; TP-SYS-002 | Partial (CI) |
-| SYS-220 | T | PFE | 2028-01 to 2028-02 | TP-ENV-005, TP-RF-005 | Not verified |
-| SYS-221 | T | CI + FMI | continuous; 2027-11 to 2028-01 | Deployment-timer tests; TP-MECH-002 | Partial (CI) |
-| SYS-222 | A | EMT | 2027-06 to 2027-08 | EM antenna pattern and model (proposed wording, TBR-SYS-003) | Not verified |
-| SYS-223 | T | FMI + PFE | 2027-11 to 2028-01; 2028-01 to 2028-02 | TP-RF-005 | Not verified |
-| SYS-224 | T | CI + FMI | continuous; 2027-11 to 2028-01 | RF-silence tests; TP-MECH-003 | Partial (CI) |
-| SYS-225 | I,T | CDR + PFE | 2027-08-03; 2028-01 to 2028-02 | Schematic inspection; TP-ENV-002 inhibit monitoring | Not verified |
-| SYS-300 | T | FS + FMI | 2027-04 to 2027-06; 2027-11 to 2028-01 | TP-OBC-002, TP-INT-002 | Not verified |
-| SYS-301 | D | CI + FS | continuous; 2027-04 to 2027-06 | TP-OBC-003 | Not verified |
-| SYS-302 | D | FS + FMI | 2027-04 to 2027-06; 2027-11 to 2028-01 | TP-INT-002 | Not verified |
-| SYS-303 | D | CI + DITL | continuous; 2027-12 to 2028-01 | TP-SYS-002 | Partial (CI) |
-| SYS-304 | D | CI + DITL | continuous; 2027-12 to 2028-01 | Mode tests; TP-SYS-002 | Not verified |
-| SYS-305 | D | CI + FS | continuous; 2027-04 to 2027-06 | Fault tests; fault injection on target | Not verified |
-| SYS-310 | I | CDR | 2027-08-03 | Storage design inspection | Not verified |
+| SYS-100 | A,T | CDR + FMI | 2027-09-28; 2027-12 to 2028-02 | Solar-array analysis; TP-EPS-004 | Not verified |
+| SYS-101 | I | FMI | 2027-12 to 2028-02 | Inspection | Not verified |
+| SYS-102 | T | FS + FMI | 2027-06 to 2027-07; 2027-12 to 2028-02 | TP-EPS-001, TP-EPS-004 | Not verified |
+| SYS-103 | A,T | CDR + FMI | 2027-09-28; 2027-12 to 2028-02 | Power analysis; TP-EPS-004 | Not verified |
+| SYS-110 | I | FMI | 2027-12 to 2028-02 | Inspection | Not verified |
+| SYS-111 | A,T | CDR + FMI | 2027-09-28; 2027-12 to 2028-02 | SIL eclipse; TP-EPS-003 | Not verified |
+| SYS-112 | A | SIL + DITL | 2026-11 to 2027-01; 2028-02 | SIL year run; TP-EPS-002 | Not verified |
+| SYS-113 | D | FS + FMI | 2027-06 to 2027-07; 2027-12 to 2028-02 | TP-EPS-001 | Not verified |
+| SYS-114 | D | CI + FS | continuous; 2027-06 to 2027-07 | SOC estimator tests; TP-EPS-003 | Not verified |
+| SYS-120 | T | FS + FMI | 2027-06 to 2027-07; 2027-12 to 2028-02 | TP-EPS-001 | Not verified |
+| SYS-121 | T | FS + FMI | 2027-06 to 2027-07; 2027-12 to 2028-02 | TP-EPS-001 | Not verified |
+| SYS-122 | D | FS + FMI | 2027-06 to 2027-07; 2027-12 to 2028-02 | TP-EPS-001 | Not verified |
+| SYS-123 | T | FS + FMI | 2027-06 to 2027-07; 2027-12 to 2028-02 | TP-EPS-001 | Not verified |
+| SYS-124 | D | FS + FMI | 2027-06 to 2027-07; 2027-12 to 2028-02 | TP-EPS-001 | Not verified |
+| SYS-200 | T | FMI + PFE | 2027-12 to 2028-02; 2028-03 to 2028-04 | TP-RF-001; pre/post environmental | Not verified |
+| SYS-201 | T | FMI + PFE | 2027-12 to 2028-02; 2028-03 to 2028-04 | TP-RF-002 | Not verified |
+| SYS-202 | T | FMI | 2027-12 to 2028-02 | TP-RF-004 | Not verified |
+| SYS-203 | T | EMT + PFE | 2027-07 to 2027-09; 2028-03 to 2028-04 | TP-RF-003 (EM and FM) | Not verified |
+| SYS-205 | T | CI + DITL | continuous; 2028-02 | TP-RF-006, time-accelerated | Partial (CI) |
+| SYS-204 | T | CI + FMI | continuous; 2027-12 to 2028-02 | TP-RF-006 | Partial (CI) |
+| SYS-206 | T | FMI + PFE | 2027-12 to 2028-02; 2028-03 to 2028-04 | TP-RF-001 over temperature | Not verified |
+| SYS-210 | T | CI + FMI | continuous; 2027-12 to 2028-02 | Frame tests; TP-RF-001 | Partial (CI) |
+| SYS-211 | D | CI + DITL | continuous; 2028-02 | Interval tests; TP-SYS-002 | Not verified |
+| SYS-212 | I,T | CI + FMI | continuous; 2027-12 to 2028-02 | Call-sign tests; TP-RF-001 | Partial (CI) |
+| SYS-213 | D | CI + FMI | continuous; 2027-12 to 2028-02 | Telemetry format tests | Not verified |
+| SYS-214 | D | CI + FMI | continuous; 2027-12 to 2028-02 | Info-field tests | Not verified |
+| SYS-215 | D | CI + DITL | continuous; 2028-02 | Fallback tests; TP-SYS-002 | Partial (CI) |
+| SYS-220 | T | PFE | 2028-03 to 2028-04 | TP-ENV-005, TP-RF-005 | Not verified |
+| SYS-221 | T | CI + FMI | continuous; 2027-12 to 2028-02 | Deployment-timer tests; TP-MECH-002 | Partial (CI) |
+| SYS-222 | A,T | EMT | 2027-07 to 2027-09 | EM antenna pattern and model, VI-RF-01 / ETP VI-05 (RF-P013 wording, TBR-SYS-003) | Not verified |
+| SYS-223 | T | FMI + PFE | 2027-12 to 2028-02; 2028-03 to 2028-04 | TP-RF-005 | Not verified |
+| SYS-224 | T | CI + FMI | continuous; 2027-12 to 2028-02 | RF-silence tests incl. the GNSS receiver; TP-MECH-003, VI-LV-07 | Partial (CI) |
+| SYS-225 | I,T | CDR + PFE | 2027-09-28; 2028-03 to 2028-04 | Schematic inspection; TP-ENV-002 inhibit monitoring | Not verified |
+| SYS-300 | T | FS + FMI | 2027-06 to 2027-07; 2027-12 to 2028-02 | TP-OBC-002, TP-INT-002 | Not verified |
+| SYS-301 | D | CI + FS | continuous; 2027-06 to 2027-07 | TP-OBC-003 | Not verified |
+| SYS-302 | D | FS + FMI | 2027-06 to 2027-07; 2027-12 to 2028-02 | TP-INT-002 | Not verified |
+| SYS-303 | D | CI + DITL | continuous; 2028-02 | TP-SYS-002 | Partial (CI) |
+| SYS-304 | D | CI + DITL | continuous; 2028-02 | Mode tests; TP-SYS-002 | Not verified |
+| SYS-305 | D | CI + FS | continuous; 2027-06 to 2027-07 | Fault tests; fault injection on target | Not verified |
+| SYS-310 | I | CDR | 2027-09-28 | Storage design inspection | Not verified |
 | SYS-311 | D | CI | continuous | Persistence tests | Not verified |
-| SYS-312 | D | CI + FS | continuous; 2027-04 to 2027-06 | TP-OBC-001 | Not verified |
-| SYS-313 | D | CI + FS | continuous; 2027-04 to 2027-06 | Fault-log tests | Not verified |
-| SYS-320 | D | FS | 2027-04 to 2027-06 | TP-INT-001 | Not verified |
-| SYS-321 | D | FS | 2027-04 to 2027-06 | TP-INT-005 | Not verified |
-| SYS-322 | D | FS | 2027-04 to 2027-06 | TP-INT-003 | Not verified |
-| SYS-323 | D | FS | 2027-04 to 2027-06 | TP-ADCS-001 | Not verified |
-| SYS-324 | D | FS | 2027-04 to 2027-06 | TP-ADCS-002 | Not verified |
-| SYS-325 | T | CI + FMI | continuous; 2027-11 to 2028-01 | Authentication tests; TP-RF-006 | Partial (CI) |
-| SYS-326 | T | CI + FMI | continuous; 2027-11 to 2028-01 | Key-load tests; umbilical key load | Not verified |
-| SYS-400 | I | FMI | 2027-11 to 2028-01 | Inspection | Not verified |
-| SYS-401 | T | FS | 2027-04 to 2027-06 | TP-ADCS-001 with calibration | Not verified |
-| SYS-402 | I | FMI | 2027-11 to 2028-01 | Inspection | Not verified |
-| SYS-403 | T | FS | 2027-04 to 2027-06 | TP-ADCS-001 | Not verified |
-| SYS-410 | I | FMI | 2027-11 to 2028-01 | Inspection | Not verified |
-| SYS-411 | T | EMT | 2027-06 to 2027-08 | TP-ADCS-002 dipole measurement | Not verified |
-| SYS-412 | D | FS | 2027-04 to 2027-06 | TP-ADCS-002 | Not verified |
-| SYS-420 | A,T | CDR + FS | 2027-08-03; 2027-04 to 2027-06 | ADCS Monte Carlo; HIL closed loop (TBR-MRD-005) | Not verified |
-| SYS-421 | D | CI + FS | continuous; 2027-04 to 2027-06 | B-dot tests; TP-ADCS-003 | Partial (CI) |
-| SYS-422 | A,T | CDR + FS | 2027-08-03; 2027-04 to 2027-06 | ADCS Monte Carlo; HIL closed loop | Not verified |
-| SYS-500 | I | FMI | 2027-11 to 2028-01 | Inspection | Not verified |
-| SYS-501 | T | EMT + FMI | 2027-06 to 2027-08; 2027-11 to 2028-01 | TP-JETSON-001 | Not verified |
-| SYS-502 | T | CI + EMT | continuous; 2027-06 to 2027-08 | Burst-limit tests; TP-JETSON-001 | Not verified |
-| SYS-503 | D | CI + FS | continuous; 2027-04 to 2027-06 | TP-INT-005 | Not verified |
-| SYS-504 | A,T | EMT + PFE | 2027-06 to 2027-08; 2028-01 to 2028-02 | TP-JETSON-002; TVAC hot plateau burst | Not verified |
-| SYS-510 | D | CI + EMT | continuous; 2027-06 to 2027-08 | Selector tests; energy per accepted beacon on the EM carrier (D5 gate) | Not verified |
-| SYS-511 | D | FS | 2027-04 to 2027-06 | TP-INT-005 | Not verified |
-| SYS-512 | T | EMT | 2027-06 to 2027-08 | TP-JETSON-003 energy and batch measurement | Not verified |
-| SYS-513 | T | CI + EMT | continuous; 2027-06 to 2027-08 | Shared filter test vectors; TP-JETSON-003 | Not verified |
-| SYS-514 | D | FS | 2027-04 to 2027-06 | TP-INT-005 | Not verified |
-| SYS-520 | D | CI + FS | continuous; 2027-04 to 2027-06 | Timeout tests; fault injection | Partial (CI) |
+| SYS-312 | D | CI + FS | continuous; 2027-06 to 2027-07 | TP-OBC-001 | Not verified |
+| SYS-313 | D | CI + FS | continuous; 2027-06 to 2027-07 | Fault-log tests | Not verified |
+| SYS-320 | D | FS | 2027-06 to 2027-07 | TP-INT-001 | Not verified |
+| SYS-321 | D | FS | 2027-06 to 2027-07 | TP-INT-005 | Not verified |
+| SYS-322 | D | FS | 2027-06 to 2027-07 | TP-INT-003 | Not verified |
+| SYS-323 | D | FS | 2027-06 to 2027-07 | TP-ADCS-001 | Not verified |
+| SYS-324 | D | FS | 2027-06 to 2027-07 | TP-ADCS-002 | Not verified |
+| SYS-325 | T | CI + FMI | continuous; 2027-12 to 2028-02 | Authentication tests; TP-RF-006 | Partial (CI) |
+| SYS-326 | T | CI + FMI | continuous; 2027-12 to 2028-02 | Key-load tests; umbilical key load | Not verified |
+| SYS-400 | I | FMI | 2027-12 to 2028-02 | Inspection | Not verified |
+| SYS-401 | T | FS | 2027-06 to 2027-07 | TP-ADCS-001 with calibration | Not verified |
+| SYS-402 | I | FMI | 2027-12 to 2028-02 | Inspection | Not verified |
+| SYS-403 | T | FS | 2027-06 to 2027-07 | TP-ADCS-001 | Not verified |
+| SYS-410 | I | FMI | 2027-12 to 2028-02 | Inspection | Not verified |
+| SYS-411 | T | EMT | 2027-07 to 2027-09 | TP-ADCS-002 dipole measurement | Not verified |
+| SYS-412 | D | FS | 2027-06 to 2027-07 | TP-ADCS-002 | Not verified |
+| SYS-420 | A,T | CDR + FS | 2027-09-28; 2027-06 to 2027-07 | ADCS Monte Carlo; HIL closed loop (TBR-MRD-005) | Not verified |
+| SYS-421 | D | CI + FS | continuous; 2027-06 to 2027-07 | B-dot tests; TP-ADCS-003 | Partial (CI) |
+| SYS-422 | A,T | CDR + FS | 2027-09-28; 2027-06 to 2027-07 | ADCS Monte Carlo; HIL closed loop | Not verified |
+| SYS-500 | I | FMI | 2027-12 to 2028-02 | Inspection | Not verified |
+| SYS-501 | T | EMT + FMI | 2027-07 to 2027-09; 2027-12 to 2028-02 | TP-JETSON-001 | Not verified |
+| SYS-502 | T | CI + EMT | continuous; 2027-07 to 2027-09 | Burst-limit tests; TP-JETSON-001 | Not verified |
+| SYS-503 | D | CI + FS | continuous; 2027-06 to 2027-07 | TP-INT-005 | Not verified |
+| SYS-504 | A,T | EMT + PFE | 2027-07 to 2027-09; 2028-03 to 2028-04 | TP-JETSON-002; TVAC hot plateau burst | Not verified |
+| SYS-510 | D | CI + EMT | continuous; 2027-07 to 2027-09 | Selector tests; energy per accepted beacon on the EM carrier (D5 gate) | Not verified |
+| SYS-511 | D | FS | 2027-06 to 2027-07 | TP-INT-005 | Not verified |
+| SYS-512 | T | EMT | 2027-07 to 2027-09 | TP-JETSON-003 energy and batch measurement | Not verified |
+| SYS-513 | T | CI + EMT | continuous; 2027-07 to 2027-09 | Shared filter test vectors; TP-JETSON-003 | Not verified |
+| SYS-514 | D | FS | 2027-06 to 2027-07 | TP-INT-005 | Not verified |
+| SYS-520 | D | CI + FS | continuous; 2027-06 to 2027-07 | Timeout tests; fault injection | Partial (CI) |
 | SYS-521 | D | CI | continuous | Fallback tests | Not verified |
-| SYS-522 | D | FS + DITL | 2027-04 to 2027-06; 2027-12 to 2028-01 | Jetson failure injection (proposed wording, TBR-SYS-004) | Not verified |
-| SYS-523 | D | CI + FS | continuous; 2027-04 to 2027-06 | TP-FLATSAT-001 | Not verified |
-| SYS-600 | A,T | CDR + PFE | 2027-08-03; 2028-01 to 2028-02 | Correlated thermal model; TP-ENV-003 | Not verified |
-| SYS-601 | A,T | CDR + PFE | 2027-08-03; 2028-01 to 2028-02 | Correlated thermal model; TP-ENV-003 (TBR-TPENV003-001) | Not verified |
-| SYS-602 | A | CDR + PFE | 2027-08-03; 2028-01 to 2028-02 | Thermal model; TP-ENV-003 cold plateau charge inhibit | Not verified |
-| SYS-603 | A,T | EMT | 2027-06 to 2027-08 | TP-JETSON-002 conductance ≥ 1 W/K | Not verified |
-| SYS-700 | T | PFE | 2028-01 to 2028-02 | TP-ENV-002 | Not verified |
+| SYS-522 | D | FS + DITL | 2027-06 to 2027-07; 2028-02 | Jetson failure injection (proposed wording, TBR-SYS-004) | Not verified |
+| SYS-523 | D | CI + FS | continuous; 2027-06 to 2027-07 | TP-FLATSAT-001 | Not verified |
+| SYS-600 | A,T | CDR + PFE | 2027-09-28; 2028-03 to 2028-04 | Correlated thermal model; TP-ENV-003 | Not verified |
+| SYS-601 | A,T | CDR + PFE | 2027-09-28; 2028-03 to 2028-04 | Correlated thermal model; TP-ENV-003 (TBR-TPENV003-001) | Not verified |
+| SYS-602 | A | CDR + PFE | 2027-09-28; 2028-03 to 2028-04 | Thermal model; TP-ENV-003 cold plateau charge inhibit | Not verified |
+| SYS-603 | A,T | EMT + CDR | 2027-07 to 2027-09; 2027-09-28 | ETP VI-01 and V-THM-3 measured heat path; correlated thermal model at the CDR | Not verified |
+| SYS-700 | T | PFE | 2028-03 to 2028-04 | TP-ENV-002 | Not verified |
 | SYS-701 | A,I | CON | 2027-05-31 | Dispenser containerization (UG v11 §6.6) | Not verified |
-| SYS-702 | A,T | CDR + PFE | 2027-08-03; 2028-01 to 2028-02 | Venting analysis; TP-ENV-003 pump-down | Not verified |
-| SYS-710 | A | CDR | 2027-08-03 | Radiation analysis re-issue | Not verified |
-| SYS-711 | D | CI + FS | continuous; 2027-04 to 2027-06 | Upset injection | Not verified |
-| SYS-712 | I | CDR + PFE | 2027-08-03; 2028-01 to 2028-02 | Materials list (E595); bake-out | Not verified |
-| SYS-703 | T | PFE | 2028-01 to 2028-02 | TP-ENV-002 | Not verified |
-| SYS-704 | T | PFE | 2028-01 to 2028-02 | TP-ENV-002 §5.2 inhibit monitoring | Not verified |
-| SYS-705 | T | EMT + PFE | 2027-06 to 2027-08; 2028-01 to 2028-02 | Low-level sine sweeps, TP-ENV-002 | Not verified |
-| SYS-706 | T | PFE | 2028-01 to 2028-02 | TP-ENV-003 bake-out phase | Not verified |
-| SYS-707 | T | PFE | 2028-01 to 2028-02 | TP-ENV-003 | Not verified |
-| SYS-708 | A | CDR | 2027-08-03 | Shock analysis against the random-vibe spectrum | Not verified |
-| SYS-709 | T | PFE | 2028-01 to 2028-02 | TP-ENV-005 hot and cold deployment | Not verified |
-| SYS-713 | T | EMT + PFE | 2027-06 to 2027-08; 2028-01 to 2028-02 | TP-ENV-004 receiver-input emissions | Not verified |
-| SYS-800 | D | FS + FMI | 2027-04 to 2027-06; 2027-11 to 2028-01 | Passivation circuit test on the EM; inspection on the FM | Not verified |
-| SYS-801 | D | CI + FMI | continuous; 2027-11 to 2028-01 | EOL tests; TP-RF-006 | Not verified |
+| SYS-702 | A,T | CDR + PFE | 2027-09-28; 2028-03 to 2028-04 | Venting analysis; TP-ENV-003 pump-down | Not verified |
+| SYS-710 | A | CDR | 2027-09-28 | Radiation analysis re-issue | Not verified |
+| SYS-711 | D | CI + FS | continuous; 2027-06 to 2027-07 | Upset injection | Not verified |
+| SYS-712 | I | CDR + PFE | 2027-09-28; 2028-03 to 2028-04 | Materials list (E595); bake-out | Not verified |
+| SYS-703 | T | PFE | 2028-03 to 2028-04 | TP-ENV-002 | Not verified |
+| SYS-704 | T | PFE | 2028-03 to 2028-04 | TP-ENV-002 §5.2 inhibit monitoring | Not verified |
+| SYS-705 | T | EMT + PFE | 2027-07 to 2027-09; 2028-03 to 2028-04 | Low-level sine sweeps, TP-ENV-002 | Not verified |
+| SYS-706 | T | PFE | 2028-03 to 2028-04 | TP-ENV-003 bake-out phase | Not verified |
+| SYS-707 | T | PFE | 2028-03 to 2028-04 | TP-ENV-003; ETP VI-08 if the integrator requires more cycles | Not verified |
+| SYS-708 | A | CDR | 2027-09-28 | Shock analysis against the random-vibe spectrum | Not verified |
+| SYS-709 | T | PFE | 2028-03 to 2028-04 | TP-ENV-005 hot and cold deployment | Not verified |
+| SYS-713 | T | EMT + PFE | 2027-07 to 2027-09; 2028-03 to 2028-04 | TP-ENV-004 receiver-input emissions | Not verified |
+| SYS-800 | D | FS + FMI | 2027-06 to 2027-07; 2027-12 to 2028-02 | Passivation circuit test on the EM; inspection on the FM | Not verified |
+| SYS-801 | D | CI + FMI | continuous; 2027-12 to 2028-02 | EOL tests; TP-RF-006 | Not verified |
 | SYS-802 | — | — | — | Deleted | Deleted |
 | SYS-803 | A | PDR | 2027-01-12 | ODAR, NASA DAS | Not verified |
-| SYS-900 | I,T | PFE + PSR | 2028-01 to 2028-02; 2028-03-21 | TestPod fit check; integrator fit check | Not verified |
-| SYS-901 | T | PFE | 2028-01 to 2028-02 | Mass-properties report | Not verified |
-| SYS-902 | T | CON + PFE | 2027-05-31; 2028-01 to 2028-02 | ICD levels; TP-ENV-002, TP-ENV-003 | Not verified |
-| SYS-903 | I | PSR | 2028-03-21 | Battery data package | Not verified |
-| SYS-904 | D | SIL + DITL | 2026-11 to 2027-01; 2027-12 to 2028-01 | Orbit-determination pipeline with recorded GNSS data; OEM upload rehearsal | Not verified |
-| SYS-905 | A | CDR | 2027-08-03 | Inhibit analysis | Not verified |
-| SYS-906 | I | PSR | 2028-03-21 | Data package | Not verified |
+| SYS-900 | I,T | PFE + PSR | 2028-03 to 2028-04; 2028-05-19 | TestPod fit check; integrator fit check | Not verified |
+| SYS-901 | T | PFE | 2028-03 to 2028-04 | Mass-properties report | Not verified |
+| SYS-902 | T | CON + PFE | 2027-05-31; 2028-03 to 2028-04 | ICD levels; TP-ENV-002, TP-ENV-003 | Not verified |
+| SYS-903 | I | PSR | 2028-05-19 | Battery data package | Not verified |
+| SYS-904 | D | SIL + DITL | 2026-11 to 2027-01; 2028-02 | Orbit-determination pipeline with recorded GNSS data; OEM upload rehearsal | Not verified |
+| SYS-905 | A | CDR | 2027-09-28 | Inhibit analysis | Not verified |
+| SYS-906 | I | PSR | 2028-05-19 | Data package | Not verified |
 | SYS-907 | I | CON | 2027-05-31 | Contract clause | Not verified |
-| SYS-908 | I | CDR + PSR | 2027-08-03; 2028-03-21 | Hazard declaration | Not verified |
-| SYS-909 | A | CDR | 2027-08-03 | Self-discharge and storage analysis at delivery SOC | Not verified |
+| SYS-908 | I | CDR + PSR | 2027-09-28; 2028-05-19 | Hazard declaration | Not verified |
+| SYS-909 | A | CDR | 2027-09-28 | Self-discharge and storage analysis at delivery SOC | Not verified |
 | SYS-910 | I,T | CON | 2027-05-31 | Only if the ISS backup is triggered (decision by 2027-09) | Not verified |
 | SYS-911 | I,T | CON | 2027-05-31 | Only on the CSLI path | Not verified |
-| SYS-912 | A | CDR | 2027-08-03 | ADCS Monte Carlo at the integrator's tip-off rate | Not verified |
+| SYS-912 | A | CDR | 2027-09-28 | ADCS Monte Carlo at the integrator's tip-off rate | Not verified |
 | SYS-913 | A | PDR | 2027-01-12 | NASA DAS 3.2.6 | Not verified |
-| SYS-914 | I | REG | 2027-01 to 2028-01 | FCC filing record | Not verified |
-| SYS-915 | I | CDR | 2027-08-03 | Parts and materials finish review against the prohibited list | Not verified |
-| SYS-916 | A | CDR | 2027-08-03 | Structural analysis (FEM) with the provider and GEVS factors | Not verified |
-| SYS-917 | A,T | CDR + PFE | 2027-08-03; 2028-01 to 2028-02 | Cell vent analysis; TVAC exposure of the pack | Not verified |
-| SYS-918 | T,A | CI + FS | continuous; 2027-04 to 2027-06 | Separation-sequence test: no magnetorquer drive or burn before 120 s (RID LV-02) | Not verified |
-| SYS-919 | I | REG | 2027-01 to 2028-01 | 18th SDS registration record | Not verified |
+| SYS-914 | I | REG | 2027-01 to 2028-06 | FCC filing record | Not verified |
+| SYS-915 | I | CDR | 2027-09-28 | Parts and materials finish review against the prohibited list | Not verified |
+| SYS-916 | A | CDR | 2027-09-28 | Structural analysis (FEM) with the provider and GEVS factors | Not verified |
+| SYS-917 | A,T | CDR + PFE | 2027-09-28; 2028-03 to 2028-04 | Cell vent analysis; TVAC exposure of the pack | Not verified |
+| SYS-918 | T,A | CI + FS | continuous; 2027-06 to 2027-07 | Separation-sequence test: no magnetorquer drive or burn before 120 s (RID LV-02) | Not verified |
+| SYS-919 | I | REG | 2027-01 to 2028-06 | 18th SDS registration record | Not verified |
 
 ### 3.3 Software requirements (SMART-QSO-SRS-001)
 
 | Req ID | Method | Planned event | Date | Procedure or analysis | Status |
 |--------|--------|---------------|------|-----------------------|--------|
-| SRS-F001 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F002 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F003 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F004 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F005 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F010 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F011 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F012 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F013 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F014 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F015 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F016 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F017 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F018 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F020 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F021 | I | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F022 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F023 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F024 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F025 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F030 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F031 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F032 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F033 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F034 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F035 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F040 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F041 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F042 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F043 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F044 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F045 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F050 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F051 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F052 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F060 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F061 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F062 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F063 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F070 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F071 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F072 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F073 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F080 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F081 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F082 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F083 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F084 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F085 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F086 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F087 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F088 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F089 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F090 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F091 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F092 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F093 | T, A | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F094 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F100 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F101 | T, I | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F102 | T, A | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F103 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F104 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F105 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F106 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F107 | T, A | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F110 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F111 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F112 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F115 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F116 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F117 | T, A | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F120 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F121 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F122 | T, A | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F125 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F126 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F127 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F128 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F129 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F130 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F131 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F132 | T, I | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F133 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F140 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F141 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F142 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F143 | T, A | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F144 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F145 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F146 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F147 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F148 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F149 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F150 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F151 | T, A | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F152 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F153 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F154 | T, I | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F155 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
-| SRS-F156 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-P001 | T | FS | 2027-04 to 2027-06 | Timing on the target (TP-OBC-003) | Not verified |
-| SRS-P002 | T | FS | 2027-04 to 2027-06 | Timing on the target (TP-OBC-003) | Not verified |
-| SRS-P003 | T | FS | 2027-04 to 2027-06 | Timing on the target (TP-OBC-003) | Not verified |
-| SRS-P004 | T | FS | 2027-04 to 2027-06 | Timing on the target (TP-OBC-003) | Not verified |
-| SRS-P005 | T | FS | 2027-04 to 2027-06 | Timing on the target (TP-OBC-003) | Not verified |
-| SRS-P006 | T | FS | 2027-04 to 2027-06 | Timing on the target (TP-OBC-003) | Not verified |
-| SRS-P007 | T | FS | 2027-04 to 2027-06 | Timing on the target (TP-OBC-003) | Not verified |
-| SRS-P008 | T | FS | 2027-04 to 2027-06 | Timing on the target (TP-OBC-003) | Not verified |
-| SRS-I001 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; interface tests on the flatsat (TP-INT) | Partial (CI) |
-| SRS-I002 | I | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; interface tests on the flatsat (TP-INT) | Not verified |
-| SRS-I003 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; interface tests on the flatsat (TP-INT) | Not verified |
-| SRS-I004 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; interface tests on the flatsat (TP-INT) | Not verified |
-| SRS-I005 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; interface tests on the flatsat (TP-INT) | Partial (CI) |
-| SRS-I010 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; interface tests on the flatsat (TP-INT) | Not verified |
-| SRS-I011 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; interface tests on the flatsat (TP-INT) | Not verified |
-| SRS-I012 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; interface tests on the flatsat (TP-INT) | Not verified |
-| SRS-I020 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; interface tests on the flatsat (TP-INT) | Not verified |
-| SRS-I021 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; interface tests on the flatsat (TP-INT) | Not verified |
-| SRS-I022 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; interface tests on the flatsat (TP-INT) | Not verified |
-| SRS-I023 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; interface tests on the flatsat (TP-INT) | Partial (CI) |
-| SRS-I024 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; interface tests on the flatsat (TP-INT) | Partial (CI) |
-| SRS-I025 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; interface tests on the flatsat (TP-INT) | Partial (CI) |
-| SRS-I026 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; interface tests on the flatsat (TP-INT) | Partial (CI) |
-| SRS-I027 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; interface tests on the flatsat (TP-INT) | Partial (CI) |
-| SRS-Q001 | A | CI + CDR | continuous; 2027-08-03 | CI metrics; analysis at the CDR | Not verified |
-| SRS-Q002 | T | CI + CDR | continuous; 2027-08-03 | CI metrics; analysis at the CDR | Not verified |
-| SRS-Q003 | A | CI + CDR | continuous; 2027-08-03 | CI metrics; analysis at the CDR | Not verified |
-| SRS-Q010 | I | CI + CDR | continuous; 2027-08-03 | CI metrics; analysis at the CDR | Partial (CI) |
-| SRS-Q011 | A | CI + CDR | continuous; 2027-08-03 | CI metrics; analysis at the CDR | Not verified |
-| SRS-Q012 | I | CI + CDR | continuous; 2027-08-03 | CI metrics; analysis at the CDR | Not verified |
-| SRS-Q013 | A | CI + CDR | continuous; 2027-08-03 | CI metrics; analysis at the CDR | Not verified |
-| SRS-Q020 | T | CI + CDR | continuous; 2027-08-03 | CI metrics; analysis at the CDR | Not verified |
-| SRS-Q021 | I | CI + CDR | continuous; 2027-08-03 | CI metrics; analysis at the CDR | Not verified |
-| SRS-Q022 | T | CI + CDR | continuous; 2027-08-03 | CI metrics; analysis at the CDR | Not verified |
-| SRS-S001 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; fault injection on the target | Partial (CI) |
-| SRS-S002 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; fault injection on the target | Not verified |
-| SRS-S003 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; fault injection on the target | Not verified |
-| SRS-S004 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; fault injection on the target | Partial (CI) |
-| SRS-S005 | T | CI + FS | continuous; 2027-04 to 2027-06 | Host tests; fault injection on the target | Partial (CI) |
-| SRS-C001 | I | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
-| SRS-C002 | T | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
-| SRS-C003 | A, T | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
-| SRS-C004 | I | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
-| SRS-C010 | I, T | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
-| SRS-C011 | T | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
-| SRS-C012 | T, I | CI + CDR | continuous; 2027-08-03 | Static checks in CI; code inspection at the CDR | Not verified |
+| SRS-F001 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F002 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F003 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F004 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F005 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F010 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F011 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F012 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F013 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F014 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F015 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F016 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F017 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F018 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F020 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F021 | I | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F022 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F023 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F024 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F025 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F030 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F031 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F032 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F033 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F034 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F035 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F040 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F041 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F042 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F043 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F044 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F045 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F050 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F051 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F052 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F060 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F061 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F062 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F063 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F070 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F071 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F072 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F073 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F080 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F081 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F082 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F083 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F084 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F085 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F086 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F087 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F088 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F089 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F090 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F091 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F092 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F093 | T, A | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F094 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F100 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F101 | T, I | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F102 | T, A | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F103 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F104 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F105 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F106 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F107 | T, A | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F110 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F111 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F112 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F115 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F116 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F117 | T, A | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F120 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F121 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F122 | T, A | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F125 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F126 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F127 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F128 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F129 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F130 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F131 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F132 | T, I | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F133 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F140 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F141 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F142 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F143 | T, A | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F144 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F145 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F146 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F147 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F148 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F149 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F150 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F151 | T, A | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F152 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F153 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F154 | T, I | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F155 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F156 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-P001 | T | FS | 2027-06 to 2027-07 | Timing on the target (TP-OBC-003) | Not verified |
+| SRS-P002 | T | FS | 2027-06 to 2027-07 | Timing on the target (TP-OBC-003) | Not verified |
+| SRS-P003 | T | FS | 2027-06 to 2027-07 | Timing on the target (TP-OBC-003) | Not verified |
+| SRS-P004 | T | FS | 2027-06 to 2027-07 | Timing on the target (TP-OBC-003) | Not verified |
+| SRS-P005 | T | FS | 2027-06 to 2027-07 | Timing on the target (TP-OBC-003) | Not verified |
+| SRS-P006 | T | FS | 2027-06 to 2027-07 | Timing on the target (TP-OBC-003) | Not verified |
+| SRS-P007 | T | FS | 2027-06 to 2027-07 | Timing on the target (TP-OBC-003) | Not verified |
+| SRS-P008 | T | FS | 2027-06 to 2027-07 | Timing on the target (TP-OBC-003) | Not verified |
+| SRS-I001 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; interface tests on the flatsat (TP-INT) | Partial (CI) |
+| SRS-I002 | I | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; interface tests on the flatsat (TP-INT) | Not verified |
+| SRS-I003 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; interface tests on the flatsat (TP-INT) | Not verified |
+| SRS-I004 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; interface tests on the flatsat (TP-INT) | Not verified |
+| SRS-I005 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; interface tests on the flatsat (TP-INT) | Partial (CI) |
+| SRS-I010 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; interface tests on the flatsat (TP-INT) | Not verified |
+| SRS-I011 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; interface tests on the flatsat (TP-INT) | Not verified |
+| SRS-I012 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; interface tests on the flatsat (TP-INT) | Not verified |
+| SRS-I020 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; interface tests on the flatsat (TP-INT) | Not verified |
+| SRS-I021 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; interface tests on the flatsat (TP-INT) | Not verified |
+| SRS-I022 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; interface tests on the flatsat (TP-INT) | Not verified |
+| SRS-I023 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; interface tests on the flatsat (TP-INT) | Partial (CI) |
+| SRS-I024 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; interface tests on the flatsat (TP-INT) | Partial (CI) |
+| SRS-I025 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; interface tests on the flatsat (TP-INT) | Partial (CI) |
+| SRS-I026 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; interface tests on the flatsat (TP-INT) | Partial (CI) |
+| SRS-I027 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; interface tests on the flatsat (TP-INT) | Partial (CI) |
+| SRS-Q001 | A | CI + CDR | continuous; 2027-09-28 | CI metrics; analysis at the CDR | Not verified |
+| SRS-Q002 | T | CI + CDR | continuous; 2027-09-28 | CI metrics; analysis at the CDR | Not verified |
+| SRS-Q003 | A | CI + CDR | continuous; 2027-09-28 | CI metrics; analysis at the CDR | Not verified |
+| SRS-Q010 | I | CI + CDR | continuous; 2027-09-28 | CI metrics; analysis at the CDR | Partial (CI) |
+| SRS-Q011 | A | CI + CDR | continuous; 2027-09-28 | CI metrics; analysis at the CDR | Not verified |
+| SRS-Q012 | I | CI + CDR | continuous; 2027-09-28 | CI metrics; analysis at the CDR | Not verified |
+| SRS-Q013 | A | CI + CDR | continuous; 2027-09-28 | CI metrics; analysis at the CDR | Not verified |
+| SRS-Q020 | T | CI + CDR | continuous; 2027-09-28 | CI metrics; analysis at the CDR | Not verified |
+| SRS-Q021 | I | CI + CDR | continuous; 2027-09-28 | CI metrics; analysis at the CDR | Not verified |
+| SRS-Q022 | T | CI + CDR | continuous; 2027-09-28 | CI metrics; analysis at the CDR | Not verified |
+| SRS-S001 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; fault injection on the target | Partial (CI) |
+| SRS-S002 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; fault injection on the target | Not verified |
+| SRS-S003 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; fault injection on the target | Not verified |
+| SRS-S004 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; fault injection on the target | Partial (CI) |
+| SRS-S005 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests; fault injection on the target | Partial (CI) |
+| SRS-C001 | I | CI + CDR | continuous; 2027-09-28 | Static checks in CI; code inspection at the CDR | Not verified |
+| SRS-C002 | T | CI + CDR | continuous; 2027-09-28 | Static checks in CI; code inspection at the CDR | Not verified |
+| SRS-C003 | A, T | CI + CDR | continuous; 2027-09-28 | Static checks in CI; code inspection at the CDR | Not verified |
+| SRS-C004 | I | CI + CDR | continuous; 2027-09-28 | Static checks in CI; code inspection at the CDR | Not verified |
+| SRS-C010 | I, T | CI + CDR | continuous; 2027-09-28 | Static checks in CI; code inspection at the CDR | Not verified |
+| SRS-C011 | T | CI + CDR | continuous; 2027-09-28 | Static checks in CI; code inspection at the CDR | Not verified |
+| SRS-C012 | T, I | CI + CDR | continuous; 2027-09-28 | Static checks in CI; code inspection at the CDR | Not verified |
 
 ### 3.4 Planned events
 
@@ -405,15 +405,15 @@ current.
 | CI | Flight-software tests in CI (host) | continuous | 182 |
 | SIL | Mission simulation, software in the loop (sqso-sil) | 2026-11 to 2027-01 | 6 |
 | PDR | Analysis or inspection presented at the PDR | 2027-01-12 | 8 |
-| REG | Regulatory filing or coordination record | 2027-01 to 2028-01 | 10 |
+| REG | Regulatory filing or coordination record | 2027-01 to 2028-06 | 10 |
 | CON | Launch contract and integrator ICD | 2027-05-31 | 8 |
-| FS | Flatsat and EM bench, flight software on the target (TP-FLATSAT-001, TP-INT) | 2027-04 to 2027-06 | 167 |
-| EMT | EM development tests (ENVIRONMENTAL_TEST_PLAN §6) | 2027-06 to 2027-08 | 12 |
-| CDR | Analysis or inspection presented at the CDR | 2027-08-03 | 53 |
-| FMI | FM integration and comprehensive functional (TP-INT, TP-SYS-001) | 2027-11 to 2028-01 | 50 |
-| DITL | FM day-in-the-life and end-to-end (TP-SYS-002, TP-DITL-001, TP-GS-001) | 2027-12 to 2028-01 | 22 |
-| PFE | Protoflight environmental campaign (TP-ENV-001 to -005) | 2028-01 to 2028-02 | 30 |
-| PSR | Pre-ship review: inspection and data package | 2028-03-21 | 13 |
+| FS | Flatsat and EM bench, flight software on the target (TP-FLATSAT-001, TP-INT) | 2027-06 to 2027-07 | 167 |
+| EMT | EM development tests (ENVIRONMENTAL_TEST_PLAN §6) | 2027-07 to 2027-09 | 12 |
+| CDR | Analysis or inspection presented at the CDR | 2027-09-28 | 54 |
+| FMI | FM integration and comprehensive functional (TP-INT, TP-SYS-001) | 2027-12 to 2028-02 | 50 |
+| DITL | FM day-in-the-life and end-to-end (TP-SYS-002, TP-DITL-001, TP-GS-001) | 2028-02 | 22 |
+| PFE | Protoflight environmental campaign (TP-ENV-001 to -005) | 2028-03 to 2028-04 | 30 |
+| PSR | Pre-ship review: inspection and data package | 2028-05-19 | 13 |
 | ORB | On orbit: commissioning and operations (validation) | after launch | 8 |
 
 ### 3.5 Status summary (generated)
@@ -442,16 +442,21 @@ plan of §3.4.
 
 ## 5. Verification Closure Plan
 
+The verification items that feed these events (VI-…, V-…, AV-V…; 192 in 20 design documents), each with its test,
+pass criterion, event and date, owner, parent RID and status, and the dated decision points and actions, are in the
+generated register [`docs/verification/VI_REGISTER.md`](VI_REGISTER.md) (SQSO-VIR-001), checked in CI with
+`scripts/gen_vi_register.py --check`. Event dates follow `mission/SCHEDULE.md` Rev D.
+
 | Event | Planned date | What closes | Gate it feeds |
 |-------|--------------|-------------|---------------|
-| SIL, PDR | 2026-11 to 2027-01-12 | Orbit, lifetime, DAS, coverage and scheduler analyses; SIL year and commissioning runs | Independent PDR (`docs/project/CDR_CRITERIA_MATRIX.md` §2.3) |
-| REG | 2027-01 to 2028-01 | IARU request and letter, FCC pre-space notification, ITU API, station designation | Integrator acceptance; MRD-090 to MRD-096 |
-| CON | 2027-05-31 | Orbit, altitude clause, integrator ICD levels | Contract (decision D7, by 2027-06-30) |
-| FS, EMT | 2027-04 to 2027-08 | Flight software on the target, interface tests, Jetson heat path and burst energy (D5 gate), EM TVAC, pathfinder vibe, EMC pre-scan, antenna pattern | Independent CDR (planned 2027-08-03) |
-| CDR | 2027-08-03 | Correlated thermal model, FMEA and single-point-failure list, radiation, reliability, materials, venting, shock analyses | FM fabrication |
-| FMI, DITL | 2027-11 to 2028-01 | FM functional, RF, TX-OFF, end-to-end and day-in-the-life | Protoflight test readiness |
-| PFE | 2028-01 to 2028-02 | Mass properties, protoflight vibe with inhibit monitoring, TVAC and bake-out, deployment hot and cold, EMC, magnetic | Pre-ship review |
-| PSR | 2028-03-21 | Integrator ICD verification matrix and data package | Delivery (L − 50 days; the protoflight campaign must end by L − 4 months, `mission/SCHEDULE.md` §1) |
+| SIL, PDR | 2026-11 to 2027-01-12 | Orbit, lifetime, DAS (DA-06, before the early FCC filing of 2027-01-19), venting (DA-15), coverage and scheduler analyses; SIL year and commissioning runs; pre-layout and pre-order verification items (VI-RFB-12 by 2026-11-13; procurement data reviews by 2027-01-15) | Independent PDR (`docs/project/CDR_CRITERIA_MATRIX.md` §2.3) |
+| REG | 2027-01 to 2028-06 | Early FCC pre-space notification (2027-01-19), IARU request (2027-01-26) and letter (by 2027-05-18), replacement notification (by 2027-06-30; last update by 2028-06-17), ITU API, station designation | Integrator acceptance; MRD-090 to MRD-096 |
+| CON | 2027-05-31 (deadline 2027-06-30) | Orbit, altitude clause, integrator ICD levels, attenuated shock MPE (VI-07), dispenser thermal analysis (V-THM-5) | Contract (decision D7, by 2027-06-30) |
+| FS, EMT | 2027-06 to 2027-09 | Flight software on the target, interface tests, Jetson heat path and burst energy (D5 gate), EM TVAC, pathfinder vibe, shock if VI-07 needs it, EMC pre-scan, antenna pattern, ≥ 500 h on the EM boards (VI-11) | Independent CDR (planned 2027-09-28) |
+| CDR | 2027-09-28 | Correlated thermal model, FMEA and single-point-failure list, radiation, reliability, materials, venting, shock analyses | FM fabrication |
+| FMI, DITL | 2027-12 to 2028-03 | FM functional, RF, TX-OFF, end-to-end and day-in-the-life; FM burn-in ≥ 200 h (VI-12) | Protoflight test readiness |
+| PFE | 2028-03 to 2028-04 | Mass properties, protoflight vibe with inhibit monitoring, TVAC and bake-out, deployment hot and cold, EMC, magnetic | Pre-ship review |
+| PSR | 2028-05-19 | Integrator ICD verification matrix and data package | Delivery (L − 50 days; the protoflight campaign must end by L − 4 months, `mission/SCHEDULE.md` §1) |
 | ORB | After launch | Mission objectives and the confirmations of detumble, sun-pointing and detectability | Mission success criteria |
 
 ## 6. Known and Predicted Non-Compliances at the CDR Review
@@ -461,12 +466,12 @@ a review item discrepancy in the CDR review report and stays here until closed.
 
 | # | Requirement | Prediction or problem | Disposition |
 |---|-------------|-----------------------|-------------|
-| 1 | SYS-100 | Tumbling generation with wing self-shadowing is 2.14 W against the 2.16 W required (−0.9 %); the tumbling margin is +19 % against the 20 % requirement (`hardware/eps/SOLAR_ARRAY_DESIGN.md` v2.0 §9) | PI decision pending (BASELINE §5 note): attitude, cells on ±Z or canted wings, or a smaller load |
-| 2 | SYS-002 | Predicted mass 1.92-2.00 kg against the 2.00 kg limit, 0-4 % margin before the COTS buys (`docs/environment/MASS_BUDGET.md` v2.0); about 14-18 % after them (`docs/hardware/BUILD_VS_BUY.md` §1, estimate) | Re-run the MEL with quoted masses before the PDR |
-| 3 | SYS-603 | The documented Jetson heat path is about 0.44 W/K against the 1 W/K required (finding TB-07) | Verification item: EM conductance test (ENVIRONMENTAL_TEST_PLAN §6) |
+| 1 | SYS-100 | **Resolved by analysis.** The mission simulation gives 2.48 W delivered while tumbling at end of life (BASELINE Rev E §5; SQSO-PBA-001 v2.2 §4) against 2.21 W required at the 1.84 W load (SYS-100 Rev G, CR-2026-009): +12 %. The isotropic 2.14 W of SOLAR_ARRAY_DESIGN §9.3 is kept as a bound | Verification: V-PWR-1 (EM flatsat), V-PWR-5 (commissioning) |
+| 2 | SYS-002 | **Resolved by analysis.** MEV 1.75 kg against 2.00 kg, +14.4 % (`docs/environment/MASS_BUDGET.md` v3.1 with the CAD; BASELINE Rev E (amended) §4, CR-2026-008) | Re-run with quoted masses after the COTS buys; VI-STR-01, VI-LV-02 |
+| 3 | SYS-603 | The 1 W/K conductance (Rev F) is replaced by temperature limits (Rev G, CR-2026-010): spreader ≤ +40 °C in a 600 s batch (39.0 °C even at 0.44 W/K; 35.3 °C at 1.0 W/K), junction ≤ 95 °C (≈ 48 °C with the 1.09–1.16 K/W design), spreader ≤ +70 °C stuck on (60.6 °C at 0.44 W/K). Design path 1.10 W/K estimated (MECHANICAL_DESIGN §6.10). Predicted to comply, with the 600 s batch 1 °C inside its limit at the audit's 0.44 W/K | Verification items ETP VI-01 and V-THM-3 on the EM; correlated model at the CDR |
 | 4 | SYS-601 | Cold survival limit open between −40 °C and −30 °C (TBR-TPENV003-001) | Correlated thermal model at the CDR |
 | 5 | SYS-020, SYS-222, SYS-522, MRD-012, MRD-043, MRD-045, MRD-060 | Not verifiable as written; proposed wording awaits the PI (TBR-SYS-002 to -004, TBR-MRD-002 to -005) | PI ratification by the PDR |
-| 6 | SRS-C001 to SRS-C004, SRS-C010 to SRS-C012 | The software specification gives no verification method; methods proposed in §3.3 (marked *) | Software requirements owner |
+| 6 | SRS-C001 to SRS-C004, SRS-C010 to SRS-C012 | **Resolved.** The software specification gives each a verification method (SMART-QSO-SRS-001 §8.1) | — |
 
 ## 7. Verification Evidence
 
@@ -484,3 +489,4 @@ configuration management plan.
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | §3 mission rows cite the MRD ID with the stated meaning, in its wording (MRD-011, MRD-001, MRD-022, MRD-044, MRD-003); MRD-003 status limited to the former 25-year rule (finding VV-06) | SMART-QSO Team |
 | C | 2026-10-27 | CDR review (PM/SE/V&V). Rebuilt: every requirement of the three specifications with method, planned event, date, procedure and evidence-based status, generated by `software/simulation/cdr/pm/gen_vcrm.py` (§3). The 56 rows under undefined IDs and every "Complete" without evidence withdrawn (§4). Closure plan tied to the dated schedule (§5); predicted non-compliances (§6) | CDR review, PM/SE/V&V |
+| D | 2026-10-27 | CDR round 3 (P3P-01, P3P-06, SE-07): §5 links the generated verification-item register (SQSO-VIR-001) and takes the SQSO-SCH-001 D event dates (CDR 2027-09-28, protoflight 2028-03 to 2028-04, pre-ship 2028-05-19), the DAS before the early FCC filing and the reliability programme (VI-11, VI-12); §6 rows 1, 2 and 6 resolved, row 3 restated for SYS-603 Rev G; §3 regenerated | CDR round 3, systems and programmatics |

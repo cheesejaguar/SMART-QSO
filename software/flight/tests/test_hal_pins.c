@@ -90,6 +90,8 @@ static void test_contract_450(void **state)
         {RUST_CONST_PASSIVATION_REPORT_INTERVAL_MS, PASSIVATION_REPORT_INTERVAL_MS},
         {RUST_CONST_PASSIVATION_REPORT_WINDOW_MS, PASSIVATION_REPORT_WINDOW_MS},
         {RUST_CONST_PASSIVATION_MAX_FIRE_ATTEMPTS, PASSIVATION_MAX_FIRE_ATTEMPTS},
+        {RUST_CONST_PASSIVATION_ARM_CONFIRM_MS, PASSIVATION_ARM_CONFIRM_MS},
+        {RUST_CONST_PASSIVATION_FIRE_DEADLINE_MS, (double)PASSIVATION_FIRE_DEADLINE_MS},
     };
     for (size_t i = 0U; i < sizeof(k) / sizeof(k[0]); i++) {
         assert_true(fabs(sqso_rust_constant((RustConst_t)k[i].id) - k[i].value) < 0.5);

@@ -161,15 +161,15 @@ hardware AND of the heartbeat, CTCSS valid, and the 120 s key-down timer. The OB
 PA < 70 °C, keyed < 25 % of 100 min) decide when the heartbeat runs (`sqso_fsw::transponder`; TRANSMITTER_DESIGN §10.1).
 
 **Firmware (2026-10-27):** the heartbeat is `hal_gpio_heartbeat()` (`software/flight/include/hal/hal_gpio.h`;
-`software/rust/firmware/src/heartbeat.rs`): the TIM7 interrupt toggles PE4 to make a 100 Hz square wave for a 60 ms
-lease that the main loop renews each pass, so a stalled loop, a hard fault or a reset stops the edges. A level held high
+`software/rust/firmware/src/heartbeat.rs`): the TIM7 interrupt toggles PE4 to make a 100 Hz square wave for a 40 ms
+lease (SRS-F081; 60 ms until flight software round 2) that the main loop renews each pass, so a stalled loop, a hard fault or a reset stops the edges. A level held high
 (no edges) is treated by the radio board as disabled. Not run on hardware (VI-RF-11).
 
 **Board (2.1, SQSO-RF-BRD-001 §8):** SN74LVC1G123 retriggerable monostable, 226 kΩ × 0.22 µF = 49.7 ms (46.8–58.0 ms),
 100 kΩ pull-down on the input; CMX138A CTCSS decoder and 300–3000 Hz filter (configured by the TNC MCU, which relays its
 tone status as TONE_OK); CD74HC4060 120 s key-down timer reset by the tone dropping; SN74LVC1G11 AND; TMUX1101 mute;
 TMUX1219 2:1 select; readbacks TONE_OK, XPDR_KEY, PTT_EXCITER on W4 J1-8/9/10 to OBC inputs. Unkeyed ≤ 59 ms after
-the last edge; ≤ 118 ms after a stalled main loop (60 ms lease + 58 ms).
+the last edge; ≤ 98 ms after a stalled main loop (40 ms lease + 58 ms; 90 ms nominal), inside VI-RF-11's 100 ms.
 
 ### 3.5 TX-OFF and inhibits
 
@@ -266,7 +266,7 @@ the netlist, the BOM and the ERC log). What it leaves open:
 | AntS configuration (elements, faces, phasing) | Baseline: 2 m pair ±X, 70 cm pair ±Y, antiphase from on-board lattice baluns (or ISIS phasing) | RFQ to ISIS; VI-RF-01, VI-RF-17 |
 | RF board layout, shielding, thermal path | Rules defined (SQSO-RF-BRD-001 §10) | EM layout and review |
 | Inhibit schematic (which switches are physical RF inhibits) | EPS_DESIGN 2.0 §8 (DS1–DS3) | EPS design |
-| `XPDR_EN` heartbeat | Firmware implemented (60 ms lease); board monostable designed | VI-RF-11 |
+| `XPDR_EN` heartbeat | Firmware implemented (40 ms lease, SRS-F081); board monostable designed | VI-RF-11 |
 | Readbacks TONE_OK, XPDR_KEY, PTT_EXCITER | On W4 J1-8/9/10; OBC pins not yet allocated | OBC design (RID RF-21) |
 
 ---
@@ -284,3 +284,4 @@ the netlist, the BOM and the ERC log). What it leaves open:
 | 2.2 | 2026-10-27 | CDR 2026 consistency | RF-P002: uplink ≥ 0.9 MHz below 3 × f_down (was 2 MHz), from the RF board's desense result; the requested windows |
 | 2.3 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Element-option rows at 8°/s and 475 km (SQSO-LBA-001 v3.2 §5) |
 | 2.3 (amended) | 2026-10-27 | CDR round 3 (P3A-05, RID RFB-05) | RF-P005: ±1.0 ppm over temperature and ≤ ±3.0 ppm with 2-year ageing (TG2016SMN worst 2.1 ppm); the ground corrects the uplink from the measured downlink offset. VI-RF-14 adds ageing and offset estimation |
+| 2.3 (amended) | 2026-10-27 | CDR round 3 (P3A-07) | §3.4 and §9: the XPDR_EN heartbeat lease is 40 ms (SRS-F081; was 60 ms), a stalled loop unkeys within 98 ms (90 ms nominal), inside VI-RF-11's 100 ms |

@@ -22,6 +22,7 @@ rule is applied as commonly stated.)
     python3 software/simulation/cdr/pm/schedule_cpm.py --em-funds 2027-03-01   # funding sensitivity
     python3 software/simulation/cdr/pm/schedule_cpm.py --layout-designers 1    # one layout designer (R14)
     python3 software/simulation/cdr/pm/schedule_cpm.py --layout-at-risk       # layout starts before the PDR
+    python3 software/simulation/cdr/pm/schedule_cpm.py --no-reliability       # without the reliability programme
 """
 
 from __future__ import annotations
@@ -89,7 +90,8 @@ def layout_weeks(board: str) -> int:
 
 
 def tasks(fm_at_risk: bool, em_funds: date = date(2027, 1, 15), fm_funds: date = date(2027, 5, 31),
-          launch: date = date(2028, 11, 1), designers: int = 2, layout_at_risk: bool = False) -> List[Task]:
+          launch: date = date(2028, 11, 1), designers: int = 2, layout_at_risk: bool = False,
+          reliability: bool = True) -> List[Task]:
     d = date
     l8, l6, l4, l35 = (months_before(launch, m) for m in (8, 6, 4, 3.5))
     fm_pred = ("PDR", "FUND_FM") if fm_at_risk else ("CDR", "FUND_FM")
@@ -107,7 +109,7 @@ def tasks(fm_at_risk: bool, em_funds: date = date(2027, 1, 15), fm_funds: date =
     return [
         # ---- review and design. The round-2 build-to designs captured every board's schematic as code with an
         # ---- ERC and BOM, and the mechanical CAD and FE model exist (SQSO-MECH-CAD-001): SCH and MECH are complete.
-        Task("RID", "Close this review's RIDs (rounds 1-3); requirements rebaseline (CR-2026-007 to -016)", 6 * W),
+        Task("RID", "Close this review's RIDs (rounds 1-3); requirements rebaseline (CR-2026-007 to -015)", 6 * W),
         Task("SCH", "EM schematic capture (complete: schematic as code, ERC, BOM; SQSO-EPS/OBC/RF/JET-BRD-001)", 0),
         Task("MECH", "Mechanical CAD, FE and dynamic model (complete: SQSO-MECH-CAD-001, STRUCTURAL_ANALYSIS)", 0),
         Task("PDR_BOARD", "PI names the independent PDR board and its chair (DA-03, by 2026-12-01)", 5 * W,
@@ -138,7 +140,7 @@ def tasks(fm_at_risk: bool, em_funds: date = date(2027, 1, 15), fm_funds: date =
         Task("BATT_ABUSE", "Custom-battery abuse tests on sacrificial EM-design packs (BSA D §3.1, V-BSA-9;"
              " Falcon 9 set, 3-4 weeks; ISS backup set 8-12 weeks)", 4 * W, ("EM_FAB",)),
         Task("FLATSAT_500H", "Reliability programme: >= 500 h powered on the EM boards with flight software"
-             " (REL §6; ETP §6, VI-11)", 4 * W, ("EM_INT",)),
+             " (REL §6; ETP §6, VI-11)", 4 * W if reliability else 0, ("EM_INT",)),
         Task("CDR", "Independent CDR (Table G-7) with EM data", 1 * W, ("EM_TEST", "LAYOUT", "FLATSAT_500H",
                                                                      "BATT_ABUSE")),
         Task("CDR_RID", "CDR RID closure", 3 * W, ("CDR",)),
@@ -151,7 +153,7 @@ def tasks(fm_at_risk: bool, em_funds: date = date(2027, 1, 15), fm_funds: date =
         Task("FM_INT", "FM integration (TP-INT-001 to -006)", 6 * W, ("FM_FAB", "FM_LL", "PANELS", "BATT")),
         Task("FM_FUNC", "FM comprehensive functional and day-in-the-life (TP-SYS-001, -002)", 3 * W, ("FM_INT",)),
         Task("FM_BURNIN", "Reliability programme: FM burn-in >= 200 h powered, last 100 h failure-free, 4 ambient"
-             " thermal cycles (REL §6; ETP §3.11, VI-12)", 10, ("FM_FUNC",)),
+             " thermal cycles (REL §6; ETP §3.11, VI-12)", 10 if reliability else 0, ("FM_FUNC",)),
         Task("PF_ENV", "Protoflight campaign: mass properties, vibe, TVAC + bake-out, deployment hot/cold,"
              " EMC/self-compatibility, magnetic dipole, post-env CPT, transport (complete by L-4 M)", 7 * W,
              ("FM_BURNIN",), deadline=l4),
@@ -254,12 +256,14 @@ def main() -> None:
                     help="PCB layout designers working in parallel (default %(default)s; DA-04)")
     ap.add_argument("--layout-at-risk", action="store_true",
                     help="start the EM layout on the PDR data package, before the PDR (DA-04)")
+    ap.add_argument("--no-reliability", action="store_true",
+                    help="drop the reliability programme: EM flatsat 500 h and FM burn-in (DA-02)")
     a = ap.parse_args()
     launch = date.fromisoformat(a.launch)
     deliver = launch - timedelta(days=a.delivery_days)
     integ = launch - timedelta(days=47)
     by = solve(tasks(a.fm_at_risk, date.fromisoformat(a.em_funds), date.fromisoformat(a.fm_funds), launch,
-                     a.layout_designers, a.layout_at_risk), deliver)
+                     a.layout_designers, a.layout_at_risk, not a.no_reliability), deliver)
 
     print(f"Launch {launch}, delivery to integrator {deliver} (L-{a.delivery_days} d), "
           f"dispenser integration about {integ} (L-47 d)")

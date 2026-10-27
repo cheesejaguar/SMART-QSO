@@ -3,10 +3,12 @@
 //! `rf_control`.
 //!
 //! The two lines of the EPS's charge disconnect are `GPIO_PIN_EOL_ARM` (PF4)
-//! and `GPIO_PIN_EOL_FIRE` (PG1). The EPS controller's `EOL_STATE` register
-//! (0x7C, SMART-QSO-ICD-001 §4.6: bit 0 armed, bit 1 fired (charge path
-//! open), bit 2 fuse intact) confirms the disconnect and goes into the final
-//! report (`HK2`), which the executive sends when [`passivation_take_report`]
+//! and `GPIO_PIN_EOL_FIRE` (PG1). The EPS controller (I2C2, 0x48;
+//! SMART-QSO-ICD-001 1.5 §4.6) takes the arm key at `EOL_KEY` (0x7E: 0x3C
+//! then 0xC3, RID P3E-11) and reports in `EOL_STATE` (0x7C: bit 0 armed,
+//! bit 1 fired, bit 2 fuse intact, bit 3 key active); `EOL_STATE` confirms
+//! the latch and the disconnect and goes into the final report (HK1 `PS`,
+//! HK2 `EOL`), which the executive sends when [`passivation_take_report`]
 //! says so; TX-OFF follows it (RID REG-12).
 //!
 //! Coverage: only a nested call finds `EOL` in use (busy: `Global::with`
@@ -17,6 +19,7 @@
 //! @requirement SRS-F111 Passivation order: record, charge disconnect through two series lines while transmitting, final report, then TX-OFF
 //! @requirement SRS-F155 The final passivation report: three frames over three minutes carrying EOL_STATE, the fuse state and the attempts, before TX-OFF
 //! @requirement SRS-F112 Transmitters off for good after passivation
+//! @requirement SRS-F157 Two-processor passivation arm: the EPS controller's key and the OBC's EOL_ARM, the latch confirmed before PASSIVATE_EXECUTE is accepted
 
 use sqso_fsw::passivation::{Line, Passivation, PassivationIo, Refusal, Report};
 use sqso_fsw::rf_control::INHIBIT_PASSIVATED;
@@ -34,9 +37,10 @@ pub(crate) const GPIO_PIN_EOL_FIRE: u32 = 20;
 /// The EPS controller (SMART-QSO-ICD-001)
 const EPS_BUS: u32 = 0;
 const EPS_ADDRESS: u8 = 0x48;
-/// `EOL_STATE`: bit 0 armed, bit 1 fired (charge path open)
+/// `EOL_STATE`: bit 0 armed, bit 1 fired, bit 2 fuse intact, bit 3 key
 const REG_EOL_STATE: u8 = 0x7C;
-const EOL_FIRED: u8 = 0x02;
+/// `EOL_KEY`: the arm key, two writes
+const REG_EOL_KEY: u8 = 0x7E;
 
 static EOL: Global<Passivation> = Global::new(Passivation::new(FLASH_REGION_EOL));
 
@@ -61,13 +65,23 @@ impl PassivationIo for HalFlash {
         done == [rc::OK; 2]
     }
 
-    fn charge_path_open(&mut self) -> Option<bool> {
-        eol_state().map(|v| v & EOL_FIRED != 0)
+    fn eol_state(&mut self) -> Option<u8> {
+        eol_state()
+    }
+
+    fn write_key(&mut self) -> bool {
+        sqso_fsw::passivation::KEY.iter().all(|&k| {
+            let w = [REG_EOL_KEY, k];
+            // SAFETY: a live two-byte buffer (the HAL)
+            unsafe { c::hal_i2c_write(EPS_BUS, EPS_ADDRESS, w.as_ptr(), 2) == rc::OK }
+        })
     }
 
     fn report(&mut self, report: Report) {
         let (sev, text) = match report {
-            Report::Armed => (severity::WARNING, c"Passivation armed (600 s)"),
+            Report::Armed => (severity::WARNING, c"Passivation armed: EPS latch set (600 s)"),
+            Report::KeyRefused => (severity::ERROR, c"Passivation arm: EPS refused the key"),
+            Report::ArmFailed => (severity::ERROR, c"Passivation arm: EPS latch not set"),
             Report::Lapsed => (severity::INFO, c"Passivation arm lapsed"),
             Report::Executed => (severity::CRITICAL, c"Passivation executed: charge disconnect firing"),
             Report::NotPersisted => (severity::ERROR, c"Passivation record not persisted"),
@@ -98,6 +112,7 @@ fn code(r: Result<(), Refusal>) -> i32 {
         Ok(()) => rc::OK,
         Err(Refusal::BadCode) => rc::INVALID,
         Err(Refusal::NotArmed | Refusal::Passivated) => rc::ERROR,
+        Err(Refusal::EpsNotReady | Refusal::KeyRefused | Refusal::LineUnavailable) => rc::IO,
     }
 }
 
@@ -215,12 +230,34 @@ mod tests {
             assert_eq!(crate::hal_sim::hal_flash_erase(FLASH_REGION_EOL), rc::OK);
             let _ = EOL.with(|p| *p = Passivation::new(FLASH_REGION_EOL));
         };
+        let set_state = |v: u8| {
+            let w = [REG_EOL_STATE, v];
+            // SAFETY: a live two-byte buffer
+            assert_eq!(unsafe { crate::hal_sim::hal_i2c_write(EPS_BUS, EPS_ADDRESS, w.as_ptr(), 2) }, rc::OK);
+        };
+        // SAFETY: a live 4-byte buffer
+        let arm = || unsafe { passivation_arm(b"EOL!".as_ptr(), 4) };
         assert_eq!(crate::hal_sim::hal_flash_init(), rc::OK);
         assert_eq!(crate::hal_sim::hal_gpio_init(), rc::OK);
+        assert_eq!(crate::hal_sim::hal_i2c_init(EPS_BUS, 100_000), rc::OK);
         reset();
         assert_eq!(passivation_init(), rc::OK);
-        // SAFETY: a live 4-byte buffer
-        assert_eq!(unsafe { passivation_arm(b"EOL!".as_ptr(), 4) }, rc::OK);
+        // The key cannot be written: refused, logged
+        crate::hal_sim::I2C_FAIL_REG
+            .store(u32::from(EPS_ADDRESS) << 8 | u32::from(REG_EOL_KEY), core::sync::atomic::Ordering::Relaxed);
+        assert_eq!(arm(), rc::IO);
+        crate::hal_sim::I2C_FAIL_REG.store(0, core::sync::atomic::Ordering::Relaxed);
+        assert!(logged(b"Passivation arm: EPS refused the key"));
+        // The latch lost before it is confirmed: the arm fails
+        assert_eq!(arm(), rc::OK);
+        set_state(sqso_fsw::passivation::eol_state::FUSE_INTACT);
+        crate::time::smart_qso_sim_advance_ms(sqso_fsw::passivation::ARM_CONFIRM_MS);
+        passivation_tick(true);
+        assert!(logged(b"Passivation arm: EPS latch not set"));
+        // Armed, then the record cannot be written
+        assert_eq!(arm(), rc::OK);
+        passivation_tick(true);
+        assert!(logged(b"Passivation armed: EPS latch set (600 s)"));
         crate::hal_sim::hal_sim_flash_fail_writes(true);
         assert_eq!(passivation_execute(), rc::OK);
         crate::hal_sim::hal_sim_flash_fail_writes(false);

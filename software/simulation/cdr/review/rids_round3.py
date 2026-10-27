@@ -108,6 +108,22 @@ NEW: list[tuple[str, int, str, str, str]] = [
 ]
 
 FINAL3: dict[str, tuple[str, str]] = {
+    "LV-09": ("CD", "DP-1 owned by the PI and licensee (KK6GDB), due 2026-12-31 with 9 days of float (SQSO-OAP-001 D §2.2, §5)"),
+    "LV-11": ("CD", "SQSO-ICD-010 Rev G aligned to BASELINE Rev E (amended): mass, CG, tensors, DS1-DS3 for pack and array, 8.18 Grms, FE results"),
+    "LV-13": ("CD", "SQSO-COMM-001 2.1 against the flight-software command dictionary: HK1/HK2 and acks as proof of each step, COMMISSIONING_RELEASE before the transponder, retry, GNSS, geometry and gyro-alignment commands, the 10°/12° rule"),
+    "RF-13": ("CD", "IARU request A.6 item 7.8: 45-minute silence, 24 h receiver power cycle, the TNC in the command path; pre-space A.3 matches"),
+    "REG-10": ("CD", "FCC consultation agenda Q1-Q10 (REGULATORY_ROADMAP D §6): licensee; request 2026-11-15, meeting by 2027-01-05"),
+    "REG-11": ("DP", "Declared in IARU A.6 item 7.9 and pre-space A.3; FCC question Q4 by 2027-01-05 (licensee); if rejected, one condition in contact_monitor.rs removes it"),
+    "REG-12": ("CD", "Fire-first passivation implemented (ICD-013, passivation.rs) and described in END_OF_LIFE_PLAN D (execute early in a pass sunlit ≥ 6 min after it), CONOPS, ODAR D.1 §4, pre-space A.3; EM test V-EPS-8"),
+    "ODA-02": ("DP", "Licensee requests the NASA DAS agreement by 2026-11-06; S&MA runs DAS by 2027-01-08 against the stated criterion (≤ 5 yr after mission end at 485 km, 1.85 kg, P ≥ 0.9; casualty ≤ 1:10,000); ODAR Draft E by 2027-01-12, before the 2027-01-19 filing (REGULATORY_ROADMAP D §7)"),
+    "SE-14": ("DP", "With ODA-02"),
+    "RFB-10": ("DP", "Owner RF lead: VI-RFB-12 by 2026-11-13 before layout; VI-RFB-13 via the ISIS AntS RFQ (out by 2026-11-06), closed 10 working days after the response and before the EM buys 2027-01-15 (RF_BOARD_DESIGN D §15)"),
+    "P3A-02": ("CD", "LVR E (rows 004-109 to the design), CDS C, OAP D, superseded notice on CDR_TECHNICAL_BASELINE"),
+    "P3E-04": ("CD", "With P3A-02: LVR-067/069/101/102 and CDS 2.3.x describe DS1-DS3 on pack and array"),
+    "P3S-06": ("CD", "LVR-004/005/025/026 at the CAD and MEL 3.1 (1.75 ± 0.26 kg); ICD-010 G"),
+    "P3A-04": ("CD", "Variant B ≤ 50 W PEP at the transmitter output into ≥ 17.8 dBic (64.1 dBm, +6.6 / +8.4 dB); VI-GND-01 ≥ 100 W at the feed; VI-GND-07 station EIRP, VI-GND-08 ±2° pointing (GND-001 G, LBA 3.5)"),
+    "P3A-07": ("CD", "MISSION_TIMELINE 2.5, CONOPS, GND-001 G §5, ICD_OBC_RF 2.3 (40 ms lease, drop 87-98 ms) corrected"),
+    "P3A-09": ("CD", "Cap on the 3σ-high mean altitude or apogee, injection dispersion included; every RFQ asks for a 460 km quote (OAP D §2.2, LVR-087, ICD-010 G §9.1, BASELINE §3)"),
     "EPS-02": ("CD", "Generation 2.48 / 3.92 W EOL; ACTIVE +34 % / +54 % against the bottom-up load with the heater (PBA 2.3)"),
     "EPS-04": ("CD", "Third array inhibit: DS2 now two-pole, pole 2 holds the tracker enables low independently of DS3; array broken by DS1, DS2, DS3; boost-off pass-through ≤ 6.16 V below every converter start (≥ 9.9 V); V-EPS-3 with each pair jumpered (EPS_BOARD_DESIGN D §6.2)"),
     "P3E-01": ("CD", "With EPS-04"),

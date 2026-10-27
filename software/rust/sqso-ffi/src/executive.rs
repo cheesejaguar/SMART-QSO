@@ -1105,7 +1105,12 @@ impl Executive {
         let operating = matches!(state, STATE_DETUMBLE | STATE_IDLE | STATE_ACTIVE);
         let inputs = gnss_schedule::Inputs {
             leop: ops_state::ops_commissioning_hold(),
-            allowed: operating && !eps_control::eps_is_payload_enabled() && self.power.soc >= GNSS_SOC_MIN,
+            // Not inside the post-deployment RF silence (SYS-224: no RF
+            // signal generated; the receiver's oscillators count, RID P3A-01)
+            allowed: operating
+                && !rf_silence::rf_silence_active()
+                && !eps_control::eps_is_payload_enabled()
+                && self.power.soc >= GNSS_SOC_MIN,
             fix_ms: self.gnss_rx.fix.valid.then_some(self.gnss_rx.fix.rx_ms),
         };
         match self.gnss.step(now, &inputs) {

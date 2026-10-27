@@ -100,6 +100,14 @@ SmartQsoResult_t hal_sim_adc_set(HalAdcChannel_t channel, double value);
  */
 void hal_sim_set_reset_cause(HalResetCause_t cause);
 
+/**
+ * @brief The simulated EPS controller's end-of-life fire: with the arm latch
+ *        set (the key at EOL_KEY 0x7E, then an EOL_ARM rising edge) and
+ *        EOL_FIRE held this long, EOL_STATE reports the charge path open
+ *        (bit 1 set, bit 2 F1 intact clear); 0: never. 30000 after start-up
+ */
+void hal_sim_eps_eol_open_ms(uint32_t ms);
+
 #ifdef __cplusplus
 }
 #endif

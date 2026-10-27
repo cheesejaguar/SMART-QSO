@@ -8,9 +8,13 @@
  *
  * - PASSIVATE_EXECUTE alone does nothing; PASSIVATE_ARM needs its code;
  * - the arm lapses after 600 s;
- * - execute: the record first, then (in sunlight) EOL_ARM, then EOL_FIRE
- *   held at least 60 s, then both low, all while the transmitter is still
- *   permitted (RID REG-12);
+ * - arm: the EPS controller's EOL_STATE checked (latch clear, F1 intact),
+ *   the key written to EOL_KEY (0x7E), EOL_ARM raised and dropped once the
+ *   latch shows set (RID P3E-11; the simulated EPS controller of hal_sim
+ *   keeps the key, the latch and the fire); refused without the fuse;
+ * - execute: the record first, then (in sunlight) EOL_FIRE held at least
+ *   60 s, then low, all while the transmitter is still permitted (RID
+ *   REG-12);
  * - then the final report: three frames, 60 s apart; TX-OFF 180 s after the
  *   first; a fire the EPS never confirms is tried three times, reported,
  *   and silenced all the same;
@@ -22,6 +26,7 @@
  * @requirement SRS-F110 Two-step authenticated end-of-life passivation
  * @requirement SRS-F111 Passivation order: record, charge disconnect through two series lines while transmitting, final report, then TX-OFF
  * @requirement SRS-F112 Transmitters off for good after passivation
+ * @requirement SRS-F157 Two-processor passivation arm: the EPS controller's key and the OBC's EOL_ARM, the latch confirmed before PASSIVATE_EXECUTE is accepted
  * @requirement SRS-F155 The final passivation report: three frames over three minutes carrying EOL_STATE, the fuse state and the attempts, before TX-OFF
  */
 
@@ -72,11 +77,31 @@ static int setup(void **state)
     return 0;
 }
 
-/** The EPS controller's EOL_STATE register (bit 1: charge path open) */
+/** The EPS controller's EOL_STATE register (bit 0 armed, bit 1 fired, bit 2
+ *  F1 intact, bit 3 key) */
 static void eps_eol_state(uint8_t value)
 {
     const uint8_t reg[2] = {0x7CU, value};
     assert_int_equal(hal_i2c_write(I2C_BUS_0, 0x48U, reg, sizeof(reg)), SMART_QSO_OK);
+}
+
+static uint8_t eps_eol_read(void)
+{
+    const uint8_t reg = 0x7CU;
+    uint8_t v = 0U;
+    assert_int_equal(hal_i2c_write_read(I2C_BUS_0, 0x48U, &reg, 1U, &v, 1U), SMART_QSO_OK);
+    return v;
+}
+
+/** PASSIVATE_ARM through to the latch confirmed */
+static void arm_and_confirm(void)
+{
+    assert_int_equal(passivation_arm(ARM_CODE, sizeof(ARM_CODE)), SMART_QSO_OK);
+    assert_true(hal_gpio_get(GPIO_PIN_EOL_ARM));    /* the key accepted, EOL_ARM raised */
+    assert_int_equal(eps_eol_read() & 0x09U, 0x09U); /* the key up, the latch set */
+    passivation_tick(true);
+    assert_false(hal_gpio_get(GPIO_PIN_EOL_ARM)); /* dropped once confirmed */
+    assert_int_equal(passivation_phase(), PASSIVATION_ARMED);
 }
 
 static void test_execute_needs_a_live_arm(void **state)
@@ -86,9 +111,11 @@ static void test_execute_needs_a_live_arm(void **state)
     assert_int_equal(passivation_phase(), PASSIVATION_IDLE);
     assert_int_equal(passivation_execute(), SMART_QSO_ERROR);
     assert_int_equal(passivation_arm(wrong, sizeof(wrong)), SMART_QSO_ERROR_INVALID);
-    assert_int_equal(passivation_arm(ARM_CODE, sizeof(ARM_CODE)), SMART_QSO_OK);
-    assert_int_equal(passivation_phase(), PASSIVATION_ARMED);
+    eps_eol_state(0x00U); /* F1 not intact: the EPS is not ready */
+    assert_int_equal(passivation_arm(ARM_CODE, sizeof(ARM_CODE)), SMART_QSO_ERROR_IO);
     assert_false(hal_gpio_get(GPIO_PIN_EOL_ARM));
+    eps_eol_state(0x04U);
+    arm_and_confirm();
     assert_true(rf_control_tx_permitted()); /* arming changes nothing on the air */
     smart_qso_sim_advance_ms(PASSIVATION_ARM_WINDOW_MS);
     passivation_tick(true);
@@ -100,31 +127,28 @@ static void test_execute_needs_a_live_arm(void **state)
 static void test_execute_order_and_for_good(void **state)
 {
     (void)state;
-    eps_eol_state(0U);
-    assert_int_equal(passivation_arm(ARM_CODE, sizeof(ARM_CODE)), SMART_QSO_OK);
+    arm_and_confirm();
     assert_int_equal(passivation_execute(), SMART_QSO_OK);
     assert_int_equal(passivation_phase(), PASSIVATION_FIRING);
     assert_true(rf_control_tx_permitted()); /* still transmitting during the fire */
     assert_true(hal_gpio_get(GPIO_PIN_RADIO_EN));
     assert_int_equal(passivation_take_report(), 0U);
     passivation_tick(false); /* eclipse: nothing fired */
-    assert_false(hal_gpio_get(GPIO_PIN_EOL_ARM));
-    passivation_tick(true);
-    assert_true(hal_gpio_get(GPIO_PIN_EOL_ARM));
     assert_false(hal_gpio_get(GPIO_PIN_EOL_FIRE));
-    assert_int_equal(passivation_attempts(), 1U);
-    smart_qso_sim_advance_ms(200U);
     passivation_tick(true);
     assert_true(hal_gpio_get(GPIO_PIN_EOL_FIRE));
-    eps_eol_state(0x03U); /* opened early: still held for the minimum */
-    smart_qso_sim_advance_ms(PASSIVATION_FIRE_MIN_MS - 1U);
+    assert_false(hal_gpio_get(GPIO_PIN_EOL_ARM));
+    assert_int_equal(passivation_attempts(), 1U);
+    /* The simulated EPS opens the path after 30 s: still held for the
+     * minimum (margins of 1 s: the simulated clock also runs in real time) */
+    smart_qso_sim_advance_ms(PASSIVATION_FIRE_MIN_MS - 1000U);
     passivation_tick(true);
+    assert_int_equal(eps_eol_read() & 0x06U, 0x02U); /* fired, F1 open */
     assert_true(hal_gpio_get(GPIO_PIN_EOL_FIRE));
     assert_true(rf_control_tx_permitted());
-    smart_qso_sim_advance_ms(1U);
+    smart_qso_sim_advance_ms(1000U);
     passivation_tick(true);
     assert_false(hal_gpio_get(GPIO_PIN_EOL_FIRE));
-    assert_false(hal_gpio_get(GPIO_PIN_EOL_ARM));
 
     /* The final report: three frames 60 s apart, still on the air */
     assert_int_equal(passivation_phase(), PASSIVATION_REPORTING);
@@ -174,15 +198,12 @@ static void test_execute_order_and_for_good(void **state)
 static void test_unconfirmed_fire_is_reported_then_silenced(void **state)
 {
     (void)state;
-    eps_eol_state(0U);
-    assert_int_equal(passivation_arm(ARM_CODE, sizeof(ARM_CODE)), SMART_QSO_OK);
+    hal_sim_eps_eol_open_ms(0U); /* the fuse never opens */
+    arm_and_confirm();
     assert_int_equal(passivation_execute(), SMART_QSO_OK);
     for (uint8_t attempt = 1U; attempt <= PASSIVATION_MAX_FIRE_ATTEMPTS; attempt++) {
         passivation_tick(true);
         assert_int_equal(passivation_attempts(), attempt);
-        assert_true(hal_gpio_get(GPIO_PIN_EOL_ARM));
-        smart_qso_sim_advance_ms(200U);
-        passivation_tick(true);
         assert_true(hal_gpio_get(GPIO_PIN_EOL_FIRE));
         smart_qso_sim_advance_ms(PASSIVATION_FIRE_MAX_MS - 1000U);
         passivation_tick(true);
@@ -190,7 +211,6 @@ static void test_unconfirmed_fire_is_reported_then_silenced(void **state)
         smart_qso_sim_advance_ms(1000U);
         passivation_tick(true);
         assert_false(hal_gpio_get(GPIO_PIN_EOL_FIRE));
-        assert_false(hal_gpio_get(GPIO_PIN_EOL_ARM));
     }
     assert_int_equal(passivation_phase(), PASSIVATION_REPORTING);
     passivation_tick(true);
@@ -202,6 +222,7 @@ static void test_unconfirmed_fire_is_reported_then_silenced(void **state)
     assert_int_equal(passivation_phase(), PASSIVATION_PASSIVATED);
     assert_false(rf_control_tx_permitted());
     assert_false(hal_gpio_get(GPIO_PIN_RF_TX_EN));
+    hal_sim_eps_eol_open_ms(30000U);
 }
 
 static CmdResponse_t s_rsp;
@@ -247,6 +268,7 @@ static void test_two_keys_end_to_end(void **state)
     assert_int_equal(send(op, (uint8_t)CMD_EOL_PASSIVATE_ARM, 1U, (const uint8_t *)"EOL?", 4U),
                      CMD_RESULT_INVALID_PARAM);
     assert_int_equal(send(op, (uint8_t)CMD_EOL_PASSIVATE_ARM, 2U, ARM_CODE, 4U), CMD_RESULT_SUCCESS);
+    passivation_tick(true); /* the latch confirmed */
     assert_true(rf_control_tx_permitted());
     assert_int_equal(send(op, (uint8_t)CMD_EOL_PASSIVATE_EXECUTE, 3U, NULL, 0U), CMD_RESULT_AUTH_FAIL);
     assert_int_equal(send(rec, (uint8_t)CMD_EOL_PASSIVATE_EXECUTE, 2U, NULL, 0U), CMD_RESULT_SUCCESS);

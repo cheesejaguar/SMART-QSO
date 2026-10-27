@@ -156,10 +156,18 @@ OVERRIDES: Dict[str, Dict[str, str]] = {
                              " design budget, BASELINE §8); during a burst: field change at the A2 magnetometer"
                              " ≤ 50 nT (the Monte Carlo bias allowance is 300 nT)",
                 "why": "JETB-10: numeric limit"},
-    "V-JET-7": {"criterion": "Junction-to-spreader ≤ 5.7 K/W (design 1.09-1.16 K/W); spreader-to-frame conductance"
-                             " measured for the SYS-603 model (design 1.10 W/K); SYS-603 temperatures met with the"
-                             " measured values",
-                "why": "SE-07: SYS-603 as a temperature requirement (CR-2026-010)"},
+    "V-JET-7": {"criterion": "Junction-to-spreader ≤ 5.7 K/W (design 1.09-1.16 K/W); clamp force ≤ 40 N;"
+                             " spreader-to-frame conductance measured for the SYS-603 model (design 1.10 W/K). The EM"
+                             " spreader thermistor RT1 (same part and lot as the flight one) calibrated against a"
+                             " reference sensor at −15, +25 and +70 °C: within ± 1 K at −15 and +70 °C; the flight"
+                             " thermistor is checked at the same three points in a chamber at FM carrier acceptance,"
+                             " ± 1 K",
+                "why": "SE-07 (SYS-603 as a temperature requirement, CR-2026-010); JETB-13 (calibration accuracy and"
+                       " the right article)"},
+    "V-OBC-12": {"criterion": "3V3_OBC ≤ 25 mA at 80 MHz with every peripheral active; 3V3_ADCS ≤ 49 mA with each"
+                              " sensor; gyro VCC at the M-G370PDT0 pins ≥ 3.15 V at the gyro's maximum current with"
+                              " 3V3_AO at its −2 % limit, at −20 and +60 °C (analysis 3.195 V)",
+                 "why": "OBCB-07: the gyro supply margin is measured in V-OBC-12, with a number"},
     "V-THM-3": {"criterion": "Junction-to-spreader ≤ 5.7 K/W; module-to-frame conductance measured; with the measured"
                              " values the correlated model meets SYS-603 (spreader ≤ +40 °C in the 600 s batch, "
                              "≤ +70 °C stuck on; junction ≤ 95 °C)",
@@ -324,7 +332,8 @@ def parse_actions(root: Path) -> Tuple[List[Action], List[str]]:
 
 def schedule_events(root: Path) -> Tuple[Dict[str, Tuple[str, date]], date]:
     """Event code -> (date text, sort date), from the critical-path model at its defaults."""
-    sys.path.insert(0, str(root / "software/simulation/cdr/pm"))
+    pm = root / "software/simulation/cdr/pm"
+    sys.path.insert(0, str(pm if (pm / "schedule_cpm.py").exists() else REPO / "software/simulation/cdr/pm"))
     import schedule_cpm as cpm  # noqa: E402
     launch = date(2028, 11, 1)
     by = cpm.solve(cpm.tasks(False, launch=launch), launch - timedelta(days=50))

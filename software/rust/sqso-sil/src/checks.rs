@@ -76,6 +76,8 @@ pub struct Totals {
     /// Frames radiated while transmission was not permitted (TX-OFF, silence,
     /// inhibits) or after passivation
     pub frames_forbidden: u64,
+    /// Hardware load sheds (SHED_N, below 13.6 V for 5 s)
+    pub sheds: u32,
     /// Seconds the loss-of-contact inhibit was active
     pub contact_inhibit_s: f64,
     /// Transponder enabled, s
@@ -301,6 +303,13 @@ pub fn evaluate(t: &Totals, orbits: &[Orbit], design_life_s: f64, passivation_pl
         t.uv_trips.to_string(),
         "0 before passivation",
         if t.uv_trips == 0 { Pass } else { Anomaly },
+    ));
+    c.push(check(
+        "load-shed",
+        "Hardware load sheds of SW1, U19 and SW3 (VBAT below 13.6 V for 5 s), before passivation",
+        t.sheds.to_string(),
+        "0 (a stuck-on payload contingency shows it acting)",
+        if t.sheds == 0 { Pass } else { Warning },
     ));
     c.push(check(
         "oc-trips",

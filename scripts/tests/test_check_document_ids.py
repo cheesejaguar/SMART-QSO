@@ -92,11 +92,21 @@ def test_template_inside_document_is_not_a_header(tmp_path):
     assert scan(tmp_path) == {"SQSO-AAA-001": ["docs/a.md"]}
 
 
-def test_funding_audit_and_hidden_directories_are_excluded(tmp_path):
-    doc(tmp_path, "docs/funding_audit/x.md", "SQSO-AAA-001")
+def test_funding_audit_research_and_hidden_directories_are_excluded(tmp_path):
+    doc(tmp_path, "docs/funding_audit/research/x.md", "SQSO-AAA-001")
     doc(tmp_path, ".claude/worktrees/w/docs/a.md", "SQSO-AAA-001")
     doc(tmp_path, "docs/a.md", "SQSO-AAA-001")
     assert scan(tmp_path) == {"SQSO-AAA-001": ["docs/a.md"]}
+
+
+def test_funding_audit_reports_are_controlled(tmp_path):
+    # The cost ROM (SQSO-AUD-005) and the other audit reports are under document control (P3P-09)
+    doc(tmp_path, "docs/funding_audit/LIFECYCLE_COST_ROM.md", "SQSO-AUD-005")
+    assert scan(tmp_path) == {"SQSO-AUD-005": ["docs/funding_audit/LIFECYCLE_COST_ROM.md"]}
+    register(tmp_path, [])
+    assert any("SQSO-AUD-005" in p and "is not in" in p for p in check(tmp_path))
+    register(tmp_path, [("SQSO-AUD-005", "docs/funding_audit/LIFECYCLE_COST_ROM.md")])
+    assert check(tmp_path) == []
 
 
 def test_procedure_id_defined_twice(tmp_path):

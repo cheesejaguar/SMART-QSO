@@ -2,12 +2,14 @@
 //! duty-cycled, powered through its load switch (`GPIO_PIN_GNSS_EN`) for a
 //! session, then off.
 //!
-//! - **When.** The first session [`FIRST_SESSION_DELAY_MS`] after boot (the
-//!   receiver only listens, so it may run inside the RF silence: the launch
-//!   provider wants ephemeris early, SpaceX User's Guide v11 §9.5.7.2). Then
-//!   every orbit ([`LEOP_PERIOD_MS`]) while the commissioning hold is set
-//!   (launch and early operations), and four a day ([`OPS_PERIOD_MS`]) after
-//!   release; GNSS_REQUEST starts one at once.
+//! - **When.** The first session [`FIRST_SESSION_DELAY_MS`] after boot, not
+//!   before the 45-minute post-deployment RF silence has ended (SYS-224
+//!   forbids generating any RF signal in it, and the receiver's oscillators
+//!   are one; RID P3A-01: the caller also holds every session while the
+//!   silence is active). Then every orbit ([`LEOP_PERIOD_MS`]) while the
+//!   commissioning hold is set (launch and early operations), and four a
+//!   day ([`OPS_PERIOD_MS`]) after release; GNSS_REQUEST starts one at once
+//!   (with the same gates).
 //! - **Gates.** A session starts and continues only while the caller's gates
 //!   hold: Jetson off and the state of charge above the contingency floor
 //!   (BASELINE §5 GNSS row). The transponder is held off during a session
@@ -25,7 +27,9 @@
 //! @requirement SRS-F084 The software shall power the GNSS receiver for sessions, every orbit in launch and early operations then four a day, keep the latest fix with its time and quality, and start a session on command
 
 /// First session after boot, ms
-pub const FIRST_SESSION_DELAY_MS: u64 = 5 * 60_000;
+pub const FIRST_SESSION_DELAY_MS: u64 = 46 * 60_000;
+// After the RF silence (45 min from separation) and the first RF
+const _: () = assert!(FIRST_SESSION_DELAY_MS >= crate::rf_silence::DURATION_S as u64 * 1000);
 /// Between sessions while the commissioning hold is set (an orbit), ms
 pub const LEOP_PERIOD_MS: u64 = 95 * 60_000;
 /// Between sessions in operations (four a day), ms
@@ -194,6 +198,10 @@ mod tests {
     fn first_session_after_the_delay_then_a_fix_ends_it() {
         let mut s = Sessions::new();
         assert_eq!(s.step(0, &GO), Action::None);
+        // RID P3A-01: nothing before the RF silence ends (45 min)
+        let silence_ms = u64::from(crate::rf_silence::DURATION_S) * 1000;
+        assert_eq!(s.step(silence_ms, &GO), Action::None, "not inside the silence");
+        assert_eq!(s.step(FIRST_SESSION_DELAY_MS - 1, &GO), Action::None);
         assert!(!s.session_on());
         let t = FIRST_SESSION_DELAY_MS;
         assert_eq!(s.step(t, &GO), Action::PowerOn);

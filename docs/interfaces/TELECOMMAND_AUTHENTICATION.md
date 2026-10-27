@@ -1,7 +1,7 @@
 # Interface Control Document: Telecommand Authentication and TX-OFF
 
 **Document ID**: SQSO-ICD-013
-**Version**: 0.10 (Draft)
+**Version**: 0.11 (Draft)
 **Date**: 2026-10-27
 **Status**: Draft. Implemented and tested in the host simulation. Not yet run on target hardware (Section 10).
 
@@ -385,7 +385,7 @@ Procedure:
 | FRAM driver for `FLASH_REGION_AUTH` and `FLASH_REGION_RF_CONTROL` | Allocated in SQSO-OBC-002 §3.3; simulation HAL only |
 | Station call sign | `KK6GDB-11` (licensee KK6GDB, decision D1) |
 | Designated telecommand stations | **None agreed** (D1); at least two by 2027-01-05 |
-| Passivation telecommand (§6.4) | Implemented 2026-10-27 (`test_passivation`, Rust unit tests, SIL end-of-life plan). The EOL_ARM and EOL_FIRE pins are not allocated on the STM32 yet; not run on hardware (V-EPS-8 on the EM) |
+| Passivation telecommand (§6.4) | Implemented 2026-10-27 (`test_passivation`, Rust unit tests, SIL end-of-life plan), in the order of Version 0.10: the fire while still transmitting, the final report, then TX-OFF. Pins allocated: `EOL_ARM` on **PF4** and `EOL_FIRE` on **PG1** (logical pins 19 and 20 of `hal_gpio.h`; EPS J3-32/33, SQSO-ICX-001 B §6; SQSO-EPS-BRD-001 §13), two independent lines, low at reset and pulled down on the EPS board; firing needs both. Not run on hardware (V-EPS-8 on the EM) |
 | Command acknowledgement (`ack KK6GDB-11: C= R= N=`, SQSO-ICD-005 §5.5) | Implemented 2026-10-27 (`test_cmd_handler`); sent after each command counted as contact (Section 6.2), through the downlink's inhibits |
 | Counters from UTC for several stations (§5.2.1) | Proposed; ground tool only |
 | Loss-of-contact N and M | N: mechanism implemented; value a placeholder (D3). M (autonomous passivation): **not implemented** |
@@ -464,3 +464,4 @@ python3 software/ground/tools/telecommand_builder.py TX_DISABLE --key-file test.
 | 0.8 | 2026-10-27 | CDR flight software, round 2: end-of-life passivation implemented (§6.4) with the codes 0x70 PASSIVATE_ARM and 0x71 PASSIVATE_EXECUTE (0x34 and 0x35 are XPDR_ENABLE and XPDR_DISABLE); §7 dictionary completed (0x08, 0x09, 0x0A DUMP_TLM, 0x14 EPS_CLEAR_LOCKOUT, 0x24, 0x34, 0x35, 0x50, 0x60, 0x70, 0x71); §9.1 the recovery key also authenticates PASSIVATE_EXECUTE; §10 status rows |
 | 0.9 | 2026-10-27 | CDR S&MA analysis (decision C-14): §2 US270 row states the telecommand EIRP requirement and the two station variants (≤ 50 W PEP at US270 sites) |
 | 0.10 | 2026-10-27 | CDR flight software, round 3 (RID REG-12): §6.4 the fire while still transmitting, then the final report (three HK1/HK2 pairs over 3 min with `EOL_STATE`, the fuse state and the attempts), then TX-OFF and the passivation inhibit; an unconfirmed fire reported and silenced the same way; phase 4 (final report); pins PF4 and PG1; §7 ADCS_SET_GYRO_ALIGN (0x25) and ADCS_SET_MAG_BIAS (0x26) |
+| 0.11 | 2026-10-27 | CDR round 3, launch and operations (RID REG-12): §10 passivation row: the EOL_ARM and EOL_FIRE pins are allocated (PF4, PG1; two independent lines), and the implemented order (was "pins not allocated") |

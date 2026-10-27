@@ -39,8 +39,11 @@ REGISTER = "docs/DOCUMENT_REGISTER.md"
 HEADER_LINES = 20
 
 #: Directories that are not part of the controlled document set (hidden
-#: directories such as .claude/ and .git/ are skipped as well)
-EXCLUDED = ("docs/funding_audit",)
+#: directories such as .claude/ and .git/ are skipped as well). The funding
+#: audit's research notes are evidence, not controlled documents; its numbered
+#: reports (SQSO-AUD-001 to -005, among them the live cost ROM SQSO-AUD-005)
+#: are controlled and registered (RID P3P-09).
+EXCLUDED = ("docs/funding_audit/research",)
 BUILD_DIRS = {"build", "node_modules", "venv", "__pycache__"}
 
 DOC_ID = r"(?:SQSO|SMART-QSO|TP)(?:-[A-Z0-9]+)+"

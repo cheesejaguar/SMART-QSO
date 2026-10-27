@@ -1,7 +1,7 @@
 # Interface Control Document: OBC to RF Subsystem
 
 **Document ID**: SQSO-ICD-003
-**Version**: 2.2
+**Version**: 2.3
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR. Both sides are build-to designs: the OBC board SQSO-OBC-BRD-001 (`hardware/electrical/obc/OBC_BOARD_DESIGN.md` §13) with the master pin allocation SQSO-ICX-001 (`hardware/electrical/INTERCONNECT.md`), and the RF board SQSO-RF-BRD-001 (`hardware/electrical/rf/RF_BOARD_DESIGN.md` §4). Not built or measured. The firmware's pins are unchanged for this interface except the three readback inputs and (version 2.2) the receiver status inputs RX_CD and RX_FAULT.
@@ -163,7 +163,7 @@ transmitter first (`PTT_EXCITER = TX_PERMIT_HW · (TNC_PTT + XPDR_KEY · ¬TNC_P
 | RF_TX_EN low to RF off at the antenna | ≤ 1 ms (load switch) | VI-RF-12 |
 | XPDR_EN edges stop to repeat path unkeyed | ≤ 100 ms (monostable 50 ms + gate) | VI-RF-11 |
 | RADIO_EN high to receiver ready | ≤ 50 ms (TNC MCU boot ≈ 5 ms, CC1200 set-up ≈ 10 ms, TCXO ≤ 2 ms) | SQSO-RF-BRD-001 §15 item 12 |
-| XPDR_EN last edge to EN_OK low | 46.8–58.0 ms (stalled main loop: ≤ 60 ms lease + ≤ 58 ms = 118 ms) | SQSO-RF-BRD-001 §8.1 |
+| XPDR_EN last edge to EN_OK low | 46.8–58.0 ms (stalled main loop: the ≤ 40 ms lease + 46.8–58.0 ms = 87–98 ms, 90 ms nominal; SRS-F081, `transponder.rs` `HEARTBEAT_LEASE_MS` 40, `STALL_DROPOUT_MS` 90), inside VI-RF-11's 100 ms | SQSO-RF-BRD-001 §8.1 |
 | Readback valid after RADIO_EN | with the receiver ready (≤ 50 ms) | §4.2 |
 
 ## 7. Verification
@@ -186,7 +186,7 @@ transmitter first (`PTT_EXCITER = TX_PERMIT_HW · (TNC_PTT + XPDR_KEY · ¬TNC_P
 | Readback pins for TONE_OK, XPDR_KEY, PTT_EXCITER | **Closed in hardware**: PC9, PG12, PC7 (§4.3); the firmware reading them is open (flight-software change, SQSO-ICX-001 §6) |
 | ADC scaling of TX_TEMP, TX_FWD, TX_REV | **Closed**: the RF board's detector and sensor match `adc.rs` (RF board §7.6) |
 | TNC part | **Closed**: TNC MCU on the RF board (SQSO-RF-BRD-001 §13) |
-| VI-RF-11 "unkeys within 100 ms" vs the 118 ms stalled-loop case | open, for the chair: measure from the last edge, or shorten the lease to ≤ 40 ms (RF board §15 item 13) |
+| VI-RF-11 "unkeys within 100 ms" vs the stalled-loop case | **Closed**: the lease is 40 ms (SRS-F081, flight software round 2; was 60 ms), so a stalled loop drops the transponder within 90 ms nominal and 98 ms with the monostable at its 58.0 ms worst, inside VI-RF-11's 100 ms (RF board §15 item 13) |
 
 ## 9. Revision History
 
@@ -198,3 +198,4 @@ transmitter first (`PTT_EXCITER = TX_PERMIT_HW · (TNC_PTT + XPDR_KEY · ¬TNC_P
 | 2.0 | 2026-10-27 | CDR review, communications panel | Rewritten to the interface as built: KISS TNC on USART2 (CR-2026-005), RADIO_EN, RF_TX_EN, TX_PWR_SEL, the XPDR_EN heartbeat, the transmitter monitors; KISS parameters; timing; readbacks allocated; verification. The Si4463 SPI command set, 9600 bps GFSK and 145.825 MHz are removed |
 | 2.1 | 2026-10-27 | CDR design completion (OBC board, SQSO-OBC-BRD-001) | §3 readbacks drawn; §4.1 connector W4A v2 (FTSH-107, 14 positions) and W4B; §4.2 pin-by-pin with the OBC and RF parts, readback levels, OBC series resistors; §4.3 readbacks wired to PC9, PG12, PC7 (RIDs RF-21, AV-05); §4.4 rails from the EPS board; §6 receiver ready ≤ 50 ms, EN_OK timing; §8 open items closed or carried; from SQSO-RF-BRD-001 §4 |
 | 2.2 | 2026-10-27 | CDR design completion, flight-software round 2 | §4.1 W4A version 3 (FTSH-108, 16 positions); §4.2 RX_CD (pin 15, PG0 EXTI0) and RX_FAULT (pin 16, PF13 EXTI13, low = healthy), back-power total 2.7 mA; §4.3 their use; §7 receiver-status test; §8 |
+| 2.3 | 2026-10-27 | CDR round 3, launch and operations (finding P3A-07) | §6 stalled-loop timing with the 40 ms heartbeat lease (87–98 ms, 90 ms nominal; SRS-F081; was "60 ms lease, 118 ms"); §8 the VI-RF-11 item closed (inside 100 ms) |

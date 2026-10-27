@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
 Bottom-up ROM of the engineering-model and protoflight test campaign, and its check against
-docs/funding_audit/LIFECYCLE_COST_ROM.md (SQSO-AUD-005 Rev B) WBS 10 "Integration & test"
-($23k-78k). CDR review, PM/SE/V&V. Feeds docs/environment/ENVIRONMENTAL_TEST_PLAN.md Rev C §7.
+docs/funding_audit/LIFECYCLE_COST_ROM.md (SQSO-AUD-005) WBS 10 "Integration & test" (Rev B: $23k-78k;
+Rev C to E: $35k-101k). CDR review, PM/SE/V&V; round 3 (RIDs VV-07, P3P-08, P3P-03) added the EM shock
+test, the FM system EMC and the reliability programme. Feeds docs/environment/ENVIRONMENTAL_TEST_PLAN.md §7.
 
 No laboratory has been contacted; rates are public benchmarks or engineering judgment:
   * Hawaii Space Flight Laboratory published rates: TVAC $3,500/day, vibration table $3,500/day
@@ -16,7 +17,7 @@ TVAC duration is computed from the cycle profile of ENVIRONMENTAL_TEST_PLAN Rev 
 
 from __future__ import annotations
 
-ROM_WBS10 = (23_000, 78_000)
+ROM_WBS10 = (35_000, 101_000)   # SQSO-AUD-005 Rev E, before round 3
 
 
 def tvac_days(cycles: int, span_c: float, rate_c_per_min: float, plateau_h: float,
@@ -39,9 +40,13 @@ def main() -> None:
         ("EM", "Pathfinder random vibe in a TestPod, 3 axes", 4_000, 9_000,
          "1 shaker day at $2.5k-5k + TestPod rental $1.5k-4k [U]"),
         ("EM", f"EM TVAC and thermal balance ({em_days:.1f} chamber days)", round(em_days * 2_000), round(em_days * 4_000),
-         "Jetson heat path >= 1 W/K, burst energy, 4 cycles; $2k-4k/day"),
+         "Jetson heat path (SYS-603), burst energy, 4 cycles; $2k-4k/day"),
         ("EM", "EMC pre-scan: RE at the uplink receiver, CE, self-compatibility", 1_500, 6_000, "1-2 lab days"),
         ("EM", "Antenna pattern, EM", 0, 5_000, "outdoor range (club) to 1 anechoic day"),
+        ("EM", "Shock, EM, at MPE + 3 dB, 2 actuations per axis (VI-07; carried until the ICD)", 3_000, 12_000,
+         "1-2 days on a resonant-plate or drop shock machine at $2.5k-5k + fixture; $0 if VI-07 closes by analysis"),
+        ("EM", "Reliability programme: >= 500 h on the EM boards (VI-11)", 0, 1_000,
+         "own bench, logging, bench supplies"),
         ("FM", "Mass properties and CG", 500, 2_000, "in-house fixture to lab measurement"),
         ("FM", "Protoflight random vibe, 3 axes, inhibit monitoring", 4_000, 14_000,
          "1-2 shaker days + TestPod; GEVS App. B envelope 8.18 Grms"),
@@ -50,6 +55,10 @@ def main() -> None:
         ("FM", "Deployment tests hot and cold, re-stow kit", 500, 2_000, "burn-wire consumables, AntS re-arm"),
         ("FM", "Residual dipole, Helmholtz cage", 0, 3_000, "university facility"),
         ("FM", "RF conducted power, spurious, TX-OFF, end-to-end", 0, 3_000, "in-house analyser to 1 lab day"),
+        ("FM", "System EMC and RF self-compatibility (receiver-input emissions, spurious), protoflight step 8", 1_500,
+         8_000, "1-2 lab days; in-house with a borrowed analyser at the low end"),
+        ("FM", "Reliability programme: FM burn-in >= 200 h, 4 ambient thermal cycles (VI-12)", 2_000, 8_000,
+         "10 days of a thermal chamber at $200-800/day; $0 with an owned chamber"),
         ("Both", "Transport, travel, fixtures", 1_000, 5_000, ""),
         ("Both", "Re-test allowance: 1 vibe axis + 2 TV cycles", 3_000, 10_000, "one anomaly"),
     ]
@@ -64,8 +73,8 @@ def main() -> None:
     print(f"\nEM share {em_lo:,}-{em_hi:,}; FM and common {lo-em_lo:,}-{hi-em_hi:,}")
     print(f"ROM WBS 10: {ROM_WBS10[0]:,}-{ROM_WBS10[1]:,}; bottom-up {lo:,}-{hi:,}:"
           f" low end {100*(lo/ROM_WBS10[0]-1):+.0f} %, high end {100*(hi/ROM_WBS10[1]-1):+.0f} %")
-    print("Note: the ROM line names vibe, TVAC/bake-out, EMC pre-scan, fit check and test-pod rental for the PFU;"
-          " it has no EM environmental tests, no Helmholtz-cage test and no re-test allowance.")
+    print("Battery abuse tests (V-BSA-9, BATTERY_SAFETY_ASSESSMENT D §3.1) are costed in ROM WBS 03, not here:"
+          " Falcon 9 set $10k-15k on top of UN 38.3; ISS backup set $50k-75k.")
     print(f"Owning a bench vacuum chamber with a heated/cooled platen ($8k-20k [U]) would replace about"
           f" {em_days + pf_days:.0f} chamber days ({round((em_days+pf_days)*2_000):,}-{round((em_days+pf_days)*4_000):,})"
           " and allow the GEVS 12-cycle goal; the integrator may still require an accredited lab for bake-out.")

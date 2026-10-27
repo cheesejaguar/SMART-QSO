@@ -49,11 +49,27 @@ const BRIDGES_AWAKE_A: f64 = 0.009;
 /// Battery heater, Ω (BASELINE §8: about 207 Ω, 0.72–1.30 W across the
 /// bus; THM-15): its power is V²/R at the pack voltage
 const HEATER_OHMS: f64 = 207.0;
-/// The end-of-life disconnect's heater, Ω (EPS_DESIGN §7: 20–50 Ω)
-const EOL_HEATER_OHMS: f64 = 35.0;
-/// The thermal cut-off opens after this long on its heater, s (an
-/// assumption inside the flight software's 60 s minimum hold)
+/// The end-of-life disconnect's heater, Ω: F1 ITV4030L1412NR, 11.2–20.0 Ω
+/// (Littelfuse; SQSO-EPS-BRD-001 D §7), 15.6 Ω nominal (`eol_heater_ohms`)
+pub const EOL_HEATER_OHMS: f64 = 15.6;
+/// The fuse's heater firing window, W (the data sheet's 6–35 W)
+pub const EOL_FIRE_WINDOW_W: (f64, f64) = (6.0, 35.0);
+/// The thermal cut-off opens after this long on its heater inside the
+/// window, s (the data sheet's cut within 1 min; inside the flight
+/// software's 60 s minimum hold)
 const EOL_OPEN_S: f64 = 30.0;
+/// The hardware load shed (SQSO-EPS-BRD-001 D §8.4): SHED_N low after
+/// VBAT below 13.6 V for 5 s, high again above 14.4 V; it gates SW1, the
+/// Jetson eFuse U19 and the PA's SW3, independent of the flight software
+pub const SHED_V: (f64, f64) = (13.6, 14.4);
+const SHED_DELAY_S: f64 = 5.0;
+
+/// The fuse's heater power at `vbat` through `ohms`, W, and whether it is
+/// inside the firing window
+pub fn eol_heater(vbat: f64, ohms: f64) -> (f64, bool) {
+    let w = vbat * vbat / ohms;
+    (w, (EOL_FIRE_WINDOW_W.0..=EOL_FIRE_WINDOW_W.1).contains(&w))
+}
 /// Status LED, W
 const LED_W: f64 = 0.005;
 /// Mass, kg (BASELINE §4: lifetime analyses use 1.6 kg)
@@ -247,8 +263,9 @@ pub struct Mission {
     eol: ops::Eol,
     /// The EPS's end-of-life arm latch is set (an `EOL_ARM` rising edge)
     eol_latch: bool,
-    /// `EOL_ARM` at the last step
-    eol_arm_prev: bool,
+    /// The hardware load shed (SHED_N low) and how long VBAT has been low, s
+    shed: bool,
+    shed_below_s: f64,
     /// The four wing lines driven at the last step, and each wing deployed
     wing_lines_prev: [[bool; 2]; 2],
     wing_deployed_prev: [bool; 2],
@@ -296,6 +313,9 @@ impl Mission {
             }
         }
         let jetson = Jetson::open(rng.next_u64())?;
+        // The fuse opens by the heater model here (`eol_hardware`), not by
+        // the simulated controller's timer
+        sqso_ffi::hal_sim::hal_sim_eps_eol_open_ms(0);
         // The flight software's host files and its serial port
         for (k, f) in [
             ("SMART_QSO_FAULT_LOG", "fsw_fault_log.dat"),
@@ -380,7 +400,8 @@ impl Mission {
             latched_s: 0.0,
             eol: ops::Eol::Arm,
             eol_latch: false,
-            eol_arm_prev: false,
+            shed: false,
+            shed_below_s: 0.0,
             wing_lines_prev: [[false; 2]; 2],
             wing_deployed_prev: [false; 2],
             eol_heat_s: 0.0,
@@ -503,7 +524,7 @@ impl Mission {
             l.w_vbat += l.w_mtq;
         }
         if self.eol_heater_on() {
-            l.w_vbat += vbat * vbat / EOL_HEATER_OHMS;
+            l.w_vbat += eol_heater(vbat, self.cfg.eol_heater_ohms).0;
         }
         l.w_payload = if self.latched_up { crate::jetson::IDLE_W + LATCHUP_EXTRA_W } else { self.jetson.power_w() };
         l.burn_a = self.deploy.current_a;
@@ -529,31 +550,61 @@ impl Mission {
             || (self.fsw.running() && pin::WING_LINES.iter().flatten().any(|&n| self.fsw.pin(n)))
     }
 
-    /// The disconnect's heater conducts: the arm latch set and both series
-    /// switches closed, the charge path not yet open
+    /// The disconnect's heater conducts: the arm latch set and the fire
+    /// switch (Q20, `EOL_FIRE`) closed, the charge path not yet open
     fn eol_heater_on(&self) -> bool {
-        self.eol_latch && !self.eps.passivated && self.fsw.pin(pin::EOL_ARM) && self.fsw.pin(pin::EOL_FIRE)
+        self.eol_latch && !self.eps.passivated && self.fsw.pin(pin::EOL_FIRE)
     }
 
-    /// The EPS's end-of-life charge disconnect (EPS_DESIGN §7): the arm
-    /// latch sets on an `EOL_ARM` rising edge; with it set and `EOL_FIRE`
-    /// high the thermal cut-off's heater warms, and after [`EOL_OPEN_S`] the
-    /// charge path opens for good. This is the only way the simulation
-    /// passivates: through the flight software's two lines
+    /// The EPS's end-of-life charge disconnect (SQSO-EPS-BRD-001 D §7): the
+    /// simulated EPS controller (`hal_sim`) takes the key at `EOL_KEY` and
+    /// sets the arm latch on an `EOL_ARM` rising edge while its key is up;
+    /// with the latch set and `EOL_FIRE` high, F1's heater warms, and after
+    /// [`EOL_OPEN_S`] inside the firing window the charge path opens for
+    /// good. This is the only way the simulation passivates: through the
+    /// flight software's key and two lines
     fn eol_hardware(&mut self, dt: f64) {
-        let arm = self.fsw.pin(pin::EOL_ARM);
-        if arm && !self.eol_arm_prev {
-            self.eol_latch = true;
+        use sqso_fsw::passivation::eol_state::{ARMED, FIRED, FUSE_INTACT};
+        if !self.fsw.running() {
+            return;
         }
-        self.eol_arm_prev = arm;
-        if self.eol_heater_on() {
+        let state = self.fsw.eps_eol_state();
+        self.eol_latch |= state & ARMED != 0;
+        if self.eol_heater_on() && eol_heater(self.eps.telemetry.vbatt_v, self.cfg.eol_heater_ohms).1 {
             self.eol_heat_s += dt;
             if self.eol_heat_s >= EOL_OPEN_S {
                 self.passivate();
             }
         }
-        if self.fsw.running() {
-            self.fsw.set_eps_eol_state(self.eol_latch, self.eps.passivated);
+        // The controller's state survives an OBC reset (the simulated bus
+        // is re-initialized at every boot)
+        let mut want = if self.eol_latch { state | ARMED } else { state };
+        if self.eps.passivated {
+            want = (want | FIRED) & !FUSE_INTACT;
+        }
+        if want != state {
+            self.fsw.set_eps_eol_state(want);
+        }
+    }
+
+    /// The hardware load shed: SHED_N low after [`SHED_DELAY_S`] below
+    /// [`SHED_V`].0, high again above [`SHED_V`].1
+    fn load_shed(&mut self, dt: f64, vbat: f64) {
+        if vbat < SHED_V.0 {
+            self.shed_below_s += dt;
+            if !self.shed && self.shed_below_s >= SHED_DELAY_S {
+                self.shed = true;
+                if self.totals.passivated_s.is_none() {
+                    self.totals.sheds += 1;
+                }
+                self.event("eps", &format!("hardware load shed: VBAT {vbat:.2} V (SW1, U19 and SW3 off)"));
+            }
+        } else {
+            self.shed_below_s = 0.0;
+            if self.shed && vbat > SHED_V.1 {
+                self.shed = false;
+                self.event("eps", &format!("load shed released: VBAT {vbat:.2} V"));
+            }
         }
     }
 
@@ -706,7 +757,12 @@ impl Mission {
         let p = |n| self.fsw.pin(n);
         let (radio_on, pa_on, hi, armed) = (p(pin::RADIO_EN), p(pin::RF_TX_EN), p(pin::TX_PWR_SEL), p(pin::DEPLOY_EN));
         let wing = pin::WING_LINES.map(|w| w.map(p));
-        let jet_rail = (p(pin::PAYLOAD_EN) && p(pin::JETSON_PWR)) || (self.cfg.payload_stuck_on && self.rel() > 0.0);
+        // SW1 and U19 in series, each gated by SHED_N in hardware; the
+        // stuck-on contingency fails the OBC's commands of both (SHED_N still
+        // gates them, SQSO-EPS-BRD-001 D §8.4)
+        let stuck = self.cfg.payload_stuck_on && self.rel() > 0.0;
+        let jet_rail = (p(pin::PAYLOAD_EN) || stuck) && (p(pin::JETSON_PWR) || stuck) && !self.shed;
+        let pa_on = pa_on && !self.shed;
         // The transponder enable is the heartbeat detector's, not the pin's level
         self.gnss_receiver(dt, r);
         let xpdr_en = radio::heartbeat_enable(self.fsw.xpdr_heartbeat());
@@ -786,6 +842,7 @@ impl Mission {
         self.fsw.drive(pin::PTT_EXC, self.radio.keyed());
         self.fsw.drive(pin::XPDR_KEY, self.radio.xpdr_keyed);
         self.eol_hardware(dt);
+        self.load_shed(dt, self.eps.telemetry.vbatt_v);
         self.receiver(radio_on);
 
         // Single-event effects
@@ -1049,7 +1106,7 @@ impl Mission {
         self.totals.passivation_by_command = self.eol == ops::Eol::Done;
         self.event(
             "passivation",
-            "EOL charge disconnect opened by EOL_ARM then EOL_FIRE: array disconnected, transmitters off for good",
+            "EOL charge disconnect opened (the EPS's key and EOL_ARM set the latch, EOL_FIRE the heater): array disconnected; the final report, then TX-OFF",
         );
     }
 
@@ -1057,7 +1114,12 @@ impl Mission {
         self.radio.send(f.len());
         let b = ops::decode_beacon(f);
         let rel = self.rel();
-        if !snap.tx_permitted || self.eps.passivated {
+        // After the charge path opens the final report still goes out
+        // (RID REG-12): forbidden only past its window
+        let silenced = self.totals.passivated_s.is_some_and(|t| {
+            rel > t + (sqso_fsw::passivation::REPORT_WINDOW_MS / 1000) as f64 + 60.0
+        });
+        if !snap.tx_permitted || silenced {
             self.totals.frames_forbidden += 1;
             self.event("anomaly", "frame handed to the TNC while transmission was not permitted");
         }
@@ -1486,4 +1548,25 @@ pub fn run(cfg: &Config, out: &Path) -> std::io::Result<usize> {
         eprintln!("[SIL] {:?}: {} = {} (limit {})", c.verdict, c.id, c.value, c.limit);
     }
     Ok(anomalies)
+}
+
+#[cfg(test)]
+mod eol_tests {
+    use super::*;
+
+    /// F1's heater (ITV4030L1412NR, 11.2–20.0 Ω): both ends of its
+    /// resistance fire inside the 6–35 W window at 14.0 V (9.8 and 17.5 W)
+    /// and across the pack's 13.6–16.4 V; 35 Ω (the earlier model) would not
+    #[test]
+    fn the_fuse_heater_fires_at_both_ends_of_its_resistance() {
+        for ohms in [11.2, EOL_HEATER_OHMS, 20.0] {
+            for v in [13.6, 14.0, 16.4] {
+                let (w, inside) = eol_heater(v, ohms);
+                assert!(inside, "{ohms} ohm at {v} V: {w:.1} W");
+            }
+        }
+        assert!((eol_heater(14.0, 20.0).0 - 9.8).abs() < 0.05);
+        assert!((eol_heater(14.0, 11.2).0 - 17.5).abs() < 0.05);
+        assert!(!eol_heater(14.0, 35.0).1, "5.6 W: below the window");
+    }
 }

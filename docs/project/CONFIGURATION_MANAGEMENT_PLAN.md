@@ -1,7 +1,7 @@
 # Configuration Management Plan (CMP)
 
 **Document Number**: SMART-QSO-CMP-001
-**Version**: 1.1
+**Version**: 1.2
 **Date**: 2026-10-27
 **Status**: Draft
 
@@ -13,7 +13,7 @@
 > **Status on 2026-10-27 (CDR review).** No configuration baseline has been established and the repository has no
 > Git tags. The working controls are: the document register (`docs/DOCUMENT_REGISTER.md`), the baseline parameters
 > (`docs/BASELINE_PARAMETERS.md`, changed only by change request), the change request log
-> (`docs/project/CHANGE_REQUEST_LOG.md`, CR-2026-001 to -006), pull requests to `main`, and the automated checks of
+> (`docs/project/CHANGE_REQUEST_LOG.md`, CR-2026-001 to -015; CR-2026-007 and -008 approved by the review chair and awaiting the PI's ratification, CR-2026-009 to -015 proposed by the review and awaiting the PI's decision, both by 2027-01-12: `mission/SCHEDULE.md` DA-01), pull requests to `main`, and the automated checks of
 > §4.5. The `develop`/`release` branch model of §5.2 in version 1.0 was never used and is withdrawn.
 
 ---
@@ -149,8 +149,8 @@ Example: v1.0.0, v0.2.0-dev, v1.0.1-rc1
 | Baseline | Established | Contents | Authority | Git tag |
 |----------|-------------|----------|-----------|---------|
 | Functional | PDR (2027-01-12) | BASELINE parameters, MRD, system requirements, ConOps | PI after the PDR | `baseline/functional-pdr` |
-| Allocated | CDR (2027-08-03) | Software requirements, design, ICDs, build-to package, ETP | PI after the CDR | `baseline/allocated-cdr` |
-| Product | Pre-ship review (2028-03-21 earliest) | As-built FM, flight image (hash), test reports, VCRM | PI after the pre-ship review | `baseline/product-psr` |
+| Allocated | CDR (2027-09-28) | Software requirements, design, ICDs, build-to package, ETP | PI after the CDR | `baseline/allocated-cdr` |
+| Product | Pre-ship review (2028-05-19 earliest) | As-built FM, flight image (hash), test reports, VCRM | PI after the pre-ship review | `baseline/product-psr` |
 
 The baseline parameters document is under change control now (BASELINE §0 rule 3), ahead of the formal functional
 baseline.
@@ -205,7 +205,10 @@ baseline.
 
 Class I covers any change to a value in `docs/BASELINE_PARAMETERS.md`, to the text, method or parent of a mission or
 system requirement, to an ICD, to a safety-critical software component, or to a baselined item after a baseline is
-tagged. The CDR review's requirement changes (MRD Rev D, SYS Rev E) are Class I and are logged as CR-2026-007.
+tagged. The CDR review's requirement changes are Class I: MRD Rev D in CR-2026-007; SYS Rev E and F, which CR-2026-007
+omitted, with SYS Rev G in CR-2026-009 (RID SE-03). A design review chair can propose a Class I change but cannot
+approve it: the PI is the only approver (§2.2), and a chair's approval is recorded as "Proposed by the design review;
+PI decision required by <date>".
 
 ### 4.4 Change Request Template
 
@@ -263,7 +266,9 @@ Run in CI on every pull request (`.github/workflows/program-checks.yml`); a fail
 | `scripts/check_document_ids.py --check` | Unique document IDs; register rows and revisions current |
 | `scripts/gen_command_dictionary.py --check` | Command dictionary matches the flight code |
 | `scripts/register_status.py --check`, `scripts/check_doc_references.py` | Findings register counts; no broken document links |
-| `software/simulation/cdr/pm/gen_vcrm.py --check` | The VCRM block matches the specifications (to be added to CI) |
+| `software/simulation/cdr/pm/gen_vcrm.py --check` | The VCRM block matches the specifications |
+| `software/simulation/cdr/review/gen_rid_log.py --check` | The CDR review's RID log matches its data |
+| `scripts/gen_vi_register.py --check` | The verification-item register (`docs/verification/VI_REGISTER.md`) is current; every verification item has a pass criterion and a dated event; every dated action of `mission/SCHEDULE.md` §5 has an owner, a date and a criterion |
 
 ## 5. Version Control
 
@@ -537,3 +542,4 @@ Date: YYYY-MM-DD
 |---------|------|--------|---------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-27 | CDR review, PM/SE/V&V | Reference standards corrected (NPR 7123.1D, NPR 7150.2D; NPR 7120.5 not governing); status notice (no baseline, no tags); CCB as it can work with one approver; real configuration items (Rust crates, firmware, simulations; hardware CIs); Class I scope (baseline parameters, requirements, ICDs; CR-2026-007); dated baselines with tag names; automated configuration checks; trunk-based branching replaces the unused develop/release model |
+| 1.2 | 2026-10-27 | CDR round 3, systems and programmatics | §4.5: the VCRM, RID-log and verification-item register checks run in CI (RID PM-04); §4.3: SYS Rev E/F/G in CR-2026-009 (SE-03), a review chair proposes but does not approve Class I changes (PM-04); status notice: CR-2026-001 to -015 and the PI ratification point DA-01; §4.1 CDR and pre-ship dates from SQSO-SCH-001 D |

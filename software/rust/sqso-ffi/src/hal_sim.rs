@@ -254,7 +254,33 @@ struct Sim {
     tnc_fd: i32,
     wdt: Wdt,
     reset_cause: u32,
+    /// The EPS controller's end-of-life logic (SQSO-EPS-BRD-001 D §7)
+    eol: EolSim,
 }
+
+/// The simulated EPS controller's end-of-life logic: the keyed EOL_KEY
+/// (register 0x7E, 0x3C then 0xC3 within 1 s, accepted only with the latch
+/// clear and F1 intact, high for 10 s: `EOL_STATE` bit 3), the arm latch
+/// (`EOL_STATE` bit 0) clocked by an `EOL_ARM` rising edge while the key is
+/// high, and the fire: with the latch set and `EOL_FIRE` high for
+/// `open_ms`, the charge path opens (`EOL_STATE` bit 1 set, bit 2 F1 intact
+/// clear). `open_ms` 0: never (the mission simulation models the heater
+/// itself, `hal_sim_eps_eol_open_ms()`)
+#[derive(Clone, Copy)]
+struct EolSim {
+    key_stage_ms: Option<u64>,
+    key_until_ms: Option<u64>,
+    fire_since_ms: Option<u64>,
+    open_ms: u64,
+}
+
+impl EolSim {
+    const RESET: EolSim = EolSim { key_stage_ms: None, key_until_ms: None, fire_since_ms: None, open_ms: 30_000 };
+}
+
+/// `EOL_STATE` and `EOL_KEY` of the EPS controller
+const EOL_STATE_REG: usize = 0x7C;
+const EOL_KEY_REG: u8 = 0x7E;
 
 static SIM: Global<Sim> = Global::new(Sim {
     gpio_initialized: false,
@@ -299,6 +325,7 @@ static SIM: Global<Sim> = Global::new(Sim {
         reset_flag: false,
     },
     reset_cause: RESET_POWER_ON,
+    eol: EolSim::RESET,
 });
 
 /// Run `f` on the simulation state; `busy` if it is in use (a HAL call
@@ -398,9 +425,11 @@ pub extern "C" fn hal_gpio_set(pin: u32, state: bool) -> i32 {
         if s.gpio_dir.get(i) != Some(&GPIO_DIR_OUTPUT) {
             return rc::INVALID;
         }
+        let was = s.gpio_state.get(i).copied().unwrap_or(false);
         if let Some(level) = s.gpio_state.get_mut(i) {
             *level = state;
         }
+        eol_line(s, pin, was, state, time_us() / 1000);
         rc::OK
     })
 }
@@ -476,6 +505,7 @@ pub extern "C" fn hal_gpio_toggle(pin: u32) -> i32 {
 pub extern "C" fn hal_i2c_init(bus: u32, _speed: u32) -> i32 {
     let Some(bus) = index(bus, I2C_BUS_COUNT) else { return rc::INVALID };
     sim(rc::BUSY, |s| {
+        s.eol = EolSim { open_ms: s.eol.open_ms, ..EolSim::RESET };
         for dev in &mut s.i2c {
             dev.registers = [0; I2C_REG_BYTES];
             if word_device(dev.addr) {
@@ -490,6 +520,7 @@ pub extern "C" fn hal_i2c_init(bus: u32, _speed: u32) -> i32 {
                 put(reg::DEVICE_ID, (DEVICE_ID << 4) | 1);
             }
             if dev.addr == I2C_ADDR_EPS_CONTROLLER {
+                dev.registers[EOL_STATE_REG] = sqso_fsw::passivation::eol_state::FUSE_INTACT;
                 dev.registers[0x00] = 0x43; // STATUS: charging, sunlit
                 dev.registers[0x01] = 0x01; // MODE: IDLE
                 dev.registers[0x16] = 75; // SOC: 75 %
@@ -551,6 +582,15 @@ pub unsafe extern "C" fn hal_i2c_write(bus: u32, addr: u8, data: *const u8, len:
             return rc::ERROR;
         }
         let Some([reg, values @ ..]) = data else { return rc::NULL_PTR };
+        if I2C_FAIL_REG.load(core::sync::atomic::Ordering::Relaxed) == (u32::from(addr) << 8 | u32::from(*reg)) {
+            return rc::ERROR;
+        }
+        if addr == I2C_ADDR_EPS_CONTROLLER && *reg == EOL_KEY_REG {
+            let now = time_us() / 1000;
+            for &v in values {
+                eol_key_write(s, v, now);
+            }
+        }
         let Some(dev) = device(s, addr) else { return rc::ERROR };
         if dev.addr == I2C_ADDR_ANTS {
             ants_command(&mut dev.registers, *reg, values.is_empty());
@@ -589,8 +629,8 @@ pub unsafe extern "C" fn hal_i2c_read(bus: u32, addr: u8, data: *mut u8, len: us
     })
 }
 
-/// One register that does not answer a read (`addr << 8 | reg`; 0: none):
-/// the unit tests' failed read of a single register
+/// One register that does not answer (`addr << 8 | reg`; 0: none): the
+/// unit tests' failed access to a single register
 pub(crate) static I2C_FAIL_REG: core::sync::atomic::AtomicU32 = core::sync::atomic::AtomicU32::new(0);
 
 /// Write the register address (first byte), then read from it
@@ -611,6 +651,9 @@ pub unsafe extern "C" fn hal_i2c_write_read(
         if I2C_FAIL_REG.load(core::sync::atomic::Ordering::Relaxed) == (u32::from(addr) << 8 | u32::from(*reg)) {
             return rc::ERROR;
         }
+        if addr == I2C_ADDR_EPS_CONTROLLER {
+            eol_update(s, time_us() / 1000);
+        }
         let Some(dev) = device(s, addr) else { return rc::ERROR };
         let Some(read) = read else { return rc::NULL_PTR };
         let start = reg_offset(dev.addr, *reg);
@@ -622,6 +665,68 @@ pub unsafe extern "C" fn hal_i2c_write_read(
             None => rc::INVALID,
         }
     })
+}
+
+/// The EPS controller's `EOL_STATE` byte
+fn eol_state_mut(s: &mut Sim) -> Option<&mut u8> {
+    device(s, I2C_ADDR_EPS_CONTROLLER).and_then(|d| d.registers.get_mut(EOL_STATE_REG))
+}
+
+/// One byte written to `EOL_KEY`: the first of the pair, the second (the
+/// key raised if the latch is clear and F1 intact), or anything else (the
+/// key dropped)
+fn eol_key_write(s: &mut Sim, v: u8, now_ms: u64) {
+    use sqso_fsw::passivation::{KEY, eol_state};
+    let state = eol_state_mut(s).map_or(0, |b| *b);
+    let ready = state & eol_state::ARMED == 0 && state & eol_state::FUSE_INTACT != 0;
+    let staged = s.eol.key_stage_ms.is_some_and(|t| now_ms.saturating_sub(t) <= 1000);
+    s.eol.key_stage_ms = None;
+    s.eol.key_until_ms = None;
+    if v == KEY[0] {
+        s.eol.key_stage_ms = Some(now_ms);
+    } else if v == KEY[1] && staged && ready {
+        s.eol.key_until_ms = Some(now_ms + 10_000);
+    }
+    eol_update(s, now_ms);
+}
+
+/// `EOL_STATE` now: the key's bit, and the charge path opened by a fire
+/// held long enough with the latch set
+fn eol_update(s: &mut Sim, now_ms: u64) {
+    use sqso_fsw::passivation::eol_state;
+    let key = s.eol.key_until_ms.is_some_and(|t| now_ms < t);
+    let opened = s.eol.open_ms > 0 && s.eol.fire_since_ms.is_some_and(|t| now_ms.saturating_sub(t) >= s.eol.open_ms);
+    if let Some(b) = eol_state_mut(s) {
+        *b = if key { *b | eol_state::KEY } else { *b & !eol_state::KEY };
+        if opened && *b & eol_state::ARMED != 0 {
+            *b = (*b | eol_state::FIRED) & !eol_state::FUSE_INTACT;
+        }
+    }
+}
+
+/// An end-of-life line driven: `EOL_ARM`'s rising edge sets the latch while
+/// the key is high; `EOL_FIRE` high with the latch set starts the fire
+fn eol_line(s: &mut Sim, pin: u32, was: bool, level: bool, now_ms: u64) {
+    use sqso_fsw::passivation::eol_state;
+    eol_update(s, now_ms);
+    let state = eol_state_mut(s).map_or(0, |b| *b);
+    if pin == crate::passivation::GPIO_PIN_EOL_ARM && level && !was && state & eol_state::KEY != 0 {
+        if let Some(b) = eol_state_mut(s) {
+            *b |= eol_state::ARMED;
+        }
+    }
+    if pin == crate::passivation::GPIO_PIN_EOL_FIRE {
+        s.eol.fire_since_ms =
+            if level && state & eol_state::ARMED != 0 { Some(s.eol.fire_since_ms.unwrap_or(now_ms)) } else { None };
+    }
+}
+
+/// How long `EOL_FIRE` must be held, with the latch set, before the
+/// simulated EPS reports the charge path open, ms (0: never; the mission
+/// simulation then sets `EOL_STATE` from its own heater model)
+#[unsafe(no_mangle)]
+pub extern "C" fn hal_sim_eps_eol_open_ms(ms: u32) {
+    let _ = SIM.with(|s| s.eol.open_ms = u64::from(ms));
 }
 
 /// Whether a simulated device answers at `addr`
@@ -821,7 +926,7 @@ pub extern "C" fn hal_timer_get_us() -> u64 {
 /// Milliseconds since hal_timer_init (0 before it)
 #[unsafe(no_mangle)]
 pub extern "C" fn hal_timer_get_ms() -> u64 {
-    hal_timer_get_us() / 1000
+    time_us() / 1000
 }
 
 /// Sleep

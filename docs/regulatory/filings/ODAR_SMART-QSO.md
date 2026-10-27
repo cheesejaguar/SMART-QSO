@@ -2,11 +2,11 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-REG-018 (supersedes SQSO-ODAR-001, `docs/compliance/ORBITAL_DEBRIS_ASSESSMENT.md`)
-**Revision:** Draft D
+**Revision:** Draft D.1
 **Date:** 2026-10-27
 **Format:** NASA-STD-8719.14C (approved 2021-11-05) Appendix A.1, in the section order of the NASA Small Spacecraft Technology Program *ODAR & End of Mission Plan Instructional Guide* (spacecraft Sections 1–8; launch-vehicle Sections 9–14 are the launch provider's)
 **Regulatory use:** basis for the orbital-debris disclosures in the FCC pre-space notification, 47 CFR 97.207(g)(1)(i)–(vii) ([draft](FCC_97-207_PRE_SPACE_NOTIFICATION.md))
-**Status:** **NASA DAS 3.2.x has not been run.** DAS is distributed under a NASA software usage agreement and runs on Windows; neither was available to the CDR review. Every number here comes from the project's own models, which follow the methods of NASA-STD-8719.14C (cited section by section) and are in `software/simulation/cdr/sma/` and `software/simulation/orbit_lifetime/`. Values tagged **[DAS]** must be reproduced in DAS 3.2.6 (or a higher-fidelity tool, as the FCC rule allows) with the controlled mass properties before filing.
+**Status:** **NASA DAS 3.2.x has not been run.** DAS is distributed under a NASA software usage agreement and runs on Windows; neither was available to the CDR review. The licensee requests the agreement by 2026-11-06; S&MA runs DAS by 2027-01-08 so that Draft E carries the DAS results into the early pre-space filing of 2027-01-19 (`docs/regulatory/REGULATORY_ROADMAP.md` Rev D §7; open item 1). Every number here comes from the project's own models, which follow the methods of NASA-STD-8719.14C (cited section by section) and are in `software/simulation/cdr/sma/` and `software/simulation/orbit_lifetime/`. Values tagged **[DAS]** must be reproduced in DAS 3.2.6 (or a higher-fidelity tool, as the FCC rule allows) with the controlled mass properties before filing.
 
 ---
 
@@ -17,7 +17,7 @@
 | 4.3-1a, 4.3-1b | Released debris in LEO | None released | — | Compliant |
 | 4.3-2 | Debris near GEO | N/A | — | N/A |
 | 4.4-1 | Accidental explosion < 0.001 | **1.4 × 10⁻⁴** over a 10-year bound | ×7 | Compliant by analysis (§4) |
-| 4.4-2 | Passivation design | Option 2 (energy controlled by the battery protections) met by design; option 1 (two-key passivation telecommand, SQSO-ICD-013 v0.8 §6.4, then the one-shot charge disconnect F1 of SQSO-EPS-BRD-001 §7) implemented in the flight software and designed in the EPS, **not yet run on hardware** (V-EPS-8) | — | Compliant via option 2; option 1 to be verified on the EM (§4) |
+| 4.4-2 | Passivation design | Option 2 (energy controlled by the battery protections) met by design; option 1 (two-key passivation telecommand, SQSO-ICD-013 v0.10 §6.4, firing the one-shot charge disconnect F1 of SQSO-EPS-BRD-001 §7 while still transmitting, then reporting it, then TX-OFF) implemented in the flight software and designed in the EPS, **not yet run on hardware** (V-EPS-8) | — | Compliant via option 2; option 1 to be verified on the EM (§4) |
 | 4.4-3, 4.4-4 | Planned breakups | None | — | N/A |
 | 4.5-1 | Collision with objects ≥ 10 cm < 0.001 | **≤ 1.2 × 10⁻⁴** (worst case: 525 km, 2.0 kg, wings failed, F10.7 = 70) | ×8 | Compliant by analysis **[DAS]** (§5) |
 | 4.5-2 | Small-debris impact preventing disposal < 0.01 | Disposal is passive; no function is needed after wing deployment at T + 30 min | — | Compliant by design (§5) |
@@ -50,11 +50,13 @@
 edges of +Y, deployed into the +Y plane: `hardware/eps/SOLAR_ARRAY_DESIGN.md` §3.1), an ISIS AntS antenna (two 2 m tape
 elements of ≈ 0.5 m and two 70 cm elements of ≈ 0.17 m).
 
-**Mass:** the controlled MEL (`docs/environment/MASS_BUDGET.md` v3.0, with the build-versus-buy selections) gives CBE
-**1.49 kg** and MEV **1.73 kg** (BASELINE Rev E §4). This report uses **1.6 kg (nominal) and 1.85 kg (bound)** as
+**Mass:** the controlled MEL (`docs/environment/MASS_BUDGET.md` v3.1, with the build-versus-buy selections, the CAD
+heat-spreader pedestal and the 20 g inertia ballast of decision C-13) gives CBE **1.51 kg** and MEV **1.75 kg** (BASELINE
+Rev E amended §4; v3.0, used for the runs of Draft D, gave 1.49 / 1.73 kg). This report uses **1.6 kg (nominal) and 1.85 kg (bound)** as
 BASELINE §4 directs for lifetime analyses (the MEV lies between them; a heavier spacecraft lives longer, so the bound is
 the conservative case for disposal), adds **2.0 kg (the CDS Rev 14.1 design limit)** so that no mass the spacecraft can
-have is outside the analysis, and uses the CBE, 1.49 kg, for the shortest-life case (§6.2).
+have is outside the analysis, and uses the v3.0 CBE, 1.49 kg, for the shortest-life case (§6.2; the v3.1 CBE, 1.51 kg, lives slightly longer, so
+1.49 kg remains the bounding short case).
 
 | Item | Propulsion | Fluids | Pressure vessels | Pyrotechnics | Radioactive | Other stored energy |
 |------|-----------|--------|------------------|--------------|-------------|---------------------|
@@ -85,8 +87,11 @@ M-G370PDT0 gyro with a BMI088 backup; B-dot detumble, then spin-stabilised coars
 | Air-core coils (if kept) | 3 | 46 | Copper | |
 | RF connector bodies | 4 | 2 | Stainless | |
 
-No beryllium, tungsten or other refractory parts are in the baseline. The **only titanium parts are the battery-mount
-screws** (or standoffs); the previous revision's statement "no titanium" is withdrawn.
+No beryllium is in the baseline. **Tungsten:** decision C-13 added two 10 g W-Ni-Cu inertia ballast discs (Ø14 × 3.6 mm,
+ASTM B777 Class 3) on the +Z end frame, each on two M2 Ti-6Al-4V screws (MASS_BUDGET row 36); a tungsten heavy alloy
+is expected to survive re-entry. They were not in the §7 demise run (Draft D) and are added to the DAS run (open item
+7); the earlier statement "no tungsten" is withdrawn. Titanium: the battery-mount screws (or standoffs) and the ballast screws; the
+previous revision's statement "no titanium" is withdrawn.
 
 ## 3. Debris Released During Normal Operations (Req. 4.3-1, 4.3-2)
 
@@ -123,16 +128,19 @@ to release debris or break up the spacecraft.
   passivated (the 10-year bound already assumes no passivation half the time).
 - **Option 1, the FCC's "permanent discharge state" (97.207(g)(1)(iii)), is the baseline (BASELINE §5, SYS-800).**
   The telecommands are implemented in the flight software and tested in the host simulation
-  (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md` v0.8 §6.4; `test_passivation`); the EPS disconnect is designed
+  (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md` v0.10 §6.4; `test_passivation`); the EPS disconnect is designed
   (SQSO-EPS-BRD-001 §7); neither has run on hardware (V-EPS-8 on the EM). The sequence
-  (`docs/operations/END_OF_LIFE_PLAN.md` Rev C §3):
+  (`docs/operations/END_OF_LIFE_PLAN.md` Rev D §3):
   1. `PASSIVATE_ARM` (0x70), authenticated with the **operational key**, argument `EOL!`, arms for 600 s;
   2. `PASSIVATE_EXECUTE` (0x71), authenticated with the **offline recovery key**, within those 600 s (two keys from two
      custodians: a two-person rule for an irreversible act); no first-year lockout;
-  3. on execute: the TX-OFF latch and a passivation inhibit that nothing clears, then, in sunlight, the non-resettable
-     charge-path disconnect (fuse F1 between the solar-array trackers and the pack, fired only through both EOL_ARM
-     and EOL_FIRE); the loads stay on and drain the pack to the BMS under-voltage cut-off, after which the receiver
-     goes dark.
+  3. on execute, **while the spacecraft still transmits**: in sunlight, the non-resettable charge-path disconnect
+     (fuse F1 between the solar-array trackers and the pack, fired only through both EOL_ARM and EOL_FIRE, held
+     60–120 s, up to three attempts); then the final report, three housekeeping frames a minute apart with the EPS
+     `EOL_STATE` (disconnect fired, fuse intact) and the attempts, so the ground sees the result; then, 180 s after the
+     first report, the TX-OFF latch and a passivation inhibit that nothing clears (an unconfirmed fire is reported and
+     silenced the same way). The loads stay on and drain the pack to the BMS under-voltage cut-off, after which the
+     receiver goes dark. (Draft D described TX-OFF first, as SQSO-ICD-013 up to v0.9 did.)
 - **The passivation command is the 4.4-2 control.** The autonomous backup (M = 180 days after the loss-of-contact
   inhibit, BASELINE §7, proposed, not implemented) is **not needed** for 4.4-2: it would act only when the bus works but
   no command can be received (receiver or key failure, about 5 % of missions in the reliability model), and in that case
@@ -302,7 +310,11 @@ not stated in the rule text; it is a question for the FCC consultation already p
    only the 0.29 % wings-failed probability). If the FCC adopts reading A, the cap becomes **460 km** (P ≥ 0.99 under
    both projections; 465 km gives 0.74 conservative), with the 2-year design life at risk below about 455 km. This is a change to BASELINE §3 and
    MRD-013, raised to the chair (RID ODA-01); **adopted** in BASELINE Rev E and MRD-013 Rev E (CR-2026-007).
-4. If no integrator offers ≤ 485 km (SpaceX's drop-off menu on open 2027 flights is 500–600 km, BASELINE §3), the
+4. **Even the wings-deployed case fails under the bound projection at the target** (chair note C-2): with F10.7 = 70
+   held throughout, 475 km at 1.85 kg lives 7.3 years, 5.3 years after the 2-year mission (§6.2), as does 485 km at
+   every mass. Compliance therefore rests on the nominal and conservative projections that NASA-STD-8719.14C uses; the
+   bound is a sensitivity case, stated as such in the pre-space notification (vii).
+5. If no integrator offers ≤ 485 km (SpaceX's drop-off menu on open 2027 flights is 500–600 km, BASELINE §3), the
    options are: an orbital transfer vehicle drop-off at the band (integrators with OTVs were in the D7 request list);
    adding drag area (a deployable drag device was removed from the baseline; it would need to roughly double the
    average area to make 525 km compliant); or the ISS backup (compliant, but Level 3 unachievable).
@@ -371,12 +383,13 @@ N/A.
 
 | # | Item | Owner |
 |---|------|-------|
-| 1 | Obtain NASA DAS 3.2.6 (NASA Software Catalog usage agreement) and reproduce §4–§7 with the controlled MEL | S&MA |
-| 2 | Put the deployment band and cap (decided: 465–485 km, 485 km cap, BASELINE Rev E §3; RID ODA-01) in the launch contract | PI, launch |
-| 3 | Passivation: telecommands implemented (0x70/0x71, SQSO-ICD-013 v0.8 §6.4); charge-path disconnect designed (F1, two independent signals, SQSO-EPS-BRD-001 §7); run V-EPS-8 on the EM, close the recharge lockout (EPS-12), and update the pre-space notification's passivation statement after the EM test | EPS, FSW, licensee |
-| 4 | Ask the FCC (D3 consultation) which reading of "completion of the mission" applies to a failed spacecraft | Licensee |
+| 1 | Obtain NASA DAS 3.2.6 (NASA Software Catalog usage agreement, **requested by 2026-11-06**, in hand by 2026-12-15) and reproduce §4–§7 with the controlled MEL (MASS_BUDGET v3.1) **by 2027-01-08**, before the early pre-space filing of 2027-01-19, which needs the results ((g)(1)(ii), (iv)(A)(1)). **Pass criterion:** DAS reproduces this draft: re-entry ≤ 5 years after the 2-year mission at 485 km with 1.85 kg and the wings deployed (P ≥ 0.9, reading B); casualty risk ≤ 1:10,000 with no fragment > 15 J; 4.5-1 < 0.001. If DAS gives a longer life, the cap is lowered to the highest altitude DAS passes before filing (REGULATORY_ROADMAP Rev D §7) | Licensee (agreement); S&MA (run) |
+| 2 | Put the deployment band and cap (decided: 465–485 km, 485 km cap, BASELINE Rev E §3; RID ODA-01) in the launch contract, the cap on the 3σ-high mean altitude of the drop-off orbit with the injection dispersion, and a 460 km quote for reading A (SQSO-OAP-001 §2.2) | PI, launch |
+| 3 | Passivation: telecommands implemented (0x70/0x71, SQSO-ICD-013 v0.10 §6.4: the fire while transmitting, the final report, then TX-OFF); charge-path disconnect designed (F1, two independent signals, SQSO-EPS-BRD-001 §7); run V-EPS-8 on the EM, close the recharge lockout (EPS-12), and add the EM result to the pre-space notification's passivation statement (Rev A.3 describes the implemented sequence) | EPS, FSW, licensee |
+| 4 | Ask the FCC (D3 consultation, REGULATORY_ROADMAP Rev D §6 Q5, by 2027-01-05) which reading of "completion of the mission" applies to a failed spacecraft | Licensee |
 | 5 | Replace the cycle-26 assumption with the NOAA/NASA prediction when issued; DAS uses its own solar-flux table | S&MA |
 | 6 | Separate burn drivers for the two wings: designed, one driver per resistor on four lines (SQSO-EPS-BRD-001 §9); §6.4 re-run in Draft D (wings-failed 0.29 %, of which 0.2 % is the shared burn supply SW6/U17); confirm the shared-supply allocation with the EPS board FMEA | EPS, S&MA |
+| 7 | Add the two 10 g W-Ni-Cu inertia ballast discs (C-13) and their Ti screws to the demise model and the DAS run; a surviving disc is expected below 15 J, to be shown | S&MA |
 
 ---
 
@@ -389,3 +402,4 @@ N/A.
 | Draft B | 2026-10-27 | CDR S&MA review: average cross-sections by the 8719.14C method (wings deployed 0.0247 m², not 0.028); masses 1.6/1.8/2.0 kg; NOAA-anchored nominal and conservative solar projections; FCC 5-year compliance by altitude and its probability with early failure; 525 km cap and 500 km target found non-compliant, 465–485 km recommended; 4.4-1 fault tree (1.4 × 10⁻⁴); 4.5-1 from the public catalogue (≤ 1.2 × 10⁻⁴); re-entry demise model with the Ti-6Al-4V and stainless parts (no fragment > 15 J nominal; 1:47,000 worst); "no titanium" and the 30-year-after-launch limit withdrawn |
 | Draft C | 2026-10-27 | CDR 2026 consistency pass: compliance summary and orbit row at the baseline 475 km target and 485 km cap (BASELINE Rev E, which adopted §6.5); one burn driver per resistor as designed (4.6-4, open items 2 and 6). Analysis values unchanged |
 | Draft D | 2026-10-27 | CDR S&MA re-run at the Rev E baseline (RID SE-16): deployment 2028-11-01 (was 2028-06-01), masses 1.6 / 1.85 / 2.0 kg (was 1.8 kg bound) and CBE 1.49 kg for the shortest life, 465 and 485 km rows (§6.2, §5); §6.4 with the four-line deployment: wings-failed 0.29 % (was 1.6 %), reading B P = 0.997 at 475–485 km (was 0.98), reading A cap 460 km (was 470 km); §2 mass from MASS_BUDGET v3.0; 4.6-1a, 4.6-4, 4.6-5 and open item 6; §4 4.4-2 and open item 3 brought to SQSO-ICD-013 v0.8 (passivation implemented as 0x70/0x71, no first-year lockout) |
+| Draft D.1 | 2026-10-27 | CDR round 3 (RIDs ODA-02, SE-14, REG-12; chair note C-2); analysis values unchanged: DAS agreement requested by 2026-11-06 and DAS run by 2027-01-08, before the early filing, with its pass criterion (status, open item 1); §2 mass from MASS_BUDGET v3.1 (CBE 1.51 kg, MEV 1.75 kg) and the W-Ni-Cu inertia ballast ("no tungsten" withdrawn; open item 7); §4 4.4-2 passivation in the implemented order (SQSO-ICD-013 v0.10: the fire while transmitting, the final report, then TX-OFF); §6.5 item 4: the F10.7 = 70 bound fails at 475 km, 1.85 kg even with the wings deployed (5.3 years after the mission) |

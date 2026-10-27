@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-ETP-001
-**Revision:** C.2
+**Revision:** D
 **Date:** 2026-10-27
 **Reference:** GSFC-STD-7000B (GEVS, 2021-04-28) including Appendix B (CubeSats); SpaceX Rideshare Payload User's Guide
 v11 (August 2026, "UG v11"); Cal Poly CubeSat Design Specification Rev 14.1 §3; LSP-REQ-317.01 Rev B (CSLI path only)
@@ -113,14 +113,25 @@ integrator decides for a rail-style dispenser (rattle).
 
 ### 3.3 Shock [SYS-708]
 
-Shock is "advised" by UG v11 Table 6-2 and "typically not required" by CDS Rev 14.1 §3.3.1.1. Verification is by
-analysis: the 3σ random-vibe-equivalent shock response spectrum (Q = 10) of the §3.1 envelope is 24 g at 100 Hz, 53 g
-at 500 Hz, 85 g at 1000 Hz and 60 g at 2000 Hz (`test_levels.py`). By the LSP-REQ-317.01 Rev B Table 1 note 3
-criterion, a shock test may be waived only where this exceeds the qualification shock spectrum below 2000 Hz.
-Dispenser-ejection shocks are typically higher than this at 1-2 kHz, so the waiver is **not assumed**: verification item
-VI-07 (§8) obtains the integrator's shock MPE and decides between analysis and a test (2 actuations per axis at MPE +
-3 dB, UG v11 Table 6-2). Self-induced shock from the burn-wire releases and the wing hard stops is covered by the
-deployment tests (§3.8).
+Shock is "advised" by UG v11 Table 6-2 and "typically not required" by CDS Rev 14.1 §3.3.1.1. The 3σ
+random-vibe-equivalent shock response spectrum (Q = 10) of the §3.1 envelope is 24 g at 100 Hz, 53 g at 500 Hz, 85 g
+at 1000 Hz and 60 g at 2000 Hz (`test_levels.py`). By the LSP-REQ-317.01 Rev B Table 1 note 3 criterion, a shock test
+may be waived only where this exceeds the qualification shock spectrum below 2000 Hz. **The UG v11 shock MPE at the
+payload interface (30 g at 100 Hz rising to 1000 g at 1000–10,000 Hz, LVR-046) exceeds it by a factor of about 12 at
+1 kHz, so the analysis branch cannot pass on the UG levels.** The UG levels are at the launch-vehicle interface; the
+EXOpod Nova attenuates shock at high frequency (Nova user manual §3.5), so the integrator's attenuated MPE at the
+CubeSat rails is what governs. The plan therefore:
+
+1. asks every integrator in the RFQ for the attenuated EXOpod Nova shock MPE at the CubeSat interface (DA-07, by
+   2026-12-31), delivered with the ICD at the contract (DA-08, by 2027-06-30);
+2. decides VI-07 by 2027-07-14 (DA-21): analysis closes it only if the vibe-equivalent SRS envelops that MPE below
+   2000 Hz;
+3. otherwise runs an **EM shock test** at MPE + 3 dB, 2 actuations per axis (UG v11 Table 6-2), in the EM tests
+   (2027-07 to 2027-09), with a functional test before and after; the FM is accepted by similarity unless the
+   integrator requires an FM test. The EM test is carried in the cost (`test_cost.py`: $3k–12k) until VI-07 decides.
+
+The FM is not shock-tested (§9 deviation 7). Self-induced shock from the burn-wire releases and the wing hard stops is
+covered by the deployment tests (§3.8). SQSO-LVR-001 LVR-046 and VI-LV-16 carry the same plan.
 
 ### 3.4 Thermal vacuum and thermal cycling [SYS-600, SYS-601, SYS-602, SYS-702, SYS-707]
 
@@ -139,7 +150,13 @@ levels are set from the requirement and part limits and capped by the battery:
 
 The SpaceX advised protoflight range (UG v11 Table 6-2: envelope of the maximum predicted temperatures and −24 to
 +61 °C, ± 5 °C, so at least −29 to +66 °C) exceeds the battery limit by 6 °C at the hot end; it is advised, not
-required, and the shortfall is recorded with the GEVS deviation. **When the correlated model gives the margined
+required, and the shortfall is recorded with the GEVS deviation. **One definition (RID P3S-10).** The protoflight
+thermal-vacuum test of this plan, SYS-707 and BASELINE §8 is the GEVS one: 8 cycles in vacuum at the allowable flight
+temperatures ± 10 °C, capped at +60 °C. The UG's advised "± 5 °C, 20 cycles, ≥ 4 in vacuum" is met as follows: its
+± 5 °C margin is inside the GEVS ± 10 °C except at the battery cap (deviation 4), and its cycle count by the 8 vacuum
+cycles, the 4 board-level cycles and, if the integrator requires 20, 8 further ambient cycles of the FM (VI-08).
+`docs/environment/THERMAL_ANALYSIS.md` V-THM-6 is to be restated to this definition (the verification-item register
+carries it until then). **When the correlated model gives the margined
 predictions, each plateau becomes max(prediction + 10 °C, AFT ± 10 °C) and the battery cap is re-checked: the hot
 plateau is compliant only if the hot-case prediction plus 10 °C is at or below +60 °C.**
 
@@ -157,8 +174,9 @@ plateau is compliant only if the hot-case prediction plus 10 °C is at or below 
 | Thermal balance | Two steady-state points (hot operational with burst, cold safe mode) for model correlation | GEVS-B §2.6.4, Appendix B §2.6.3 |
 
 Failure-free operating time: GEVS-B Appendix B §2.6.2 notes 100 h hot and 100 h cold reduce risk. The plan gives
-about 24 h hot and 24 h cold in vacuum on the FM; the shortfall is accepted for Class D and offset by the 7-day
-day-in-the-life (§3.10) and a 168-hour powered burn-in of the EM at +50 °C ambient (§6, VI-09).
+about 24 h hot and 24 h cold in vacuum on the FM (§9 deviation 3); the shortfall is offset by the 7-day day-in-the-life
+(§3.10), a 168-hour powered burn-in of the EM at +50 °C ambient (VI-09) and the reliability programme of §3.11: ≥ 500 h
+on the EM boards (VI-11) and an FM burn-in of ≥ 200 h, the last 100 h failure-free (VI-12).
 
 Chamber time: 8 cycles of 90 °C span at 0.5 °C/min with 3 h plateaus, plus bake-out and set-up, is 5.9 chamber days
 for the FM and 4.5 for the EM (`test_cost.py`).
@@ -225,6 +243,21 @@ rod (CDS §2.1.8). If CubeSpace CR0002 rods are bought, their remanence is measu
 | Day in the life (TP-SYS-002, TP-DITL-001) | FM | 7 days without ground contact (MRD-002), solar-array simulator driven by the SIL orbit profile, eclipse and SOC mode transitions, Jetson bursts, fault injection with the AI off |
 | Mission simulation, hardware in the loop | Flatsat then EM | The SIL commissioning scenario (`docs/test/SIL_MISSION_SIMULATION.md`) driving the flight image on the STM32L4R5 through simulated sensors (`software/flight/tests/hil/HIL_TEST_PLAN.md`); detumble and spin sun-pointing closed loop (SYS-420, SYS-422) |
 
+### 3.11 Reliability programme: EM flatsat hours and FM burn-in [SYS-010, SYS-022]
+
+`docs/environment/RELIABILITY_ANALYSIS.md` §6 halves the early-failure probabilities (L1/L2/L3 0.86 / 0.71 / 0.59
+instead of 0.75 / 0.61 / 0.51) only if two activities run (RIDs REL-01, P3P-03, P3E-07). They are scheduled
+(`mission/SCHEDULE.md` tasks FLATSAT_500H and FM_BURNIN) and verified here:
+
+| Activity | Article | Conditions | Pass criterion | When |
+|----------|---------|------------|----------------|------|
+| **EM flatsat hours (VI-11)** | EM boards with the flight software on the STM32L4R5, transponder repeat path and both radios into loads, Jetson bursts at the BASELINE §6 duty | Bench, ambient; powered hours logged by the OBC's mission clock; the EM TVAC, vibration and burn-in hours count | ≥ 500 h powered before the CDR, the last 100 h without an unexplained reset, latch-up trip or failure; every anomaly dispositioned (`docs/integration/ANOMALY_RESOLUTION.md`) | EM integration and tests, 2027-06 to 2027-09 |
+| **FM burn-in (VI-12)** | Integrated FM, flight software release candidate, battery at the storage SOC band | Thermal chamber at ambient pressure, 4 cycles −20 / +50 °C (the SYS-600 operating range) at ≤ 1 °C/min, all modes exercised, a Jetson burst each hot plateau; functional test (TP-SYS-001 limited) before and after | ≥ 200 h powered, the last 100 h failure-free; no parameter outside its TP-SYS-001 limit | After the FM day-in-the-life, before the protoflight campaign: 2028-02-22 to 2028-03-03 |
+
+The 4 board-level cycles of §3.4 are the FM boards' before integration; the burn-in cycles are the integrated FM's and
+are not counted toward the TVAC cycle total. Dropping the programme is a PI decision (`mission/SCHEDULE.md` DA-02, by
+2026-12-15), with the allocation-case estimates.
+
 ## 4. Protoflight Test Flow (FM)
 
 | Step | Activity | Procedure | Duration |
@@ -241,7 +274,8 @@ rod (CDS §2.1.8). If CubeSpace CR0002 rods are bought, their remanence is measu
 | 10 | Configuration freeze (SYS-089); data package | TP-FAT-002 | — |
 | | **Total with transport (planned 7 weeks in `mission/SCHEDULE.md`)** | | **22.5 working days** |
 
-The day-in-the-life and end-to-end tests (§3.10) run before step 1 (schedule event DITL).
+The day-in-the-life and end-to-end tests (§3.10) and the FM burn-in (§3.11) run before step 1 (schedule events DITL
+and FM_BURNIN).
 
 ## 5. Test Matrix: Engineering Model versus Flight Model
 
@@ -250,7 +284,7 @@ The day-in-the-life and end-to-end tests (§3.10) run before step 1 (schedule ev
 | Random vibration | Envelope, **2 min/axis** (pathfinder; fixture and response survey) | Envelope, 1 min/axis | SYS-703 |
 | Inhibits during vibration | Yes (rehearsal) | Yes | SYS-704 |
 | Sine signature | Yes | Yes | SYS-705 |
-| Shock | Only if VI-07 requires it (EM, then accept FM by similarity) | No | SYS-708 |
+| Shock | If VI-07 requires it (attenuated Nova MPE not enveloped): MPE + 3 dB, 2 per axis; FM accepted by similarity | No (deviation 7) | SYS-708 |
 | TVAC cycles | 4, plus thermal balance | 8 | SYS-707 |
 | Bake-out | No | Yes | SYS-706 |
 | Jetson heat path and burst energy | **Yes** (VI-01, VI-02) | Burst at hot plateau | SYS-603, SYS-512 |
@@ -260,13 +294,16 @@ The day-in-the-life and end-to-end tests (§3.10) run before step 1 (schedule ev
 | Mass properties, inertia | Yes | Yes | SYS-002, SYS-003 |
 | Residual dipole | Rods or coils | Yes | SYS-083 |
 | Burn-in 168 h at +50 °C | Yes (VI-09) | No | SYS-010 |
+| Reliability programme | ≥ 500 h powered on the EM boards (VI-11) | **≥ 200 h burn-in, last 100 h failure-free, 4 ambient cycles (VI-12)** | SYS-010, SYS-022 |
 | Day in the life, end-to-end | Rehearsal | Yes | MRD-002 |
 
 ## 6. Engineering-Model Development Tests (before the CDR)
 
-These retire the design risks that the CDR needs answered and are scheduled as event EMT (2027-06 to 2027-08):
-Jetson heat path and burst energy (VI-01, VI-02), EM TVAC with thermal balance (VI-03), pathfinder vibration (VI-04),
-antenna pattern (VI-05), EMC pre-scan and GNSS noise (VI-06), burn-in (VI-09). Their pass criteria are in §8.
+These retire the design risks that the CDR needs answered and are scheduled as event EMT (2027-07-27 to 2027-09-21,
+`mission/SCHEDULE.md` Rev D; CDR 2027-09-28): Jetson heat path and burst energy (VI-01, VI-02), EM TVAC with thermal
+balance (VI-03), pathfinder vibration (VI-04), antenna pattern (VI-05), EMC pre-scan and GNSS noise (VI-06), shock if
+VI-07 requires it, burn-in (VI-09) and the ≥ 500 h on the EM boards (VI-11). Their pass criteria are in §8. Every
+verification item of the design documents, with its event and date, is in `docs/verification/VI_REGISTER.md`.
 
 ## 7. Facilities and Cost
 
@@ -281,36 +318,39 @@ No facility has been contacted. The options, with what the project can realistic
 | Own bench vacuum chamber with heated and cooled platen | Bake-out practice, EM cycling, 12-cycle goal at low marginal cost | $8k-20k [U]; the integrator may still require an accredited lab for the FM bake-out |
 | Published benchmark | Hawaii Space Flight Laboratory: TVAC and vibration at $3,500 a day each | Public rate card, used to size the ROM |
 
-**Cost (bottom-up ROM, `test_cost.py`)**: EM tests $14.5k-38k; FM and common $21k-63k; total **$35k-101k**, against
-$23k-78k in the lifecycle ROM WBS 10 (SQSO-AUD-005 Rev B). The ROM line covers the FM campaign only; it has no EM
-environmental tests, Helmholtz-cage test or re-test allowance. The difference ($12k-23k) is reported to the chair; the
-ROM is not edited here.
+**Cost (bottom-up ROM, `test_cost.py`)**: EM tests $17.5k-51k (with the EM shock test carried until VI-07 decides and
+the ≥ 500 h flatsat); FM and common $24k-79k (with the FM system EMC and the FM burn-in); total **$42k-130k**, carried
+in the lifecycle ROM WBS 10 (SQSO-AUD-005 Rev F). The custom-battery abuse tests (V-BSA-9: Falcon 9 set $10k-15k,
+3-4 weeks; ISS backup set $50k-75k, 8-12 weeks) are in ROM WBS 03 and the schedule (task BATT_ABUSE).
 
 ## 8. Verification Items (hardware closure of review items)
 
 | VI | Test | Pass criterion | Verifies | Article, event |
 |----|------|----------------|----------|----------------|
-| VI-01 | Jetson heat-path conductance: steady 7 W into the module, measure module and structure temperatures in vacuum | ≥ 1 W/K module to structure | SYS-603, BASELINE §6 | EM, EMT (2027-06) |
+| VI-01 | Jetson heat path: steady 8 W into the module, then 120 s bursts and a 600 s batch, in vacuum; module, spreader and structure temperatures; conductance and junction-to-spreader resistance derived | Measured values entered in the thermal model; with them SYS-603 is met: spreader ≤ +40 °C in a 600 s batch, junction ≤ 95 °C, spreader ≤ +70 °C stuck on (design 1.10 W/K, 1.09–1.16 K/W) | SYS-603 (Rev G), BASELINE §6 | EM, EMT (2027-07 to 2027-09) |
 | VI-02 | Energy per accepted beacon at the carrier input, boot to power-off, ≥ 30 bursts | p95 ≤ 0.1 Wh (360 J); burst ≤ 120 s | SYS-512, D5 gate | EM, EMT |
 | VI-03 | EM TVAC, 4 cycles −30/+60 °C, two thermal-balance points | Model correlated within ± 5 °C at the balance points; all functions at each plateau | SYS-600, SYS-601 (closes TBR-TPENV003-001), SYS-504 | EM, EMT |
 | VI-04 | EM random vibration at the §3.1 envelope, 2 min/axis, in the test pod | Sine-signature shifts within §3.2; no structural or workmanship failure; inhibits hold | SYS-703, SYS-704, SYS-705 | EM, EMT |
 | VI-05 | Antenna pattern of the deployed EM, two orthogonal planes, both bands | Agrees with the model within 2 dB; gain ≥ −6 dBi over ≥ 90 % of the sphere (proposed SYS-222 wording) | SYS-222, SYS-223 | EM, EMT |
 | VI-06 | EMC pre-scan and GNSS noise (§3.6) | §3.6 criteria | SYS-713, SYS-203 | EM, EMT |
-| VI-07 | Obtain the integrator's shock MPE; compare with the §3.3 equivalent SRS | Analysis shows the vibe-equivalent SRS envelops the shock MPE below 2000 Hz, or an EM shock test at MPE + 3 dB, 2 actuations per axis, passes | SYS-708 | Integrator ICD (CON), EM if needed |
+| VI-07 | Obtain the integrator's attenuated EXOpod Nova shock MPE (RFQ DA-07; ICD DA-08); compare with the §3.3 equivalent SRS; decide by 2027-07-14 (DA-21) | Analysis shows the vibe-equivalent SRS envelops the shock MPE below 2000 Hz (it cannot on the UG v11 levels); else an EM shock test at MPE + 3 dB, 2 actuations per axis: no structural damage, no release of a deployable, functional test passes after | SYS-708, LVR-046 | Integrator ICD (CON, 2027-06-30), EM tests if needed |
 | VI-08 | Integrator's thermal-cycle count | If 20 total is required: 8 further FM air cycles in a thermal chamber, −29/+60 °C | SYS-707, SYS-902 | FM, PFE |
 | VI-09 | EM burn-in, 168 h powered at +50 °C ambient, cycling all modes | No failure; fault log clean | SYS-010, SYS-022 | EM, EMT |
-| VI-10 | FM protoflight campaign (§4) | Each procedure's criteria | SYS-700 to SYS-713 | FM, PFE (2028-01 to 2028-02) |
+| VI-10 | FM protoflight campaign (§4) | Each procedure's criteria | SYS-700 to SYS-713 | FM, PFE (2028-03 to 2028-04) |
+| VI-11 | Reliability programme, EM flatsat hours (§3.11) | ≥ 500 h powered with the flight software on the target, the last 100 h without an unexplained reset, latch-up trip or failure; every anomaly dispositioned | SYS-010, SYS-022; RELIABILITY_ANALYSIS §6 | EM flatsat and EM tests, before the CDR (2027-09-28) |
+| VI-12 | Reliability programme, FM burn-in (§3.11) | ≥ 200 h powered, the last 100 h failure-free, through 4 ambient cycles −20 / +50 °C; functional test within TP-SYS-001 limits before and after | SYS-010, SYS-022; RELIABILITY_ANALYSIS §6 | FM, after the FM functional and DITL, before the protoflight campaign (2028-02-22 to 2028-03-03) |
 
 ## 9. Deviations and Tailoring Record
 
 | # | Standard and clause | This plan | Rationale | Approval |
 |---|---------------------|-----------|-----------|----------|
-| 1 | GSFC-STD-7000B §2.6.3.2.1.1: 10 °C beyond AFT | Hot non-operating plateau +60 °C instead of +70 °C | Battery limit; the hot plateau is compliant once the margined prediction is ≤ +50 °C | PI (to record as a CR) |
-| 2 | GSFC-STD-7000B Table 2.6-1: 12 cycles before flight | 8 TV + 4 board-level air cycles | Same total; no unit-level TV for a 1U | PI |
-| 3 | GSFC-STD-7000B Appendix B §2.6.2: 100 h hot and cold failure-free | About 24 h each in vacuum | Class D; offset by DITL and EM burn-in | PI |
+| 1 | GSFC-STD-7000B §2.6.3.2.1.1: 10 °C beyond AFT | Hot non-operating plateau +60 °C instead of +70 °C | Battery limit; the hot plateau is compliant once the margined prediction is ≤ +50 °C | CR-2026-013: proposed by the design review; **PI decision required by 2027-01-12** (DA-01) |
+| 2 | GSFC-STD-7000B Table 2.6-1: 12 cycles before flight | 8 TV + 4 board-level air cycles | Same total; no unit-level TV for a 1U | CR-2026-013: proposed by the design review; **PI decision required by 2027-01-12** |
+| 3 | GSFC-STD-7000B Appendix B §2.6.2: 100 h hot and cold failure-free | About 24 h each in vacuum | Class D; offset by the DITL, the EM burn-in (VI-09) and the reliability programme (VI-11, VI-12; §3.11) | CR-2026-013: proposed by the design review; **PI decision required by 2027-01-12** |
 | 4 | SpaceX UG v11 Table 6-2 (advised): protoflight TV at −29/+66 °C, 20 cycles | −30/+60 °C, 12 cycles (VI-08 adds cycles if required) | Battery limit; advised only | Integrator |
 | 5 | SpaceX UG v11 Table 6-2: random vibe at MPE | Envelope at 8.18 Grms, more severe | GEVS-B Appendix B §2.4.2.3; SpaceX note 1 under-test | None needed (exceeds the minimum) |
 | 6 | LSP-REQ-317.01 Rev B Table 1: bake-out 70 °C for 3 h | 60 °C for 6 h | Note 5 alternative; battery | Integrator (CSLI: LSP) |
+| 7 | SpaceX UG v11 Table 6-2 (advised): shock at MPE + 3 dB, 2 actuations per axis | Not on the FM; on the EM if VI-07 requires it, the FM accepted by similarity | Advised only; the Nova attenuates shock; no second test article at risk | CR-2026-013 (PI by 2027-01-12); then the integrator |
 
 ## 10. Data and Success Criteria
 
@@ -319,8 +359,8 @@ performance results, archived under `docs/integration/TEST_DATA_MANAGEMENT.md`. 
 met, every anomaly dispositioned through `docs/integration/ANOMALY_RESOLUTION.md`, and the VCRM rows of the verified
 requirements updated with the test report. A failure on the FM triggers root cause, repair and the re-test that the
 integrator and GEVS-B §2.4.2.8 require. The campaign must end by L − 4 months (`docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`
-§9): for a 2028-06-01 launch it is 21 days late before any re-test; for a launch around 2028-11 it has 130 days of
-float (`mission/SCHEDULE.md` §3).
+§9): for the June 2028 opportunity it is 80 days late before any re-test; for the 2028-11 planning launch it has 71
+days of float, 0.5 weeks more than the GOLD Rule 1.06 margin (`mission/SCHEDULE.md` Rev D §3).
 
 ---
 
@@ -333,3 +373,4 @@ float (`mission/SCHEDULE.md` §3).
 | C.1 | 2026-10-27 | Chair (RID EMC-05): unit-level EMC tests V-EMC-1, V-EMC-3 and V-EMC-6 added to §3.6; third-harmonic criterion 70 dBc (BASELINE §7) | Review chair |
 | C | 2026-10-27 | CDR review (PM/SE/V&V). Rewritten: protoflight defined correctly (GEVS-B Table 2.2-2); source precedence; EM and FM articles; random vibration at the GEVS-B Appendix B envelope of MPE + 3 dB and workmanship (8.18 Grms); sine signature; shock by analysis with VI-07; TVAC levels with GEVS margins and the battery cap, 8 cycles plus 4 board cycles; bake-out +60 °C 6 h; EMC tailored per GEVS-B Appendix B; mass properties with inertia; deployment tests hot and cold before vibration (CDS §3.5.2); magnetic; end-to-end, DITL and HIL; FM flow; EM/FM matrix; facilities and cost; verification items VI-01 to VI-10; deviations. Scripts `software/simulation/cdr/pm/test_levels.py`, `test_cost.py` | CDR review, PM/SE/V&V |
 | C.2 | 2026-10-27 | CDR 2026 consistency pass: V-EMC-6 burn steps 0.75 A and 2.0 A from the EPS board (SQSO-EPS-BRD-001 §9; SQSO-EMC-001 B) | CDR documentation review |
+| D | 2026-10-27 | CDR round 3 (VV-07, VV-08, REL-01, P3P-03, P3E-07, P3S-10, SE-07): §3.3 shock: the UG v11 MPE exceeds the vibe-equivalent SRS, so the RFQ asks for the attenuated Nova MPE and an EM shock test is planned and costed if VI-07 needs it (deviation 7); §3.4 one TVAC definition, the SpaceX ± 5 °C / 20-cycle advice mapped onto it; new §3.11 reliability programme (VI-11 ≥ 500 h EM flatsat, VI-12 ≥ 200 h FM burn-in); §5 matrix; §6 EM test dates from SQSO-SCH-001 D; §7 cost $42k–130k with the battery abuse tests in the ROM; VI-01 criterion for SYS-603 Rev G; deviations 1–3 and 7 to the PI by CR-2026-013 | CDR round 3, systems and programmatics |

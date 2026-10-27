@@ -74,6 +74,8 @@ pub struct Config {
     pub adcs_failed: bool,
     /// Contingency: the wings never release
     pub wings_failed: bool,
+    /// The end-of-life fuse's heater, Ω (F1: 11.2–20.0 Ω, 15.6 nominal)
+    pub eol_heater_ohms: f64,
     /// Contingency: the A resistors never part their lines (the B resistors
     /// of the second attempt do: the four-line sequence)
     pub wing_a_failed: bool,
@@ -129,6 +131,7 @@ impl Default for Config {
             adcs_failed: false,
             wings_failed: false,
             wing_a_failed: false,
+            eol_heater_ohms: crate::mission::EOL_HEATER_OHMS,
             payload_stuck_on: false,
             array_years: 0.0,
             gyro: "mg370".into(),
@@ -202,6 +205,7 @@ impl Config {
             "adcs_failed" => self.adcs_failed = b()?,
             "wings_failed" => self.wings_failed = b()?,
             "wing_a_failed" => self.wing_a_failed = b()?,
+            "eol_heater_ohms" => self.eol_heater_ohms = f()?,
             "payload_stuck_on" => self.payload_stuck_on = b()?,
             "array_years" => self.array_years = f()?,
             "rx_failed_day" => self.rx_failed_day = f()?,
@@ -253,6 +257,7 @@ impl Config {
             ("adcs_failed", self.adcs_failed.to_string()),
             ("wings_failed", self.wings_failed.to_string()),
             ("wing_a_failed", self.wing_a_failed.to_string()),
+            ("eol_heater_ohms", self.eol_heater_ohms.to_string()),
             ("payload_stuck_on", self.payload_stuck_on.to_string()),
             ("array_years", self.array_years.to_string()),
             ("gyro", format!("\"{}\"", self.gyro)),

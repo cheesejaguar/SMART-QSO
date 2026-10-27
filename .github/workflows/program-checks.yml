@@ -11,6 +11,9 @@
 #   the generated RTM (docs/verification/RTM.csv) is current
 # - Document control: each document ID on one file, every ID in docs/DOCUMENT_REGISTER.md
 # - TBD/TBR register: docs/TBD_REGISTER.md current, each item ID unique, counts at baseline
+# - Generated review records: the VCRM rows, the CDR RID log and the verification-item register
+#   (docs/verification/VI_REGISTER.md: every item with a criterion and a dated event; every dated
+#   action with an owner, a date and a criterion)
 # - Secret scan (no keys or private-key material in tracked files)
 ###############################################################################
 
@@ -99,6 +102,16 @@ jobs:
 
       - name: Findings register summary matches its rows
         run: python3 scripts/register_status.py --check
+
+      # Generated records of the CDR 2026 review (CM plan §4.5; RIDs PM-04, P3P-01)
+      - name: VCRM requirement rows are current
+        run: python3 software/simulation/cdr/pm/gen_vcrm.py --check
+
+      - name: CDR review RID log is current
+        run: python3 software/simulation/cdr/review/gen_rid_log.py --check
+
+      - name: Verification-item register is current and complete
+        run: python3 scripts/gen_vi_register.py --check
 
   secret-scan:
     name: Secret Scan

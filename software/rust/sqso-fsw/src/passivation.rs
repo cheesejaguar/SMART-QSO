@@ -1,27 +1,39 @@
 //! End-of-life passivation by telecommand (`passivation.h`; BASELINE §5,
-//! 47 CFR 97.207(g)(1)(iii); RIDs REG-01, REG-12, EPS-06, FSW-07, SMA-13).
+//! 47 CFR 97.207(g)(1)(iii); RIDs REG-01, REG-12, EPS-06, FSW-07, SMA-13,
+//! P3E-11).
 //!
-//! Two authenticated telecommands from two key custodians:
+//! Two authenticated telecommands from two key custodians, and two
+//! processors for the arm (SQSO-EPS-BRD-001 D §7, SMART-QSO-ICD-001 1.5
+//! §4.6):
 //!
 //! 1. `PASSIVATE_ARM` (operational key, argument the ASCII code `EOL!`)
-//!    arms the sequence for [`ARM_WINDOW_MS`]. Nothing is driven. The arm
-//!    is kept in RAM only: a reset, or the window running out, disarms.
-//! 2. `PASSIVATE_EXECUTE` (the offline recovery key) inside that window
-//!    commits the passivation (the record, persisted: from here on every
-//!    boot carries it through) and runs, in this order:
-//!    - the EPS one-shot charge disconnect (`docs/hardware/EPS_DESIGN.md`
-//!      §7; `hardware/electrical/eps/EPS_BOARD_DESIGN.md`), in sunlight
-//!      only (the array then carries the loads while the heater draws from
-//!      the pack), **while the spacecraft still transmits** so the ground can
-//!      see the result: `EOL_ARM` rises (its rising edge sets the EPS's arm
-//!      latch), [`ARM_SETTLE_MS`] later `EOL_FIRE` goes high (a level, in
-//!      series with the latch through the disconnect's heater) and is held
-//!      at least [`FIRE_MIN_MS`]; it drops once the EPS reports the charge
-//!      path open (`EOL_STATE`) after that, or at [`FIRE_MAX_MS`], then
-//!      both lines are low. An eclipse before [`FIRE_MIN_MS`] drops both and
-//!      the fire starts again in the next sunlight; a fire the EPS does not
+//!    arms the EPS's one-shot charge disconnect: the EPS controller's
+//!    `EOL_STATE` must show the arm latch clear and the fuse F1 intact; the
+//!    flight software writes the key pair [`KEY`] to `EOL_KEY` (the
+//!    controller then raises its own EOL_KEY line for 10 s, `EOL_STATE` bit
+//!    3), raises `EOL_ARM` (the latch clocks only while both are high), and
+//!    once `EOL_STATE` shows the latch set (at most [`ARM_CONFIRM_MS`])
+//!    drops `EOL_ARM`. `PASSIVATE_EXECUTE` is then accepted for
+//!    [`ARM_WINDOW_MS`] from the command. The software arm is kept in RAM
+//!    only (a reset, or the window running out, disarms it); the EPS's latch
+//!    is cleared only at the EPS's power-up.
+//! 2. `PASSIVATE_EXECUTE` (the offline recovery key) inside that window,
+//!    with the latch still set, commits the passivation (the record,
+//!    persisted: from here on every boot carries it through) and runs, in
+//!    this order:
+//!    - the fire, in sunlight only (the array then carries the loads while
+//!      the heater draws from the pack), **while the spacecraft still
+//!      transmits** so the ground can see the result: `EOL_FIRE` (a level, in
+//!      series with the latch through F1's heater) high at least
+//!      [`FIRE_MIN_MS`]; it drops once the EPS reports the charge path open
+//!      (`EOL_STATE` bit 1 set and bit 2, F1 intact, clear) after that, or at
+//!      [`FIRE_MAX_MS`]. An eclipse before [`FIRE_MIN_MS`] drops it and the
+//!      fire starts again in the next sunlight; a fire the EPS does not
 //!      confirm is tried again, at most [`MAX_FIRE_ATTEMPTS`] times in all
-//!      (across resets too);
+//!      (across resets too). The EPS reporting the charge path open ends
+//!      the fire whenever it is seen (the array, and with it the sunlight
+//!      the software sees, is gone once it opens); [`FIRE_DEADLINE_MS`]
+//!      without an end goes to the report all the same;
 //!    - the final report (RID REG-12, finding EOL-1 of the end-of-life
 //!      plan): [`FINAL_REPORTS`] housekeeping frames, [`REPORT_INTERVAL_MS`]
 //!      apart, carrying `EOL_STATE`, the fuse state and the attempts;
@@ -35,13 +47,14 @@
 //! (or the EPS reporting the charge path open, should the record be lost)
 //! sets the inhibit again before anything can transmit. The receiver stays
 //! powered until the pack is drained. A reset during the fire runs it again
-//! at the next boot (within the attempts); a reset during the report sends
-//! the report again, then silences.
+//! at the next boot (within the attempts; the EPS's latch survives an OBC
+//! reset); a reset during the report sends the report again, then silences.
 //!
 //! @requirement SRS-F110 Two-step authenticated end-of-life passivation
 //! @requirement SRS-F111 Passivation order: record, charge disconnect through two series lines while transmitting, final report, then TX-OFF
 //! @requirement SRS-F112 Transmitters off for good after passivation
 //! @requirement SRS-F155 The final passivation report: three frames over three minutes carrying EOL_STATE, the fuse state and the attempts, before TX-OFF
+//! @requirement SRS-F157 Two-processor passivation arm: the EPS controller's key and the OBC's EOL_ARM, the latch confirmed before PASSIVATE_EXECUTE is accepted
 
 use crate::nvm::{self, Flash, RecordStatus};
 
@@ -49,9 +62,12 @@ use crate::nvm::{self, Flash, RecordStatus};
 pub const ARM_WINDOW_MS: u64 = 600_000;
 /// PASSIVATE_ARM's argument
 pub const ARM_CODE: [u8; 4] = *b"EOL!";
-/// `EOL_ARM` is high this long before `EOL_FIRE`, ms (the arm latch sets
-/// before the series fire switch closes)
-pub const ARM_SETTLE_MS: u64 = 200;
+/// The two bytes written to the EPS controller's `EOL_KEY` register (0x7E),
+/// in this order, within 1 s
+pub const KEY: [u8; 2] = [0x3C, 0xC3];
+/// `EOL_ARM` is held high at most this long for the latch to show set, ms
+/// (inside the EPS controller's 10 s key)
+pub const ARM_CONFIRM_MS: u64 = 2_000;
 /// `EOL_FIRE` is held at least this long, ms (the EPS board's requirement:
 /// the thermal cut-off's heater needs it to open the disconnect)
 pub const FIRE_MIN_MS: u64 = 60_000;
@@ -59,6 +75,10 @@ pub const FIRE_MIN_MS: u64 = 60_000;
 pub const FIRE_MAX_MS: u64 = 120_000;
 /// Fire sequences at most, across resets
 pub const MAX_FIRE_ATTEMPTS: u8 = 3;
+/// The fire gives up this long after it started (or resumed after a
+/// reset) without the attempts ending, ms: the emissions cease even if
+/// the sunlight that the fire waits for is never seen again
+pub const FIRE_DEADLINE_MS: u64 = 86_400_000;
 /// Final report frames
 pub const FINAL_REPORTS: u8 = 3;
 /// Between report frames, ms
@@ -75,10 +95,33 @@ const FLAG_FIRE_DONE: u8 = 0x02;
 const FLAG_CONFIRMED: u8 = 0x04;
 const FLAG_SILENCED: u8 = 0x08;
 
+/// The bits of the EPS controller's `EOL_STATE` register (0x7C)
+pub mod eol_state {
+    /// The arm latch is set
+    pub const ARMED: u8 = 0x01;
+    /// The fire has opened the charge path
+    pub const FIRED: u8 = 0x02;
+    /// The fuse F1 is intact (F1_SNS)
+    pub const FUSE_INTACT: u8 = 0x04;
+    /// The controller's EOL_KEY is high (the key accepted, for 10 s)
+    pub const KEY: u8 = 0x08;
+
+    /// The charge path is open: fired and the fuse no longer intact
+    pub const fn charge_path_open(state: u8) -> bool {
+        state & FIRED != 0 && state & FUSE_INTACT == 0
+    }
+}
+use eol_state::{ARMED, FUSE_INTACT};
+
+/// Whether the EPS reports the charge path open
+fn path_open<IO: PassivationIo>(io: &mut IO) -> bool {
+    io.eol_state().is_some_and(eol_state::charge_path_open)
+}
+
 /// The two series lines of the charge disconnect
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Line {
-    /// `GPIO_PIN_EOL_ARM`: the arm latch
+    /// `GPIO_PIN_EOL_ARM`: clocks the arm latch (with the EPS's key)
     Arm,
     /// `GPIO_PIN_EOL_FIRE`: the fire switch
     Fire,
@@ -87,15 +130,19 @@ pub enum Line {
 /// Events for the fault log
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Report {
-    /// Armed: PASSIVATE_EXECUTE accepted for [`ARM_WINDOW_MS`]
+    /// Armed: the latch set, PASSIVATE_EXECUTE accepted for [`ARM_WINDOW_MS`]
     Armed,
     /// The arm lapsed unused
     Lapsed,
+    /// The EPS controller refused the key (or did not answer)
+    KeyRefused,
+    /// `EOL_ARM` rose but the latch did not show set in [`ARM_CONFIRM_MS`]
+    ArmFailed,
     /// Executed: the record committed, the fire started (still transmitting)
     Executed,
     /// The passivated record could not be written (the act goes on)
     NotPersisted,
-    /// A line could not be driven (no pin on this build)
+    /// A line could not be driven
     LineUnavailable,
     /// The EPS reports the charge path open
     ChargePathOpen,
@@ -117,8 +164,10 @@ pub trait PassivationIo: Flash {
     fn inhibit(&mut self);
     /// Drive a line; false if it cannot be driven
     fn drive(&mut self, line: Line, on: bool) -> bool;
-    /// Whether the EPS reports the charge path open (`None`: no answer)
-    fn charge_path_open(&mut self) -> Option<bool>;
+    /// The EPS controller's `EOL_STATE` (`None`: no answer)
+    fn eol_state(&mut self) -> Option<u8>;
+    /// Write [`KEY`] to the EPS controller's `EOL_KEY`; false if a write failed
+    fn write_key(&mut self) -> bool;
     /// Log an event
     fn report(&mut self, report: Report);
 }
@@ -128,10 +177,16 @@ pub trait PassivationIo: Flash {
 pub enum Refusal {
     /// The arming code is wrong
     BadCode,
-    /// PASSIVATE_EXECUTE without a live arm
+    /// PASSIVATE_EXECUTE without a live arm, or with the latch not set
     NotArmed,
     /// Already passivated (committed)
     Passivated,
+    /// The EPS controller does not answer, or shows the fuse not intact
+    EpsNotReady,
+    /// The EPS controller refused the key
+    KeyRefused,
+    /// `EOL_ARM` cannot be driven
+    LineUnavailable,
 }
 
 /// Where the sequence is (`PassivationPhase_t`)
@@ -139,7 +194,7 @@ pub enum Refusal {
 pub enum Phase {
     /// Nothing armed
     Idle = 0,
-    /// Armed until the window ends
+    /// Arming (the latch being confirmed) or armed until the window ends
     Armed = 1,
     /// Committed, the charge disconnect being fired (still transmitting)
     Firing = 2,
@@ -152,10 +207,8 @@ pub enum Phase {
 /// A step of the fire sequence
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum Step {
-    /// Waiting for sunlight; both lines low
+    /// Waiting for sunlight; `EOL_FIRE` low
     WaitSun,
-    /// `EOL_ARM` high since this time, ms
-    Settle(u64),
     /// `EOL_FIRE` high since this time, ms
     Fire(u64),
 }
@@ -169,10 +222,14 @@ pub struct Passivation {
     confirmed: bool,
     silenced: bool,
     attempts: u8,
-    /// Armed until this time, ms
+    /// `EOL_ARM` high since this time, ms, and the window's end
+    arming: Option<(u64, u64)>,
+    /// Armed (the latch confirmed) until this time, ms
     armed_until: Option<u64>,
     /// Where the fire sequence is (`None`: not firing)
     fire: Option<Step>,
+    /// The fire started (or resumed) at this time, ms
+    fire_from: u64,
     /// The final report: when it started, ms, and the frames handed out
     report: Option<(u64, u8)>,
     initialized: bool,
@@ -188,8 +245,10 @@ impl Passivation {
             confirmed: false,
             silenced: false,
             attempts: 0,
+            arming: None,
             armed_until: None,
             fire: None,
+            fire_from: 0,
             report: None,
             initialized: false,
         }
@@ -214,7 +273,6 @@ impl Passivation {
         self.committed = flags & FLAG_COMMITTED != 0;
         self.fire_done = flags & FLAG_FIRE_DONE != 0;
         self.confirmed = flags & FLAG_CONFIRMED != 0;
-        // A version-1 record (TX-OFF first) was silenced when committed
         self.silenced = flags & FLAG_SILENCED != 0;
     }
 
@@ -234,6 +292,7 @@ impl Passivation {
         match nvm::load(io, self.region, 0, RECORD_MAGIC, &mut rec) {
             Ok(RecordStatus::Valid) => {
                 let [flags, version, attempts, _] = rec;
+                // A version-1 record (TX-OFF first) was silenced when committed
                 self.set_flags(if version < VERSION && flags & FLAG_COMMITTED != 0 {
                     flags | FLAG_SILENCED
                 } else {
@@ -246,7 +305,7 @@ impl Passivation {
         }
         self.initialized = true;
         // The charge path open with no record is passivation already done
-        if !self.committed && io.charge_path_open() == Some(true) {
+        if !self.committed && io.eol_state().is_some_and(eol_state::charge_path_open) {
             self.set_flags(FLAG_COMMITTED | FLAG_FIRE_DONE | FLAG_CONFIRMED | FLAG_SILENCED);
             self.save(io);
         }
@@ -260,7 +319,9 @@ impl Passivation {
         }
     }
 
-    /// PASSIVATE_ARM with its argument
+    /// PASSIVATE_ARM with its argument: the EPS checked, the key written,
+    /// `EOL_ARM` raised (the latch confirmed by [`Passivation::tick`]). A
+    /// latch already set (an earlier arm, an OBC reset since) is armed at once
     pub fn arm<IO: PassivationIo>(&mut self, code: &[u8], now_ms: u64, io: &mut IO) -> Result<(), Refusal> {
         if self.committed {
             return Err(Refusal::Passivated);
@@ -268,18 +329,35 @@ impl Passivation {
         if code != ARM_CODE {
             return Err(Refusal::BadCode);
         }
-        self.armed_until = Some(now_ms.saturating_add(ARM_WINDOW_MS));
-        io.report(Report::Armed);
+        let until = now_ms.saturating_add(ARM_WINDOW_MS);
+        let state = io.eol_state().filter(|s| s & FUSE_INTACT != 0).ok_or(Refusal::EpsNotReady)?;
+        if state & ARMED != 0 {
+            self.armed_until = Some(until);
+            io.report(Report::Armed);
+            return Ok(());
+        }
+        let keyed = io.write_key() && io.eol_state().is_some_and(|s| s & eol_state::KEY != 0);
+        if !keyed {
+            io.report(Report::KeyRefused);
+            return Err(Refusal::KeyRefused);
+        }
+        if !io.drive(Line::Arm, true) {
+            io.report(Report::LineUnavailable);
+            return Err(Refusal::LineUnavailable);
+        }
+        self.arming = Some((now_ms, until));
         Ok(())
     }
 
     /// PASSIVATE_EXECUTE: the record committed, then the fire (the
-    /// transmitters stay on until the final report)
+    /// transmitters stay on until the final report). Refused unless armed
+    /// and the EPS shows the latch still set
     pub fn execute<IO: PassivationIo>(&mut self, now_ms: u64, io: &mut IO) -> Result<(), Refusal> {
         if self.committed {
             return Err(Refusal::Passivated);
         }
-        if !self.armed_until.is_some_and(|until| now_ms < until) {
+        let live = self.armed_until.is_some_and(|until| now_ms < until);
+        if !live || !io.eol_state().is_some_and(|s| s & ARMED != 0) {
             return Err(Refusal::NotArmed);
         }
         self.armed_until = None;
@@ -297,14 +375,16 @@ impl Passivation {
         }
         self.attempts = self.attempts.saturating_add(1);
         self.save(io);
+        if self.fire.is_none() {
+            self.fire_from = now_ms;
+        }
         self.fire = Some(Step::WaitSun);
     }
 
-    /// Both lines low; a confirmed fire (or the attempts spent) goes to the
+    /// `EOL_FIRE` low; a confirmed fire (or the attempts spent) goes to the
     /// final report, an unconfirmed one is tried again
     fn end_attempt<IO: PassivationIo>(&mut self, now_ms: u64, confirmed: bool, io: &mut IO) {
         let _ = io.drive(Line::Fire, false);
-        let _ = io.drive(Line::Arm, false);
         self.fire = None;
         io.report(if confirmed { Report::ChargePathOpen } else { Report::NotConfirmed });
         if confirmed {
@@ -317,7 +397,6 @@ impl Passivation {
     /// The fire sequence done: the final report starts
     fn finish<IO: PassivationIo>(&mut self, now_ms: u64, confirmed: bool, io: &mut IO) {
         let _ = io.drive(Line::Fire, false);
-        let _ = io.drive(Line::Arm, false);
         self.fire = None;
         self.fire_done = true;
         self.confirmed = confirmed;
@@ -325,20 +404,28 @@ impl Passivation {
         self.report = Some((now_ms, 0));
     }
 
-    /// Drive a line of the sequence; a line that cannot be driven ends the
-    /// fire (straight to the report: no retry can drive it either)
-    fn drive_or_finish<IO: PassivationIo>(&mut self, now_ms: u64, line: Line, io: &mut IO) -> bool {
-        if io.drive(line, true) {
-            return true;
+    /// The arm being confirmed: the latch set drops `EOL_ARM` and arms;
+    /// no latch in [`ARM_CONFIRM_MS`] drops it and fails
+    fn confirm_arm<IO: PassivationIo>(&mut self, now_ms: u64, io: &mut IO) {
+        let Some((since, until)) = self.arming else { return };
+        let latched = io.eol_state().is_some_and(|s| s & ARMED != 0);
+        if !latched && now_ms.saturating_sub(since) < ARM_CONFIRM_MS {
+            return;
         }
-        io.report(Report::LineUnavailable);
-        self.finish(now_ms, false, io);
-        false
+        let _ = io.drive(Line::Arm, false);
+        self.arming = None;
+        if latched {
+            self.armed_until = Some(until);
+            io.report(Report::Armed);
+        } else {
+            io.report(Report::ArmFailed);
+        }
     }
 
-    /// Every pass: the arm's window, the fire sequence (`sunlit`: the array
-    /// is lit) and the end of the final report
+    /// Every pass: the arm's confirmation and window, the fire sequence
+    /// (`sunlit`: the array is lit) and the end of the final report
     pub fn tick<IO: PassivationIo>(&mut self, now_ms: u64, sunlit: bool, io: &mut IO) {
+        self.confirm_arm(now_ms, io);
         if self.armed_until.is_some_and(|until| now_ms >= until) {
             self.armed_until = None;
             io.report(Report::Lapsed);
@@ -349,29 +436,33 @@ impl Passivation {
             self.report = None;
             self.silence(io);
         }
+        if self.fire.is_some() && now_ms.saturating_sub(self.fire_from) >= FIRE_DEADLINE_MS {
+            let open = path_open(io);
+            self.finish(now_ms, open, io);
+            return;
+        }
         match self.fire {
-            None => {}
-            Some(Step::WaitSun) => {
-                if sunlit && self.drive_or_finish(now_ms, Line::Arm, io) {
-                    self.fire = Some(Step::Settle(now_ms));
-                }
-            }
-            Some(Step::Settle(_) | Step::Fire(_)) if !sunlit && !self.fire_min_served(now_ms) => {
-                // Eclipse before the minimum: both low, again in sunlight
-                let _ = io.drive(Line::Fire, false);
-                let _ = io.drive(Line::Arm, false);
-                self.fire = Some(Step::WaitSun);
-            }
-            Some(Step::Settle(since)) => {
-                if now_ms.saturating_sub(since) >= ARM_SETTLE_MS && self.drive_or_finish(now_ms, Line::Fire, io) {
+            Some(Step::WaitSun) if path_open(io) => self.end_attempt(now_ms, true, io),
+            Some(Step::WaitSun) if sunlit => {
+                if io.drive(Line::Fire, true) {
                     self.fire = Some(Step::Fire(now_ms));
+                } else {
+                    // No retry can drive it either: straight to the report
+                    io.report(Report::LineUnavailable);
+                    self.finish(now_ms, false, io);
                 }
             }
+            None | Some(Step::WaitSun) => {}
             Some(Step::Fire(since)) => {
                 let held = now_ms.saturating_sub(since);
-                if held >= FIRE_MIN_MS && io.charge_path_open() == Some(true) {
+                // The open path takes the array, and the sunlight seen, with it
+                if path_open(io) && (held >= FIRE_MIN_MS || !sunlit) {
                     self.end_attempt(now_ms, true, io);
-                } else if held >= FIRE_MAX_MS || (held >= FIRE_MIN_MS && !sunlit) {
+                } else if !sunlit && held < FIRE_MIN_MS {
+                    // Eclipse before the minimum: low, again in sunlight
+                    let _ = io.drive(Line::Fire, false);
+                    self.fire = Some(Step::WaitSun);
+                } else if held >= FIRE_MAX_MS || !sunlit {
                     self.end_attempt(now_ms, false, io);
                 }
             }
@@ -397,10 +488,6 @@ impl Passivation {
         }
         self.report = Some((start, sent + 1));
         Some(sent + 1)
-    }
-
-    fn fire_min_served(&self, now_ms: u64) -> bool {
-        matches!(self.fire, Some(Step::Fire(since)) if now_ms.saturating_sub(since) >= FIRE_MIN_MS)
     }
 
     /// Check the RAM copy against the record (AV-07): committed or silenced
@@ -437,11 +524,12 @@ impl Passivation {
 
     /// Where the sequence is
     pub fn phase(&self, now_ms: u64) -> Phase {
+        let armed = self.arming.is_some() || self.armed_until.is_some_and(|until| now_ms < until);
         match (self.committed || self.silenced, self.silenced, self.fire_done) {
             (true, true, _) => Phase::Passivated,
             (true, false, true) => Phase::Reporting,
             (true, false, false) => Phase::Firing,
-            (false, ..) if self.armed_until.is_some_and(|until| now_ms < until) => Phase::Armed,
+            (false, ..) if armed => Phase::Armed,
             (false, ..) => Phase::Idle,
         }
     }
@@ -474,6 +562,7 @@ impl Passivation {
 
 #[cfg(test)]
 mod tests {
+    use super::eol_state::{FIRED, KEY as KEY_BIT};
     use super::*;
     use crate::nvm::{FlashError, MemFlash, SLOT_SIZE};
     extern crate std;
@@ -481,7 +570,11 @@ mod tests {
 
     const REGION: u32 = 0;
     const SUN: bool = true;
+    /// EOL_STATE after a successful fire: fired, the fuse open, still armed
+    const OPEN: u8 = ARMED | FIRED;
 
+    /// The OBC's view of the EPS: the flash, the two lines, the controller's
+    /// `EOL_STATE` with the key and the latch (SQSO-EPS-BRD-001 D §7)
     #[derive(Default)]
     struct Bench {
         flash: MemFlash<256>,
@@ -489,12 +582,22 @@ mod tests {
         tx_off: u32,
         inhibited: bool,
         lines: [bool; 2],
-        no_pins: bool,
+        no_arm_pin: bool,
         no_fire_pin: bool,
-        open: Option<bool>,
+        /// `EOL_STATE` (`None`: no answer)
+        eps: Option<u8>,
+        key_bus_fails: bool,
+        key_refused: bool,
+        /// The latch does not set on EOL_ARM
+        latch_broken: bool,
         log: Vec<Report>,
         /// (line, on) in the order driven
         drives: Vec<(Line, bool)>,
+    }
+
+    /// An EPS ready to be armed: the fuse intact, nothing armed
+    fn ready() -> Bench {
+        Bench { eps: Some(FUSE_INTACT), ..Bench::default() }
     }
 
     impl Flash for Bench {
@@ -520,15 +623,31 @@ mod tests {
             self.inhibited = true;
         }
         fn drive(&mut self, line: Line, on: bool) -> bool {
-            if on && (self.no_pins || (self.no_fire_pin && line == Line::Fire)) {
+            let missing = match line {
+                Line::Arm => self.no_arm_pin,
+                Line::Fire => self.no_fire_pin,
+            };
+            if on && missing {
                 return false;
+            }
+            // The latch clocks on EOL_ARM's rising edge while the key is up
+            if line == Line::Arm && on && !self.latch_broken {
+                self.eps = self.eps.map(|s| if s & KEY_BIT != 0 { s | ARMED } else { s });
             }
             self.lines[line as usize] = on;
             self.drives.push((line, on));
             true
         }
-        fn charge_path_open(&mut self) -> Option<bool> {
-            self.open
+        fn eol_state(&mut self) -> Option<u8> {
+            self.eps
+        }
+        fn write_key(&mut self) -> bool {
+            if self.key_bus_fails {
+                return false;
+            }
+            let accept = !self.key_refused;
+            self.eps = self.eps.map(|s| if accept && s & ARMED == 0 && s & FUSE_INTACT != 0 { s | KEY_BIT } else { s });
+            true
         }
         fn report(&mut self, report: Report) {
             self.log.push(report);
@@ -543,13 +662,21 @@ mod tests {
         p
     }
 
-    /// Arm, execute, and the fire up to its start (EOL_FIRE high at `t0`)
-    fn executed(io: &mut Bench, t0: u64) -> Passivation {
+    /// Armed (the latch confirmed at t = 10 ms)
+    fn armed(io: &mut Bench) -> Passivation {
         let mut p = fresh(io);
         assert_eq!(p.arm(&ARM_CODE, 0, io), Ok(()));
-        assert_eq!(p.execute(0, io), Ok(()));
-        p.tick(t0 - ARM_SETTLE_MS, SUN, io);
+        p.tick(10, SUN, io);
+        assert_eq!(io.log.last(), Some(&Report::Armed));
+        p
+    }
+
+    /// Armed, executed, and `EOL_FIRE` high from `t0`
+    fn executed(io: &mut Bench, t0: u64) -> Passivation {
+        let mut p = armed(io);
+        assert_eq!(p.execute(20, io), Ok(()));
         p.tick(t0, SUN, io);
+        assert_eq!(io.lines, [false, true]);
         p
     }
 
@@ -568,204 +695,257 @@ mod tests {
     }
 
     #[test]
-    fn fire_while_transmitting_then_report_then_silence() {
-        let mut io = Bench::default();
+    fn arm_with_the_key_then_fire_while_transmitting_then_report_then_silence() {
+        let mut io = ready();
         let mut p = fresh(&mut io);
         assert_eq!(p.phase(0), Phase::Idle);
-        assert_eq!(p.execute(1000, &mut io), Err(Refusal::NotArmed), "execute alone does nothing");
-        assert_eq!(p.arm(b"EOL?", 1000, &mut io), Err(Refusal::BadCode));
-        assert_eq!(p.arm(&ARM_CODE, 1000, &mut io), Ok(()));
-        assert_eq!(p.phase(1000), Phase::Armed);
-        assert!(io.drives.is_empty(), "arming drives nothing");
-        assert!(io.tx_off == 0, "arming drives nothing");
-        assert_eq!(p.execute(2000, &mut io), Ok(()));
+        assert_eq!(p.arm(&ARM_CODE, 0, &mut io), Ok(()));
+        assert_eq!(io.drives, [(Line::Arm, true)], "the key, then EOL_ARM");
+        assert_eq!(io.eps, Some(FUSE_INTACT | KEY_BIT | ARMED));
+        assert_eq!(p.phase(0), Phase::Armed);
+        assert_eq!(p.execute(5, &mut io), Err(Refusal::NotArmed), "not before the latch is confirmed");
+        p.tick(10, SUN, &mut io);
+        assert_eq!(io.drives, [(Line::Arm, true), (Line::Arm, false)]);
+        assert_eq!(io.log, [Report::Armed]);
+        assert!(!p.committed());
+        assert_eq!(io.tx_off, 0);
+
+        assert_eq!(p.execute(1000, &mut io), Ok(()));
         assert!(p.committed());
         assert!(!p.passivated());
-        assert_eq!(io.tx_off, 0, "still transmitting during the fire");
-        assert!(!io.inhibited);
-        assert_eq!(p.phase(2000), Phase::Firing);
-        // In eclipse nothing is driven
-        p.tick(3000, !SUN, &mut io);
-        assert!(io.drives.is_empty());
-        p.tick(4000, SUN, &mut io);
-        assert_eq!(io.drives, [(Line::Arm, true)], "the arm latch first");
-        p.tick(4000 + ARM_SETTLE_MS - 1, SUN, &mut io);
-        assert_eq!(io.drives.len(), 1);
-        let t0 = 4000 + ARM_SETTLE_MS;
-        p.tick(t0, SUN, &mut io);
-        assert_eq!(io.lines, [true, true], "then the fire switch");
-        // Confirmed early: still held for the minimum
-        io.open = Some(true);
-        p.tick(t0 + FIRE_MIN_MS - 1, SUN, &mut io);
-        assert_eq!(io.lines, [true, true]);
-        assert_eq!(p.take_report(t0 + FIRE_MIN_MS - 1), None, "no report before the fire ends");
-        let t1 = t0 + FIRE_MIN_MS;
+        assert_eq!(p.phase(1000), Phase::Firing);
+        assert_eq!(p.attempts(), 1);
+        p.tick(2000, !SUN, &mut io);
+        assert_eq!(io.lines, [false, false], "eclipse: nothing fired");
+        p.tick(3000, SUN, &mut io);
+        assert_eq!(io.lines, [false, true]);
+        io.eps = Some(OPEN);
+        p.tick(3000 + FIRE_MIN_MS - 1, SUN, &mut io);
+        assert_eq!(io.lines, [false, true], "held for the minimum");
+        let t1 = 3000 + FIRE_MIN_MS;
         p.tick(t1, SUN, &mut io);
         assert_eq!(io.lines, [false, false]);
-        assert_eq!(p.phase(t1), Phase::Reporting);
         assert!(p.confirmed());
-        assert!(io.tx_off == 0);
-        // Three frames a minute apart, then TX-OFF and the inhibit
+        assert_eq!(io.tx_off, 0, "still transmitting");
+        assert_eq!(p.phase(t1), Phase::Reporting);
         let frames = run_report(&mut p, &mut io, t1);
-        assert_eq!(frames, [(t1, 1), (t1 + 60_000, 2), (t1 + 120_000, 3)]);
-        assert_eq!(io.tx_off, 1);
-        assert!(io.inhibited);
+        assert_eq!(frames, [(t1, 1), (t1 + REPORT_INTERVAL_MS, 2), (t1 + 2 * REPORT_INTERVAL_MS, 3)]);
         assert!(p.passivated());
+        assert!(io.inhibited);
+        assert_eq!(io.tx_off, 1);
         assert_eq!(p.phase(u64::MAX), Phase::Passivated);
-        assert_eq!(p.attempts(), 1);
-        assert_eq!(io.log, [Report::Armed, Report::Executed, Report::ChargePathOpen, Report::Silenced]);
-        assert_eq!(p.arm(&ARM_CODE, 7000, &mut io), Err(Refusal::Passivated));
-        assert_eq!(p.execute(7000, &mut io), Err(Refusal::Passivated));
+        assert_eq!(io.log.last(), Some(&Report::Silenced));
         assert_eq!(p.take_report(u64::MAX), None);
-        // Every boot after: inhibited at once
-        let mut io2 = Bench { flash: io.flash, ..Bench::default() };
+        assert_eq!(p.arm(&ARM_CODE, 0, &mut io), Err(Refusal::Passivated));
+        assert_eq!(p.execute(0, &mut io), Err(Refusal::Passivated));
+        // A reset: silenced from the record, before anything transmits
+        let mut io2 = Bench { flash: io.flash, eps: Some(OPEN), ..Bench::default() };
         let b = fresh(&mut io2);
         assert!(b.passivated());
         assert!(io2.inhibited);
         assert!(io2.drives.is_empty());
-        assert_eq!(io2.log, [Report::Passivated]);
     }
 
     #[test]
-    fn the_arm_lapses() {
-        let mut io = Bench::default();
+    fn the_arm_is_refused_unless_the_eps_takes_the_key_and_the_latch_sets() {
+        let mut io = ready();
+        let mut p = fresh(&mut io);
+        assert_eq!(p.arm(b"EOL?", 0, &mut io), Err(Refusal::BadCode));
+        io.eps = None;
+        assert_eq!(p.arm(&ARM_CODE, 0, &mut io), Err(Refusal::EpsNotReady), "no answer");
+        io.eps = Some(0);
+        assert_eq!(p.arm(&ARM_CODE, 0, &mut io), Err(Refusal::EpsNotReady), "the fuse not intact");
+        io.eps = Some(FUSE_INTACT);
+        io.key_bus_fails = true;
+        assert_eq!(p.arm(&ARM_CODE, 0, &mut io), Err(Refusal::KeyRefused), "the key not written");
+        io.key_bus_fails = false;
+        io.key_refused = true;
+        assert_eq!(p.arm(&ARM_CODE, 0, &mut io), Err(Refusal::KeyRefused), "the key not accepted");
+        io.key_refused = false;
+        io.no_arm_pin = true;
+        assert_eq!(p.arm(&ARM_CODE, 0, &mut io), Err(Refusal::LineUnavailable));
+        assert_eq!(io.log, [Report::KeyRefused, Report::KeyRefused, Report::LineUnavailable]);
+        assert!(io.drives.is_empty(), "nothing driven");
+        assert_eq!(p.phase(0), Phase::Idle);
+
+        // EOL_ARM rises but the latch never shows set: dropped, refused
+        let mut io = Bench { latch_broken: true, ..ready() };
         let mut p = fresh(&mut io);
         assert_eq!(p.arm(&ARM_CODE, 0, &mut io), Ok(()));
-        p.tick(ARM_WINDOW_MS - 1, SUN, &mut io);
+        p.tick(ARM_CONFIRM_MS - 1, SUN, &mut io);
+        assert_eq!(io.lines, [true, false], "still waiting");
+        p.tick(ARM_CONFIRM_MS, SUN, &mut io);
+        assert_eq!(io.lines, [false, false]);
+        assert_eq!(io.log, [Report::ArmFailed]);
+        assert_eq!(p.phase(ARM_CONFIRM_MS), Phase::Idle);
+        assert_eq!(p.execute(ARM_CONFIRM_MS, &mut io), Err(Refusal::NotArmed));
+
+        // The latch already set (an earlier arm; an OBC reset since): armed at once
+        let mut io = Bench { eps: Some(FUSE_INTACT | ARMED), ..Bench::default() };
+        let mut p = fresh(&mut io);
+        assert_eq!(p.arm(&ARM_CODE, 0, &mut io), Ok(()));
+        assert!(io.drives.is_empty());
+        assert_eq!(io.log, [Report::Armed]);
+        assert_eq!(p.execute(1, &mut io), Ok(()));
+    }
+
+    #[test]
+    fn the_arm_lapses_and_execute_needs_the_latch() {
+        let mut io = ready();
+        let mut p = armed(&mut io);
         assert_eq!(p.phase(ARM_WINDOW_MS - 1), Phase::Armed);
-        assert_eq!(p.phase(ARM_WINDOW_MS), Phase::Idle);
-        assert_eq!(p.execute(ARM_WINDOW_MS, &mut io), Err(Refusal::NotArmed), "the window is over");
         p.tick(ARM_WINDOW_MS, SUN, &mut io);
         assert_eq!(io.log.last(), Some(&Report::Lapsed));
+        assert_eq!(p.phase(ARM_WINDOW_MS), Phase::Idle);
+        assert_eq!(p.execute(ARM_WINDOW_MS, &mut io), Err(Refusal::NotArmed));
         assert!(!p.committed());
-        assert!(io.drives.is_empty());
-        // A reset disarms
-        assert_eq!(p.arm(&ARM_CODE, 10, &mut io), Ok(()));
-        let mut after = fresh(&mut io);
-        assert_eq!(after.execute(20, &mut io), Err(Refusal::NotArmed));
+        // Armed, but the EPS lost the latch (a power-up) or does not answer
+        let mut io = ready();
+        let mut p = armed(&mut io);
+        io.eps = Some(FUSE_INTACT);
+        assert_eq!(p.execute(20, &mut io), Err(Refusal::NotArmed));
+        io.eps = None;
+        assert_eq!(p.execute(20, &mut io), Err(Refusal::NotArmed));
+        assert!(!p.committed());
     }
 
     #[test]
     fn an_eclipse_before_the_minimum_restarts_the_fire() {
-        let mut io = Bench::default();
-        let t0 = 10_000;
-        let mut p = executed(&mut io, t0);
-        assert_eq!(io.lines, [true, true]);
-        p.tick(t0 + FIRE_MIN_MS - 1, !SUN, &mut io);
-        assert_eq!(io.lines, [false, false], "eclipse: both low");
-        p.tick(t0 + FIRE_MIN_MS + 100, !SUN, &mut io);
-        assert_eq!(io.lines, [false, false]);
-        // An eclipse during the arm's settling also drops it
+        let mut io = ready();
+        let mut p = executed(&mut io, 1000);
+        p.tick(1000 + FIRE_MIN_MS - 1, !SUN, &mut io);
+        assert_eq!(io.lines, [false, false], "dropped in eclipse");
+        assert_eq!(p.phase(1000 + FIRE_MIN_MS), Phase::Firing);
         p.tick(200_000, SUN, &mut io);
-        assert_eq!(io.lines, [true, false]);
-        p.tick(200_050, !SUN, &mut io);
-        assert_eq!(io.lines, [false, false]);
-        // Sunlight again: the whole minimum again
-        p.tick(300_000, SUN, &mut io);
-        p.tick(300_000 + ARM_SETTLE_MS, SUN, &mut io);
-        assert_eq!(io.lines, [true, true]);
+        assert_eq!(io.lines, [false, true], "again in sunlight");
         assert_eq!(p.attempts(), 1, "the same attempt");
-        // Past the minimum an eclipse ends it, unconfirmed: tried again
-        p.tick(300_000 + ARM_SETTLE_MS + FIRE_MIN_MS, !SUN, &mut io);
-        assert_eq!(io.lines, [false, false]);
+        // An eclipse after the minimum ends the attempt, unconfirmed
+        p.tick(200_000 + FIRE_MIN_MS, !SUN, &mut io);
         assert_eq!(io.log.last(), Some(&Report::NotConfirmed));
         assert_eq!(p.attempts(), 2);
+    }
+
+    /// The charge path opening takes the array (no sunlight seen after it):
+    /// the open path ends the fire in eclipse or while waiting for the Sun;
+    /// a fire that never sees the Sun gives up at the deadline
+    #[test]
+    fn the_open_path_ends_the_fire_whatever_the_sunlight() {
+        let mut io = ready();
+        let mut p = executed(&mut io, 1000);
+        io.eps = Some(OPEN);
+        p.tick(1000 + 10_000, !SUN, &mut io);
+        assert!(p.confirmed(), "open in eclipse (the array gone)");
+        assert_eq!(io.lines, [false, false]);
+        // Opened while waiting for the Sun
+        let mut io = ready();
+        let mut p = armed(&mut io);
+        assert_eq!(p.execute(20, &mut io), Ok(()));
+        io.eps = Some(OPEN);
+        p.tick(30, !SUN, &mut io);
+        assert!(p.confirmed());
+        // No Sun for a day: the report, then silence
+        let mut io = ready();
+        let mut p = armed(&mut io);
+        assert_eq!(p.execute(20, &mut io), Ok(()));
+        p.tick(20 + FIRE_DEADLINE_MS - 1, !SUN, &mut io);
         assert_eq!(p.phase(0), Phase::Firing);
+        p.tick(20 + FIRE_DEADLINE_MS, !SUN, &mut io);
+        assert_eq!(p.phase(0), Phase::Reporting);
+        assert!(!p.confirmed());
+        let _ = run_report(&mut p, &mut io, 20 + FIRE_DEADLINE_MS);
+        assert!(p.passivated());
+        // The same with the path found open at the deadline
+        let mut io = ready();
+        let mut p = executed(&mut io, 1000);
+        io.eps = Some(OPEN | FUSE_INTACT);
+        p.tick(1000 + 10, SUN, &mut io);
+        assert!(!p.confirmed(), "fired but the fuse intact: not open");
+        io.eps = Some(OPEN);
+        p.fire_from = 0;
+        p.tick(FIRE_DEADLINE_MS, SUN, &mut io);
+        assert!(p.confirmed());
     }
 
     #[test]
     fn an_unconfirmed_fire_is_retried_then_reported_and_silenced() {
-        let mut io = Bench::default();
-        let t0 = 1000;
-        let mut p = executed(&mut io, t0);
-        let mut t = t0;
+        let mut io = ready();
+        let mut p = executed(&mut io, 1000);
+        let mut t = 1000;
         for attempt in 1..=MAX_FIRE_ATTEMPTS {
             assert_eq!(p.attempts(), attempt);
-            assert_eq!(io.lines, [true, true]);
             p.tick(t + FIRE_MAX_MS - 1, SUN, &mut io);
-            assert_eq!(io.lines, [true, true]);
+            assert_eq!(io.lines, [false, true]);
             t += FIRE_MAX_MS;
             p.tick(t, SUN, &mut io);
             assert_eq!(io.lines, [false, false]);
-            if attempt < MAX_FIRE_ATTEMPTS {
-                p.tick(t + 1, SUN, &mut io);
-                t += 1 + ARM_SETTLE_MS;
-                p.tick(t, SUN, &mut io);
-            }
+            t += 1;
+            p.tick(t, SUN, &mut io);
         }
+        assert_eq!(p.attempts(), MAX_FIRE_ATTEMPTS, "no fourth");
         assert_eq!(p.phase(t), Phase::Reporting);
         assert!(!p.confirmed());
-        assert_eq!(io.tx_off, 0);
         let frames = run_report(&mut p, &mut io, t);
-        assert_eq!(frames.len(), usize::from(FINAL_REPORTS));
-        assert!(p.passivated(), "the emissions cease anyway");
-        assert!(io.tx_off == 1, "the emissions cease anyway");
-        assert!(io.inhibited, "the emissions cease anyway");
+        assert_eq!(frames.len(), 3);
+        assert!(p.passivated());
+        assert_eq!(io.tx_off, 1, "the emissions cease anyway");
+        assert!(io.inhibited);
     }
 
     #[test]
     fn resets_during_the_fire_and_the_report() {
-        let mut io = Bench::default();
+        let mut io = ready();
         let _ = executed(&mut io, 1000);
-        for attempt in 2..=MAX_FIRE_ATTEMPTS {
-            let mut io2 = Bench { flash: io.flash, ..Bench::default() };
-            let mut b = fresh(&mut io2);
-            assert_eq!(b.attempts(), attempt);
-            assert_eq!(b.phase(0), Phase::Firing);
-            assert!(!io2.inhibited, "still transmitting after the reset");
-            b.tick(5, SUN, &mut io2);
-            assert_eq!(io2.drives, [(Line::Arm, true)], "fire restarted");
-            io.flash = io2.flash;
-        }
-        // Attempts spent: the next boot goes to the report
-        let mut io3 = Bench { flash: io.flash, ..Bench::default() };
-        let mut b = fresh(&mut io3);
-        assert_eq!(b.phase(0), Phase::Reporting);
-        assert_eq!(io3.drives, [(Line::Fire, false), (Line::Arm, false)]);
-        assert_eq!(b.take_report(0), Some(1));
-        // A reset in the report: the report again from its start
-        let mut io4 = Bench { flash: io3.flash, ..Bench::default() };
-        let mut c = fresh(&mut io4);
+        // During the fire: the fire again, within the attempts
+        let mut io2 = Bench { flash: io.flash, eps: Some(FUSE_INTACT | ARMED), ..Bench::default() };
+        let mut b = fresh(&mut io2);
+        assert_eq!(b.phase(0), Phase::Firing);
+        assert_eq!(b.attempts(), 2);
+        b.tick(0, SUN, &mut io2);
+        assert_eq!(io2.drives, [(Line::Fire, true)], "fire restarted");
+        io2.eps = Some(OPEN);
+        b.tick(FIRE_MIN_MS, SUN, &mut io2);
+        assert_eq!(b.phase(FIRE_MIN_MS), Phase::Reporting);
+        // During the report: the report again, then silenced
+        let mut io3 = Bench { flash: io2.flash, eps: Some(OPEN), ..Bench::default() };
+        let mut c = fresh(&mut io3);
         assert_eq!(c.phase(0), Phase::Reporting);
-        assert_eq!(run_report(&mut c, &mut io4, 0).len(), 3);
+        assert_eq!(c.take_report(0), Some(1));
+        c.tick(REPORT_WINDOW_MS, SUN, &mut io3);
         assert!(c.passivated());
+        assert!(io3.inhibited);
+        // A version-1 record (TX-OFF first) reads as silenced
+        let mut io4 = Bench::default();
+        nvm::save(&mut io4, REGION, 0, RECORD_MAGIC, &[FLAG_COMMITTED, 1, 1, 0]).unwrap();
+        let old = fresh(&mut io4);
+        assert!(old.passivated());
         assert!(io4.inhibited);
     }
 
     #[test]
     fn missing_lines_and_unwritable_records() {
-        // No pin for the arm latch: straight to the report, then silence
-        let mut io = Bench { no_pins: true, ..Bench::default() };
-        let mut p = fresh(&mut io);
-        let _ = p.arm(&ARM_CODE, 0, &mut io);
-        assert_eq!(p.execute(0, &mut io), Ok(()));
-        p.tick(1, SUN, &mut io);
-        assert!(io.log.contains(&Report::LineUnavailable));
-        assert_eq!(p.phase(1), Phase::Reporting);
-        run_report(&mut p, &mut io, 1);
-        assert!(io.inhibited);
-        assert!(io.tx_off == 1);
-        // No pin for the fire switch
-        let mut io = Bench { no_fire_pin: true, ..Bench::default() };
-        let mut p = fresh(&mut io);
-        let _ = p.arm(&ARM_CODE, 0, &mut io);
-        let _ = p.execute(0, &mut io);
-        p.tick(1, SUN, &mut io);
-        p.tick(1 + ARM_SETTLE_MS, SUN, &mut io);
-        assert!(io.log.contains(&Report::LineUnavailable));
-        assert_eq!(io.lines, [false, false]);
-        // The record cannot be written: the act goes on
-        let mut io = Bench { fail_writes: true, ..Bench::default() };
-        let mut p = fresh(&mut io);
-        let _ = p.arm(&ARM_CODE, 0, &mut io);
-        assert_eq!(p.execute(0, &mut io), Ok(()));
+        // EOL_FIRE cannot be driven: the fire ends at once, reported, silenced
+        let mut io = Bench { no_fire_pin: true, ..ready() };
+        let mut p = armed(&mut io);
+        assert_eq!(p.execute(20, &mut io), Ok(()));
+        p.tick(30, SUN, &mut io);
+        assert_eq!(io.log.last(), Some(&Report::LineUnavailable));
+        assert_eq!(p.phase(30), Phase::Reporting);
+        let _ = run_report(&mut p, &mut io, 30);
+        assert!(p.passivated());
+        assert_eq!(io.tx_off, 1);
+        // The record cannot be written: logged, the act goes on
+        let mut io = ready();
+        let mut p = armed(&mut io);
+        io.fail_writes = true;
+        assert_eq!(p.execute(20, &mut io), Ok(()));
         assert!(io.log.contains(&Report::NotPersisted));
         assert!(p.committed());
     }
 
+    /// RID AV-07: the RAM copy against the record
     #[test]
     fn verify_restores_passivation_from_either_copy() {
-        let mut io = Bench::default();
+        let mut io = ready();
         let mut p = Passivation::new(REGION);
         p.verify(0, &mut io);
         assert!(!io.inhibited, "before init: nothing");
@@ -794,42 +974,36 @@ mod tests {
         assert!(io.inhibited);
         assert_eq!(io.log.last(), Some(&Report::Passivated));
         // The record lost, RAM committed: written again
-        let mut io2 = Bench::default();
+        let mut io2 = ready();
         let mut r = fresh(&mut io2);
         r.committed = true;
         r.verify(0, &mut io2);
         let after = fresh(&mut io2);
         assert!(after.committed());
-        // A version-1 record (TX-OFF first) reads as silenced
-        let mut io5 = Bench::default();
-        nvm::save(&mut io5, REGION, 0, RECORD_MAGIC, &[FLAG_COMMITTED, 1, 1, 0]).unwrap();
-        let old = fresh(&mut io5);
-        assert!(old.passivated());
-        assert!(io5.inhibited);
     }
 
     /// Records the software does not write itself: a version-1 record not
     /// committed stays idle; a silenced flag alone (an upset) still reads
     /// as passivated; verify with the fire already done on record restarts
-    /// nothing
+    /// only the report
     #[test]
     fn unusual_records_are_read_safely() {
-        let mut io = Bench::default();
+        let mut io = ready();
         nvm::save(&mut io, REGION, 0, RECORD_MAGIC, &[0, 1, 0, 0]).unwrap();
         let p = fresh(&mut io);
         assert!(!p.committed());
         assert!(!p.passivated());
         assert_eq!(p.phase(0), Phase::Idle);
 
-        let mut io = Bench::default();
+        let mut io = ready();
         nvm::save(&mut io, REGION, 0, RECORD_MAGIC, &[FLAG_SILENCED, VERSION, 0, 0]).unwrap();
         let p = fresh(&mut io);
         assert!(!p.committed());
         assert_eq!(p.phase(0), Phase::Passivated);
         assert!(io.inhibited);
 
-        // Committed and the fire done on record, RAM forgot both: no fire
-        let mut io = Bench::default();
+        // Committed and the fire done on record, RAM forgot both: the report
+        let mut io = ready();
         let flags = FLAG_COMMITTED | FLAG_FIRE_DONE;
         nvm::save(&mut io, REGION, 0, RECORD_MAGIC, &[flags, VERSION, 1, 0]).unwrap();
         let mut q = Passivation::new(REGION);
@@ -841,9 +1015,8 @@ mod tests {
         assert_eq!(q.take_report(0), Some(1), "the final report again");
         q.tick(REPORT_WINDOW_MS, SUN, &mut io);
         assert!(q.passivated());
-        // Committed and the fire done on record while the report already
-        // runs in RAM: the report carries on where it is
-        let mut io = Bench::default();
+        // The same while the report already runs in RAM: it carries on
+        let mut io = ready();
         nvm::save(&mut io, REGION, 0, RECORD_MAGIC, &[flags, VERSION, 1, 0]).unwrap();
         let mut q = Passivation::new(REGION);
         q.initialized = true;
@@ -854,7 +1027,7 @@ mod tests {
         assert!(!q.passivated());
         assert_eq!(q.report, Some((0, 2)));
         // Committed on record while a fire is already running in RAM: kept
-        let mut io = Bench::default();
+        let mut io = ready();
         let mut r = executed(&mut io, 1000);
         r.committed = false;
         let running = r.fire;
@@ -864,14 +1037,17 @@ mod tests {
 
     #[test]
     fn the_eps_saying_open_is_passivation_even_without_a_record() {
-        let mut io = Bench { open: Some(true), ..Bench::default() };
+        let mut io = Bench { eps: Some(OPEN), ..Bench::default() };
         let p = fresh(&mut io);
         assert!(p.passivated());
         assert!(p.confirmed());
         assert!(io.inhibited);
         assert!(io.drives.is_empty());
+        assert!(eol_state::charge_path_open(FIRED));
+        assert!(!eol_state::charge_path_open(FIRED | FUSE_INTACT), "fired but the fuse intact: not open");
+        assert!(!eol_state::charge_path_open(0));
         // Corrupt record, EPS silent: not passivated, reported
-        let mut io = Bench::default();
+        let mut io = ready();
         let _ = executed(&mut io, 1000);
         let slot = u32::try_from(SLOT_SIZE).unwrap();
         for s in 0..2u32 {
@@ -879,7 +1055,7 @@ mod tests {
             io.flash.read(REGION, s * slot + 8, &mut b).unwrap();
             io.flash.write(REGION, s * slot + 8, &[b[0] ^ 0xFF]).unwrap();
         }
-        let mut io2 = Bench { flash: io.flash, open: None, ..Bench::default() };
+        let mut io2 = Bench { flash: io.flash, eps: None, ..Bench::default() };
         let b = fresh(&mut io2);
         assert!(!b.committed());
         assert_eq!(io2.log, [Report::Unreadable]);

@@ -6,20 +6,29 @@
  * EPS-06, FSW-07, SMA-13; SQSO-ICD-013 §6.4):
  *
  * 1. PASSIVATE_ARM (0x70, operational key, argument the ASCII code "EOL!")
- *    arms the sequence for PASSIVATION_ARM_WINDOW_MS. Nothing is driven; a
- *    reset or the end of the window disarms.
- * 2. PASSIVATE_EXECUTE (0x71, recovery key) inside the window commits the
- *    passivated record in FLASH_REGION_EOL (from then on every boot carries
- *    the sequence through) and runs, in this order (RID REG-12):
- *    - the EPS one-shot charge disconnect, in sunlight, while the
- *      spacecraft still transmits: GPIO_PIN_EOL_ARM rises (the EPS's arm
- *      latch), 200 ms later GPIO_PIN_EOL_FIRE goes high and is held at
- *      least PASSIVATION_FIRE_MIN_MS, until the EPS controller's EOL_STATE
- *      register reports the charge path open or PASSIVATION_FIRE_MAX_MS;
- *      then both are low. An eclipse before the minimum restarts the fire
+ *    arms the EPS's one-shot charge disconnect with the EPS controller as a
+ *    second processor (RID P3E-11; SMART-QSO-ICD-001 1.5 §4.6): EOL_STATE
+ *    must show the arm latch clear and F1 intact (else SMART_QSO_ERROR_IO);
+ *    the key 0x3C, 0xC3 is written to EOL_KEY (0x7E) and EOL_STATE must show
+ *    the key up (bit 3); GPIO_PIN_EOL_ARM rises, and once EOL_STATE shows the
+ *    latch set (bit 0, at most PASSIVATION_ARM_CONFIRM_MS) it drops and
+ *    PASSIVATE_EXECUTE is accepted for PASSIVATION_ARM_WINDOW_MS from the
+ *    command. A latch already set is armed at once. A reset or the end of
+ *    the window disarms the software; the latch clears only at the EPS's
+ *    power-up.
+ * 2. PASSIVATE_EXECUTE (0x71, recovery key) inside the window, with the
+ *    latch still set, commits the passivated record in FLASH_REGION_EOL
+ *    (from then on every boot carries the sequence through) and runs, in
+ *    this order (RID REG-12):
+ *    - the fire, in sunlight, while the spacecraft still transmits:
+ *      GPIO_PIN_EOL_FIRE high at least PASSIVATION_FIRE_MIN_MS, until
+ *      EOL_STATE reports the charge path open (bit 1 set, bit 2 clear) or
+ *      PASSIVATION_FIRE_MAX_MS; then low. The open path seen at any time
+ *      ends the fire (the array, and the sunlight seen, go with it); An eclipse before the minimum restarts the fire
  *      in the next sunlight; a fire the EPS does not confirm is tried
  *      again, at most PASSIVATION_MAX_FIRE_ATTEMPTS times in all (across
- *      resets too);
+ *      resets too), and PASSIVATION_FIRE_DEADLINE_MS after the fire began
+ *      it goes to the report whatever;
  *    - the final report: PASSIVATION_FINAL_REPORTS housekeeping frames
  *      (HK1 and HK2, the latter carrying EOL_STATE, the fuse state and the
  *      attempts), PASSIVATION_REPORT_INTERVAL_MS apart
@@ -38,6 +47,7 @@
  * @requirement SRS-F111 Passivation order: record, charge disconnect through two series lines while transmitting, final report, then TX-OFF
  * @requirement SRS-F112 Transmitters off for good after passivation
  * @requirement SRS-F155 The final passivation report: three frames over three minutes carrying EOL_STATE, the fuse state and the attempts, before TX-OFF
+ * @requirement SRS-F157 Two-processor passivation arm: the EPS controller's key and the OBC's EOL_ARM, the latch confirmed before PASSIVATE_EXECUTE is accepted
  */
 
 #ifndef SMART_QSO_PASSIVATION_H
@@ -55,6 +65,10 @@ extern "C" {
 #define PASSIVATION_FIRE_MIN_MS   60000U
 /** and at most this long without the EPS confirming, ms */
 #define PASSIVATION_FIRE_MAX_MS   120000U
+/** EOL_ARM is held at most this long for the EPS's latch to show set, ms */
+#define PASSIVATION_ARM_CONFIRM_MS 2000U
+/** The fire gives up this long after it began without an end, ms */
+#define PASSIVATION_FIRE_DEADLINE_MS 86400000U
 /** Fire sequences at most, across resets */
 #define PASSIVATION_MAX_FIRE_ATTEMPTS 3U
 /** Final report frames */
@@ -67,7 +81,7 @@ extern "C" {
 /** Where the sequence is */
 typedef enum {
     PASSIVATION_IDLE       = 0, /**< Nothing armed */
-    PASSIVATION_ARMED      = 1, /**< Armed, PASSIVATE_EXECUTE accepted */
+    PASSIVATION_ARMED      = 1, /**< Arming (the latch being confirmed) or armed, PASSIVATE_EXECUTE accepted */
     PASSIVATION_FIRING     = 2, /**< Committed, the disconnect being fired (still transmitting) */
     PASSIVATION_PASSIVATED = 3, /**< Silenced: TX-OFF latched, transmitters off for good */
     PASSIVATION_REPORTING  = 4  /**< The fire done, the final report going out (TX-OFF follows) */
@@ -78,14 +92,18 @@ SmartQsoResult_t passivation_init(void);
 
 /**
  * @brief PASSIVATE_ARM
- * @return SMART_QSO_OK; SMART_QSO_ERROR_INVALID for a wrong code;
- *         SMART_QSO_ERROR if already passivated
+ * @return SMART_QSO_OK (the latch confirmed by passivation_tick());
+ *         SMART_QSO_ERROR_INVALID for a wrong code; SMART_QSO_ERROR if
+ *         already passivated; SMART_QSO_ERROR_IO if the EPS controller does
+ *         not answer, shows F1 not intact, refuses the key, or EOL_ARM
+ *         cannot be driven
  */
 SmartQsoResult_t passivation_arm(const uint8_t *code, size_t len);
 
 /**
  * @brief PASSIVATE_EXECUTE
- * @return SMART_QSO_OK; SMART_QSO_ERROR if not armed or already passivated
+ * @return SMART_QSO_OK; SMART_QSO_ERROR if not armed (or the EPS's latch
+ *         not set) or already passivated
  */
 SmartQsoResult_t passivation_execute(void);
 

@@ -332,6 +332,8 @@ const CONSTANTS: &[(u32, f64)] = &[
     (494, (sqso_fsw::passivation::REPORT_INTERVAL_MS) as f64),
     (495, (sqso_fsw::passivation::REPORT_WINDOW_MS) as f64),
     (496, (sqso_fsw::passivation::MAX_FIRE_ATTEMPTS) as f64),
+    (497, (sqso_fsw::passivation::ARM_CONFIRM_MS) as f64),
+    (498, (sqso_fsw::passivation::FIRE_DEADLINE_MS) as f64),
 ];
 
 /// A constant this library keeps

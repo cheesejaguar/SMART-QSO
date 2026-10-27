@@ -2,12 +2,12 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-EOL-001
-**Revision:** C
+**Revision:** D
 **Date:** 2026-10-27
 **Reference:** NASA-STD-8719.14C; 47 CFR 97.207(b), 97.207(g)(1)(iii), (g)(1)(vii)(D)(1), (g)(3); 97.211(b)
 **Governing sources:** disposal and re-entry, `docs/regulatory/filings/ODAR_SMART-QSO.md` (SQSO-REG-018) Draft D §4–§6;
 passivation, `docs/BASELINE_PARAMETERS.md` Rev E §5 and §7, the telecommands of `docs/interfaces/TELECOMMAND_AUTHENTICATION.md`
-(SQSO-ICD-013) v0.8 §6.4 and the charge disconnect of `hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001) §7;
+(SQSO-ICD-013) v0.10 §6.4, `software/rust/sqso-fsw/src/passivation.rs`, and the charge disconnect of `hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001) §7;
 the concept of operations, `mission/CONOPS.md` phase 5. Where this plan and those sources differ, they govern.
 
 ---
@@ -21,7 +21,7 @@ deployable drag device, a 400–500 km orbit, the 25-year rule and 47 CFR Part 2
 | Item | Baseline |
 |------|----------|
 | End of mission | Planned at the end of the 2-year design life (about 2030-11-01 for the 2028-11-01 planning launch), or earlier on the criteria of §2 |
-| Passivation | Two-step authenticated telecommand: `PASSIVATE_ARM` (0x70) with the operational key, then `PASSIVATE_EXECUTE` (0x71) with the offline recovery key within 600 s. The spacecraft latches TX-OFF first, then fires the one-shot charge disconnect (fuse F1). Irreversible |
+| Passivation | Two-step authenticated telecommand: `PASSIVATE_ARM` (0x70) with the operational key, then `PASSIVATE_EXECUTE` (0x71) with the offline recovery key within 600 s, **early in a sunlit pass** (§3.2). **While still transmitting**, the spacecraft fires the one-shot charge disconnect (fuse F1) in sunlight, reports the result (`EOL_STATE`, the fuse state, the attempts) in three final housekeeping frames a minute apart, and then latches TX-OFF for good. Irreversible |
 | After passivation | Transmitters permanently off; the solar array disconnected from the pack and the bus; the loads drain the pack to the battery-management under-voltage cut-off, after which the spacecraft is dark (97.207(g)(1)(iii): battery in a permanent discharge state) |
 | Disposal | Uncontrolled re-entry by natural decay with the solar wings deployed (they are the drag area). **No drag device.** No propulsion |
 | Disposal rule | FCC: re-entry no later than 5 years after completion of the mission, probability ≥ 0.9 (97.207(g)(1)(vii)(D)(1)). NASA-STD-8719.14C 4.6-1a (25 years) is met with a wide margin |
@@ -49,7 +49,7 @@ telemetry of the last 30 days:
 |---|-----------|----------|
 | E1 | Both keys usable: the operational key authenticated a command in the last 14 days, and the recovery key custodian holds the key and its counter (a `KEY_ROTATE` or `TX_DISABLE` under it is not needed to prove it) | Ground key log; HK1 `CS`, `CN` |
 | E2 | Battery healthy: lowest SOC in the last 30 days ≥ 40 %; depth of discharge ≤ 10 % per eclipse; charge reaches end of charge (4.10 V/cell) each sunlit period; no BMS fault or cell-imbalance fault in the fault log | HK1 `SOC`, `VB`, `IB`, `TB`, `FL`; stored housekeeping (`DUMP_TLM`) |
-| E3 | The passivation path is intact: no fault logged against `EOL_ARM`/`EOL_FIRE`, `PS=0` | HK1 `PS`, `FL` |
+| E3 | The passivation path is intact: no fault logged against `EOL_ARM`/`EOL_FIRE`, `PS=0`, the EPS `EOL_STATE` reporting the fuse F1 intact and not fired | HK1 `PS`, `FL`; HK2 `EOL` |
 | E4 | The transmitter meets its emission limits (no spurious reports, deviation in specification) | Ground spectrum checks (COMMISSIONING_PLAN C-6 method) |
 | E5 | At least one telecommand station is available for the next 12 months, so the procedure of §3 can be run on demand | Station agreements (BASELINE §1) |
 | E6 | The licensee's authorization and coordination remain valid | Licensee |
@@ -75,19 +75,27 @@ stations for the passivation pass and the confirmation passes.
 
 ## 3. Passivation Procedure
 
-### 3.1 What the spacecraft does (SQSO-ICD-013 v0.8 §6.4; SQSO-EPS-BRD-001 §7)
+### 3.1 What the spacecraft does (SQSO-ICD-013 v0.10 §6.4; SRS-F110, F111, F155; SQSO-EPS-BRD-001 §7)
 
 1. `PASSIVATE_ARM` (0x70, operational key, 4-byte argument: the ASCII code `EOL!`) arms for 600 s and drives nothing.
    A wrong code is rejected (`INVALID_PARAM`); an arm not executed within 600 s lapses silently (logged).
 2. `PASSIVATE_EXECUTE` (0x71, **recovery key**, no argument) within those 600 s executes. Without a live arm it is
    `NOT_ALLOWED` and does nothing. The two keys are held by two custodians: a two-person rule for an irreversible act.
    There is no first-year lockout.
-3. On execute, in this order: (a) the TX-OFF latch is set together with `RF_INHIBIT_PASSIVATED`, which nothing clears,
-   so nothing transmits from this moment; (b) the passivation record is persisted (`FLASH_REGION_EOL`); (c) in sunlight,
-   `EOL_ARM` (OBC PF4) is raised, its rising edge setting the EPS arm latch, and 200 ms later `EOL_FIRE` (OBC PG1) is
-   held for 60–120 s, dropped early once the EPS reports the charge path open. An eclipse before 60 s drops both lines
-   and the fire is repeated at the next sunlight, at most 3 attempts. After a reset the record restores the passivated
-   state before anything can transmit, and an incomplete fire resumes.
+3. On execute, in this order (RID REG-12; the order until SQSO-ICD-013 v0.9 was TX-OFF first, which left the result
+   unobservable): (a) the passivation record is persisted (`FLASH_REGION_EOL`, layout version 2), so every later boot
+   carries the passivation through; (b) **while the spacecraft still transmits** (beacon, housekeeping and the
+   command acknowledgement continue), in sunlight, `EOL_ARM` is raised, its rising edge setting the EPS arm latch, and
+   200 ms later `EOL_FIRE` is held for 60–120 s, dropped once the EPS reports the charge path open after the minimum. If
+   the spacecraft is in eclipse at the execute, **the fire waits for sunlight** while the spacecraft keeps transmitting;
+   an eclipse before 60 s drops both lines and the fire is repeated at the next sunlight; an unconfirmed fire is
+   repeated, at most 3 attempts in all, across resets; (c) the **final report**: HK1 and HK2 three times, 60 s apart,
+   with HK1 `PS=4/<EOL_STATE>/<attempts>` and HK2 `EOL=<EOL_STATE>/<attempts>` (EOL_STATE bit 1: fired, charge path
+   open; bit 2: fuse F1 intact; SRS-F155); (d) 180 s after the first report frame, TX-OFF latched together with
+   `RF_INHIBIT_PASSIVATED`, which nothing clears. A fire not confirmed after its attempts is reported and silenced the
+   same way: the emissions cease whatever the fire did. After a reset the record restores the state before anything
+   can transmit: an incomplete fire resumes, a report in progress is sent again, a silenced spacecraft stays silent.
+   From execute to silence: 4–5 minutes in sunlight (fire 60–120 s, report 180 s).
 4. The EPS fires the three-terminal fuse F1 (ITV4030L1412NR) only when both the arm-latch FET Q21 and the fire FET Q20
    conduct; no single failure fires it. F1 sits between the trackers' output and the pack: once open, the solar array
    feeds neither the pack nor the bus. The fire needs 9.8–24 W for under a minute, which is why it is done in sunlight.
@@ -97,12 +105,18 @@ stations for the passivation pass and the confirmation passes.
 
 ### 3.2 Choice of the passivation pass
 
+The fire waits for sunlight and the final report follows it, so **`PASSIVATE_EXECUTE` is sent early in a pass that is
+sunlit from the execute to at least 6 minutes after it**; otherwise the fire and the report happen later, out of view,
+and the report that shows the result goes out unheard. At the baseline orbit (LTAN 22:30) the Bay Area passes come in
+two groups, about 10:30 and 22:30 local mean solar time (SQSO-GND-001 §4): the **morning (descending-node) passes are
+sunlit**; most evening passes are in the Earth's shadow, so they are not used.
+
 | Criterion | Value |
 |-----------|-------|
-| Pass | Over the primary telecommand station, maximum elevation ≥ 30° (≥ 6 minutes above 10°, room for two attempts of each command), with a second station's pass within the following 2 hours for confirmation |
-| Spacecraft | In sunlight for the whole pass and for at least 10 minutes after it (the fire needs sunlight; it waits for it otherwise); MODE IDLE or ACTIVE |
+| Pass | A morning pass over the primary telecommand station with a maximum elevation ≥ 40°, giving ≥ 8 minutes above 10° (the commanding rule) and the report heard above 5°: the acquisition and `PASSIVATE_ARM` in the first 2 minutes above 10°, `PASSIVATE_EXECUTE` no later than 3 minutes after the station first reaches 10°, so that ≥ 5 minutes of the pass remain for the fire and the three report frames. A second station or SatNOGS observations scheduled on the same pass to hear the report as well, and a second station's pass within the following 2 hours |
+| Spacecraft | Predicted in sunlight from the execute until at least 6 minutes after it (the eclipse entry from the ephemeris, with 1 minute of margin); `PA` > 0 at acquisition; MODE IDLE or ACTIVE |
 | People | Both key custodians present at the station (or the recovery-key custodian at the station with the operational-key frame prepared); a licensed control operator; the licensee or the PI on the line |
-| Avoid | Passes in which a conjunction warning is open; the 24 h after a reset (`UP` < 86,400 s in HK1) |
+| Avoid | Passes in which a conjunction warning is open; the 24 h after a reset (`UP` < 86,400 s in HK1); evening passes; a pass whose eclipse entry is less than 6 minutes after the planned execute |
 
 ### 3.3 Before the passivation pass
 
@@ -114,6 +128,7 @@ stations for the passivation pass and the confirmation passes.
 | T − 14 d | Optional end-of-mission beacon from the pre-approved template set (`SET_BEACON`; the content filter of `docs/BEACON_SPEC.md` §6 applies, no generated text) | Beacon text decoded |
 | T − 7 d | Ground rehearsal of the two-command sequence on the flatsat or with the mission simulation's end-of-life plan (`software/rust/sqso-sil`), using test keys | Both frames accepted in the rehearsal; timing within 600 s |
 | T − 1 d | Build both frames with the ground tool and the next counter of each key; check the counters against the last acknowledgements; check both keys against their custody records | Frames reviewed by both custodians |
+| T − 1 d | Pick the pass by §3.2 from the latest ephemeris: sunlit window, elevation profile, the latest execute time; schedule SatNOGS observations of it and a second station | Pass plan signed by the operations lead |
 | T − 1 d | Final orbit: latest GNSS-based ephemeris (or third-party orbit) sent to Space-Track; record apogee and perigee for the post-space notification | Ephemeris accepted |
 
 ### 3.4 The passivation pass
@@ -123,11 +138,18 @@ acknowledgement (§4.5). `GET_HOUSEKEEPING` (0x09) returns an HK1 frame on deman
 
 | Step | Action | Go / verification from telemetry |
 |------|--------|----------------------------------|
-| 1 | Acquisition: decode the beacon and send `GET_HOUSEKEEPING` | Call sign KK6GDB-11; `MODE` IDLE or ACTIVE; `SOC` ≥ 550 ‰; `VB` ≥ 14,000 mV; `PA` > 0 (sunlit); `TB` 0–45 °C (0.1 °C units: 0–450); `TX=1`; `PS=0`; no new `FL` entry since the review. **No go** if any fails: end the pass, re-plan |
+| 1 | Acquisition: decode the beacon and send `GET_HOUSEKEEPING` | Call sign KK6GDB-11; `MODE` IDLE or ACTIVE; `SOC` ≥ 550 ‰; `VB` ≥ 14,000 mV; `PA` > 0 (sunlit); `TB` 0–45 °C (0.1 °C units: 0–450); `TX=1`; `PS=0/<EOL_STATE>/0` with EOL_STATE bit 2 set (fuse F1 intact) and bit 1 clear; no new `FL` entry since the review; time to the predicted eclipse entry ≥ 6 min after the planned execute. **No go** if any fails: end the pass, re-plan |
 | 2 | Send `PASSIVATE_ARM` (operational key, argument `EOL!`) | Acknowledgement `ack KK6GDB-11: C=<counter> R=0 N=0`; the next HK1 (send `GET_HOUSEKEEPING`) shows `PS=1`. If `R` is not 0: stop, diagnose (wrong code, counter); a second ARM with a new counter is allowed |
-| 3 | Within 600 s of the ARM acknowledgement, and in the same pass: send `PASSIVATE_EXECUTE` (recovery key) | **No acknowledgement and no further beacon**: TX-OFF is latched before anything else, so silence is the expected response. If a beacon or an acknowledgement is still heard 60 s after the command: the execute was not received or was refused (`NOT_ALLOWED` if the arm lapsed); repeat steps 1–3 with new counters while the pass lasts |
-| 4 | Listen to the end of the pass on the downlink frequency with a spectrum display | No carrier on the downlink channel (the beacon would be due every 60–180 s) |
-| 5 | Log the UTC time of the last frame heard and of the execute command | Station log, both custodians sign |
+| 3 | Within 600 s of the ARM acknowledgement, and no later than the latest execute time of the pass plan: send `PASSIVATE_EXECUTE` (recovery key) | Acknowledgement `R=0`; beacons continue; HK1 (after every fifth beacon, or on `GET_HOUSEKEEPING`) shows `PS=2` (firing). `NOT_ALLOWED` means the arm lapsed: repeat steps 2–3 with new counters while the pass lasts. **Send nothing after the acknowledged execute** |
+| 4 | Receive the final report: three HK1/HK2 pairs 60 s apart, 60–120 s after the execute | HK1 `PS=4/<EOL_STATE>/<attempts>` and HK2 `EOL=<EOL_STATE>/<attempts>`: **passivated** when EOL_STATE bit 1 (fired: charge path open) is set and bit 2 (fuse intact) clear; attempts 1–3. Bit 1 clear after 3 attempts: the fire was not confirmed (§5.4) |
+| 5 | Listen to the end of the pass on the downlink frequency with a spectrum display | No carrier on the downlink channel from 180 s after the first report frame (the beacon would be due every 60–180 s) |
+| 6 | Log the UTC time of the execute, of each report frame and of the last frame heard | Station log, both custodians sign |
+
+If the report is not heard on the pass (the spacecraft went into eclipse earlier than predicted, or the reception
+failed), the spacecraft completes the fire in the next sunlight, sends the report and falls silent by itself: listen
+on every pass of both stations and SatNOGS for the next 24 h; a report received on any of them is the record. If none
+is received, the termination is declared on the evidence of the silence alone (§3.5), with the charge disconnect
+recorded as commanded but not observed.
 
 ### 3.5 Confirmation after the pass
 
@@ -138,12 +160,13 @@ acknowledgement (§4.5). `GET_HOUSEKEEPING` (0x09) returns an HK1 frame on deman
 | T + 7 d | Declare **termination of transmissions** at the UTC time of step 3; file the post-space notification (§6) | Licensee's declaration |
 | T onward | Do **not** send further commands. `TX_ENABLE` cannot undo the passivation (`RF_INHIBIT_PASSIVATED` is never cleared), but nothing is to be gained, and the receiver goes dark within days anyway |
 
-**What telemetry cannot show.** Nothing is transmitted after `PASSIVATE_EXECUTE` (the `PS` values 2, firing, and 3,
-passivated, are never downlinked), so the charge disconnect itself cannot be confirmed from the ground; the beacon's
-end confirms only the TX-OFF. The fire is verified before flight: the C suite `test_passivation`, the Rust unit tests of
+**What telemetry shows.** The final report gives the EPS's own view of the disconnect (`EOL_STATE` bit 1) and of the
+fuse (bit 2) and the number of attempts, before anything falls silent; before the pass, every HK1 shows that the fuse is
+intact (`PS` carries `EOL_STATE`; finding EOL-1 closed). After TX-OFF nothing is transmitted (`PS=3`, passivated, is
+never downlinked), so the drain of the pack to the cut-off is not observed; it follows from the design. The fire is
+verified before flight: the C suite `test_passivation`, the Rust unit tests of
 `software/rust/sqso-fsw/src/passivation.rs`, the mission simulation's end-of-life plan, and V-EPS-8 on the EM with a
-sacrificial fuse (SQSO-EPS-BRD-001 §19). The HK1 frame does not carry the EPS `EOL_STATE` register or the F1-intact
-sense (F1_SNS), so the ground cannot check before the pass that the fuse is intact either (finding EOL-1, §9).
+sacrificial fuse (SQSO-EPS-BRD-001 §19).
 
 ## 4. Stored Energy after Passivation
 
@@ -171,7 +194,7 @@ an absence of commands it adds a premature-passivation failure mode (decision D3
 | 5.1 | **Spacecraft lost** (no beacon, no acknowledgement) before or at the end of the mission | Nothing can be commanded | Listen on scheduled passes and SatNOGS for 30 days; then declare termination; post-space notification within 3 months, method "loss of power", passivation status "not achieved; energy controlled by the battery protections" | Option 2 (ODAR §4); disposal unchanged (passive) |
 | 5.2 | **Beacon heard, commands not accepted** (receiver failed, keys or counters out of step) | The **loss-of-contact inhibit** turns every transmitter off N days after the last authenticated command, receiver still on: **N = 14 days** after commissioning (30 days before), SQSO-ICD-013 §6.2, BASELINE §7. Any later authenticated command lifts it | Try the counter rules of SQSO-ICD-013 §5.2 and the recovery key's `KEY_ROTATE` to a spare key; if a key is usable again, run §3. If none works within the N days, the spacecraft falls silent by itself; continue to listen | Transmissions end without a command; charge path connected; option 2. The FCC consultation (D3) asks whether this reversible inhibit counts as termination for the post-space notification |
 | 5.3 | **Recovery key unusable** (lost, custodian unavailable for good), operational key good | `PASSIVATE_EXECUTE` cannot be authenticated; an ARM lapses after 600 s | Send `TX_DISABLE` (operational key): TX-OFF latched, receiver on. Declare termination; passivation status "transmitters disabled; charge path not disconnected" | Option 2. Made unlikely by two sealed copies of the recovery key at two sites (EOL-5) |
-| 5.4 | **Execute accepted, fire not completed** (eclipse on 3 attempts, F1 does not open, an EOL line fault) | TX-OFF and `RF_INHIBIT_PASSIVATED` hold whatever happens to the fire, so emissions have ended; the fire resumes after a reset if it did not complete | Not observable from the ground (§3.5); report "charge disconnect commanded at UTC …; completion verified by design and test, not by telemetry" | Emissions ended; option 2 if the fuse did not open |
+| 5.4 | **Execute accepted, fire not completed** (eclipse on 3 attempts, F1 does not open, an EOL line fault) | The final report shows it (`EOL_STATE` bit 1 clear, attempts 3); TX-OFF and `RF_INHIBIT_PASSIVATED` follow it whatever happened to the fire, so emissions end | Record the report; post-space notification: "charge disconnect commanded at UTC …; not confirmed by the EPS after 3 attempts; transmitters disabled" | Emissions ended; option 2 |
 | 5.5 | **Bus in SAFE or EMERGENCY at the end** (low SOC) | Commands are still accepted; the fire needs sunlight and 9.8–24 W | Wait for SOC ≥ 55 % in sunlight if the battery recovers; otherwise execute anyway in sunlight (the array also feeds the F1 heater) | Passivated, or 5.4 |
 | 5.6 | **FCC order to cease transmissions** (97.207(b)) at any time | — | `TX_DISABLE` on the next pass of either station (operational key; keyless `TX_DISABLE` if no key is usable on board, 97.211(b)); repeat with new counters until no beacon is heard on two passes. Longest wait for a commanding pass: 13.0 h with one station, 9.9 h with two (SQSO-GND-001 Rev D §5). Post-space notification within 24 hours | Transmissions ended; passivation by §3 on the PI's decision |
 
@@ -206,7 +229,7 @@ held throughout). **Bold**: more than 5 years after the mission.
 | 485 km (cap) | 1.6 kg | 5.3 (3.3) / 5.9 (3.9) / **7.7 (5.7)** | 6.2 (4.2) / **7.2 (5.2)** / **11.7 (9.7)** |
 | 485 km (cap) | 1.85 kg | 5.6 (3.6) / 6.3 (4.3) / **9.0 (7.0)** | 6.5 (4.5) / **7.9 (5.9)** / **13.5 (11.5)** |
 
-Masses: 1.6 kg nominal and 1.85 kg bound (BASELINE §4; the MEV is 1.73 kg). From the 475 km target the spacecraft is
+Masses: 1.6 kg nominal and 1.85 kg bound (BASELINE §4; the MEV is 1.75 kg). From the 475 km target the spacecraft is
 at about 451–460 km at the end of the 2-year mission and crosses the ISS altitude (≈ 400 km) 4.2–5.1 years after
 deployment (nominal to conservative projection; ODAR §5 covers conjunctions during the decay). Expected re-entry:
 2033-08 to 2034-07 from 475 km; 2034-02 to 2035-02 from the 485 km cap. The FCC limit for a mission ending on
@@ -244,7 +267,8 @@ deployment (nominal to conservative projection; ODAR §5 covers conjunctions dur
 
 | ID | Item | Owner |
 |----|------|-------|
-| EOL-1 | The HK1 frame carries `PS` but neither the EPS `EOL_STATE` register nor the F1-intact sense (F1_SNS), so the ground cannot see before the passivation pass that the fuse is intact. Recommended: add an `F1=` field (F1_SNS, EOL_STATE) to HK1 (`docs/operations/TELEMETRY_DICTIONARY.md` §4.4; SRS-F126) | Flight software (for the chair) |
+| EOL-1 | **Closed** (flight software round 3, RID REG-12): HK1 `PS` and HK2 `EOL` carry the EPS `EOL_STATE` register (fired, fuse intact) and the attempts, and the final report sends them three times before TX-OFF (SRS-F155) | Flight software |
+| EOL-6 | The passivation pass must be a sunlit morning pass with the execute early in it (§3.2); the pass plan is part of the T − 1 d review | Operations lead |
 | EOL-2 | Run V-EPS-8 (passivation fire on the EM with a sacrificial fuse, both signals, in the sunlit and eclipse cases) before the flight build | EPS |
 | EOL-3 | Reproduce the ODAR lifetimes in NASA DAS with the controlled mass properties (ODAR open item 1); repeat with the tracked orbit at the end-of-mission review (§2.4) | S&MA |
 | EOL-4 | The D3 consultation: whether the reversible loss-of-contact inhibit counts as termination for 97.207(g)(3), and which reading of "completion of the mission" applies to a failed spacecraft | Licensee |
@@ -269,9 +293,11 @@ deployment (nominal to conservative projection; ODAR §5 covers conjunctions dur
 - [ ] Rehearsal of the two-command sequence with test keys
 - [ ] Both frames built and reviewed by both custodians; counters checked
 - [ ] Final ephemeris to Space-Track; apogee and perigee recorded
-- [ ] Pass: go criteria of §3.4 step 1 met (`SOC` ≥ 550, `VB` ≥ 14,000, `PA` > 0, `TB` 0–450, `TX=1`, `PS=0`)
+- [ ] Pass chosen by §3.2: a sunlit morning pass, sunlit ≥ 6 min after the latest execute time; SatNOGS and a second station scheduled
+- [ ] Pass: go criteria of §3.4 step 1 met (`SOC` ≥ 550, `VB` ≥ 14,000, `PA` > 0, `TB` 0–450, `TX=1`, `PS=0` with the fuse intact)
 - [ ] `PASSIVATE_ARM`: `ack … R=0 N=0`, `PS=1`
-- [ ] `PASSIVATE_EXECUTE` within 600 s: no acknowledgement, no further beacon
+- [ ] `PASSIVATE_EXECUTE` within 600 s and before the latest execute time: `ack … R=0`, `PS=2`
+- [ ] Final report received: three `PS=4` frames, `EOL_STATE` fired, attempts recorded; then no carrier
 - [ ] No frame on any pass for 7 days (both stations, SatNOGS IDs recorded)
 - [ ] Termination declared; post-space notification filed (≤ 3 months; ≤ 24 h if FCC-ordered)
 - [ ] IARU and Space-Track informed
@@ -287,3 +313,4 @@ deployment (nominal to conservative projection; ODAR §5 covers conjunctions dur
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-27 | CDR 2026 consistency pass: notice that §3–§10 are stale (drag device, 400–500 km, 25-year rule) with the governing sources (ODAR, BASELINE Rev E §3, §5, the EOL disconnect of SQSO-EPS-BRD-001 §7) | CDR documentation review |
 | C | 2026-10-27 | Rewritten to the Rev E baseline (RID SE-15): end-of-mission decision criteria and extension conditions; the two-step passivation of SQSO-ICD-013 v0.8 §6.4 (PASSIVATE_ARM 0x70, operational key; PASSIVATE_EXECUTE 0x71, recovery key, within 600 s; TX-OFF, then the one-shot charge disconnect F1 of SQSO-EPS-BRD-001 §7) step by step with telemetry verification; cases in which passivation cannot be commanded (loss-of-contact inhibit, BASELINE §7; no autonomous passivation); FCC post-space notification; re-entry by natural decay with the wings deployed within 5 years of mission end, with the lifetimes and probability of ODAR Draft D. Drag device, 25-year rule, Part 25 and the autonomous passivation sequence withdrawn | CDR S&MA analysis |
+| D | 2026-10-27 | CDR round 3 (RID REG-12): passivation in the implemented order of SQSO-ICD-013 v0.10 (§1, §3.1): the charge disconnect fired while still transmitting, the final report (three HK1/HK2 pairs with `EOL_STATE`, the fuse state and the attempts), then TX-OFF; §3.2 the execute early in a sunlit (morning) pass, the fire waiting for sunlight and evening passes mostly in eclipse; §3.4 the pass steps with the report as the verification, and what to do if it is missed; §3.5 the result is now observable (EOL-1 closed); §5.4 the unconfirmed fire reported; EOL-6; MEV 1.75 kg; Appendix A | CDR round 3, launch and operations |

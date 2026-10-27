@@ -353,10 +353,20 @@ impl Fsw {
     }
 
     /// The EPS controller's `EOL_STATE` register (0x7C: bit 0 armed, bit 1
-    /// fired, the charge path open)
-    pub fn set_eps_eol_state(&self, armed: bool, fired: bool) {
-        // Bit 2: the fuse F1 intact (until it opens)
-        let regs = [0x7C, u8::from(armed) | (u8::from(fired) << 1) | (u8::from(!fired) << 2)];
+    /// fired, bit 2 F1 intact, bit 3 key) as the simulated controller holds
+    /// it (`hal_sim`: the key at 0x7E and the latch on `EOL_ARM`)
+    pub fn eps_eol_state(&self) -> u8 {
+        let reg = eps_telemetry::EOL_STATE;
+        let mut v = 0u8;
+        // SAFETY: reg and v are live one-byte buffers
+        let _ = unsafe { hal_sim::hal_i2c_write_read(EPS_BUS, eps_telemetry::ADDRESS, &reg, 1, &mut v, 1) };
+        v
+    }
+
+    /// Set `EOL_STATE` (the EPS's latch and F1 survive an OBC reset, which
+    /// re-initializes the simulated bus)
+    pub fn set_eps_eol_state(&self, state: u8) {
+        let regs = [eps_telemetry::EOL_STATE, state];
         // SAFETY: regs is a live buffer of its length
         let _ = unsafe { hal_sim::hal_i2c_write(EPS_BUS, eps_telemetry::ADDRESS, regs.as_ptr(), regs.len()) };
     }

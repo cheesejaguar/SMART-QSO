@@ -98,7 +98,7 @@ what is needed), **Not met** (the design conflicts), **N/A** (does not apply), *
 | CDS | Clause (abridged) | SMART-QSO plan | Verification | Status |
 |-----|-------------------|----------------|--------------|--------|
 | 3 (intro) | Launch provider requirements supersede; GEVS or SMC-S-016 only if the LV is unknown | SpaceX UG v11 levels (interim, LVR-044) | — | Design |
-| 3.1.1 | Random vibration to the launch provider's levels and duration | Protoflight at 8.18 Grms, the envelope of the SpaceX MPE + 3 dB (MPE 5.57 Grms) and the GSFC-STD-7000B workmanship spectrum, 1 min/axis (`docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C; TP-ENV-002) | VI-LV-04 (TBR-CDS-003) | Open |
+| 3.1.1 | Random vibration to the launch provider's levels and duration | Protoflight at 8.18 Grms, the envelope of the SpaceX MPE + 3 dB (MPE 5.57 Grms) and the GSFC-STD-7000B workmanship spectrum, 1 min/axis (`docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev D; TP-ENV-002) | VI-LV-04 (TBR-CDS-003) | Open |
 | 3.2.1, 3.2.2 | Thermal vacuum bakeout, specification from the launch provider | In the TVAC campaign (TP-ENV-003) | VI-LV-08 (TBR-CDS-004) | Open |
 | 3.3.1 | Shock testing as the launch provider defines | SpaceX: advised only; not planned, risk acknowledged | VI-LV-16 | Design (not required) |
 | 3.4.1 | Visual inspection and measurement per the CIFP or the provider | Exolaunch rail measurement guide | VI-LV-01 | Open |

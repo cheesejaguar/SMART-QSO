@@ -2,9 +2,13 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REQ-002
-**Revision:** F
+**Revision:** G
 **Date:** 2026-10-27
-**Reference:** NPR 7123.1D (tailored, `docs/project/CDR_CRITERIA_MATRIX.md` §2); `docs/BASELINE_PARAMETERS.md` Rev D
+**Reference:** NPR 7123.1D (tailored, `docs/project/CDR_CRITERIA_MATRIX.md` §2); `docs/BASELINE_PARAMETERS.md` Rev E (amended)
+
+> **Change status (Rev G).** The Rev E, F and G changes are Class I and are carried by CR-2026-009 and CR-2026-010
+> (`docs/project/CHANGE_REQUEST_LOG.md`), proposed by the CDR 2026 design review. **PI decision required by 2027-01-12**
+> (`mission/SCHEDULE.md` DA-01); until then the requirement text below is the proposed text.
 
 ---
 
@@ -26,7 +30,7 @@ This document covers:
 | Document | Title |
 |----------|-------|
 | SQSO-REQ-001 | Mission Requirements Document |
-| SQSO-BL-001 Rev D | Baseline Parameters (governs every value) |
+| SQSO-BL-001 Rev E (amended) | Baseline Parameters (governs every value) |
 | NPR 7123.1D | NASA Systems Engineering Processes and Requirements (reference framework, tailored) |
 | Cal Poly CDS Rev 14.1 | CubeSat Design Specification (February 2022) |
 | GSFC-STD-7000B | General Environmental Verification Standard, including Appendix B (CubeSats) |
@@ -116,7 +120,7 @@ Added at the CDR review (2026-10-27) to flow down the CDS clauses that had no sy
 
 | ID | Requirement | Parent | Verification |
 |----|-------------|--------|--------------|
-| SYS-100 | The EPS shall generate minimum 2.16 W orbit-average power at end of life while tumbling: the 1.80 W tumbling load plus the 20 % margin requirement (BASELINE §5) *(was 2 W; CDR review 2026-10-27)* | MRD-050 | A,T |
+| SYS-100 | The EPS shall deliver at least 2.21 W orbit-average power to the bus at end of life while tumbling: the 1.84 W tumbling load of BASELINE §5 plus the 20 % margin requirement (1.84 × 1.2) *(was 2 W; 2.16 W at the 1.80 W load in Rev E; 2.21 W in Rev G, CR-2026-009: met by the simulated 2.48 W, +12 %)* | MRD-050 | A,T |
 | SYS-101 | The EPS shall incorporate body-mounted and/or deployable solar arrays | MRD-050 | I |
 | SYS-102 | The EPS shall track maximum power point | MRD-050 | T |
 | SYS-103 | Solar array output shall support battery charging plus loads in sunlight | MRD-050 | A,T |
@@ -152,7 +156,7 @@ Added at the CDR review (2026-10-27) to flow down the CDS clauses that had no sy
 | SYS-200 | The transmitter shall operate on one IARU-coordinated frequency in 145.800–146.000 MHz, not 145.825 MHz (BASELINE §7) | MRD-023 | T |
 | SYS-201 | The transmitter shall support 0.5 W nominal output power and shall not exceed 1 W (BASELINE §7) | MRD-022 | T |
 | SYS-202 | The transmitter shall support AFSK 1200 bps modulation | MRD-022 | T |
-| SYS-203 | Spurious emissions shall be at least 40 dB below carrier and no more than 25 µW, which at 1 W is at least 46 dB (47 CFR 97.307(e)); the third harmonic shall be at least 60 dB below the carrier (BASELINE §7) *(46 dB and 60 dB added at the CDR review, 2026-10-27; finding VV-09)* | MRD-024 | T |
+| SYS-203 | Spurious emissions shall be at least 40 dB below carrier and no more than 25 µW, which at 1 W is at least 46 dB (47 CFR 97.307(e)); the third harmonic shall be at least 70 dB below the carrier, measured at the antenna port with the antennas deployed (BASELINE §7; VI-RF-04) *(46 dB and 60 dB added at the CDR review, 2026-10-27, finding VV-09; 70 dB in Rev G, CR-2026-009, RID RF-07)* | MRD-024 | T |
 | SYS-205 | If no authenticated telecommand is received for N days, the spacecraft shall cease all transmissions, keep the telecommand receiver on, and resume only after an authenticated telecommand; N shall be configurable by telecommand within 1–90 days (default and range TBR per decision D3), and the elapsed time shall persist across resets *(added 2026-10-15; SQSO-ICD-013 §6.2; IARU 7.9)* | MRD-024 | T |
 | SYS-204 | The spacecraft shall cease all RF emissions on an authenticated telecommand in every operating mode, and also on an unauthenticated TX-OFF telecommand whenever no telecommand key is usable; shall keep emissions ceased across resets until an authenticated telecommand re-enables them; and shall keep the telecommand receiver powered while ceased (47 CFR 97.207(b); ITU RR 22.1) *(added 2026-10-15; SQSO-ICD-013)* | MRD-024 | T |
 | SYS-206 | Frequency accuracy shall be within 5 kHz *(renumbered 2026-10-16 from a second SYS-204; SYS-204 is TX-OFF)* | MRD-024 | T |
@@ -174,12 +178,12 @@ Added at the CDR review (2026-10-27) to flow down the CDS clauses that had no sy
 |----|-------------|--------|--------------|
 | SYS-220 | The antenna shall deploy after separation from deployer | MRD-080 | T |
 | SYS-221 | Antenna and solar-array deployment shall be inhibited until 30 minutes after deployment switch activation (CDS Rev 14.1 §2.4.4). A power-on, brownout or unknown reset or a stowed switch shall restart the wait (CDS §2.3.2.4); a watchdog or software reset shall not shorten it; deployment attempts shall persist across resets and be bounded, and an element sensed as deployed shall not be fired *(reset rules added 2026-10-15; `deployment.h`)* | MRD-080 | T |
-| SYS-222 | The antenna shall provide omnidirectional coverage | MRD-022 | A |
+| SYS-222 | With the antennas deployed, the gain of each antenna (2 m and 70 cm) toward the ground over the pass-weighted directions of SQSO-LBA-001 §5.2 shall have a median of at least −3 dBi and a 10th percentile of at least −10 dBi (RF-P013, `docs/hardware/RF_DESIGN.md`) *(was "The antenna shall provide omnidirectional coverage", which a monopole can neither meet nor verify; Rev G, CR-2026-009, RID RF-05; PI ratification TBR-SYS-003)* | MRD-022 | A,T |
 | SYS-223 | Antenna VSWR shall be less than 2:1 at operating frequency | MRD-022 | T |
-| SYS-224 | The spacecraft shall not generate or transmit any RF signal earlier than 45 minutes after on-orbit deployment (CDS Rev 14.1 §2.4.5), and the timer shall reset if a deployment switch toggles (CDS §2.3.2.4). A power-on, brownout or unknown reset shall restart the timer; a watchdog or software reset shall not shorten it; no telecommand shall shorten or clear it *(added by the funding audit, 2026-10-14; reset rules 2026-10-15; SQSO-ICD-013 §6.3)* | MRD-080 | T |
+| SYS-224 | The spacecraft shall not generate or transmit any RF signal, from any transmitter or any other RF emitter including the GNSS receiver, earlier than 45 minutes after on-orbit deployment (CDS Rev 14.1 §2.4.5). While the count runs, a deployment-switch toggle (CDS §2.3.2.4) or a power-on, brownout or unknown reset shall restart it; a watchdog or software reset shall not shorten it; no telecommand shall shorten or clear it. Once the 45 minutes have completed, the completion shall be latched so that no later reset or stowed-switch reading restarts the silence (BASELINE §4 timers; NRCSD IDD §4.1.4(5)) *(added by the funding audit, 2026-10-14; reset rules 2026-10-15; SQSO-ICD-013 §6.3; every emitter including the GNSS receiver, and the latch, in Rev G, CR-2026-009, RIDs P3A-01, LV-15)* | MRD-080 | T |
 | SYS-225 | The spacecraft shall have at least three independent physical inhibits between the battery and each RF transmitter, and between the battery and each deployable actuator; RBF pins and timers do not count (CDS Rev 14.1 §2.3.7, §2.3.8) *(added by the funding audit, 2026-10-14)* | MRD-080 | I,T |
 
-**Proposed (PI to ratify), SYS-222, TBR-SYS-003:** "With the antennas deployed, the gain of each antenna (2 m and 70 cm) shall be at least −6 dBi over at least 90 % of the sphere." Verification: Analysis and Test. An electromagnetic model of each deployed monopole on the 1U body, and a pattern measurement of the engineering model in at least two orthogonal planes that agrees with the model within 2 dB. The link budget assumes 0 dBi and the baseline beacon margin is about +6 dB at 5° elevation (`docs/BASELINE_PARAMETERS.md` §7), so this keeps the beacon link closed at 5° elevation in at least 90 % of attitudes. A quarter-wave monopole (baseline §7) has a null along its axis, so coverage of the whole sphere ("omnidirectional") can be neither met nor verified.
+**SYS-222 in Rev G (PI to ratify, TBR-SYS-003; CR-2026-009).** The Rev B proposal ("at least −6 dBi over at least 90 % of the sphere") is withdrawn: one deployed monopole reaches −6 dBi over only 81 % of the sphere (`docs/hardware/RF_DESIGN.md` §5). SYS-222 now carries the RF design's RF-P013 statement over the directions the link uses (SQSO-LBA-001 §5.2). Verification: Analysis and Test. An electromagnetic model of each deployed monopole on the 1U body, and a pattern measurement of the engineering model in at least two orthogonal planes that agrees with the model within 2 dB (VI-RF-01, ETP VI-05). A quarter-wave monopole (BASELINE §7) has a null along its axis, so coverage of the whole sphere ("omnidirectional") can be neither met nor verified.
 
 ---
 
@@ -290,7 +294,7 @@ Added at the CDR review (2026-10-27) to flow down the CDS clauses that had no sy
 | SYS-600 | All components shall operate within -20C to +50C | MRD-001 | A,T |
 | SYS-601 | All components shall survive -40C to +60C | MRD-001 | A,T |
 | SYS-602 | Battery temperature shall be maintained above 0C for charging | MRD-051 | A |
-| SYS-603 | AI payload thermal path shall be designed for passive cooling with a conductance of at least 1 W/K to the structure, demonstrated on the engineering model (BASELINE §6) *(1 W/K added at the CDR review, 2026-10-27)* | MRD-001 | A,T |
+| SYS-603 | The AI payload shall be passively cooled so that, with the module at 8 W input in the hot case: the Jetson spreader stays at or below +40 °C at the BASELINE §6 burst duty, including a 600 s batch (the +50 °C operating limit of SYS-600 less the 10 °C margin before correlation); the module junction stays at or below 95 °C (the payload guard's limit); and with the module stuck on, the spreader stays at or below +70 °C (the guard's spreader limit). Verified by analysis with the correlated thermal model using the heat-path conductance and the junction-to-spreader resistance measured on the engineering model (ETP VI-01; V-THM-3) *(was "a conductance of at least 1 W/K to the structure" (CDR review, 2026-10-27), which the burst temperatures do not need: 39.0 °C for a 600 s batch even at 0.44 W/K, `docs/environment/THERMAL_ANALYSIS.md` §6.3. Design: 1.10 W/K spreader to frame, 1.09–1.16 K/W junction to spreader, junction ≈ 48 °C at a 39 °C spreader. Rev G, CR-2026-010, RID SE-07)* | MRD-001 | A,T |
 
 ---
 
@@ -320,7 +324,7 @@ Added at the CDR review (2026-10-27) to flow down the CDS clauses that had no sy
 | SYS-704 | The power inhibits shall be shown to function during random vibration: no power to any powered function and no RF emission while the deployment switches are actuated (SpaceX UG v11 Table 6-2 note 2, §6.7.7; CDS §2.3.1) | MRD-080 | T |
 | SYS-705 | All elastic natural frequencies of the spacecraft shall be above 40 Hz, or the integrator's limit if higher, with a first-mode frequency shift below 10 % and a first-mode amplitude shift below 30 % across the vibration test (SpaceX UG v11 §6.7.1, Table 6-3) | MRD-080 | T |
 | SYS-706 | The flight unit shall be baked out in thermal vacuum at no more than 1 × 10⁻⁴ Torr, at +60 °C for at least 6 hours after thermal stabilisation (CDS §3.2; LSP-REQ-317.01 Rev B Table 1 note 5, the 70 °C alternative exceeding the battery limit), or to the integrator's specification if more stringent | MRD-080 | T |
-| SYS-707 | The flight unit shall pass protoflight thermal-vacuum cycling: at least 8 cycles at 10 °C beyond the allowable flight temperatures, capped at the battery's +60 °C non-operating limit, with a comprehensive performance test at the first and last hot and cold plateaus (GSFC-STD-7000B §2.6.3.2, Table 2.6-1; `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` §3.4) | SYS-600 | T |
+| SYS-707 | The flight unit shall pass protoflight thermal-vacuum cycling: at least 8 cycles at 10 °C beyond the allowable flight temperatures, capped at the battery's +60 °C non-operating limit, with a comprehensive performance test at the first and last hot and cold plateaus (GSFC-STD-7000B §2.6.3.2, Table 2.6-1; `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` §3.4). Where the integrator requires more cycles (SpaceX UG v11 Table 6-2 advises 20 in all with at least 4 in vacuum), the 4 board-level cycles and further ambient cycles of the flight unit make up the count (ETP VI-08); the SpaceX advised acceptance range ± 5 °C is enveloped by the 10 °C margin except at the battery cap (ETP §9 deviation 4) *(cycle count and the SpaceX range reconciled in Rev G, CR-2026-009, RID P3S-10)* | SYS-600 | T |
 | SYS-708 | The spacecraft shall survive the dispenser-ejection and launch-vehicle separation shock specified by the integrator; verified by analysis against the random-vibration test spectrum, or by test if the integrator requires it (SpaceX UG v11 Table 6-2, shock advised; CDS §3.3) | MRD-080 | A |
 | SYS-709 | Each deployable (both antennas and both solar wings) shall deploy at the hot and cold operational test temperatures from the flight burn-wire circuit at the minimum battery voltage of the end-of-life state of charge, and the deployment-sensed telemetry shall agree with the observed state (GSFC-STD-7000B Appendix B §2.4.5) | MRD-080 | T |
 
@@ -435,11 +439,11 @@ from this document by `software/simulation/cdr/pm/gen_vcrm.py`.
 
 | ID | Item | Closure Plan | Target |
 |----|------|--------------|--------|
-| TBD-SYS-001 | Final IARU coordinated frequency | IARU coordination: request after the PDR, letter about 6 months later (`mission/SCHEDULE.md`) | 2027-08-31 |
+| TBD-SYS-001 | Final IARU coordinated frequency | IARU coordination: request 2027-01-26, letter by the 90th-percentile date (`mission/SCHEDULE.md` DA-09) | 2027-05-18 |
 | TBD-SYS-002 | Launch provider vibration spec | Manifest assignment: the integrator ICD at contract signature (decision D7); SYS-703 levels hold until then | 2027-06-30 |
 | TBR-SYS-001 | AI model final specification | Closed (2026-10-16) by PI decision D5: the AI model, AI burst and AI text-control rows of `docs/BASELINE_PARAMETERS.md` §6 specify it | — |
 | TBR-SYS-002 | SYS-020 ("mitigated where practical") has no pass criterion | PI ratifies, amends or rejects the proposed wording beneath §5.3 (finding VV-16) | 2027-01-12 (PDR) |
-| TBR-SYS-003 | SYS-222 ("omnidirectional coverage") can be neither met by a monopole nor verified | PI ratifies, amends or rejects the proposed wording beneath §7.3 (finding VV-16) | 2027-01-12 (PDR) |
+| TBR-SYS-003 | SYS-222 ("omnidirectional coverage") could be neither met by a monopole nor verified | PI ratifies, amends or rejects the Rev G wording (RF-P013; CR-2026-009, DA-01) | 2027-01-12 (PDR) |
 | TBR-SYS-004 | SYS-522 ("shall not affect other spacecraft functions") lists no failures and no pass criterion | PI ratifies, amends or rejects the proposed wording beneath §10.3 (finding VV-16) | 2027-01-12 (PDR) |
 
 ---
@@ -454,3 +458,4 @@ from this document by `software/simulation/cdr/pm/gen_vcrm.py`.
 | D | 2026-10-16 | SYS-700 amended from GEVS protoflight levels to the launch provider's levels, interim SpaceX Rideshare User's Guide v11 as used by TP-ENV-002, PI to ratify; ID kept (findings LA-05, VV-06) | SMART-QSO Team |
 | E | 2026-10-27 | CDR review (PM/SE/V&V). Aligned with `docs/BASELINE_PARAMETERS.md` Rev D: SYS-002 (dispenser limit), SYS-003 (per axis), SYS-010, SYS-012, SYS-100, SYS-111, SYS-203 (46 dB and 60 dB), SYS-420, SYS-422, SYS-112 (10 % nominal), SYS-501, SYS-502, SYS-510, SYS-512, SYS-513, SYS-603, SYS-701, SYS-702, SYS-712. Added CDS Rev 14.1 flow-down SYS-080 to SYS-089 (§5.1a), launch-environment verification SYS-703 to SYS-709 (§12.3), EMC SYS-713 (§12.4), and launch-provider, integrator and regulatory requirements SYS-900 to SYS-919 (§13a), traced to the launch reviewer's LVR-001 to LVR-114 (SQSO-LVR-001). TBD/TBR target dates set. Change request to be logged by the chair (CR-2026-007) | CDR review, PM/SE/V&V |
 | F | 2026-10-27 | CDR 2026 consistency pass: SYS-012 (465-485 km), SYS-422 (8 deg/s spin), SYS-907 (475 km target, 485 km cap) from `docs/BASELINE_PARAMETERS.md` Rev E (CR-2026-007) | CDR documentation review |
+| G | 2026-10-27 | CDR round 3 (proposed; PI decision by 2027-01-12, CR-2026-009 and CR-2026-010): SYS-100 2.21 W at the BASELINE §5 1.84 W load (SE-03, P3E-08); SYS-203 third harmonic ≥ 70 dB at the antenna port (RF-07); SYS-222 the RF-P013 pattern statement (RF-05); SYS-224 every RF emitter including the GNSS receiver, and the completion latch (P3A-01, LV-15); SYS-603 a temperature requirement instead of the 1 W/K conductance (SE-07); SYS-707 the integrator's cycle count and the SpaceX range reconciled (P3S-10); applicable baseline Rev E (amended); Rev E and F, which CR-2026-007 omitted, recorded in CR-2026-009 | CDR round 3, systems and programmatics |
