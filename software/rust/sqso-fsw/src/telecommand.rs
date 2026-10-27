@@ -174,7 +174,8 @@ pub const fn availability(command: Command) -> Availability {
         | C::GnssRequest
         | C::AdcsSetGeometry
         | C::AdcsSetGyroAlign
-        | C::AdcsSetMagBias => Availability::Normal,
+        | C::AdcsSetMagBias
+        | C::EpsDisableTrackers => Availability::Normal,
     }
 }
 

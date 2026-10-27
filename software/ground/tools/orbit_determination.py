@@ -28,6 +28,9 @@ import numpy as np
 import orbit_frames as fr
 from orbit_dynamics import GM, ForceModel, GravityField, propagate  # noqa: F401  (GravityField re-exported)
 
+#: Huber threshold of the robust stage, normalized residual per fix
+HUBER_SIGMA = 3.0
+
 #: Fewest measured values (position and velocity components) for a fit: the
 #: 7 parameters and 2 degrees of freedom
 MIN_VALUES = 9
@@ -53,6 +56,7 @@ class Observation:
     sigma_v: Optional[float] = None  # m/s per axis; None: velocity not used
     session: int = 0
     label: str = ""
+    weight: float = 1.0              # robust down-weighting during the fit (1: full)
 
 
 @dataclass
@@ -110,12 +114,12 @@ def _model_obs(traj: np.ndarray, obs: Sequence[Observation], use_vel: bool):
 
 def _measurements(obs: Sequence[Observation], use_vel: bool):
     z = [np.concatenate([o.r_itrf for o in obs])]
-    w = [np.repeat([1.0 / o.sigma_r ** 2 for o in obs], 3)]
+    w = [np.repeat([o.weight / o.sigma_r ** 2 for o in obs], 3)]
     if use_vel:
         vel = [o for o in obs if o.sigma_v is not None]
         if vel:
             z.append(np.concatenate([o.v_itrf for o in vel]))
-            w.append(np.repeat([1.0 / o.sigma_v ** 2 for o in vel], 3))
+            w.append(np.repeat([o.weight / o.sigma_v ** 2 for o in vel], 3))
     return np.concatenate(z), np.concatenate(w)
 
 
@@ -230,22 +234,50 @@ def fit_orbit(obs: Sequence[Observation], model: Optional[ForceModel] = None,
     p, ev, its, converged = _iterate(model, epoch, p, used, use_velocity, k_prior, k_sigma)
     iterations += its
 
-    # Outlier editing on the converged fit: drop fixes whose residual (RMS of
+    def normalized(ev_):
+        res = ev_.res[: 3 * len(used)].reshape(-1, 3)
+        return np.sqrt(np.mean((res / np.array([[o.sigma_r] for o in used])) ** 2, axis=1))
+
+    # Robust stage: with few fixes one gross error can drag the whole fit, so
+    # its residual looks no worse than the others'. Reweight (Huber, 3 sigma
+    # per fix) until the weights settle, so that a bad fix stands out
+    for _ in range(5):
+        norm = normalized(ev)
+        weights = np.minimum(1.0, HUBER_SIGMA / np.maximum(norm, 1e-9))
+        if np.allclose(weights, [o.weight for o in used], atol=0.02):
+            break
+        for o, wt in zip(used, weights):
+            o.weight = float(wt)
+        p, ev, its, converged = _iterate(model, epoch, p, used, use_velocity, k_prior, k_sigma)
+        iterations += its
+
+    # Outlier editing on the robust fit: drop fixes whose residual (RMS of
     # the three axes over the fix sigma) exceeds edit_sigma times the robust
     # scale of all residuals (1.4826 x median, at least 1: model error raises
-    # every residual, an outlier only its own); refit; at most three rounds
+    # every residual, an outlier only its own); refit at full weight; at most
+    # three rounds
     for _ in range(3):
         if not converged:
             break
+        norm = normalized(ev)
         res = ev.res[: 3 * len(used)].reshape(-1, 3)
-        norm = np.sqrt(np.mean((res / np.array([[o.sigma_r] for o in used])) ** 2, axis=1))
         scale = max(1.0, 1.4826 * float(np.median(norm)))
         bad = [i for i in range(len(used)) if norm[i] > edit_sigma * scale]
+        for o in used:
+            o.weight = 1.0
         if not bad or len(used) - len(bad) < 2:
+            p, ev, its, converged = _iterate(model, epoch, p, used, use_velocity, k_prior, k_sigma)
+            iterations += its
             break
         for i in sorted(bad, reverse=True):
             rejected.append((used[i], f"residual {np.linalg.norm(res[i]):.0f} m ({norm[i]:.1f} sigma)"))
             del used[i]
+        p, ev, its, converged = _iterate(model, epoch, p, used, use_velocity, k_prior, k_sigma)
+        iterations += its
+
+    if any(o.weight != 1.0 for o in used):  # the fit stopped early: full weights again
+        for o in used:
+            o.weight = 1.0
         p, ev, its, converged = _iterate(model, epoch, p, used, use_velocity, k_prior, k_sigma)
         iterations += its
 

@@ -34,6 +34,7 @@ COMMANDS: Dict[str, CommandSpec] = {
     "EPS_SET_MODE": CommandSpec(0x10, 1, 1, "operational", "Set power mode: 0 SAFE, 1 IDLE, 2 ACTIVE", without_key=False),
     "EPS_GET_TELEMETRY": CommandSpec(0x13, 0, 0, "operational", "Get EPS telemetry", without_key=False),
     "EPS_CLEAR_LOCKOUT": CommandSpec(0x14, 4, 4, "operational", "Clear the EPS's latched recharge lockout after a cell below 2.0 V (argument: the ASCII code CHG!); send only after the ground has reviewed the cell history", without_key=False),
+    "EPS_DISABLE_TRACKERS": CommandSpec(0x15, 1, 1, "operational", "Disable solar-array trackers through the EPS controller's TRK_DISABLE (0x8E, with its key): mask bits 0-3 = T1-T4 off, 0 = all enabled; held in the controller's FRAM and reported in HK2 SV (EPS_SUPV)", without_key=False),
     "ADCS_DETUMBLE": CommandSpec(0x21, 0, 0, "operational", "Start detumble", without_key=False),
     "ADCS_GET_ATTITUDE": CommandSpec(0x23, 0, 0, "operational", "Get attitude", without_key=False),
     "ADCS_SET_GEOMETRY": CommandSpec(0x24, 1, 1, "operational", "Spin axis and inertia for the attitude control (persisted): 0 both wings, 1 wing W1 only, 2 wing W2 only, 3 no wing", without_key=False),

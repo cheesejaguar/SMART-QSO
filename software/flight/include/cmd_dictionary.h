@@ -36,6 +36,7 @@ typedef enum {
     CMD_EPS_SET_MODE = 0x10, /**< EPS_SET_MODE: Set power mode: 0 SAFE, 1 IDLE, 2 ACTIVE */
     CMD_EPS_GET_TELEMETRY = 0x13, /**< EPS_GET_TELEMETRY: Get EPS telemetry */
     CMD_EPS_CLEAR_LOCKOUT = 0x14, /**< EPS_CLEAR_LOCKOUT: Clear the EPS's latched recharge lockout after a cell below 2.0 V (argument: the ASCII code CHG!); send only after the ground has reviewed the cell history */
+    CMD_EPS_DISABLE_TRACKERS = 0x15, /**< EPS_DISABLE_TRACKERS: Disable solar-array trackers through the EPS controller's TRK_DISABLE (0x8E, with its key): mask bits 0-3 = T1-T4 off, 0 = all enabled; held in the controller's FRAM and reported in HK2 SV (EPS_SUPV) */
     CMD_ADCS_DETUMBLE = 0x21, /**< ADCS_DETUMBLE: Start detumble */
     CMD_ADCS_GET_ATTITUDE = 0x23, /**< ADCS_GET_ATTITUDE: Get attitude */
     CMD_ADCS_SET_GEOMETRY = 0x24, /**< ADCS_SET_GEOMETRY: Spin axis and inertia for the attitude control (persisted): 0 both wings, 1 wing W1 only, 2 wing W2 only, 3 no wing */
@@ -56,7 +57,7 @@ typedef enum {
 } CmdId_t;
 
 /** Number of commands in the dictionary */
-#define CMD_DICTIONARY_COUNT 31U
+#define CMD_DICTIONARY_COUNT 32U
 
 /** Which telecommand key authenticates a command */
 typedef enum {

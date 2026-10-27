@@ -41,6 +41,8 @@ pub enum Command {
     EpsGetTelemetry = 0x13,
     /// Clear the EPS's latched recharge lockout after a cell below 2.0 V (argument: the ASCII code CHG!); send only after the ground has reviewed the cell history
     EpsClearLockout = 0x14,
+    /// Disable solar-array trackers through the EPS controller's TRK_DISABLE (0x8E, with its key): mask bits 0-3 = T1-T4 off, 0 = all enabled; held in the controller's FRAM and reported in HK2 SV (EPS_SUPV)
+    EpsDisableTrackers = 0x15,
     /// Start detumble
     AdcsDetumble = 0x21,
     /// Get attitude
@@ -79,7 +81,7 @@ pub enum Command {
 
 impl Command {
     /// Every command, in ID order
-    pub const ALL: [Command; 31] = [
+    pub const ALL: [Command; 32] = [
         Command::Nop,
         Command::Reset,
         Command::SetMode,
@@ -94,6 +96,7 @@ impl Command {
         Command::EpsSetMode,
         Command::EpsGetTelemetry,
         Command::EpsClearLockout,
+        Command::EpsDisableTrackers,
         Command::AdcsDetumble,
         Command::AdcsGetAttitude,
         Command::AdcsSetGeometry,
@@ -130,6 +133,7 @@ impl Command {
             0x10 => Some(Command::EpsSetMode),
             0x13 => Some(Command::EpsGetTelemetry),
             0x14 => Some(Command::EpsClearLockout),
+            0x15 => Some(Command::EpsDisableTrackers),
             0x21 => Some(Command::AdcsDetumble),
             0x23 => Some(Command::AdcsGetAttitude),
             0x24 => Some(Command::AdcsSetGeometry),
@@ -181,6 +185,7 @@ impl Command {
             Command::EpsSetMode => c"EPS_SET_MODE",
             Command::EpsGetTelemetry => c"EPS_GET_TELEMETRY",
             Command::EpsClearLockout => c"EPS_CLEAR_LOCKOUT",
+            Command::EpsDisableTrackers => c"EPS_DISABLE_TRACKERS",
             Command::AdcsDetumble => c"ADCS_DETUMBLE",
             Command::AdcsGetAttitude => c"ADCS_GET_ATTITUDE",
             Command::AdcsSetGeometry => c"ADCS_SET_GEOMETRY",
@@ -218,6 +223,7 @@ impl Command {
             Command::EpsSetMode => CommandSpec { min_args: 1, max_args: 1, key: KeyClass::Operational, without_key: false },
             Command::EpsGetTelemetry => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::EpsClearLockout => CommandSpec { min_args: 4, max_args: 4, key: KeyClass::Operational, without_key: false },
+            Command::EpsDisableTrackers => CommandSpec { min_args: 1, max_args: 1, key: KeyClass::Operational, without_key: false },
             Command::AdcsDetumble => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::AdcsGetAttitude => CommandSpec { min_args: 0, max_args: 0, key: KeyClass::Operational, without_key: false },
             Command::AdcsSetGeometry => CommandSpec { min_args: 1, max_args: 1, key: KeyClass::Operational, without_key: false },
@@ -255,6 +261,7 @@ impl Command {
             Command::EpsSetMode => "Set power mode: 0 SAFE, 1 IDLE, 2 ACTIVE",
             Command::EpsGetTelemetry => "Get EPS telemetry",
             Command::EpsClearLockout => "Clear the EPS's latched recharge lockout after a cell below 2.0 V (argument: the ASCII code CHG!); send only after the ground has reviewed the cell history",
+            Command::EpsDisableTrackers => "Disable solar-array trackers through the EPS controller's TRK_DISABLE (0x8E, with its key): mask bits 0-3 = T1-T4 off, 0 = all enabled; held in the controller's FRAM and reported in HK2 SV (EPS_SUPV)",
             Command::AdcsDetumble => "Start detumble",
             Command::AdcsGetAttitude => "Get attitude",
             Command::AdcsSetGeometry => "Spin axis and inertia for the attitude control (persisted): 0 both wings, 1 wing W1 only, 2 wing W2 only, 3 no wing",

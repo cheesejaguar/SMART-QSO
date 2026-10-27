@@ -59,7 +59,18 @@ FS = {"analysis": (3.00, 1.50, 1.25), "qual_test": (2.50, 1.35, 1.15)}
 # raised below -40 C by allowance (polyimide and silicone stiffen; no film data below -40 C: VI-MECH-03 measures it)
 COLD = {-40: dict(E=+0.018, mu=0.15, flex=0.50e-3, snub=0.20e-3),
         -55: dict(E=+0.0225, mu=0.16, flex=0.55e-3, snub=0.25e-3)}
-T_COLD = -55
+T_COLD = -55            # hinge cold bound (THERMAL_ANALYSIS 2.2 4.3: frame side -40.2, wing side -48.8 C margined)
+T_BURN = -41            # burn resistor and the line in it at the burn, margined (-39.4; -40.8 after a 3 h soak)
+# hold-down line (THERMAL_ANALYSIS 2.2 4.3): free span -81 C margined, anchors and the burn board about -42 C
+LINE_T_SPAN, LINE_T_ANCHOR, LINE_T_COLUMN = -81.0, -42.0, -48.0
+LINE_F0, LINE_CREEP = 30.0, 0.30                 # N at +20 C; preload loss allowed by VI-STR-07 (30-day creep test)
+# loop geometry from the CAD (model.py: burn board at x 47.5, line bridge at x 55.25 over the post): two legs of
+# 7.75 mm, 11.3 mm of it outside the body (x 51.1 ... 55.25 twice and the 3 mm bridge), 9.2 mm inside (with the knot)
+LINE_L_OUT, LINE_L_IN = 11.3e-3, 9.2e-3
+# the compressed column each leg spans: burn board 1.0 mm FR-4 (z 55 ppm/K), shear panel 1.0 Al (23.6), body panel
+# 1.6 FR-4 (55), post 1.35 Al (23.6), wing 2.3 FR-4 + cells (50): sum alpha * L per leg (m/K)
+LINE_COL_AL = (1.0 * 55 + 1.0 * 23.6 + 1.6 * 55 + 1.35 * 23.6 + 2.3 * 50) * 1e-9
+LINE_MAT = {"Dyneema SK75 (UHMWPE)": dict(alpha=-12e-6, e_cold=1.3), "Vectran HT (LCP)": dict(alpha=-4.8e-6, e_cold=1.1)}
 
 
 def use_cold(t_c):
@@ -225,6 +236,28 @@ def pin_strength(dyn, launch_normal_3s=3.85, launch_qs=2.29):
     return out
 
 
+def line_cold(ea20=5.0e3, k_series=None, mat="Dyneema SK75 (UHMWPE)", l_out=LINE_L_OUT, l_in=LINE_L_IN):
+    """Hold-down line tension at the LEOP cold case (free span at LINE_T_SPAN) after the allowed creep loss: the
+    loop is stretched at +20 C to LINE_F0 (braid EA ea20, N), creeps by LINE_CREEP of its stretch, then the line's
+    negative axial CTE lengthens it and the compressed column (panels, post, wing) shortens: both slacken it.
+    An optional series spring (N/m) at the anchor adds compliance."""
+    m = LINE_MAT[mat]
+    L = l_out + l_in
+    k_line = ea20 / L
+    k = k_line if k_series is None else 1.0 / (1.0 / k_line + 1.0 / k_series)
+    stretch0 = LINE_F0 / k
+    d_line = m["alpha"] * ((LINE_T_SPAN - 20) * l_out + (LINE_T_ANCHOR - 20) * l_in)      # > 0: the line grows
+    d_col = 2 * LINE_COL_AL * (LINE_T_COLUMN - 20)                                          # < 0: the column shrinks
+    slack = d_line - d_col
+    k_cold = (1.0 / (1.0 / (k_line * m["e_cold"]) + (0.0 if k_series is None else 1.0 / k_series)))
+    rem = stretch0 * (1 - LINE_CREEP) - slack
+    return dict(material=mat, EA20_N=ea20, series_spring_N_per_mm=None if k_series is None else k_series / 1e3,
+                loop_mm=L * 1e3, preload_stretch_mm=stretch0 * 1e3, thermal_slack_mm=slack * 1e3,
+                line_growth_mm=d_line * 1e3, column_shrink_mm=-d_col * 1e3,
+                tension_cold_N=max(0.0, rem * k_cold), slack_mm=max(0.0, -rem) * 1e3,
+                tension_cold_no_creep_N=max(0.0, (stretch0 - slack) * k_cold))
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--json", default=os.path.join(HERE, "hinge_results.json"))
@@ -239,10 +272,17 @@ def main():
     R["cold_case_C"] = T_COLD
     R["cold_values"] = COLD[T_COLD]
     # burn-wire release energy at the cold bound (the mechanisms.py model; STR-15: >= 1.5 x 3-sigma)
+    # hold-down line at the LEOP cold case (P3S-01 follow-up)
+    R["line_cold"] = [line_cold(ea, ks, mat) for mat in LINE_MAT for ea in (5.0e3, 10.0e3) for ks in (None, 40e3)]
+    for v in R["line_cold"]:
+        print(f"line {v['material']:22s} EA {v['EA20_N']/1e3:4.1f} kN spring {v['series_spring_N_per_mm']}: stretch "
+              f"{v['preload_stretch_mm']:.3f} mm, thermal slack {v['thermal_slack_mm']:.3f} mm -> tension at -81 C "
+              f"{v['tension_cold_N']:.1f} N after creep ({v['tension_cold_no_creep_N']:.1f} N without), slack {v['slack_mm']:.3f} mm")
     # flight timing (sqso_fsw::deployment): 8 s per resistor, retries 50 min apart, so no heat is kept between attempts
     keep0 = MECH.KEEP
     MECH.KEEP = 0.0
-    R["burn_release"] = {f"{t:+.0f}C_{b:.0f}s": MECH.burn_release(float(t), b) for t in (-40, T_COLD) for b in (5.0, 8.0, 10.0)}
+    R["burn_release"] = {f"{t:+.0f}C_{b:.0f}s": MECH.burn_release(float(t), b) for t in (T_BURN, T_COLD) for b in (5.0, 8.0, 10.0)}
+    R["burn_temperature_C"] = T_BURN
     MECH.KEEP = keep0
     for k, v in R["burn_release"].items():
         print(f"burn {k}: {v['E_attempt_J']:.1f} J, 3-sigma need {v['need_3sigma_J']:.1f} J, ratio {v['ratio_3sigma']:.2f}, "

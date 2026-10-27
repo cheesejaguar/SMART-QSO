@@ -3,7 +3,8 @@
 //! its two redundant controllers (`sqso_fsw::ants`): side A (0x31) first,
 //! side B (0x32) when side A does not acknowledge, and the sides taken in
 //! turn from one START to the next, so a retry of an antenna that stayed
-//! stowed goes through the other controller.
+//! stowed goes through the other controller. When neither side answers,
+//! the EPS controller's ANTS_PWR raises the AntS supply for the retry.
 
 use core::sync::atomic::{AtomicU8, Ordering};
 
@@ -41,6 +42,7 @@ pub(crate) fn command(start: bool) -> bool {
     if !start {
         let a = send(side(0), &ants::STOP);
         let b = send(side(1), &ants::STOP);
+        let _ = crate::eps_supervision::ants_power(false);
         return a || b;
     }
     let first = NEXT.fetch_xor(1, Ordering::Relaxed) & 1;
@@ -50,6 +52,10 @@ pub(crate) fn command(start: bool) -> bool {
             return true;
         }
     }
+    // Neither side answers with DEPLOY_EN high: its supply may be what
+    // failed (SW8's enable); the EPS controller raises it too (ANTS_PWR,
+    // RID SMA-B06), and the sequence's retry finds the AntS powered
+    let _ = crate::eps_supervision::ants_power(true);
     false
 }
 

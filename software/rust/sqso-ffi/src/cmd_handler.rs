@@ -482,6 +482,7 @@ fn dispatch(command: Command, cmd: &CmdCommand, response: &mut CmdResponse) -> u
             let first = u32::from_be_bytes([p[1], p[2], p[3], p[4]]);
             ok_invalid_or_fail(crate::hk_store::hk_store_dump(p[0], first, u16::from_be_bytes([p[5], p[6]])))
         }
+        Command::EpsDisableTrackers => ok_invalid_or_fail(crate::eps_supervision::disable_trackers(cmd.payload[0])),
         Command::FramBypass => {
             // SAFETY: the payload holds payload_len bytes
             allowed_or(unsafe { crate::fram_health::fram_bypass(cmd.payload.as_ptr(), usize::from(cmd.payload_len)) })
