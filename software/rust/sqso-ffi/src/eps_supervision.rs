@@ -107,6 +107,9 @@ mod tests {
         assert_eq!(disable_trackers(0b0011), rc::OK);
         assert_eq!(reg(supv::REG_TRK_DISABLE), Some(supv::TRK_KEY));
         assert_eq!(status(), (reg(supv::REG_SUPV), 0));
+        // CHG_INHIBIT as the controller holds it, NTC1 implausible
+        assert!(write(&[supv::REG_CHG_INHIBIT, supv::CHG_INHIBIT_NTC1_IMPLAUSIBLE]));
+        assert_eq!(chg_inhibit_register(), Some(supv::CHG_INHIBIT_NTC1_IMPLAUSIBLE));
         // A controller that refuses: counted, retried at the next pass
         crate::hal_sim::I2C_FAIL_REG
             .store(u32::from(EPS_ADDRESS) << 8 | u32::from(supv::REG_HEARTBEAT), core::sync::atomic::Ordering::Relaxed);
