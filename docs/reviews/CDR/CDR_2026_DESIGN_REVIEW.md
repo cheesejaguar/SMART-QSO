@@ -156,14 +156,14 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-300 RIDs: severity 1: 29, severity 2: 162, severity 3: 109.
+303 RIDs: severity 1: 29, severity 2: 163, severity 3: 111.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
 | Closed by analysis | 25 | 26 |
-| Closed by design change | 99 | 163 |
-| Closed by chair decision | 39 | 38 |
-| Verification item | 43 | 42 |
+| Closed by design change | 100 | 164 |
+| Closed by chair decision | 40 | 39 |
+| Verification item | 44 | 43 |
 | Decision point (dated) | 13 | 13 |
 | Implementation | 81 | 18 |
 
@@ -561,6 +561,9 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | EPSB-05 | 3 | ITV4030 fuses rated from −10 °C, below the board's −30 °C allowable | VI | Verification item | V-EPS-8 qualification |
 | EPSB-06 | 3 | Cross-document consistency after the EPS board (B2, diagram README, radiation trip table, BSA H8a, ICD-001, EMC E6/E8, IARU uplink windows) | IMP | Closed by design change | Consistency pass: B1-B4 redrawn with DS3, diagram findings F1-F17 dispositioned, RADIATION D §5.3 trips, BSA B H8a, ICD-001 1.2, EMC B §5.1 (E6, E8), IARU request A.3 windows; SVGs rendered |
 | EPSB-07 | 3 | No magnetorquer current monitor on the EPS board | CH | Closed by chair decision | Coil current is the sum of the OBC's MTQ_X/Y/Z_I channels; SW11 (TPS1H000A, 0.361 A, auto-retry) protects VBAT_MTQ (SQSO-EPS-BRD-001 B) |
+| EPSB-08 | 2 | Pack leads unfused (80-314 A short-circuit current); the Nano2 fuses' breaking capacity below the worst-case current | CD | Closed by design change | F0 added at the cell-4 tab, F0 and F2 MIL-PRF-23419/12 FM12A72V5.0A (1000 A interrupt, 3.2× the 314 A bound), tap fuses FM12A72V3/4A (BATTERY_DESIGN 2.6, EPS_BOARD_DESIGN C §6.1, BSA C H3/H3a/H3b) |
+| EPSB-09 | 3 | FM12 interrupt rating, 60 °C rerating and termination code, and the SMF24A leakage, not read from the vendor data sheets | VI | Verification item | Procurement data review before the EM order (with V-HAR-3); storage drain 7.7 µA worst against 20 µA leaves margin for a 10× leakage error |
+| EPSB-10 | 3 | Shorts in the pack leads and cell taps (BSA H3b) are controlled by one fuse plus construction, not two-fault tolerant | CH | Closed by chair decision | Accepted as design-for-minimum-risk: double insulation, 0.12 m leads, no metal clamps, harness hipot (V-HAR-1), F0 and FT0-FT4 (BSA C H3b); consistent with JSC 20793 Rev D for a 50 Wh pack |
 
 #### OBC board (round 2) (OBCB)
 

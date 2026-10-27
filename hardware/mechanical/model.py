@@ -89,6 +89,7 @@ P: Dict[str, float] = dict(
     # magnetometer and RF shield (positions chosen to balance Iyz, MECHANICAL_DESIGN section 5)
     mag_x=24.0, mag_y=27.0, shield_y0=-40.0, shield_y1=14.0,
     rbf_x=20.0, rbf_z=-43.0, port_x=-20.0, port_z=-43.0, rbf_face=-1.0,
+    bal_y=0.0,                              # inertia-ballast pair centre y (D-9; Iyz trim)
     ants_config="hybrid",                   # ISIS AntS: four tapes, one per side (2 m +-X, 70 cm +-Y), RF design C
 )
 
@@ -195,6 +196,7 @@ def harness_distribution():
     zm = defaultdict(lambda: defaultdict(float))
     wire_z = defaultdict(float)
     w1_z = defaultdict(float)
+    w10e_z = defaultdict(float)
     ends = {}
     for w in res["wires"]:
         gpm = HAR.COAX[w["awg"]][1] if w["awg"] in HAR.COAX else HAR.WIRE[int(w["awg"])][1]
@@ -207,6 +209,8 @@ def harness_distribution():
             wire_z[zn] += m * l / L
             if w["harness"] == "W1":
                 w1_z[zn] += m * l / L
+            if w["route"] == "W10E":
+                w10e_z[zn] += m * l / L
         for ref, pin, zn in ((w["from_ref"], w["from_pin"], segs[0][0]), (w["to_ref"], w["to_pin"], segs[-1][0])):
             ends.setdefault((w["harness"], ref), [zn, set()])[1].add(pin)
     for (h, ref), (zn, pins) in ends.items():
@@ -228,14 +232,14 @@ def harness_distribution():
         else:
             for zn, v in wire_z.items():
                 zm[zn]["32"] += g * v / wt
-    return {zn: dict(v) for zn, v in zm.items()}, res["m_row"]
+    return {zn: dict(v) for zn, v in zm.items()}, res["m_row"], dict(w10e_z)
 
 
 def harness_zone_parts(parts: List[Part], add):
-    """Zone parts (hz_*) and the harness masses of coax_W10, ribbon_W4A, access_port and TB_tabs, scaled so that
-    rows 26, 31 and 32 equal the MEL (row 31's balance beyond W10E, the GNSS cable allocation, rides on W10E's
-    zones)."""
-    zm, _ = harness_distribution()
+    """Zone parts (hz_*) and the harness masses of coax_W10, ribbon_W4A, access_port and TB_tabs; rows 26 and 32
+    scaled to the MEL (the harness design's totals, so the factor is 1 to rounding); row 31's balance beyond W10E
+    (the GNSS cable allocation of the MEL) spread along W10E's route by length."""
+    zm, _, w10e = harness_distribution()
     rows = mel_rows()
     named = {pt.name: pt for pt in parts}
     for r in ("26", "31", "32"):
@@ -243,6 +247,12 @@ def harness_zone_parts(parts: List[Part], add):
         if tot <= 0:
             continue
         other = sum(pt.mel.get(r, 0.0) for pt in parts if pt.name not in HZ_OWNER.values() and pt.mel.get(r, 0) > 0)
+        if r == "31":                                  # W10E as designed; the row's balance along W10E by length
+            rem, wl = rows[r].cbe_g - other - tot, sum(w10e.values())
+            for zn, g in w10e.items():
+                zm.setdefault(zn, {})
+                zm[zn]["31"] = zm[zn].get("31", 0.0) + rem * g / wl
+            continue
         k = (rows[r].cbe_g - other) / tot
         for v in zm.values():
             if r in v:
@@ -672,7 +682,7 @@ def build_parts(p=P) -> List[Part]:
              note="3 x M2 Ti-6Al-4V screws (heads on the +Z face, outside the GNSS patch), brass nuts, polyimide washers"))
     # inertia ballast (MEL row 36, chair decision C-13): two 10 g W-Ni-Cu discs, D14 x 3.6 mm, on the +Z end frame
     # inside at (-17, +-7.5): near the Z axis, symmetric in y (no Iyz), 23 mm from board A2, 1.4 mm above the RF parts allocation
-    bal = fuse(*[C("z", (-17.0, sy * 7.5, 0), 7.0, zp["pz_in"] - 3.6, zp["pz_in"]) for sy in (1, -1)])
+    bal = fuse(*[C("z", (-17.0, p["bal_y"] + sy * 7.5, 0), 7.0, zp["pz_in"] - 3.6, zp["pz_in"]) for sy in (1, -1)])
     add(Part("inertia_ballast", "adcs", {"36": 20.0}, bal, color=COL["rod"],
              note="2 x 10 g W-Ni-Cu (non-magnetic) discs, Z-axis inertia ballast and integration trim (MEL row 36)"))
     pw = p["patch_w"] / 2.0
@@ -1088,7 +1098,8 @@ def run_checks(parts: List[Part], p=P, interference=True) -> Dict:
     item("MAG-A2", "Magnetometer board A2 in the +Z slot (8 mm): Sen-Z-f 5.75 mm plus the 1.6 mm board; clearances",
          dict(bottom_z=a2bb.zmin, slot_bottom_z=z_planes(p)["pz_in"] - 8.0, rf_parts_mm=near.get("RF_parts"),
               within_20mm=near), "inside the slot; >= 1.0 mm to every part but its mounting face", a2bb.zmin >= z_planes(p)["pz_in"] - 8.0
-         and min(v for k, v in near.items() if k != "endplate_pz") >= 1.0, note="every part listed within 20 mm must be non-ferromagnetic (MECHANICAL_DESIGN 4.4)")
+         and min(v for k, v in near.items() if k not in ("endplate_pz", "hz_TE_PXPY")) >= 1.0,
+         note="every part listed within 20 mm must be non-ferromagnetic (MECHANICAL_DESIGN 4.4); hz_TE_PXPY is W6E's own end at A2 J1")
     if "carrier_frame_screws" in byname:
         fs = byname["carrier_frame_screws"].stowed
         fcl = {n: round(min_dist(fs, byname[n].stowed), 2) for n in ("module_standoffs", "centre_supports", "stack_columns",

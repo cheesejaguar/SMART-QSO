@@ -219,23 +219,29 @@ flight software on the NTC2 telemetry (SQSO-BSA-001 H5).
 | Same, coil bridges at their hardware limit (0.23 A) | 0.90 A | chair limit 1.0 A |
 | All four burn drivers on (software fault): burn buck in its 2.8 A current limit | 2.00 A | hardware cap |
 | AFE OCD1 (40 mV on RS7 10 mΩ, 500 ms) | 4.0 A (3.6–4.4) | 2.6× the largest load; below F2 |
-| AFE SCD (100 mV, 15 µs) | 10 A | cell short-circuit current 80–100 A |
-| F0 0451005.MRL 5 A on the battery sense board, in BAT_TOP ahead of W1 (BATTERY_DESIGN 2.5 §7.2) | 4.5 A at 60 °C | 2.0 A (four drivers on) 44 %; in series with F2 |
-| F2 0451005.MRL 5 A at 60 °C (× 0.90 rerating) | 4.5 A | largest load 31 % |
+| AFE SCD (100 mV, 15 µs) | 10 A | prospective short-circuit current 80–100 A typical, ≤ 314 A bound (below) |
+| F0 (battery sense board, BAT_TOP ahead of W1; BATTERY_DESIGN 2.6 §7.2) and F2: **FM12A72V5.0A** (MIL-PRF-23419/12), 5 A at 60 °C (× 0.80 rerating, assumed) | 4.0 A | largest load 35 %; four-driver fault 2.0 A 50 % |
+| Prospective short-circuit current at BAT_TOP: 16.8 V / (4 × 10 mΩ cells, a lower bound about a third of the 35E's typical DC resistance, + F0 13.5 mΩ minimum) | 314 A | FM12 interrupting rating 1000 A at 72 VDC: 3.2× (a Nano2 451, 300 A at 32 VDC, would have 0.96×) |
+| Prospective current in a tap short (one FM12A72V3/4A tap fuse, 0.225 Ω minimum, four cells) | 63 A | 1000 A: 16× (a 0466 chip fuse, 50 A at 63 V, would be exceeded) |
 | RT1 2920L260/33DR hold at 60 °C | 1.92 A | 73 % of hold |
 | F3 ITV4030L1412NR 12 A (secondary-protector fuse) at 60 °C (10 A) | 10 A | 14 % |
 
 **W1 is upstream of F2** (SQSO-HAR-001 2.0 §9.1): a BAT_TOP lead shorted to BAT_BOT or to the frame (GND, which
 reaches the pack negative through DS2 once released) would see the cells' short-circuit current with no fuse in the
 loop, and the AFE's SCD opens FETs downstream of such a fault. The battery's sense board therefore carries **F0** (the
-same 0451005.MRL) in BAT_TOP within 10 mm of the cell-4 tab, and 0.5 A tap fuses FT0–FT4 for the 28 AWG taps
-(BATTERY_DESIGN 2.5 §7.2). F0 and F2 are in series and either one opening isolates the pack for good, so no
+same FM12A72V5.0A as F2) in BAT_TOP within 10 mm of the cell-4 tab, and 0.75 A tap fuses FT0–FT4 (FM12A72V3/4A) for
+the 28 AWG taps (BATTERY_DESIGN 2.6 §7.2). F0 and F2 are in series and either one opening isolates the pack for good, so no
 selectivity is needed between them; the AFE acts first on every fault downstream of its FETs. The W1 pack leads also
 keep their construction controls (22 AWG, PTFE over-sleeve, 0.12 m, hipot V-HAR-1).
 
-F2 (Littelfuse Nano2 451, 5 A, 125 V; 50 A at 125 V, 300 A at 32 VDC per the 451/453 datasheet as quoted by
-distributors, to be confirmed on the current datasheet) is the only element rated to break the cell's 80–100 A short
-current; RT1 (40 A maximum) and F3 (50 A) are not, so they sit after F2. The PTC's trip rises to ≈ 6.5 A at −20 °C;
+**Breaking capacity (Version C).** The Littelfuse Nano2 0451005.MRL of Version A–B is rated 50 A at 125 V AC/DC
+(Digi-Key) and 300 A at 32 VDC (the 451/453 datasheet table as indexed; some revisions 400 A): below the 314 A bound of
+the prospective current, and the bound rests on the cells' resistance, which nobody has measured. F0 and F2 are
+therefore the space-heritage **FM12A72V5.0A** (MIL-PRF-23419/12 solid-body fuse, 72 VDC, short-circuit interrupt
+1000 A at the maximum DC voltage per the slash sheet; cold resistance 13.5–22.5 mΩ, NASA NEPP parts list), so the
+rating holds for any cell and interconnect resistance ≥ 3.3 mΩ in total (16.8 V / 1000 A less the fuse's 13.5 mΩ:
+0.8 mΩ per cell, far below any 18650), without relying on a measured cell resistance. F2 and F0 are the only elements rated to break
+the pack's short-circuit current; RT1 (40 A maximum) and F3 (ITV4030) are not, so they sit after F2. The PTC's trip rises to ≈ 6.5 A at −20 °C;
 it is a backup.
 
 **AFE BQ76952 OTP settings** (written and verified at EPS acceptance; V-EPS-2): COV 4.25 V (1 s), CUV 2.80 V,
@@ -584,7 +590,7 @@ covered by RAD-V3 lot-sample testing and by the latch-up trips of §8.3 (EEE_PAR
 | Monitors | INA228AQDGSRQ1, INA3221AQRGVRQ1, INA186A2/A3QDCKRQ1, ADS7138QRTERQ1 | AEC-Q100 | INA228 matte tin |
 | Controller | MSP430FR2355TPTR | −40…105 °C | not AEC-Q100 |
 | Connectors | Pico-Clasp 203556 (gold), Micro-Fit 43045 right-angle (gold), Samtec TFM-120 vertical (gold) | −40…105 °C | all harness connectors on the bottom side (§13.1); tin-plated contacts not allowed (EEE_PARTS_LIST §2A.3 item 5) |
-| Fuses | 0451005.MRL (F2; F0 on the battery sense board), ITV4030L1412NR (F1, F3), 0466.250NR (F4) | — | **ITV4030 operating temperature −10…+65 °C**: below the board's −30 °C AFT; qualification item V-EPS-8 |
+| Fuses | FM12A72V5.0A (F2; also F0 on the battery sense board; MIL-PRF-23419/12), ITV4030L1412NR (F1, F3), 0466.250NR (F4) | −55…+125 °C (MIL-PRF-23419) | **ITV4030 operating temperature −10…+65 °C**: below the board's −30 °C AFT; qualification item V-EPS-8 |
 | PTC | 2920L260/33DR | −40…85 °C | |
 | Relay | TQ2SA-L2-3V-Z | −40…85 °C | gold-clad contacts; pin numbering to be checked against Panasonic's 2-coil drawing when the symbol is entered in KiCad |
 | Power FETs | BUK7Y3R5-40HX, BUK9Y4R4-40E, IPD50P04P4L11ATMA2, BUK9M14-40EX | AEC-Q101 | |
@@ -724,7 +730,9 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 
 1. No part has been bought, built or tested; every number is analysis (`eps_calcs.py`).
 2. Pin numbers of the TQ2 relay symbol and the AntS connector pinout are from the part family, not the drawings.
-3. Littelfuse 451 breaking capacity at 32 VDC (300 A) is from a datasheet excerpt; the distributor lists 50 A at 125 V.
+3. F0/F2 are now FM12A72V5.0A (Version C): the 1000 A interrupt rating and the 60 °C rerating (0.80 assumed) are to be
+   read from the MIL-PRF-23419/12 slash sheet and the vendor's (AEM) data sheet at procurement; the FM12 footprint
+   replaces the Nano2 land at layout.
 4. The ITV4030's −10 °C operating limit is below the board's AFT (V-EPS-8).
 5. BQ76952 behaviour assumed from its datasheet (FUSE drive on PF, SUV in SLEEP); the TRM settings must be checked when
    the OTP image is written (V-EPS-2).
@@ -747,4 +755,5 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | B | 2026-10-27 | CDR design (EPS board) | Interconnect changes from SQSO-ICX-001 §7 (E1–E8): VJET_RB (J3-19) and VSW1_RB (J3-37) readbacks; SW11 U39 TPS1H000-Q1 VBAT_MTQ (J3-36/39, ADCS_EN, 0.32–0.40 A); 3V3_RTC (J3-38); J20 → OBC J6, J21 → OBC J4; OBC pins PB2, PF3, PE7, PF4, PG1, PF5; pack-current, stress and thermal tables recomputed; U17 transient Tj corrected to 93 °C (the calculation output; Version A quoted 79 °C) |
 | B (amended) | 2026-10-27 | CDR design (EPS board) | J21 placed on the +X edge, +Y side for W9B in the (+X, +Y) bundle (SQSO-ICX-001 B §2.1); connector-edge row added to §17; no netlist change |
 | C | 2026-10-27 | CDR design (EPS board) | Harness design SQSO-HAR-001 2.0 §15 (E-1 to E-9): every harness connector on the bottom side in zones Z1–Z5 and the +X edge; Micro-Fit 43045 right-angle and Pico-Clasp 203556 headers, all gold; J19 and J12 to Pico-Clasp 6 with the harness pinouts; J3 to Samtec TFM-120 vertical (SFSDT); PACK corner at (−X, +Y) in Z1; harness names W12A–W12D; layout rule for Z1–Z3 (§13.1, §14, §17). W1 upstream of F2: sense-board fuse F0 and tap fuses (B-1, BATTERY_DESIGN 2.5) recorded in §6.1. Netlist: J12 and J19 pinouts changed; ERC clean |
+| C (amended) | 2026-10-27 | CDR design (EPS board) | Pack fuse breaking capacity: F2 (and F0 on the battery sense board) changed from the Nano2 0451005.MRL (50 A at 125 V, 300 A at 32 VDC) to the MIL-PRF-23419/12 FM12A72V5.0A (1000 A interrupt) against a 314 A prospective-current bound; tap fuses FM12A72V3/4A; storage drain with the access-port board's UMB_VMON TVS 7.7 µA worst (§6.1, §6.6, §14, §21) |
 | B, note | 2026-10-27 | CDR consistency | Citations to BASELINE Rev E, RADIATION Rev D, ICD-001 v1.2; no OBC device on I2C2 (TMP235 analog); §21 item 9 rendered |

@@ -2,10 +2,10 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-PDU-001
-**Version:** 1.3
+**Version:** 1.4
 **Date:** 2026-10-27
 **Status:** CDR Baseline — parts selected in the EPS board design `hardware/electrical/eps/EPS_BOARD_DESIGN.md`
-(SQSO-EPS-BRD-001 B), which governs part-level values; `docs/hardware/EPS_DESIGN.md` v2.2 §4–§6 governs the architecture
+(SQSO-EPS-BRD-001 C), which governs part-level values; `docs/hardware/EPS_DESIGN.md` v2.3 §4–§6 governs the architecture
 
 ---
 
@@ -118,7 +118,7 @@ Version 1.0 defined a 2S bus (6.0–8.4 V), a 3.3 V LDO from 5 V and an optional
 
 | Location | Type | Rating |
 |----------|------|--------|
-| Battery output | Non-resettable fuse F2 Littelfuse 0451005.MRL | 5 A, 300 A at 32 VDC (datasheet excerpt; 50 A at 125 V) |
+| Battery output | Non-resettable fuse F2 FM12A72V5.0A (MIL-PRF-23419/12); F0, the same part, on the battery sense board | 5 A, 72 VDC, interrupt 1000 A (prospective ≤ 314 A, SQSO-EPS-BRD-001 §6.1) |
 | Battery output | PTC RT1 Littelfuse 2920L260/33DR | Hold 2.6 A, trip 5.0 A, 33 V |
 | Pack line | Secondary over-voltage protector's three-terminal fuse F3 ITV4030L1412NR | 12 A, heater-blown by the BQ771806 (pack isolated on a trip) |
 | Array output | EOL fuse F1 ITV4030L1412NR | 12 A, heater-blown by two series switches |
@@ -309,3 +309,4 @@ Version 1.0 defined a 2S bus (6.0–8.4 V), a 3.3 V LDO from 5 V and an optional
 | 1.1 | 2026-10-27 | CDR review (EPS): rails, regulators, switches, protection and fuses corrected to the 4S bus (§2–§4, §6); no spread spectrum (§11.2); VBAT telemetry range; battery connector with cell taps. EPS_DESIGN v2.0 governs |
 | 1.2 | 2026-10-27 | CDR design (EPS board) | Regulators, switches, sensing and fuses selected and sized in SQSO-EPS-BRD-001 A (§2–§6, §10): LMR43620-Q1 bucks incl. the 7.0 V burn buck, TPS2553/TPS1H100/TPS1H000/TPS16630 switches with latch-up trips (radio 0.12 A, OBC rail SW10), INA228/INA3221/INA186 sensing; 3V3_AO ± 2 % |
 | 1.3 | 2026-10-27 | CDR design (EPS board) | SQSO-ICX-001 interconnect (SQSO-EPS-BRD-001 B): SW11 magnetorquer supply (TPS1H000-Q1, 0.36 A), SW4 sensors only (§4.1, §4.2) |
+| 1.4 | 2026-10-27 | CDR design (EPS board): battery-output fuse F2 changed to FM12A72V5.0A for breaking capacity (§6) |

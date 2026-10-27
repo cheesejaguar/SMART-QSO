@@ -1,10 +1,10 @@
 # Electrical Power Subsystem (EPS) Design Document
 
 **Document Number**: SMART-QSO-EPS-001
-**Version**: 2.2
+**Version**: 2.3
 **Date**: 2026-10-27
 **Status**: CDR design description; the build-to board design with selected parts, netlist, BOM and ERC is
-`hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001 B), which governs part-level detail; board-to-board pins: `hardware/electrical/INTERCONNECT.md`
+`hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001 C), which governs part-level detail; board-to-board pins: `hardware/electrical/INTERCONNECT.md`
 (SQSO-ICX-001)
 
 **Governing documents**: `docs/BASELINE_PARAMETERS.md` Rev D (§4 inhibits and timers, §5 power, §7 TX-OFF);
@@ -171,7 +171,7 @@ The simulation's 1.63 A (one line of two resistors at 0.8 A) is the A/B pairing 
 becomes 1.25 A. Bus voltage during a single-resistor burn at a cold pack (−20 °C, 55 % SOC) is ≈ 13.9 V (15.04 V less
 0.67 A through the cold pack's 1.67 Ω; EMC_ANALYSIS §4).
 
-**Pack protection** (details SQSO-BSA-001 §3): F2, non-resettable 5 A, breaking capacity ≥ 100 A at 32 VDC; RT1 PTC
+**Pack protection** (details SQSO-BSA-001 §3): F2, non-resettable 5 A, MIL-PRF-23419/12 FM12A72V5.0A (interrupt 1000 A against a prospective ≤ 314 A), with the same part F0 on the battery sense board ahead of the pack leads; RT1 PTC
 hold 2.5 A, trip ≤ 5 A (PDU_DESIGN 1.0's 8 A trip equalled the cell's continuous limit); BMS AFE (BQ76920 class)
 cell OV 4.25 V, UV 2.8 V, over-current 4 A for 0.5 s (below F2, so the resettable trip acts first), short-circuit trip; secondary OV protector at 4.35 V with a
 three-terminal fuse (RID EPS-11); pack over-temperature +60 °C on a hardware comparator; no low-temperature discharge
@@ -328,3 +328,4 @@ readable without the EPS controller, and the controller's block at 0x48 fed by t
 | 2.0 | 2026-10-27 | CDR review, EPS/thermal | Rewritten (including, after the safety and reliability review: third deployment switch DS3, one current-limited burn driver per wing with a hardware on-time limit and the peak-current table, latched recharge lockout, BMS over-current 4 A below the 5 A fuse) — for the built 4S EPS: string layout and four trackers, bus and rails, load switches with limits and derating, protection, hardware load shed, end-of-life disconnect, inhibit chains with their independence; the module-based design of 1.x withdrawn |
 | 2.1 | 2026-10-27 | CDR design (EPS board) | Parts selected and the board designed in SQSO-EPS-BRD-001 A (`hardware/electrical/eps/`): charge regulator (§3.3), rails incl. V_BURN, 3V3_OBC, 3V3_MCU (§4), switch table with parts and latch-up trips incl. the OBC rail (§5, RID AV-08; radio 0.12 A), four burn drivers on a 7.0 V burn buck with the peak-current table (§5.1), load shed, EOL fuse and pins, AntS chain, sneak-path rule and drain figures (§6–§9) |
 | 2.2 | 2026-10-27 | CDR design (EPS board) | Interconnect of SQSO-ICX-001 §7 (SQSO-EPS-BRD-001 B): SW11 magnetorquer supply on ADCS_EN, SW4 sensors only, Jetson readbacks, 3V3_RTC, OBC pins PB2 (PAYLOAD_EN), PF3 (DEPLOY_EN), PE7 (BURN_W2B), PF4/PG1 (EOL), burn peak-current row with the magnetorquers |
+| 2.3 | 2026-10-27 | CDR design (EPS board) | Pack fuse F2 (and F0 on the battery sense board) FM12A72V5.0A for breaking capacity; storage drain 7.7 µA worst with the access-port board's TVS (SQSO-EPS-BRD-001 C) |

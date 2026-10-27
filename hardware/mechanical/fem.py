@@ -1011,9 +1011,38 @@ def build_spacecraft(bc="rails", snubber="soft", h=5.0, cs2=False, t_eps=1.6, t_
         lump_near(mass["coax_W10"], [(-W2, sy * 22, z) for sy in (1, -1) for z in (-40, 0, 30)], "W10 coax", "shear_x")
     if "ribbon_W4A" in mass:
         lump_near(mass["ribbon_W4A"], [(W2, -33.5, z) for z in (12, 26, 40)], "W4A ribbon", "shear_x")
-    hch = mass["harness_channels"]
-    lump_near(hch, [(sx * W2, sy * 31, z) for sx in (1, -1) for sy in (1, -1) for z in (-40, -20, 0, 20, 40)],
-              "harness bundles", "shear_x")
+    # harness zones (SQSO-HAR-001 2.0): three points along each zone's run, on what it is tied to (shear panels in the
+    # wall gaps, the EPS under it, the deck openings, the end frames, the boards it crosses)
+    for pt in parts:
+        if not pt.name.startswith("hz_") or mass[pt.name] <= 0:
+            continue
+        bb = pt.stowed.BoundingBox()
+        c = np.array([(bb.xmin + bb.xmax) / 2, (bb.ymin + bb.ymax) / 2, (bb.zmin + bb.zmax) / 2])
+        ext = np.array([bb.xlen, bb.ylen, bb.zlen])
+        ax_ = int(np.argmax(ext))
+        pts_ = []
+        for f_ in (-1 / 3, 0.0, 1 / 3):
+            q = c.copy()
+            q[ax_] += f_ * ext[ax_]
+            pts_.append(tuple(q))
+        if max(abs(c[0]), abs(c[1])) >= 43.0:
+            grp = "shear"
+        elif c[2] > 43.0:
+            grp = "endplate_pz"
+        elif -16.7 <= c[2] <= -4.0:
+            grp = "deck" if c[2] < -15.0 else "EPS"
+        elif c[2] < -16.7:
+            grp = "endplate_mz"
+        elif c[2] > 19.0:
+            grp = "carrier"
+        else:
+            grp = "OBC"
+        lump_near(mass[pt.name], pts_, "harness zones (rows 26, 31, 32)", grp)
+    if "TB_tabs" in mass:
+        lump_near(mass["TB_tabs"], [(W2, 37, -34), (-W2, 37, -34)], "TB tabs", "shear_x")
+    if "sun_sensor_PZ" in mass:
+        lump_near(mass["sun_sensor_PZ"], [(-36, 36, zpz)], "+-Z sun sensors", "endplate_pz")
+        lump_near(mass["sun_sensor_MZ"], [(-W2, 28, -46)], "+-Z sun sensors", "shear_x")
     # wing hardware
     for tag, s_ in (("W1", 1), ("W2", -1)):
         wm = mass[f"{tag}_substrate"] + mass[f"{tag}_cells_back"] + mass[f"{tag}_cells_front"] + \

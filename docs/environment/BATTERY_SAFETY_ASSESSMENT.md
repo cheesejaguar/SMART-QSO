@@ -1,7 +1,7 @@
 # SMART-QSO Battery Safety Assessment
 
 **Document ID**: SQSO-BSA-001
-**Version**: B
+**Version**: C
 **Date**: 2026-10-27
 **Status**: CDR assessment. No cell has been bought or tested; every control below is a design requirement until its
 verification item (§9) is closed.
@@ -47,8 +47,9 @@ the ISS (loss of the vehicle or crew); **critical** on orbit after deployment (l
 | H1 | Overcharge (charger fault, cell imbalance) | On orbit; ground charging | (1) BCR constant-voltage regulation at 4.10 V/cell; (2) BMS AFE cell over-voltage at 4.25 V opens the CHG FET (hardware comparator, thresholds written at power-up); (3) **independent secondary over-voltage protector** at 4.35 V/cell with a fixed factory threshold, blowing a three-terminal fuse in the pack line (BQ771806 + F3, SQSO-EPS-BRD-001 §6.1; RID EPS-11) | 3 | **2** | ISS: 2; rideshare: 1 while charging is inhibited at launch |
 | H1a | Overcharge at launch | Integrated, powered off | Charging cannot occur: the array is dark in a closed dispenser, DS2 opens the pack return; (1)–(3) above | — | — | Inhibits (§5) |
 | H2 | Over-discharge, then recharge of a damaged cell | On orbit | (1) Flight-software mode thresholds (SAFE 25 %, EMERGENCY 15 %); (2) BMS AFE under-voltage 2.8 V/cell opens the DSG FET; (3) **latched recharge lockout**: any cell below 2.0 V/cell sets a non-volatile flag that holds the charger off and the CHG FET open until an authenticated ground command clears it (the bus runs on the array through the power path meanwhile); pre-charge at 0.1 A below 3.0 V (EPS_DESIGN v2.0 §3.3; RID SMA-06 / EPS-12); (4) independent hardware low-voltage disconnect of the payload and PA rails at 3.4 V/cell (13.6 V for 5 s, SQSO-EPS-BRD-001 §8.4; RID EPS-09) | 4 | 2 with (3) and (4) | 1 (critical) |
-| H3 | External short (harness, connector, board) | All | (1) Non-resettable pack fuse F2, 5 A, breaking capacity ≥ 100 A at 32 VDC (cell short-circuit current ≈ 80–100 A); (2) BMS AFE over-current 4 A for 0.5 s and short-circuit trip (≤ 200 µs), set below F2 so that the resettable trip acts first; (3) resettable PTC RT1; plus insulation (DFMR: pack-to-frame isolation ≥ 1 MΩ, both poles) | 3 | 2 | ISS: 2 |
-| H3a | Short inside the pack upstream of F2 (bussing, insulation, cell-to-holder) | All | DFMR: insulated bussing, cell wraps intact, insulating sleeves at the clamp, inspection, isolation test, vibration screening | — | DFMR | DFMR accepted by JSC 20793 §4.1.2 |
+| H3 | External short downstream of the EPS pack fuse (EPS board, loads, harnesses from the EPS) | All | (1) Non-resettable fuses in series: F0 on the battery sense board and F2 on the EPS, both MIL-PRF-23419/12 FM12A72V5.0A (5 A, short-circuit interrupt 1000 A against a prospective ≤ 314 A at 16.8 V; SQSO-EPS-BRD-001 §6.1); (2) BMS AFE over-current 4 A for 0.5 s and short-circuit trip 10 A in 15 µs, below the fuses so that the resettable trip acts first; (3) resettable PTC RT1; plus insulation (DFMR: pack-to-frame isolation ≥ 1 MΩ, both poles) | 3 (4 with the second fuse; counted as one, same part) | 2 | ISS: 2 |
+| H3b | Short in the battery leads W1 or at EPS J1, upstream of F2 (lead to lead, BAT_TOP to frame: the frame reaches the pack negative through DS2 once released), and in the cell-tap leads | All | (1) **F0** at the cell-4 positive on the sense board, ahead of W1 (FM12A72V5.0A); tap leads: **FT0–FT4** (FM12A72V3/4A, 0.75 A, interrupt 1000 A against ≤ 63 A) at the sense board; (2) DFMR: double insulation (ETFE wire with a PTFE over-sleeve on the pack leads), 0.12 m leads tied within 10 mm of the sense board, no metal clamps, routing away from edges, hipot (SQSO-HAR-001 2.0 V-HAR-1) | 1 + DFMR | 0 + DFMR (was DFMR only before F0) | ISS: DFMR accepted for wiring by JSC 20793 §4.1.2 |
+| H3a | Short inside the pack upstream of F0 (cells to the sense-board fuse: bussing, insulation, cell-to-holder) | All | DFMR: insulated bussing, cell wraps intact, insulating sleeves at the clamp, inspection, isolation test, vibration screening | — | DFMR | DFMR accepted by JSC 20793 §4.1.2 |
 | H4 | Internal cell short (manufacturing defect, plating) | All | DFMR: one screened lot (§4), no charging below 0 °C (H5), C/9 charge rate, vibration screening, mechanical retention | — | DFMR | DFMR |
 | H5 | Charging below 0 °C (lithium plating) | On orbit | (1) BCR temperature input (TS pin, hardware) from NTC1 inhibits charge outside 0 … +45 °C; (2) flight software inhibits charge on NTC2; (3) heater holds ≥ +4 °C (THERMAL_ANALYSIS §6.1, with the recommended +5/+9 °C set points) | 3 | 2 | 1 (critical) |
 | H6 | Over-temperature (stuck heater, stuck load, hot dispenser) | All | (1) Heater thermostat in software; (2) series hardware cutout at +40 °C in the heater circuit; (3) heater fuse or current limit; (4) pack over-temperature at +60 °C opening both FETs through a hardware comparator on NTC1, with the BQ76952 AFE's own 60 °C discharge trip on NTC2 behind it (SQSO-EPS-BRD-001 §5.3); charge inhibited above +45 °C (H5). No low-temperature discharge cut-off (EPS-08) | 4 | 2 for heater faults; dispenser soak is an environment (THERMAL_ANALYSIS §6.7) | 1 |
@@ -86,7 +87,7 @@ Per JSC 20793 Rev D §4.2.3 and §6.4.3.3, and the BATTERY_DESIGN §9 tests, for
 
 The pack sits upstream of the three deployment switches DS1, DS2 and DS3 (DS3 added at CDR, EPS_DESIGN v2.0 §8). The
 only circuits powered at launch are the BMS AFE (CDS 2.3.1.2), which must be in its lowest-power state (BQ76952
-SHUTDOWN), and the secondary protector: ≤ 20 µA in all (6.7 µA worst designed, SQSO-EPS-BRD-001 §6.6) (LVR-051/071, `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`),
+SHUTDOWN), the secondary protector and the access-port board's UMB_VMON TVS: ≤ 20 µA in all (7.7 µA worst designed, SQSO-EPS-BRD-001 §6.6) (LVR-051/071, `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`),
 1.3 % of the pack in 90 days. The
 inhibit chains are in `docs/hardware/EPS_DESIGN.md` §8. Two battery-specific points:
 
@@ -132,9 +133,9 @@ accredited laboratory. Budget ≈ $8–15k and 6–8 weeks (no quote yet).
 | ID | Item | Pass criterion | Verifies | When |
 |----|------|----------------|----------|------|
 | V-BSA-1 | Cell lot screening and acceptance (§4 steps 1–6) | §4 criteria | H4, SYS-088 | Before the EM pack |
-| V-BSA-2 | Protection trip tests on the EM EPS and pack (§4 step 9), including the secondary protector and its fuse | Trips within tolerance; the secondary protector blows the fuse at 4.35 ± 0.025 V | H1, H2, H3, H5, H6 | EM |
+| V-BSA-2 | Protection trip tests on the EM EPS and pack (§4 step 9), including the secondary protector and its fuse | Trips within tolerance; the secondary protector blows the fuse at 4.35 ± 0.025 V | H1, H2, H3, H3b, H5, H6 | EM |
 | V-BSA-3 | Pack acceptance on the flight pack (§4 step 8) | §4 criteria | JSC 20793 §6.4.3.3 | FM |
-| V-BSA-4 | Pack-to-frame isolation, both poles, after vibration | ≥ 1 MΩ at 50 VDC | H3a, §5 item 1 | EM, FM |
+| V-BSA-4 | Pack-to-frame isolation, both poles, after vibration | ≥ 1 MΩ at 50 VDC | H3a, H3b, §5 item 1 | EM, FM |
 | V-BSA-5 | UN 38.3 battery tests (§8) | All tests passed, test summary issued | 49 CFR 173.185 | Before first shipment of a pack |
 | V-BSA-6 | Inhibit test during random vibration at the flight SOC (60 ± 5 %, §6), each of DS1, DS2, DS3 checked | No power-up, no RF (UG v11 §6.7.7) | SYS-704 | FM protoflight vibration |
 | V-BSA-7 | EOL disconnect: arm and fire on the EM; no single fault fires it | F1 opens only with both signals; non-resettable | H9, 97.207(g) | EM |
@@ -146,3 +147,4 @@ accredited laboratory. Budget ≈ $8–15k and 6–8 weeks (no quote yet).
 |---------|------|--------|-------------|
 | A | 2026-10-27 | CDR review, EPS/thermal | Initial issue: hazards, controls and fault tolerance, screening, inhibits, state of charge, 4.10 V set point, UN 38.3; after the safety review: latched recharge lockout, BMS 4 A below the fuse, deployment burn current (H8a), DS3, integration SOC 60 ± 5 % as LVR-051/071 |
 | B | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: H8a from the EPS board: four burn lines PB10, PE6, PB9, PE7, one resistor at a time, 0.67 A nominal at the pack (0.75 A worst case, 1.0 A limit), burn-buck fault cap; H1, H2, H6 controls and §5 drain as designed in SQSO-EPS-BRD-001; §1 discharge peak |
+| C | 2026-10-27 | CDR design (EPS board) | H3: pack fuses F0 (battery sense board) and F2 in series, both MIL-PRF-23419/12 FM12A72V5.0A with 1000 A interrupt against a ≤ 314 A prospective current (replacing the Nano2 rated 50 A at 125 V / 300 A at 32 VDC); new H3b for shorts in the battery leads W1 and the cell taps, controlled by F0 and the tap fuses FT0–FT4 plus double insulation (they were upstream of every fuse); H3a now ends at F0; §5 storage drain 7.7 µA worst with the access-port board's TVS |

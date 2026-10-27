@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-BAT-001
-**Version:** 2.5
+**Version:** 2.6
 **Date:** 2026-10-27
 **Status:** Battery definition and cycle-life analysis for the baseline in `docs/BASELINE_PARAMETERS.md` §5 (finding TB-08). **Analysis, not measured; no cell has been bought or tested.**
 
@@ -179,7 +179,7 @@ BASELINE §5 nominal 10 %. Both documents now cite this section.
 
 | Protection | Implementation |
 |------------|----------------|
-| Fuse | **F0 on the sense board** in BAT_TOP at the cell-4 positive (5 A, protects the W1 pack leads, §7.2) and the EPS pack fuse F2 (5 A) in series, both non-resettable; tap fuses FT0–FT4 (0.5 A) at the sense board; resettable PTC RT1 on the EPS (hold 2.6 A, 1.92 A at 60 °C) |
+| Fuse | **F0 on the sense board** in BAT_TOP at the cell-4 positive (5 A, protects the W1 pack leads, §7.2) and the EPS pack fuse F2 (5 A) in series, both MIL-PRF-23419/12 FM12A72V5.0A (1000 A interrupt), non-resettable; tap fuses FT0–FT4 (FM12A72V3/4A, 0.75 A) at the sense board; resettable PTC RT1 on the EPS (hold 2.6 A, 1.92 A at 60 °C) |
 | Overcharge | Charger CV at 4.10 V/cell, BMS AFE at 4.25 V, secondary protector at 4.35 V with fuse (two-fault tolerant; SQSO-BSA-001 §3) |
 | Overdischarge | BMS + hardware comparator |
 | Overcurrent | PTC + electronic switch |
@@ -265,21 +265,29 @@ pin for it yet (RID EPS-06).
   would see the cells' short-circuit current (≈ 80–100 A) with no fuse in the loop, and the AFE's short-circuit
   detection opens FETs that are downstream of the fault. The construction controls (double insulation, routing, hipot)
   are kept and a fuse is added:
-  - **F0**, Littelfuse **0451005.MRL** (Nano2 451, 5 A fast-acting, the same part as F2), in BAT_TOP on the sense board
-    within 10 mm of the cell-4 positive tab, before the W1 pads. Carrying: 1.40 A largest legitimate pack current,
-    2.0 A with four burn drivers on (software fault): 44 % of the 4.5 A 60 °C rerating (rule 50 %). Coordination: the
+  - **F0**, **FM12A72V5.0A** (MIL-PRF-23419/12 solid-body fuse, 5 A, 72 VDC, short-circuit interrupt 1000 A at the
+    maximum DC voltage; cold resistance 13.5–22.5 mΩ; the same part as the EPS's F2), in BAT_TOP on the sense board
+    within 10 mm of the cell-4 positive tab, before the W1 pads. Carrying: 1.40 A largest legitimate pack current
+    (35 %), 2.0 A with four burn drivers on (software fault, 50 %) of the 4.0 A 60 °C rerating (0.80 assumed, to
+    confirm on the slash sheet; rule 50 %). Coordination: the
     AFE (OCD1 3.6–4.4 A for 0.5 s, SCD 10 A in 15 µs, on the FETs) acts first on every fault downstream of its FETs;
     F0 and F2 act on faults upstream of the FETs (W1, J1, F2 area) or if the AFE fails. F0 and F2 are in series and
     either opening isolates the pack for good, so selectivity between them is not needed: the pair makes the fuse
-    function single-fault tolerant (a fuse that fails to open). Breaking capacity at the cell short-circuit current
-    is the same open item as F2 (300 A at 32 VDC from a datasheet excerpt; SQSO-EPS-BRD-001 §21)
-  - **FT0–FT4**, Littelfuse **0466.500NR** (Pico 466, 0.5 A, 1206), one in each cell tap at the sense board: they
-    protect the 28 AWG tap wires (0.90 A derated) against a tap-to-tap or tap-to-frame short. Balancing current
-    ≈ 18 mA through ≈ 0.4 Ω cold resistance: 7 mV on the reading taken while a cell balances (the AFE's
+    function single-fault tolerant (a fuse that fails to open). **Breaking capacity:** the prospective current of a
+    short just after F0 is ≤ 314 A at 16.8 V even with the cells at a lower-bound 10 mΩ each (about a third of the
+    35E's typical DC resistance) and F0 at its minimum 13.5 mΩ; the FM12's 1000 A holds for any cell and interconnect
+    resistance ≥ 3.3 mΩ in total, so it does not rest on a measured cell resistance. (The Nano2 0451005.MRL first
+    chosen is rated 50 A at 125 V and 300 A at 32 VDC: below the bound, so it was replaced, also as F2 on the EPS.)
+  - **FT0–FT4**, **FM12A72V3/4A** (MIL-PRF-23419/12, 0.75 A, 72 VDC, 1000 A interrupt; cold resistance 0.225–0.375 Ω),
+    one in each cell tap at the sense board: they protect the 28 AWG tap wires (0.90 A derated) against a tap-to-tap
+    or tap-to-frame short, whose prospective current is ≤ 63 A through one tap fuse at its minimum resistance (a 0466
+    chip fuse, 50 A at 63 V, would not have covered it). Balancing current ≈ 18 mA through ≤ 0.375 Ω: ≤ 7 mV on the
+    reading taken while a cell balances (the AFE's
     measurement-during-balancing behaviour to be set and checked with the OTP image, V-EPS-2); a blown tap fuse shows
     as an open cell input (AFE open-wire check)
   - Sense board (the pack's 15 g interconnect board): FR-4, conformal coated; F0 and FT0–FT4 under the coating; the
-    fuses' 125 V ratings exceed the 16.8 V pack by more than the 50 % rule
+    fuses' 72 VDC rating is 4.3× the 16.8 V pack (voltage rule 50 %); terminations in the non-tin finish of the slash
+    sheet
 - Strain relief at all connections
 - Conformal coating on BMS PCB
 
@@ -368,3 +376,4 @@ lot uniformity OCV < 1 %, mass < 2 %, capacity < 5 %, resistance < 15 %).
 | 2.3 | 2026-10-27 | CDR design (EPS board) | BMS parts selected (BQ76952, BQ771806, ITV4030 fuse, INA228 gauge; §4.1, §4.2); heater protection as built (§6.3); cell retention bonded/potted with welded interconnects (§7.1, RID STR-08); W1 wiring (§7.2); SQSO-EPS-BRD-001 |
 | 2.4 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: §5.2 inhibit text, the array path has its third inhibit DS3 (SQSO-EPS-BRD-001 §6) |
 | 2.5 | 2026-10-27 | CDR design (EPS board): §7.2 wiring per SQSO-HAR-001 2.0 (B-1): pack leads 22 AWG, all leads 0.12 m, PTFE over-sleeve; sense-board fuse F0 (5 A) in BAT_TOP and tap fuses FT0–FT4 (0.5 A) added, with their coordination against F2 and the BMS; §5.1 fuse row |
+| 2.6 | 2026-10-27 | CDR design (EPS board): sense-board fuses changed for breaking capacity: F0 (and the EPS's F2) FM12A72V5.0A, tap fuses FT0–FT4 FM12A72V3/4A (MIL-PRF-23419/12, 1000 A interrupt) against a 314 A / 63 A prospective-current bound (§5.1, §7.2) |

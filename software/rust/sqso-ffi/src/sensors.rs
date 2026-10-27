@@ -644,6 +644,60 @@ mod tests {
         s
     }
 
+    /// RID FSW-14: a condition that lasts (here a low battery for 200
+    /// polls) is logged at its onset and at its clearance, with the count;
+    /// the older entries of the fault log stay
+    #[test]
+    fn a_long_episode_leaves_older_entries_intact() {
+        use crate::c::fault_type;
+        use crate::fault_mgmt::{self, fault_log_get_count, fault_log_get_entry};
+        use sqso_fsw::fault_log::Entry;
+        use sqso_fsw::eps_telemetry::{self, Telemetry};
+        let _serial = crate::fault_mgmt::tests::serial();
+        let block = |vbatt_v: f64| {
+            let mut b = [0u8; eps_telemetry::BLOCK_LEN];
+            eps_telemetry::encode(&Telemetry { soc: 0.5, vbatt_v, ..Telemetry::default() }, &mut b);
+            let mut regs = [0u8; 1 + eps_telemetry::BLOCK_LEN];
+            regs[1..].copy_from_slice(&b);
+            // SAFETY: regs is a live buffer of its length
+            let w = unsafe { crate::hal_sim::hal_i2c_write(0, eps_telemetry::ADDRESS, regs.as_ptr(), regs.len()) };
+            assert_eq!(w, rc::OK);
+        };
+        let description = |i: usize| {
+            let mut e = Entry::new(0, 0, 0, b"", 0.0);
+            // SAFETY: a live entry
+            assert_eq!(unsafe { fault_log_get_entry(i, &mut e) }, rc::OK);
+            e.description().to_vec()
+        };
+        assert_eq!(crate::hal_sim::hal_flash_init(), rc::OK);
+        assert_eq!(crate::hal_sim::hal_i2c_init(0, 100_000), rc::OK);
+        assert_eq!(fault_mgmt::fault_mgmt_init(), rc::OK);
+        assert_eq!(fault_mgmt::fault_log_clear(), rc::OK);
+        for text in [&b"older entry 1"[..], b"older entry 2", b"older entry 3"] {
+            assert_eq!(fault_mgmt::add(fault_type::POWER, severity::INFO, text, 0.5), rc::OK);
+        }
+        let _ = ALARMS.with(|a| *a = [Condition::new(); 2]);
+        assert_eq!(sensors_init(), rc::OK);
+        assert_eq!(sensors_load_defaults(), rc::OK);
+        block(11.5);
+        let mut now = 1_000_000;
+        for _ in 0..200 {
+            crate::time::smart_qso_sim_advance_ms(1000);
+            now += 1000;
+            let _ = sensors_poll(now);
+        }
+        assert_eq!(fault_log_get_count(), 4, "the onset only");
+        assert_eq!(description(0), b"older entry 1");
+        assert_eq!(description(2), b"older entry 3");
+        assert_eq!(description(3), b"Low battery voltage detected");
+        block(15.0);
+        crate::time::smart_qso_sim_advance_ms(1000);
+        let _ = sensors_poll(now + 1000);
+        assert_eq!(fault_log_get_count(), 5);
+        assert_eq!(description(4), b"Low battery voltage detected cleared after 200 checks", "the count");
+        assert_eq!(fault_mgmt::fault_log_clear(), rc::OK);
+    }
+
     #[test]
     fn reading_lines() {
         let mut line = [0u8; 256];
