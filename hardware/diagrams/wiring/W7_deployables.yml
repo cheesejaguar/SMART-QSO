@@ -7,7 +7,8 @@
 # (W7C) takes 3.3 V from SW8 and I2C2 from EPS J12, which becomes a Pico-Clasp 6 with two contacts per supply pole (one
 # contact would carry 0.61 A, above 50 % of its 1 A rating), down the -X centre strip, under the battery end cap and
 # through the -Z end-frame cut-out, spliced to the AntS pigtail. W12A-C: one harness per deployment switch, each on its
-# own rail and route (DS1 +X+Y at -Z, DS2 -X-Y at -Z, DS3 +X-Y at +Z); W12D the two-pole RBF switch.
+# own rail and route (DS1 +X+Y at -Z, DS2 -X-Y at -Z, DS3 +X-Y at +Z); DS2 is two-pole (DPDT): its second pole holds
+# TRK_EN low when stowed (third array inhibit, EPS_BOARD_DESIGN D 6.2), so W12B has five wires; W12D the two-pole RBF.
 metadata:
   title: W7 Deployables and inhibits v3 (SQSO-HW-DIAG-001; SQSO-EPS-BRD-001; SQSO-HAR-001 2.0)
 
@@ -61,13 +62,13 @@ connectors:
     type: deployment switch DS1 (rail +X+Y, -Z), solder terminals
     pinlabels: [C, NC]
   J16:
-    type: Pico-Clasp 501330-0300, gold terminals
-    subtype: 3 pos (pin 3 not used)
-    notes: EPS J16 (zone Z2)
-    pinlabels: [DS2_C, S2N]
+    type: Pico-Clasp 5 pos, gold terminals
+    subtype: 5 pos (pin 3 not connected on the EPS)
+    notes: "EPS J16 (zone Z2): pole 1 pack-return FET drive (PACK domain), pole 2 array inhibit (TRK_EN), EPS_BOARD_DESIGN D 6.2"
+    pinlabels: [DS2_C, S2N, NO1 (NC on EPS), GND, TRK_EN]
   DS2:
-    type: deployment switch DS2 (rail -X-Y, -Z), solder terminals
-    pinlabels: [C, NC]
+    type: deployment switch DS2, two-pole (DPDT) (rail -X-Y, -Z), solder terminals
+    pinlabels: [C1, NC1, NO1, C2, NO2]
   J17:
     type: Pico-Clasp 501330-0300, gold terminals
     subtype: 3 pos
@@ -118,7 +119,8 @@ cables:
   W12B:
     gauge: 28 AWG
     length: 0.10
-    colors: [WH, BU]
+    colors: [WH, BU, GY, BK, GN]
+    notes: "pole 1 triple (1, 2, 3; 3 spare) and pole 2 pair (4, 5) twisted; microamperes"
   W12C:
     gauge: 28 AWG
     length: 0.11
@@ -149,9 +151,9 @@ connections:
   - - J15: [1-2]
     - W12A: [1-2]
     - DS1: [1-2]
-  - - J16: [1-2]
-    - W12B: [1-2]
-    - DS2: [1-2]
+  - - J16: [1-5]
+    - W12B: [1-5]
+    - DS2: [1-5]
   - - J17: [1-3]
     - W12C: [1-3]
     - DS3: [1-3]

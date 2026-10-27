@@ -1,12 +1,15 @@
 # SMART-QSO Commissioning Plan
 
 **Document ID**: SQSO-COMM-001
-**Version**: 2.0
+**Version**: 2.1
 **Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: Draft for CDR. Commands are the flight dictionary (`software/rust/sqso-protocol/src/dictionary.rs`,
-17 commands); responses are as `software/rust/sqso-ffi/src/cmd_handler.rs` builds them. Steps that need telemetry
-or commands the flight software does not have are marked **blocked** with the RID that would unblock them.
+**Status**: Draft for CDR. Commands are the flight dictionary as of flight software round 3
+(`software/flight/command_dictionary.json`, 30 commands; framing, keys and results in SQSO-ICD-013
+`docs/interfaces/TELECOMMAND_AUTHENTICATION.md` §7–§8; summary in `docs/operations/COMMAND_DICTIONARY.md` §1.1).
+Telemetry is the beacon tail, the housekeeping frames HK1 and HK2, the command acknowledgement and the stored records
+(`docs/operations/TELEMETRY_DICTIONARY.md` §4.3–§4.6). Steps that still depend on something the design does not provide
+are marked **blocked** with the RID that would unblock them.
 
 ## 1. Purpose and scope
 
@@ -16,31 +19,44 @@ contingencies are in `docs/operations/MISSION_TIMELINE.md` (SQSO-MTL-001) §5–
 
 Rules for every step:
 
-1. **Command only in a pass in which the station has decoded a beacon** (the simulation's finding SIL-10) and above
-   15° elevation. Bay Area budget: 2.5 such passes a day, about 21 min of commanding a day (MISSION_TIMELINE §6, §10).
-2. Every command is authenticated with the active operational key (HMAC-SHA-256, persisted counter; SQSO-ICD-013)
+1. **Command only in a pass in which the station has decoded a beacon** (the simulation's finding SIL-10) and only
+   **above 10° elevation** (chair decision C-14: the station radiates ≥ 64 dBm EIRP toward the spacecraft; the PTT gate
+   refuses to key below 10°). In the **degraded mode** (variant A with its amplifier out of service) command only above
+   **12°** (SQSO-GND-001 §3.1, §3.1a; SQSO-LBA-001 §6.1). Bay Area budget at 10°: about 3 commanding passes a day
+   (2.97 at Santa Clara; 16.6 min a day above 10°; SQSO-GND-001 §4, SQSO-MTL-001 §10).
+2. **Uplink frequency.** Pre-correct the uplink Doppler to ±1 kHz, and before the first command of each pass apply the
+   receiver's frequency offset estimated from the measured downlink: the downlink and the receiver share one TCXO, so
+   the downlink's offset from its nominal (after removing the predicted Doppler), scaled by f_up / f_down, is the
+   receiver's offset at the uplink (RID RFB-05: up to 2.1 ppm after 2 years, 0.9 kHz at 435.5 MHz; SQSO-GND-001
+   GND-R5).
+3. Every command is authenticated with the active operational key (HMAC-SHA-256, persisted counter; SQSO-ICD-013)
    except `TX_DISABLE`, which is accepted without a key when no key is usable. The recovery key is never used in
-   commissioning unless a key has to be rotated.
-3. `TX_DISABLE` is ready to send on every pass. It stops all transmission (beacon and transponder) and is latched in
-   non-volatile memory; only an authenticated `TX_ENABLE` clears it.
-4. Each step runs first from one designated station and is repeated from the second before the step is closed
+   commissioning unless a key has to be rotated. `PASSIVATE_ARM` (0x70) and `PASSIVATE_EXECUTE` (0x71) are never sent
+   in commissioning (`docs/operations/END_OF_LIFE_PLAN.md`).
+4. `TX_DISABLE` is ready to send on every pass. It stops all transmission (beacon and transponder) and is latched in
+   non-volatile memory; only an authenticated `TX_ENABLE` clears it. It is the one command with no acknowledgement:
+   silence is its response.
+5. Each command counted as contact is acknowledged on the downlink (`ack KK6GDB-11: C=<counter> R=<result> N=<days>`;
+   `R=0` executed, `N=0` counted as contact). A command is closed by its acknowledgement and the HK1 field it changes,
+   not by the uplink log.
+6. Each step runs first from one designated station and is repeated from the second before the step is closed
    (CONOPS §2: telecommand checkout from each designated station).
-5. Results are compared with the simulation's prediction for the same day (`sqso_sil --scenario commissioning`);
+7. Results are compared with the simulation's prediction for the same day (`sqso_sil --scenario commissioning`);
    the simulation is also the rehearsal environment for C-0.
 
 ### 1.1 Telemetry available
 
 | Source | Content | When |
 |--------|---------|------|
-| Beacon (AX.25 UI, 1200 bps) | Call sign; text (template or generated); tail `T=<s since boot> M=<SAFE/IDLE/ACTIVE> SOC=<%> BV=<V> SUN=<0/1> RF=<0/1> QSO=<count>` (`docs/BEACON_SPEC.md` §3) | Every 60 s (ACTIVE), 120 s (IDLE), 180 s (SAFE) |
-| `GET_STATUS` (0x03) | 4 bytes: operational state, power mode, payload enabled, thermal fault | On command |
-| `EPS_GET_TELEMETRY` (0x13) | 3 bytes: battery voltage (0.1 V), SOC (1 %), power mode | On command |
-| `ADCS_GET_ATTITUDE` (0x23) | 2 bytes: detumbled flag, sun acquired flag | On command |
+| Beacon (AX.25 UI, 1200 bps) | Call sign; text (template or generated); tail `T=<s since boot> M=<SAFE/IDLE/ACTIVE> SOC=<%> BV=<V> SUN=<0/1> RF=<0/1> QSO=<count>` (`docs/BEACON_SPEC.md` §3) | Every 60 s (ACTIVE), 120 s (IDLE), 180 s (SAFE), jittered ±5 s |
+| HK1 housekeeping frame | `N UP BOOT RST MODE HOLD XP TX SOC VB IB PA TB TO TP TJ DEP RFS CT CS FC FL W AM MR GF GS PS RX CN ST` (TELEMETRY_DICTIONARY §4.4): commissioning hold, transponder, temperatures, battery current, array power, deployment state, RF-silence state, contact timeout and count, fault log, body rates, GNSS fix, passivation and EOL_STATE, receiver recoveries, stored-record numbers | After every fifth beacon, and on `GET_HOUSEKEEPING` (0x09) |
+| HK2 housekeeping frame | Command counters, watchdog resets, transponder keyed time, Jetson bursts with their energy and lines, mission clock, gyro in use, rail trips (TELEMETRY_DICTIONARY §4.4.1) | 5 s after each HK1 |
+| Command acknowledgement | `ack KK6GDB-11: C= R= N=` (§4.5) | After each command counted as contact |
+| Stored housekeeping | `HKD` frames: 5-minute records for 7.1 days, 60 s records for 6.8 h and around the last three events (§4.6) | On `DUMP_TLM` (0x0A) |
 
-Not on the downlink in any form: temperatures, battery current, array power, the deployment state and sense lines,
-the RF-silence state, the boot count and reset cause, the fault log, the body rates, the loss-of-contact timeout, the
-GNSS fix. The binary housekeeping, EPS and ADCS frames of `sqso-fsw/src/telemetry.rs` exist but the executive sends
-them only to the Jetson over the UART. Several exit criteria below therefore rest on proxies (RID LV-27).
+`GET_STATUS` (0x03), `EPS_GET_TELEMETRY` (0x13) and `ADCS_GET_ATTITUDE` (0x23) are executed but their replies are not
+downlinked; `GET_HOUSEKEEPING` gives the same values in an HK1 frame (SQSO-ICD-005 §5.5). Version 2.0's list of values
+absent from the downlink (RID LV-27) is closed by HK1 and HK2.
 
 ## 2. Commissioning sequence
 
@@ -52,12 +68,17 @@ them only to the Jetson over the UART. Several exit criteria below therefore res
 | C-3 | Cessation of emissions (TX-OFF) proof | Same or next pass | C-2 |
 | C-4 | Health and power characterization | Days 1–3 | C-2 |
 | C-5 | Deployables and attitude | Days 1–4 | C-2 |
-| C-6 | Beacon conformance | Days 3–5 | C-3 |
-| C-7 | Transponder | Days 5–8 | C-3, C-4 |
-| C-8 | AI payload (Jetson) and fallback | Days 8–11 | C-4 |
-| C-9 | GNSS and operator ephemeris | From first contact | C-1; **blocked** (LV-04) |
+| C-6 | Beacon conformance | Days 2–5 | C-3 |
+| C-7 | Commissioning release and transponder | Days 3–8 | C-3, C-4 |
+| C-8 | AI payload (Jetson) and fallback | Days 8–11 | C-7 |
+| C-9 | GNSS and operator ephemeris | From first contact | C-1; ground pipeline **blocked** (LV-04) |
 | C-10 | Operations validation and SAFE drill | Days 11–13 | C-3 to C-8 |
 | C-11 | Commissioning review and close-out | Day 14 | All |
+
+Until `COMMISSIONING_RELEASE` (C-7) the commissioning hold set by `ARM_FLIGHT` keeps the spacecraft in IDLE at most,
+with the Jetson and the transponder off, across resets (SRS-F082); a corrupt operations record holds as well. The
+transponder can therefore run only after the release, and the plan sends `XPDR_DISABLE` and `PLD_DISABLE` before it so
+that each is started on its own step.
 
 ## 3. Steps
 
@@ -66,7 +87,7 @@ them only to the Jetson over the UART. Several exit criteria below therefore res
 | | |
 |---|---|
 | Entry | Launch contract and integration date known; telecommand stations designated (D1); keys loaded in the flight unit and held by the stations (SQSO-ICD-013) |
-| Actions | Space-Track organization account, satellite-operator status, operator contact public (UG v11 §9.5.7.1); SpaceX Space Traffic Coordination onboarding (space-safety-onboarding@spacex.com) and a test upload; TraCSS registration; pre-launch OPM loaded in the tracking software; beacon decoder and frame logger at each station and on SatNOGS; command tool with counters synchronized to the flight unit's at `ARM_FLIGHT`; orbit-determination pipeline (or the third-party service) tested; rehearsal of C-1 to C-3 against `sqso_sil` |
+| Actions | Space-Track organization account, satellite-operator status, operator contact public (UG v11 §9.5.7.1); SpaceX Space Traffic Coordination onboarding (space-safety-onboarding@spacex.com) and a test upload; TraCSS registration; pre-launch OPM loaded in the tracking software; beacon, HK1/HK2 and acknowledgement decoder and frame logger at each station and on SatNOGS; command tool with counters synchronized to the flight unit's at `ARM_FLIGHT` (UTC-derived counters if two stations command, SQSO-ICD-013 §5.2.1); the downlink-offset estimate for the uplink (rule 2) in the station software; the gyro alignment matrix measured on the flight unit (VI-MCAD-05) prepared as an `ADCS_SET_GYRO_ALIGN` frame; orbit-determination pipeline (or the third-party service) tested; rehearsal of C-1 to C-3 against `sqso_sil` |
 | Proof | Rehearsal log; Space-Track and SpaceX test acknowledgements |
 | Exit | Ground readiness review passed at L-2 M; the integrator's ephemeris requirement accepted in writing (VI-LV-13) |
 
@@ -74,10 +95,10 @@ them only to the Jetson over the UART. Several exit criteria below therefore res
 
 | | |
 |---|---|
-| Entry | Separation report and SpaceX state vector received; S+45 min passed |
+| Entry | Separation report and SpaceX state vector received; S+45 min passed (the radio, receiver included, is unpowered until then) |
 | Commands | None |
-| Proof | Beacon decoded with source KK6GDB-11 and the call sign at the start of the text; tail values: `M=` IDLE or ACTIVE (SAFE or a missing beacon means a low separation SOC, MISSION_TIMELINE §8.4), `SOC=` ≥ 40, `BV=` 14.4–16.4 V, `SUN=` alternating with the orbit; `T=` consistent with the separation time (the beacon's `T` counts seconds since boot, so T ≈ time since separation unless the OBC reset); Doppler curve matching the SpaceX state vector within the dispersion |
-| Expected | First beacon over the Bay Area after S+0.7 to S+12.2 h (median S+5.2 h); anywhere in the network after about S+1.8 h (simulation) |
+| Proof | Beacon decoded with source KK6GDB-11 and the call sign at the start of the text; tail values: `M=` IDLE (SAFE or a missing beacon means a low separation SOC, MISSION_TIMELINE §8.4; ACTIVE is impossible under the hold), `SOC=` ≥ 40, `BV=` 14.4–16.4 V, `SUN=` alternating with the orbit; `T=` consistent with the separation time (T counts seconds since boot, so T ≈ time since separation unless the OBC reset; HK1 `BOOT` and `RST` say whether it did); the first HK1 (after the fifth beacon): `HOLD=1`, `XP=0`, `TX=1`, `RFS` complete, `DEP` deployment state; Doppler curve matching the SpaceX state vector within the dispersion |
+| Expected | First beacon pass over the Bay Area (≥ 5°) S+0.7 to S+12.1 h after separation (median S+5.3 h); anywhere in the network after about S+1.8 h (simulation; SQSO-MTL-001 §5, §10) |
 | Exit | Beacons decoded on ≥ 2 passes; candidate object identified among the 18th SDS elements by Doppler; association reported to the integrator (SQSO-REG-015 §2) |
 | If not | MISSION_TIMELINE §8.6 |
 
@@ -85,22 +106,23 @@ them only to the Jetson over the UART. Several exit criteria below therefore res
 
 | | |
 |---|---|
-| Entry | C-1 on this pass; elevation ≥ 15°; ≥ 3 min of pass left |
-| Commands | `GET_STATUS` (0x03); then `NOP` (0x00) |
-| Proof | Response from `GET_STATUS`: operational state and power mode match the beacon's `M=`; payload flag; thermal fault 0. Counter accepted (no authentication failure) |
+| Entry | C-1 on this pass; elevation ≥ 10° (12° degraded); ≥ 3 min of pass left. First commanding pass: median S+6.4 h, at the latest S+13.7 h (with the simulation's 15° mask; sooner at the 10° rule; SQSO-MTL-001 §10) |
+| Commands | `GET_HOUSEKEEPING` (0x09); then `NOP` (0x00) |
+| Proof | Acknowledgement `R=0 N=0` for each; an HK1 frame within the pass: `MODE` matches the beacon's `M=`, `HOLD=1`, `CN` incremented, `CS` reset, no authentication failure counted in HK2 `CA` |
 | Exit | Both commands executed from station 1, then from station 2 on a later pass |
-| If not | Resend once per pass; check the counter window and the key slot; after 3 passes, follow the key-recovery path (SQSO-ICD-013) |
+| If not | Resend once per pass with a new counter; check the downlink-offset correction (rule 2), the counter window and the key slot; after 3 passes, follow the key-recovery path (SQSO-ICD-013 §9) |
 
 ### C-3 Cessation of emissions (TX-OFF) proof
 
-Required before the transponder is opened to users (CONOPS §2) and the basis of the 97.207(b) certification.
+Required before the hold is released and the transponder opened to users (CONOPS §2), and the basis of the 97.207(b)
+certification.
 
 | | |
 |---|---|
-| Entry | C-2 executed on an earlier pass; a pass with ≥ 6 min above 15° and both stations able to hear |
+| Entry | C-2 executed on an earlier pass; a pass with ≥ 6 min above 10° and both stations able to hear |
 | Commands | `SET_BEACON` (0x30) 30 s, so that silence is visible within the pass; `TX_DISABLE` (0x32); wait ≥ 2 beacon intervals; `TX_ENABLE` (0x31); `SET_BEACON` back to the mode default |
-| Proof | No beacon and no transponder output for ≥ 60 s after the `TX_DISABLE` acknowledgement (both stations listening); beacons resume after `TX_ENABLE`; `RF=1` in the tail afterwards |
-| Exit | TX-OFF and TX-ON demonstrated once from each station |
+| Proof | No beacon, housekeeping frame or transponder output for ≥ 60 s after `TX_DISABLE` (both stations listening; it has no acknowledgement); beacons and an acknowledgement of `TX_ENABLE` resume; `RF=1` in the tail and `TX=1` in HK1 afterwards |
+| Exit | TX-OFF and TX-ON demonstrated once from each station (simulation reference: S+23.7 h) |
 | If not | If `TX_ENABLE` is lost the spacecraft stays silent: send it on the next pass (the receiver stays on, and the latch persists through resets) |
 
 ### C-4 Health and power characterization
@@ -108,20 +130,18 @@ Required before the transponder is opened to users (CONOPS §2) and the basis of
 | | |
 |---|---|
 | Entry | C-2 |
-| Commands | `EPS_GET_TELEMETRY` (0x13) and `GET_STATUS` on every commanding pass |
-| Proof | SOC and battery voltage on each pass and in every decoded beacon, plotted against the sunlit/eclipse phase from the orbit; compared with the simulation (SOC 92 % at end of charge, depth of discharge ≤ 2.1 % per eclipse, about 2.6 Wh drawn per orbit against 2.25 Wh used) |
-| Exit | 3 days with SOC ≥ 80 % at each pass, no SAFE or EMERGENCY entry (`M=` never SAFE), `BV` at the 4.10 V/cell end of charge (16.4 V) in sunlit passes; thermal fault 0 |
-| Gap | Temperatures, battery current and array power are not on the downlink (LV-27): the battery charge window (0–45 °C) and the heater cannot be verified from orbit |
+| Commands | `GET_HOUSEKEEPING` on every commanding pass; `DUMP_TLM` (0x0A) daily (store 0, from the last record received, count ≤ 600); `EPS_CLEAR_LOCKOUT` (0x14, argument `CHG!`) only if the EPS has latched its recharge lockout after a cell below 2.0 V, and only after the ground has reviewed the cell history |
+| Proof | SOC, battery voltage and current (`SOC`, `VB`, `IB`), array power (`PA`), temperatures (`TB` battery, `TO` OBC, `TP` PA) on each pass and in the 5-minute records, against the sunlit/eclipse phase from the orbit; compared with the simulation (SOC ≈ 92 % at end of charge, depth of discharge ≤ 2.1 % per eclipse, about 2.5 Wh generated per orbit against 2.25 Wh used); battery charging only between 0 and +45 °C, the heater on below +5 °C and off above +9 °C (`TB`); HK2 `TR` no rail trips |
+| Exit | 3 days with SOC ≥ 80 % at each pass, no SAFE or EMERGENCY entry (`M=` never SAFE), `VB` at the 4.10 V/cell end of charge (16.4 V) in sunlit passes, `TB` inside the charge window; no new fault (`FC`, `FL`) without an explanation |
 
 ### C-5 Deployables and attitude
 
 | | |
 |---|---|
 | Entry | C-2 |
-| Commands | `ADCS_GET_ATTITUDE` (0x23); `ADCS_DETUMBLE` (0x21) only if the detumbled flag stays 0 beyond S+5 h |
-| Proof | Detumbled = 1 and sun acquired = 1; `SUN=1` through each sunlit pass; beacon signal strength against range consistent with a deployed 2 m monopole (≈ +6 dB margin at 5°, BASELINE §7); SOC recovering at about 8 % per sunlit orbit after a discharge, which needs the wings |
-| Exit | Both flags 1 on 3 consecutive passes; link and charge proxies consistent with antennas and wings deployed |
-| Gap | The deployment state is not on the downlink, and a failed element cannot be retried by command (LV-07, LV-27). If the proxies show a failed wing, continue: the simulation's wings-failed case is power-positive (MISSION_TIMELINE §8.2) |
+| Commands | `GET_HOUSEKEEPING`; `ADCS_SET_GYRO_ALIGN` (0x25) with the matrix measured on the flight unit (VI-MCAD-05; persisted, refused unless every element is within 1.1 and the determinant within 0.05 of 1); `ADCS_SET_MAG_BIAS` (0x26) per rod polarity state once the on-orbit bias estimate is available (AV-V4; persisted); `ADCS_DETUMBLE` (0x21) only if `W` stays above 0.5°/s across +Y beyond S+5 h; `DEPLOY_RETRY` (0x50: 0 antenna, 1 solar wings) in a sunlit pass if `DEP` reports an element FAILED (refused during the 30-minute wait and during a burn); `ADCS_SET_GEOMETRY` (0x24: 1 wing W1 only, 2 wing W2 only, 3 no wing) if a wing stays stowed after the retries |
+| Proof | `DEP`: deployment COMPLETE, AntS elements 15 (all four), both wing senses deployed; `W` body rates: spin about +Y at about 8°/s, transverse rates below 0.5°/s; `AM` sun-pointing; `SUN=1` through each sunlit pass; `PA` and the SOC recovering at about 8 % per sunlit orbit after a discharge, which needs the wings; beacon signal strength against range consistent with a deployed 2 m monopole (≈ +8 dB margin at 5°, BASELINE §7); HK2 `GY` the gyro in use |
+| Exit | `DEP` complete and the spin stable on 3 consecutive passes; or, with an element failed after its retries, the geometry preset set and the power case of MISSION_TIMELINE §8.2 confirmed |
 
 ### C-6 Beacon conformance
 
@@ -129,46 +149,44 @@ Required before the transponder is opened to users (CONOPS §2) and the basis of
 |---|---|
 | Entry | C-3 |
 | Commands | `SET_POWER` (0x33) 0 (0.5 W) and 1 (1 W) on separate passes; `SET_BEACON` 10, 60 and 120 s |
-| Proof | Recorded spectrum at two stations: occupied bandwidth within 10K4F2D, deviation, carrier within the coordinated channel plus Doppler; cadence matches the command; call sign in every frame |
+| Proof | Recorded spectrum at two stations: occupied bandwidth within 10K4F2D, deviation, carrier within the coordinated channel plus Doppler; cadence matches the command; call sign in every frame; the measured downlink offset logged for rule 2 |
 | Exit | Both power levels and the cadence within the licence and the IARU coordination; return to `SET_POWER` 0 |
 
-### C-7 Transponder
+### C-7 Commissioning release and transponder
 
 | | |
 |---|---|
-| Entry | C-3 and C-4 passed; ACTIVE (`SET_MODE` (0x02) 2 if not already); sunlit pass with SOC ≥ 55 % |
-| Commands | `SET_MODE` 2; team uplink with the correct CTCSS tone, then without it, during a Bay Area pass |
-| Proof | Repeated audio on the downlink only with a valid CTCSS carrier; `QSO=` count in the tail increments; the transponder stops in eclipse and below 55 % SOC (observe on a pass that crosses the terminator); keyed time ≤ 25 % of an orbit (simulation: ≤ 14.4 %, about 80 min a day) |
+| Entry | C-3 and C-4 passed; a sunlit pass with SOC ≥ 55 % |
+| Commands | `XPDR_DISABLE` (0x35) and `PLD_DISABLE` (0x41), so that the release starts neither; `COMMISSIONING_RELEASE` (0x08); `SET_MODE` (0x02) 2 if the mode manager has not entered ACTIVE; in a later commanded pass `XPDR_ENABLE` (0x34); team uplink with the correct CTCSS tone, then without it, during a Bay Area pass; `XPDR_DISABLE` to show the transponder stops alone |
+| Proof | HK1 `HOLD=0` after the release; `MODE` ACTIVE when sunlit with SOC ≥ 55 %; after `XPDR_ENABLE`, `XP=1` while the gates hold; repeated audio on the downlink only with a valid CTCSS carrier; `QSO=` in the tail and HK2 `XE` increment; the transponder stops in eclipse and below 55 % SOC (observe on a pass that crosses the terminator) and on `XPDR_DISABLE` with the beacon continuing; keyed time ≤ 25 % of 100 minutes (simulation: about 38 min a day, duty 9.9 %) |
 | Exit | Gates observed working on 2 passes from each station; public announcement of the transponder |
-| As built | The flight software enables the transponder by itself at S+53 min, before C-2 (LV-01). There is no command to switch the transponder alone: `SET_MODE` 1 (IDLE) or `TX_DISABLE` are the only ways to stop it (LV-14) |
 
 ### C-8 AI payload (Jetson) and fallback
 
 | | |
 |---|---|
-| Entry | C-4; ACTIVE; sunlit; SOC ≥ 55 % |
-| Commands | `PLD_DISABLE` (0x41); observe; `PLD_ENABLE` (0x40) |
-| Proof | `GET_STATUS` payload flag follows the command; with the payload disabled the beacon text is a fixed template and the telemetry tail is unchanged; with it enabled, generated lines appear in batches, each passing the ground copy of the content filter (`docs/BEACON_SPEC.md` §6) |
-| Exit | Fallback demonstrated; 100 generated beacons decoded with no filter failure |
-| Gap | The energy per accepted beacon (the D5 gate, ≤ 0.1 Wh) cannot be measured from orbit: no Jetson energy telemetry (LV-27). As built, batches already run from S+53 min |
+| Entry | C-7 (hold released); ACTIVE; sunlit; SOC ≥ 55 %; `TJ` ≥ −15 °C |
+| Commands | `PLD_ENABLE` (0x40); observe; `PLD_DISABLE` (0x41); `PLD_ENABLE` |
+| Proof | With the payload disabled the beacon text is a template and the telemetry tail is unchanged; with it enabled, generated lines appear in batches of ≥ 10, each passing the ground copy of the content filter (`docs/BEACON_SPEC.md` §6); HK2 `JB` (bursts, the last burst's energy, its lines, bursts ended by the energy gate), `JP` (clean switch-offs) and `HL` = 0 (no hard-limit violation). The D5 gate is measured from orbit: the burst energy at the carrier input divided by the accepted lines, against ≤ 0.1 Wh (360 J) per accepted beacon (simulation: about 0.036 Wh) |
+| Exit | Fallback demonstrated; 100 generated beacons decoded with no filter failure; energy per accepted beacon within the D5 gate, or the experiment left disabled |
 
 ### C-9 GNSS and operator ephemeris
 
 | | |
 |---|---|
 | Entry | First contact (C-1) |
-| Commands | **None exist** for the receiver (LV-04, LV-14) |
-| Proof | Operator ephemeris (CCSDS OEM with covariance) accepted by Space-Track and SpaceX Space Traffic Coordination within 24 h of first contact, after every pass and at least every 24 h until the 18th SDS catalogs the object (UG v11 §9.5.7.2) |
+| Commands | `GNSS_REQUEST` (0x60) to start a session before a pass if no recent fix (its power gates still apply: Jetson off, SOC ≥ 40 %; the transponder is held off during a session); sessions also run by themselves every orbit in launch and early operations, then four a day (SRS-F084) |
+| Proof | HK1 `GF` (age of the latest fix, satellites used) and `GS` (sessions run / with a fix); operator ephemeris (CCSDS OEM with covariance) accepted by Space-Track and SpaceX Space Traffic Coordination within 24 h of first contact, after every pass and at least every 24 h until the 18th SDS catalogs the object (UG v11 §9.5.7.2) |
 | Exit | NORAD ID assigned, positional data public, operator contact public; object claimed within 30 days |
-| Status | **Blocked** for onboard GNSS. Until LV-04 closes, the third-party service contracted before integration delivers the ephemeris |
+| Status | The onboard chain is implemented; the ground orbit determination from the fixes and the OEM upload are **blocked** (LV-04). Until they exist, the third-party service contracted before integration delivers the ephemeris |
 
 ### C-10 Operations validation and SAFE drill
 
 | | |
 |---|---|
 | Entry | C-3 to C-8 |
-| Commands | `SET_MODE` 0 (SAFE); observe 2 beacons at 180 s; `SET_MODE` 1 (IDLE); `SET_MODE` 2 (ACTIVE) on the next pass; `CLEAR_FAULTS` (0x05) only after the fault log is understood (it is not on the downlink: LV-27) |
-| Proof | `M=` follows each command; SAFE: template text, no transponder; the transition table refuses SAFE → ACTIVE directly (`NOT_ALLOWED` response) |
+| Commands | `SET_MODE` 0 (SAFE); observe 2 beacons at 180 s; `SET_MODE` 1 (IDLE); `SET_MODE` 2 (ACTIVE) on the next pass; `DUMP_TLM` of the 60 s records around the mode changes; `CLEAR_FAULTS` (0x05) only after the fault log (`FC`, `FL` and the dumped records) is understood |
+| Proof | `M=` and `MODE` follow each command; SAFE: template text, no transponder (`XP=0`); the transition table refuses SAFE → ACTIVE directly (acknowledgement `R` = `NOT_ALLOWED`) |
 | Exit | 24 h of autonomous operation with no SAFE or EMERGENCY entry; shift handover rehearsed |
 
 ### C-11 Commissioning review and close-out
@@ -177,19 +195,20 @@ Required before the transponder is opened to users (CONOPS §2) and the basis of
 |---|---|
 | Entry | C-1 to C-8 and C-10 closed; C-9 closed or covered by the third party |
 | Commands | `SET_CONTACT_TIMEOUT` (0x07), 2-byte big-endian days = 14 (D3); the command is itself a contact, so the count restarts |
-| Proof | Command acknowledgement. The timeout value is not readable back (LV-27) |
+| Proof | Acknowledgement; HK1 `CT=14` and `CS` reset; the passivation path intact for the end of life (`PS=0`, EOL_STATE fuse-intact bit set) |
 | Exit | Review signed by the operations lead, the systems engineer and the licensee; primary operations start |
 
 ## 4. Anomaly handling
 
 | Anomaly | Likely cause | Response |
 |---------|--------------|----------|
-| No beacon at the first Bay Area pass | Pass geometry (median first pass S+5.2 h); low SOC; antenna stowed | MISSION_TIMELINE §8.6 |
+| No beacon at the first Bay Area pass | Pass geometry (median first pass S+5.3 h); low SOC; antenna stowed | MISSION_TIMELINE §8.6 |
 | `M=SAFE` at first contact | Separation SOC below 25 % | Wait: the simulation reaches IDLE within S+4–8 h |
-| Weak signal at high elevation | Antenna not deployed | No commanded retry exists (LV-07); characterize the link |
-| Command not executed | Counter window, key slot, link | C-2 "If not" |
-| Unexpected SAFE | Fault, low SOC, thermal | `GET_STATUS`, `EPS_GET_TELEMETRY`; return through IDLE after the cause is understood |
-| Interference or a stuck transmitter | — | `TX_DISABLE` immediately; investigate before `TX_ENABLE` |
+| Weak signal at high elevation; `DEP` shows an element FAILED | Antenna not deployed | `DEPLOY_RETRY` 0 in a sunlit pass; characterize the link |
+| Command not executed (no acknowledgement) | Uplink frequency offset, counter window, key slot, link | C-2 "If not" |
+| Unexpected SAFE | Fault, low SOC, thermal | `GET_HOUSEKEEPING`, `DUMP_TLM` of the 60 s records; return through IDLE after the cause is understood |
+| Recharge lockout latched | A cell below 2.0 V | Review the cell history from the dumped records; `EPS_CLEAR_LOCKOUT` only on the review's decision |
+| Interference or a stuck transmitter | — | `TX_DISABLE` immediately; investigate before `TX_ENABLE`; `XPDR_DISABLE` if only the transponder is at fault |
 
 ## 5. Revision History
 
@@ -197,3 +216,4 @@ Required before the transponder is opened to users (CONOPS §2) and the basis of
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 2.0 | 2026-10-27 | CDR launch and ConOps review | Rewritten step by step (C-0 to C-11) with entry criteria, the commands of the flight dictionary, the telemetry that proves each step and its exit criterion; TX-OFF proof added before the transponder; ephemeris step added; the RF silence is 45 min; the separation SOC and pass statistics from the simulation and the pass analysis. Version 1.0 used commands that do not exist (`JETSON_POWER`, `AI_ENABLE`, `FORCE_FALLBACK`, `ECHO_TEST`, `RELEASE_SAFE`, `SET_TX_POWER`) and assumed a 30-minute RF timer, a > 95 % SOC at deployment and telemetry the downlink does not carry |
+| 2.1 | 2026-10-27 | CDR round 3, launch and operations (RID LV-13) | Brought to the command dictionary of flight software round 3 (30 commands): HK1 and HK2 as the proof of each step (`GET_HOUSEKEEPING` 0x09, `DUMP_TLM` 0x0A), the acknowledgement rule; C-7 is the commissioning release (`COMMISSIONING_RELEASE` 0x08, with `XPDR_DISABLE`/`XPDR_ENABLE` 0x35/0x34 and `PLD_DISABLE` first), so the transponder runs only after the release; deployment retry (`DEPLOY_RETRY` 0x50), `ADCS_SET_GEOMETRY` 0x24, `ADCS_SET_GYRO_ALIGN` 0x25 and `ADCS_SET_MAG_BIAS` 0x26 in C-5; `GNSS_REQUEST` 0x60 in C-9; `EPS_CLEAR_LOCKOUT` 0x14 in C-4; `PASSIVATE_ARM`/`PASSIVATE_EXECUTE` 0x70/0x71 excluded; commanding above 10° (12° in the degraded mode, C-14) and the uplink offset from the measured downlink (RFB-05); pass statistics from SQSO-MTL-001 2.3 (first beacon pass median S+5.3 h, at most S+12.1 h; first commanding pass median S+6.4 h, at most S+13.7 h); the D5 energy gate measured from HK2. Version 2.0 said the transponder started by itself at S+53 min, that there was no housekeeping downlink, deployment retry or GNSS command, that commands went only above 15° and that the dictionary had 17 commands |

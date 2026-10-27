@@ -1,7 +1,7 @@
 # SMART-QSO Mechanisms Analysis
 
 **Document ID**: SQSO-MECH-001
-**Version**: D
+**Version**: E
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR issue. Analysis of the two solar-wing hinges and hold-downs and of the bought ISIS AntS antenna system;
@@ -16,17 +16,17 @@ in `hardware/mechanical/hinge_results.json`). Mass properties: `docs/environment
 
 | Check | Result | Section |
 |-------|--------|---------|
-| **Version B** wing static torque margin, NASA-STD-5017B Eq. 4-1, "theory or analysis" factors, worst case (cold, end of travel), with the hinge and springs that fit the envelope and the flex at the bend radius that fits | **+0.14** (start of travel +0.98; hot +0.37 to +1.31); qualification-test factors +0.37; **one spring out +0.13** (FS 1.0, DDMR 53 two springs) | §4A |
-| Version B spring stress (5017B Table 4, mission-critical 1.5 / 1.65 at the maximum torque) | Primary +0.12 / +0.36; secondary **+0.04** / +0.27 (891 and 958 MPa, 59–64 % of the 1,500 MPa allowable: above the 50 % that A.2.5.1 recommends against relaxation, hence VI-MECH-01) | §3A |
+| **Version B** wing static torque margin, NASA-STD-5017B Eq. 4-1, "theory or analysis" factors, worst case (cold, end of travel), with the hinge and springs that fit the envelope and the flex at the bend radius that fits | **+0.08 at −55 °C** (the bounding LEOP stowed-wing temperature: −45 °C predicted less 10 °C, P3S-01; +0.14 at −40 °C); start of travel +0.82; hot +0.37 to +1.30; qualification-test factors +0.29; **one spring out +0.07** (FS 1.0, DDMR 53 two springs) | §4A |
+| Version B spring stress (5017B Table 4, mission-critical 1.5 / 1.65 at the maximum torque, modulus at −55 °C) | Primary +0.12 / +0.35; secondary **+0.04** / +0.26 (895 and 962 MPa, 60–64 % of the 1,500 MPa allowable: above the 50 % that A.2.5.1 recommends against relaxation, hence VI-MECH-01) | §3A |
 | Version A torque margin (springs that do not fit, withdrawn) | +0.29 (one spring out +0.88) | §4 |
 | Same with a contact (plunger) deployed-state switch at the stop | **−0.54**: the deployed sensor must be non-contact | §4 |
 | Holding margin on the stop (tumbling at 50°/s; spin 8°/s puts no torque on the hinge) | +46 | §4.4 |
 | Deployment time | 0.16 s from release to the stop (requirement < 5 s, `hardware/eps/SOLAR_ARRAY_DESIGN.md` §8.1) | §5 |
 | End-of-travel shock (Version B spring) | 13.7 rad/s at the stop: **0.157 N·m with the damped soft stop (2 N·m/rad, ζ 0.3): 214 µε at the wing root, rebound 13°**; 0.62 N·m (853 µε, rebound 50°) with a metal stop; deployment 0.21 s | §5A |
-| Deployed-position latch | **No latch**: a latch pin (Ø0.8 mm) would see 974 MPa in shear at the rebound impact (allowable 662 MPa) and its drag lowers the end-of-travel margin to +0.07. The springs hold the wing on the damped stop: holding margin +17 (DDMR 14) | §5A |
+| Deployed-position latch | **No latch**: a latch pin (Ø0.8 mm) would see 974 MPa in shear at the rebound impact (allowable 662 MPa) and its drag lowers the end-of-travel margin to +0.01 at −55 °C. The springs hold the wing on the damped stop: holding margin +17 (DDMR 14) | §5A |
 | Wing deployment while tumbling (15–50°/s) | No effect on the mechanism (inertial torque ≤ 0.1 mN·m); body rate after deployment scales with the inertia ratio | §5 |
-| Burn-wire release energy (simulation model, flight timing) | Wing line, 5 s: 16.0 J against a 3σ need of 15.4 J at −40 °C (ratio **1.04**); 8 s gives 1.67. Antenna line, 3 s: ratio 0.63 at −40 °C, **11 % not released after three attempts** in the model; but the bought AntS has its own release electronics, so the model and the flight timing do not represent it | §6 |
-| Partial deployment | One wing out: CG moves 1.4 mm in X, the major principal axis tilts 12° from +Y, generation and drag area drop; survivable; the flight software has no one-wing configuration | §8 |
+| Burn-wire release energy (simulation model, flight timing: 8 s per resistor, `sqso_fsw::deployment`, retries 50 min apart) | Wing line, 8 s: 25.6 J against a 3σ need of 16.8 J at **−55 °C** (ratio **1.52**, STR-15 asks 1.5; 1.67 at −40 °C); 5 s would give 0.95. The antenna is the AntS's own release (I²C), not a burn line of this design | §6 |
+| Partial deployment | One wing out (CAD, CBE / MEV): CG moves 1.2–1.3 mm in X, the major principal axis tilts 8.0° / 8.6° (W1 only) or 9.1° / 9.3° (W2 only) from +Y, 3.1° / 3.9° with neither wing out; generation and drag area drop; survivable. The flight software has the one-wing and no-wing presets (`sqso_fsw::adcs` Geometry, SRS-F094, selected by telecommand); their tensors are to be replaced by the CAD ones of §8 | §8 |
 | Wing and tape flexible modes vs spin and ADCS bandwidth | Wing 21–83 Hz, VHF tape 0.4–4 Hz, against a 0.017 Hz spin and a < 0.001 Hz control bandwidth: no coupling; dissipation makes the major-axis rule apply (MASS_BUDGET §6) | §9 |
 
 Verdict for this discipline: **ready for fabrication with actions**: spring and sensor specification (§4), a soft or
@@ -164,8 +164,8 @@ from the rail edge). Free length on the axis: z −49.0 … −37.3 mm at −Z (
 
 | Spring | Rate (mN·m/rad) | Torque stowed / deployed, nominal (mN·m) | Max stress (MPa), at +10 % torque, cold modulus | MS yield (1.5) | MS ultimate (1.65) | Wound ID (mm) |
 |--------|-----------------|------------------------------------------|---------------------------------------------------|----------------|--------------------|---------------|
-| Primary | 2.89 | 7.31 / 2.77 | 891 | **+0.12** | +0.36 | 2.97 (pin 1.5) |
-| Secondary | 1.25 | 3.15 / 1.20 | 958 | **+0.04** | +0.27 | 3.17 |
+| Primary | 2.89 | 7.31 / 2.77 | 895 | **+0.12** | +0.35 | 2.97 (pin 1.5) |
+| Secondary | 1.25 | 3.15 / 1.20 | 962 | **+0.04** | +0.26 | 3.17 |
 
 Rate k = E d⁴ / (64 D n), stress Ki · 32 M / (π d³) with Wahl's bending factor Ki; E = 200 GPa, allowables 1,500 MPa
 (bending) and 2,000 MPa (ultimate), the supplier values Version A used (to be confirmed with the spring vendor). Two
@@ -184,38 +184,44 @@ for inter-layer friction and cold stiffening. The R ≥ 5 mm of Version A cannot
 
 ## 4A. Version B Torque Margin (NASA-STD-5017B Eq. 4-1)
 
-Worst case (DDMR 9): minimum spring torque (−10 % tolerance, −5 % relaxation, modulus +1.8 % at −40 °C and −1.2 % at
-+60 °C) against the maximum resistance at the same temperature and point of travel. Pin friction is computed from the
-spring-leg reactions: T = μ · 2 (r_pin / a_leg) · M_spring with r_pin 0.75 mm, a_leg 5 mm and the spring torque at
-+10 % (conservative), μ = 0.15 cold / 0.12 hot (MoS₂; the vacuum typical is 0.02–0.05).
+Worst case (DDMR 9): minimum spring torque (−10 % tolerance, −5 % relaxation, modulus +2.25 % at the cold bound and
+−1.2 % at +60 °C) against the maximum resistance at the same temperature and point of travel. **Cold bound −55 °C
+(Version E, P3S-01):** the predicted LEOP stowed-wing temperature is −45 °C; less the 10 °C thermal margin of BASELINE
+§8 the hinge, line and wing are taken at −55 °C until the thermal case gives the hinge temperature at T + 30 min (then
+`hinge.py`, `T_COLD`, is re-run). Below −40 °C the resistive torques are raised by allowance, for want of data: MoS₂
+μ 0.16 (0.15 at −40 °C), flex 0.55 mN·m (0.50; polyimide stiffens), PTFE-faced snubber 0.25 mN·m (0.20; silicone
+stiffens); VI-MECH-02 and -03 measure them at −55 °C. Pin friction is computed from the spring-leg reactions:
+T = μ · 2 (r_pin / a_leg) · M_spring with r_pin 0.75 mm, a_leg 5 mm and the spring torque at +10 % (conservative),
+μ = 0.16 cold / 0.12 hot (MoS₂; the vacuum typical is 0.02–0.05).
 
-| Resistive torque per wing (mN·m) | Stowed, cold | Stowed, hot | Deployed, cold | Deployed, hot | Kind |
+| Resistive torque per wing (mN·m) | Stowed, cold (−55 °C) | Stowed, hot | Deployed, cold (−55 °C) | Deployed, hot | Kind |
 |----------------------------------|--------------|-------------|----------------|---------------|------|
-| Pin friction (both springs' leg loads, +Z bushing 0.05) | 0.58 | 0.47 | 0.25 | 0.21 | T_v |
-| Clock-spring flex | 0.50 | 0.35 | 0.50 | 0.35 | T_v |
-| PTFE-faced snubber breakaway | 0.20 | 0.20 | 0 | 0 | T_v |
+| Pin friction (both springs' leg loads, +Z bushing 0.05) | 0.61 | 0.47 | 0.26 | 0.21 | T_v |
+| Clock-spring flex | 0.55 | 0.35 | 0.55 | 0.35 | T_v |
+| PTFE-faced snubber breakaway | 0.25 | 0.20 | 0 | 0 | T_v |
 | Cut hold-down line drag | 0.20 | 0.20 | 0.20 | 0.20 | T_v |
-| **Σ T_v** | **1.48** | **1.22** | **0.95** | **0.76** | |
+| **Σ T_v** | **1.61** | **1.22** | **1.01** | **0.76** | |
 | Tumbling inertial torque, 50°/s | 0.10 | 0.10 | 0.10 | 0.10 | T_f |
 | Acceleration to deploy within 5 s | 0.01 | 0.01 | 0.01 | 0.01 | T_a |
 
 | Point of travel | Temperature | T_avail (mN·m) | TM, analysis factors (3.00 / 1.50 / 1.25) | TM, qualification-test factors (2.50 / 1.35 / 1.15) | One spring out (FS 1.0) |
 |-----------------|-------------|----------------|-------------------------------------------|-----------------------------------------------------|-------------------------|
-| Start (stowed) | Cold | 9.11 | +0.98 | +1.37 | +1.24 |
-| Start (stowed) | Hot | 8.84 | +1.31 | +1.76 | +1.56 |
-| **End of travel** | **Cold** | **3.45** | **+0.14** | **+0.37** | **+0.13** |
+| Start (stowed) | Cold (−55 °C) | 9.15 | +0.82 | +1.18 | +1.06 |
+| Start (stowed) | Hot | 8.84 | +1.30 | +1.75 | +1.56 |
+| **End of travel** | **Cold (−55 °C)** | **3.47** | **+0.08** | **+0.29** | **+0.07** |
 | End of travel | Hot | 3.35 | +0.37 | +0.63 | +0.32 |
-| End of travel, cold, primary spring only | Cold | 2.41 | −0.15 | — | — |
-| End of travel, cold, with a latch pin (0.07 mN·m drag) | Cold | 3.45 | +0.07 | — | +0.05 |
+| End of travel, at −40 °C (Version D cold case, for comparison) | Cold | 3.45 | +0.14 | +0.37 | +0.13 |
+| End of travel, cold, primary spring only | Cold | 2.42 | −0.20 | — | — |
+| End of travel, cold, with a latch pin (0.07 mN·m drag) | Cold | 3.47 | +0.01 | — | −0.00 |
 
-Sensitivities (end of travel, cold, analysis factors): the margin falls to zero at a flex torque of 0.64 mN·m (allocation
-0.50, elastic estimate 0.06), at μ = 0.26 on the pin, or at a silicone (non-PTFE) snubber only at the start of travel
+Sensitivities (end of travel, −55 °C, analysis factors): the margin falls to zero at a flex torque of 0.64 mN·m (allocation
+0.55, elastic estimate 0.06), at μ = 0.22 on the pin, or at a silicone (non-PTFE) snubber only at the start of travel
 (not governing). The governing case is the end of travel, where the springs have unwound: the preload (55°) is the
 largest the stress allows.
 
 **Least-bad note, recorded for the chair:** the design closes, but not with the margins of Version A (+0.29). The only
 levers left inside the envelope are the resistive torques (lubricant, flex), so the hinge torque test (VI-STR-04) is
-the closure of STR-13, and a measured flex torque above 0.64 mN·m at −40 °C would require either a stronger spring
+the closure of STR-13, and a measured flex torque above 0.64 mN·m at −55 °C would require either a stronger spring
 material (Elgiloy or a higher-strength 17-7PH lot, if the vendor's bending allowable exceeds 1,600 MPa) or shorter cells
 to free a longer spring.
 
@@ -249,29 +255,50 @@ than 440C (HRC 58), so the sputtered film wears faster, and unlubricated A286 on
 above the 0.26 at which the end-of-travel margin reaches zero). Hence the film in the bore as well as on the pin, and
 VI-MECH-03.
 
+**MoS₂ ground controls (P3S-04).** A sputtered MoS₂ film is a vacuum lubricant: in humid air it oxidises and its
+friction and wear rise (friction about 0.15–0.25 in 50 % RH air against 0.02–0.05 in vacuum or dry nitrogen, and a wear
+life an order of magnitude shorter; tribology handbook class values, to be confirmed on the film supplier's data). The
+torque margin of §4A rests on μ ≤ 0.16 and is gone at 0.22, so the ground life of the film is controlled:
+
+| Control | Limit |
+|---------|-------|
+| Storage and handling of filmed pins, bushings and hinge assemblies, and of the spacecraft after hinge installation | ≤ 40 % RH at +15 … +25 °C, or under dry-N₂ purge (dew point ≤ −20 °C) in sealed bags with desiccant and a humidity indicator; cumulative exposure above 50 % RH ≤ 100 h per hinge, logged |
+| Deployment and torque tests (VI-STR-04, -05, VI-MECH-03) | In vacuum or in dry N₂ (≤ 10 % RH); in room air only if ≤ 40 % RH, and those cycles count double |
+| Ground cycle budget per flight hinge | ≤ 30 full-travel cycles in all, of which ≤ 10 after the final film inspection; every cycle (and every partial rotation over 20°) logged in the hinge log |
+| Film inspection | At receipt, after the EM qualification cycles, after protoflight random and before the final stow: 10× visual of pin and bore (no bare metal, no transfer film loss, no galling), and the friction torque at +20 °C in dry N₂ (μ ≤ 0.10); film thickness 0.5–1.0 µm and adhesion on witness coupons from each coating batch |
+| Exceedance | Above the humidity budget or the cycle budget, or any inspection reject: pin and bushing replaced or re-filmed and VI-MECH-03 repeated on the hinge |
+
 ## 6. Burn-Wire Release
 
-Model (`deploy.rs`): release energy N(6.0 J, 1.2 J) at +20 °C, +1 % per °C below +20 °C, 20 % of the heat kept between
-attempts; 0.8 A into 5 Ω per resistor (3.2 W); flight timing (`sqso_fsw::deployment`): 3 attempts 60 s apart.
+Model (`deploy.rs`): release energy N(6.0 J, 1.2 J) at +20 °C, +1 % per °C below +20 °C; 0.8 A into 5 Ω per resistor
+(3.2 W); flight timing (`sqso_fsw::deployment`, as of Version E): **8 s per resistor** (`SOLAR_BURN_TIME_MS`), one
+resistor at a time, A and B resistors alternating, 3 attempts **50 min apart**, so no heat is kept between attempts
+(the earlier 60 s spacing kept 20 %); a wing whose sensor reads deployed is not fired again. `hinge.py` computes the
+−40 and −55 °C rows (`burn_release`).
 
 | Line | Temperature | Energy per attempt | 3σ need | Ratio | Released on attempt 1 | Not released after 3 attempts |
 |------|-------------|--------------------|---------|-------|-----------------------|-------------------------------|
 | Wing, 5 s (flight) | +20 °C | 16.0 J | 9.6 J | 1.67 | 100 % | 0 |
 | Wing, 5 s | −20 °C | 16.0 J | 13.4 J | 1.19 | 100 % | 0 |
 | Wing, 5 s | **−40 °C** | 16.0 J | 15.4 J | **1.04** | 99.95 % | 0 |
-| Wing, 8 s (proposed) | −40 °C | 25.6 J | 15.4 J | 1.67 | 100 % | 0 |
+| Wing, 8 s (flight) | −40 °C | 25.6 J | 15.4 J | 1.67 | 100 % | 0 |
+| Wing, 5 s | **−55 °C** (bound, P3S-01) | 16.0 J | 16.8 J | 0.95 | 99.6 % | 0.43 % |
+| **Wing, 8 s (flight)** | **−55 °C** | 25.6 J | 16.8 J | **1.52** | 100 % | 0 |
+| Wing, 10 s | −55 °C | 32.0 J | 16.8 J | 1.90 | 100 % | 0 |
 | Antenna line, 3 s (flight; simulation model) | −20 °C | 9.6 J | 13.4 J | 0.71 | 76.5 % | 1.8 % |
 | Antenna line, 3 s | −40 °C | 9.6 J | 15.4 J | 0.63 | 50.1 % | **11.4 %** |
 
 The deployment happens 30 min after separation, possibly in eclipse; the mission simulation's smoke run shows the panels
-at +10 to +18 °C at that time, but the cold case is not bounded until the thermal analysis gives the minimum stowed-wing
-temperature at T + 30 min.
+at +10 to +18 °C at that time; the thermal prediction of the stowed wing in LEOP is −45 °C, bounded here at −55 °C with
+the 10 °C margin. The 8 s flight burn meets STR-15 at −55 °C with 0.02 to spare (1.52 against 1.5); if the thermal
+case puts the hinge and line colder than −55 °C, or the coupon test (VI-STR-06) gives a larger spread than the model's
+20 %, the burn goes to 10 s (1.90 at −55 °C: 0.13 Wh more per three-attempt sequence and wing) by the flight
+constant.
 
 **Requirement (STR-15):** the delivered energy per attempt is at least 1.5 × the 3σ release energy at the minimum predicted
 deployment temperature less 10 °C (the thermal uncertainty margin of BASELINE §8), demonstrated by a release
-characterisation of ≥ 30 coupons of the flight line, resistor and preload at −40 °C and +20 °C (VI-STR-06). With the
-simulation's model this needs **8 s** (`SOLAR_BURN_TIME_MS` = 8000) or 1.0 A per resistor (25 J in 5 s); for the chair,
-because the constant is in `sqso_fsw::deployment`. With the EPS board's drivers (0.8 A per resistor from a 7.0 V burn buck, one resistor at a
+characterisation of ≥ 30 coupons of the flight line, resistor and preload at −55 °C and +20 °C (VI-STR-06). With the
+simulation's model this needs **8 s** (`SOLAR_BURN_TIME_MS` = 8000, now the flight value) or 1.0 A per resistor. With the EPS board's drivers (0.8 A per resistor from a 7.0 V burn buck, one resistor at a
 time for 8 s) the pack carries 0.51 A for the burn, 0.67 A with housekeeping and heater, 0.75 A with the magnetorquers
 (`hardware/electrical/eps/EPS_BOARD_DESIGN.md` §9); 25.6 J into a 5 Ω resistor per 8 s burn. 1.0 A per resistor would
 need the driver set point changed.
@@ -290,12 +317,10 @@ above +15 °C according to the ISIS brochures; the current datasheet, ISIS-ANTS-
 the vendor's pages returned 404). Its torque margin is the tape springs' own strain energy and is the vendor's
 qualification item (VI-STR-13). Consequences for this design:
 
-- `sqso_fsw::deployment` drives an antenna burn line for 3 s (`ANTENNA_BURN_TIME_MS`), and the simulation models it as a
-  5 Ω resistor: neither matches the AntS. The antenna step must become the AntS command sequence (arm, deploy each
-  element with the vendor's burn time, read back the per-element deployment switches), with the three physical inhibits
-  on the AntS deployment supply (for the chair: FSW, EPS and SIL owners).
-- The AntS reports each element separately; the flight software's single "both antennas" sense (`deploy.rs`: the two
-  switches in series) loses that information.
+- `sqso_fsw::deployment` (as of Version E) arms the AntS controller and runs its automatic deployment over I²C within a
+  45 s window (`ANTENNA_BURN_TIME_MS`), and reads every tape element's switch; the three physical inhibits stay on the
+  AntS deployment supply. The mission simulation's 5 Ω antenna line (`deploy.rs`) does not represent it (for the SIL
+  owner).
 
 ### 7.2 Clocking and Clearance
 
@@ -305,19 +330,22 @@ qualification item (VI-STR-13). Consequences for this design:
   +Y), with 52–60 % of sunlit time within 15° instead of 100 % (MASS_BUDGET §6.4, item 6). The antenna design recommends
   option C for the link; this is a conflict for the chair (STR-01).
 - **Clearance:** along ±X the VHF elements run in the −Z face plane (z ≈ −55 mm), 4–6 mm below the lower edge of a stowed
-  wing (z = −49 mm). If the antennas deploy first (the present order: antenna burn at T + 30:01, wings at T + 30:06 in the
-  mission simulation), the tapes oscillate under the stowed wings and the wings then sweep over them with a few
-  millimetres' clearance. Deployed, the wing plane (y = +39.5 mm) is ≈ 40 mm from a tape on the X axis.
-  **Requirement (STR-16):** deploy the wings first and the antennas second, or show ≥ 10 mm clearance throughout both
-  sweeps in the CAD and in the deployment test (VI-STR-10).
+  wing (z = −49 mm; the CAD's wing lower edge is at z −43 mm since Version B, 6.5 mm above the tape band). The flight
+  order is now wings first, then the AntS (`sqso_fsw::deployment`); antennas first would leave the tapes under the stowed
+  wings with 6.5 mm (CAD). Deployed, the wing plane (y = +39.5 mm) is ≈ 40 mm from a tape on the X axis.
+  **Requirement (STR-16), one criterion for VI-STR-10 (here and SQSO-MECH-CAD-001 §12):** in the flight order (wings,
+  then the AntS) every AntS element stays ≥ 10 mm from both deployed wings over its whole sweep; in the contingency
+  (a wing still stowed when the AntS deploys) the tapes stay ≥ 5 mm from the stowed wing (CAD 6.5 mm). Both are shown in
+  the CAD and in the deployment test.
 
 ## 8. Partial Deployment
 
 | Case | Mass properties (layout B, rods, CBE) | Consequences | Handling |
 |------|---------------------------------------|--------------|----------|
-| Both wings and antennas out (nominal) | CG (−0.8, +2.2, −4.7) mm; Iyy/Izz 1.041; major axis 13° from +Y | Nominal | — |
-| One wing (W1) out, W2 stowed | CG (+0.6, +0.8, −4.7) mm; I diag (2.87, 3.95, 3.74) × 10⁻³; major axis 12.5° from +Y | +Y face has 4 coplanar cells instead of 6; spin axis tilts 12.5° in the body (the sun sensors and the law assume +Y); aero torque from the CG offset; drag area between the two BASELINE §3 cases | Retries (3 per element, the wing line serves both wings, so a retry burns the released wing's resistor too); afterwards a one-wing ADCS parameter set (spin axis and inertia) by telecommand — **not available today** (`SUN_AXIS` and `INERTIA` are constants in `sqso_fsw::adcs`; for the chair, STR-27) |
-| Neither wing out, antennas out | CG (−0.8, −0.7, −4.7) mm; I diag (2.82, 3.59, 3.34) × 10⁻³; major axis 5° from +Y | Wings-failed case of BASELINE §3 (lifetime) and BUILD_VS_BUY §7.3 (power: lowest SOC 66 %, 2.4 % DoD); +Y spin still the major axis (1.075) | Already analysed; no change |
+| Both wings and antennas out (nominal) | CAD (SQSO-MECH-CAD-001 §5.2): CG (+0.1, +1.8, −1.4) mm; Iyy/max 1.056 / 1.047 (CBE / MEV); major axis 1.0° / 0.9° from +Y | Nominal | — |
+| One wing (W1) out, W2 stowed | CAD: CG (+1.3, +0.6, −1.4) mm; I diag (2.82, 3.90, 3.64) × 10⁻³ CBE, Ixy −1.51 × 10⁻⁴; major axis 8.0° / 8.6° from +Y | +Y face has 4 coplanar cells instead of 6; spin axis tilts 8–9° in the body (the sun sensors and the law assume +Y); aero torque from the CG offset; drag area between the two BASELINE §3 cases | Retries per wing (one driver per resistor, chair decision C-5; a wing whose sensor reads deployed is not fired again); then the one-wing preset by telecommand (`sqso_fsw::adcs` Geometry WING_1_ONLY, SRS-F094) with the CAD tensor and axis of SQSO-MECH-CAD-001 §5.2 (STR-27) |
+| One wing (W2) out, W1 stowed | CAD: CG (−1.1, +0.6, −1.4) mm; I diag (2.82, 3.90, 3.64) × 10⁻³, Ixy +1.76 × 10⁻⁴; major axis 9.1° / 9.3° from +Y | As above, mirrored | Preset WING_2_ONLY |
+| Neither wing out, antennas out | CAD: CG (+0.1, −0.6, −1.4) mm; I diag (2.78, 3.61, 3.31) × 10⁻³; major axis 3.1° / 3.9° from +Y | Wings-failed case of BASELINE §3 (lifetime) and BUILD_VS_BUY §7.3 (power: lowest SOC 66 %, 2.4 % DoD); +Y spin still the major axis (1.089 / 1.078) | Preset NO_WINGS |
 | A wing stuck part-way | Between the cases above; principal axes rotated | Shading and pointing as above; the spring keeps driving it (holding torque 8.4–17 mN·m) | Retry heating does not help a mechanical jam; telemetry of the deployed sensor (non-contact) distinguishes it |
 | One AntS element not out | Inertia change ≤ 0.33 × 10⁻³ kg·m² on one axis (a VHF element) | RF: the other element of the band, if the hybrid configuration has two; inertia ratio changes by up to 8 % | AntS retries the element; telemetry per element (§7.1) |
 
@@ -343,14 +371,14 @@ stable only about the major axis of inertia. That is why the inertia ratio of MA
 
 | ID | Verification | Pass criterion | Verifies | When |
 |----|--------------|----------------|----------|------|
-| VI-STR-04 | Hinge torque test of each wing (EM, then flight): spring torque over the travel, pin friction and clock-spring flex torque at −40, +20 and +60 °C in vacuum, each spring removed in turn | TM ≥ 0 with the 5017B Table 1 qualification-test factors (EM) and acceptance factors (flight, DDMR 11); one-spring-out ≥ 0; flex torque ≤ 0.50 mN·m at −40 °C (zero margin at 0.64) | §4A, STR-13 | EM; flight acceptance |
-| VI-MECH-01 | Spring-lot test: torque–angle of 5 springs of each type at −40/+20/+60 °C; stress relaxation held at the stowed angle for 30 days at +60 °C; then 50 cycles | Rate and torque within ±10 %; relaxation ≤ 5 %; no set after cycling | §3A (A.2.5.1) | Before EM assembly |
-| VI-MECH-02 | Clock-spring flex: 50 deployment cycles at −40 °C with continuity and insulation monitored; torque logged | No open or short; torque ≤ 0.50 mN·m | §3A | EM |
-| VI-MECH-03 | A286 pin with MoS₂ in the Ti-6Al-4V bushing: friction torque at −40 / +20 / +60 °C in vacuum before and after 50 deployment cycles and after protoflight random; bore and pin inspected | μ ≤ 0.15 cold throughout (zero margin at 0.26); no galling or film breakthrough | §5A (pin), §4A | EM |
-| VI-STR-05 | Deployment test, gravity off-loaded, high-speed video and an accelerometer on the wing, at ambient and at −40 °C and +60 °C; EL images of the cells before and after; repeated after protoflight random (TP-ENV-005) | Deploys within 5 s; stop torque ≤ 0.3 N·m; no cell cracks; rebound settles within 2 s | §5, STR-14 | EM (qual), flight after vibration |
-| VI-STR-06 | Burn-wire characterisation: ≥ 30 coupons of the flight line, resistor and preload at −40 °C and +20 °C in vacuum; then the flight energy setting | Flight energy per attempt ≥ 1.5 × (mean + 3σ) of the release energy at the minimum predicted temperature − 10 °C | §6, STR-15 | EM |
+| VI-STR-04 | Hinge torque test of each wing (EM, then flight): spring torque over the travel, pin friction and clock-spring flex torque at **−55**, +20 and +60 °C in vacuum (or dry N₂, §5A ground controls), each spring removed in turn | TM ≥ 0 with the 5017B Table 1 qualification-test factors (EM) and acceptance factors (flight, DDMR 11); one-spring-out ≥ 0; flex torque ≤ 0.55 mN·m at −55 °C (zero margin at 0.64) | §4A, STR-13 | EM; flight acceptance |
+| VI-MECH-01 | Spring-lot test: torque–angle of 5 springs of each type at −55/+20/+60 °C; stress relaxation held at the stowed angle for 30 days at +60 °C; then 50 cycles | Rate and torque within ±10 %; relaxation ≤ 5 %; no set after cycling | §3A (A.2.5.1) | Before EM assembly |
+| VI-MECH-02 | Clock-spring flex: 50 deployment cycles at −55 °C with continuity and insulation monitored; torque logged | No open or short; torque ≤ 0.55 mN·m | §3A | EM |
+| VI-MECH-03 | A286 pin with MoS₂ in the Ti-6Al-4V bushing: friction torque at −55 / +20 / +60 °C in vacuum before and after 50 deployment cycles and after protoflight random; bore and pin inspected (the film inspection of §5A) | μ ≤ 0.16 at −55 °C throughout (zero margin at 0.22); no galling or film breakthrough | §5A (pin), §4A | EM |
+| VI-STR-05 | Deployment test, gravity off-loaded, high-speed video and an accelerometer on the wing, at ambient (dry N₂) and at −55 °C and +60 °C; EL images of the cells before and after; repeated after protoflight random (TP-ENV-005) | Deploys within 5 s; stop torque ≤ 0.3 N·m; no cell cracks; rebound settles within 2 s | §5, STR-14 | EM (qual), flight after vibration |
+| VI-STR-06 | Burn-wire characterisation: ≥ 30 coupons of the flight line, resistor and preload at −55 °C and +20 °C in vacuum; then the flight energy setting | Flight energy per attempt ≥ 1.5 × (mean + 3σ) of the release energy at the minimum predicted temperature − 10 °C | §6, STR-15 | EM |
 | VI-STR-07 | Hold-down line: proof test of each flight line at 1.2 × limit (5001B Table 6) and a 30-day creep test at the preload | No failure; preload loss ≤ 30 % | STRUCTURAL_ANALYSIS §7, STR-17 | EM; each flight line |
-| VI-STR-10 | Deployment clearance: CAD sweep of both wings and all four AntS elements in the flight order, then the deployment test with the AntS | ≥ 10 mm clearance at every point of both sweeps | §7.2, STR-16 | CAD release; EM |
+| VI-STR-10 | Deployment clearance: CAD sweep of both wings and all four AntS elements in the flight order and in the contingency order, then the deployment test with the AntS | Flight order (wings, then AntS): every element ≥ 10 mm from both deployed wings over its whole sweep; contingency (a wing still stowed): ≥ 5 mm from the stowed wing (CAD 6.5 mm) | §7.2, STR-16 | CAD release; EM |
 
 ## 11. Revision History
 
@@ -360,3 +388,4 @@ stable only about the major axis of inertia. That is why the inertia ratio of MA
 | B | 2026-10-27 | Mechanical design (SQSO-MECH-CAD-001, MCAD-01) | Version A springs and R ≥ 5 mm flex shown not to fit the CDS envelope at the hinge line; new hinge (§3A): primary spring on the axis below the wing, secondary at +Z, MoS₂ pins, clock-spring flex at R 1.0–1.6 mm, PTFE-faced snubber, damped soft stop, no latch; torque margins recomputed (§4A: +0.14 cold end of travel, one spring out +0.13, springs +0.12 / +0.04 on yield); dynamics, stop and hold (§5A); VI-STR-04 amended, VI-MECH-01 and -02 added (`hardware/mechanical/hinge.py`) |
 | C | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: spin 8°/s (BASELINE Rev E §8) in the hinge-load statements and the frequency table (spin 0.022 Hz, nutation ≈ 0.004 Hz, scaled with the spin); hold-down drivers and the burn pack current from the EPS board (one 0.8 A driver per resistor, 0.67 A at the pack; SQSO-EPS-BRD-001 §9) |
 | D | 2026-10-27 | Mechanical design (SQSO-MECH-CAD-001, magnetometer zone) | Hinge pins 440C → A286 (non-ferromagnetic, 20 mm zone round the magnetometer board A2) with sputtered MoS₂ on the pin and burnished binder-free MoS₂ in the bore; pin strength at the end-of-travel impact and at launch (§5A: MS +3.3 yield, +4.6 ultimate); torque margins unchanged; VI-MECH-03 (friction and galling with the A286 pin) |
+| E | 2026-10-27 | Mechanical design (SQSO-MECH-CAD-001, review round 3) | Cold bound −55 °C (P3S-01): torque margin +0.08 at the end of travel (one spring out +0.07, qualification factors +0.29; +0.14 at −40 °C), resistive torques raised by allowance below −40 °C, burn release at −55 °C with the flight 8 s burn: ratio 1.52 (§4A, §6; `hinge.py` `T_COLD`, `burn_release`); VI-STR-04/-05/-06 and VI-MECH-01/-02/-03 at −55 °C; MoS₂ ground controls (humidity, dry N₂, cycle budget, film inspection; P3S-04, §5A); partial-deployment table from the CAD with W2-only and no-wing cases and the FSW presets (§1, §8; P3S-07); flight deployment timing and AntS interface brought up to `sqso_fsw::deployment` (§6, §7); one VI-STR-10 criterion (P3S-08) |

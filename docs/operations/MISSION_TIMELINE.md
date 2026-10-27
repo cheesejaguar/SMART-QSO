@@ -1,7 +1,7 @@
 # SMART-QSO Mission Timeline and Event Sequence
 
 **Document ID**: SQSO-MTL-001
-**Version**: 2.4
+**Version**: 2.5
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Draft for CDR. Times after separation are from the mission simulation and the pass analysis named in §1;
@@ -115,13 +115,14 @@ executed 28 of 28 (27 acknowledgements heard), with 144 dump frames (576 records
 | Day | Steps (`docs/operations/COMMISSIONING_PLAN.md`) | Passes used | Energy and state | Ground |
 |-----|---------------------------------------------------|-------------|------------------|--------|
 | 0–1 | C-1 acquisition, C-2 first command, C-3 TX-OFF proof | First 2–4 commanding passes | SOC ≈ 92 % from the end of day 0 | Ephemeris every pass and ≥ every 24 h until cataloged; identification by Doppler (SQSO-REG-015 §2) |
-| 1–3 | C-4 health and power characterization (orbit energy balance from the telemetry tail and `EPS_GET_TELEMETRY`) | 2 a day | Generation ≈ 2.5 Wh/orbit drawn against 2.25 Wh used (the regulator curtails the rest at full charge); depth of discharge ≤ 2.1 % per eclipse (35.4 min eclipse, β 19.6°) | Compare with the simulation's orbits.csv |
+| 1–3 | C-4 health and power characterization (orbit energy balance from the telemetry tail, HK1 and the daily `DUMP_TLM`) | 2 a day | Generation ≈ 2.5 Wh/orbit drawn against 2.25 Wh used (the regulator curtails the rest at full charge); depth of discharge ≤ 2.1 % per eclipse (35.4 min eclipse, β 19.6°) | Compare with the simulation's orbits.csv |
 | 2–4 | C-5 attitude: `ADCS_GET_ATTITUDE`, spin 8°/s, +Y within ≈ 4° of the Sun (mean 4.0°, BASELINE §8) | 2 a day | | |
 | 3–5 | C-6 beacon conformance (deviation, bandwidth, cadence, `SET_BEACON`, `SET_POWER`) | 2 a day | | Spectrum recorded at two stations |
-| 5–8 | C-7 transponder: first windows in commanded passes, then autonomous | 2 a day | Transponder keyed ≈ 38 min a day in the simulation (on 799 min a day; 96.9 % of demand served); duty 9.9 % | Public announcement only after C-7 passes |
+| 3–8 | C-7 commissioning release (`COMMISSIONING_RELEASE`) and transponder: first windows in commanded passes, then autonomous | 2 a day | Transponder keyed ≈ 38 min a day in the simulation (on 799 min a day; 96.9 % of demand served); duty 9.9 % | Public announcement only after C-7 passes |
 | 8–11 | C-8 payload (Jetson) batches and fallback | 2 a day | ≈ 0.036 Wh per accepted beacon | Filter sweep on the ground |
-| 11–13 | C-9 operations validation, contingency drill (`SAFE` and recovery) | 2 a day | | |
-| 14 | C-10 review; `SET_CONTACT_TIMEOUT` 14 days | 1 | SOC ≈ 92 % | Commissioning report |
+| From first contact | C-9 GNSS sessions (`GNSS_REQUEST`) and the operator ephemeris | Every pass | | Ephemeris after every pass until cataloged |
+| 11–13 | C-10 operations validation, contingency drill (`SAFE` and recovery) | 2 a day | | |
+| 14 | C-11 review; `SET_CONTACT_TIMEOUT` 14 days | 1 | SOC ≈ 92 % | Commissioning report |
 
 The order above is the plan, and the flight software now follows it: the commissioning hold keeps the spacecraft in
 IDLE, with the Jetson and the transponder off, until `COMMISSIONING_RELEASE` (S+36.7 h in the simulation; RID LV-01).
@@ -144,8 +145,10 @@ The simulation's full two-year mission (Rev E defaults) passivates at day 730 at
 burns is 0.43 W in the simulation: 0.20 Wh, 0.4 % of the pack (1.46 Wh with the board's detumble power and a cold pack,
 POWER_BUDGET_ANALYSIS §8.6). 33 % of the cases burn at S+30 min in eclipse, with the hold-downs cold. Energy is not the
 issue: one resistor takes 0.017 Wh, all four at the 12 s limit 0.10 Wh (`leop_feasibility.py` §2); release at the cold
-temperature is, and is not verified (VI-LV-17). The retries per element are 60 s apart (`deployment.rs`
-`RETRY_DELAY_MS`), so all of them happen in the same eclipse.
+temperature is, and is not verified (VI-LV-17). The retries per element are **50 minutes** apart (`deployment.rs`
+`RETRY_DELAY_MS`, RID LV-07): an eclipse lasts at most about 36 min and the orbit 94.1 min, so no two of an element's
+three attempts fall in the same eclipse and at least one is in sunlight, with the hold-down warm and the array helping
+the battery.
 
 ### 8.2 A deployable fails
 
@@ -184,9 +187,10 @@ are missed. Floor set: **≥ 40 % at separation** (LVR-071).
 The switches are power inhibits, so a bounce that cuts the power is a power-on reset: both counts restart from 0
 (`rf_silence.rs`, `deployment.rs`). A bounce that does not cut the power but is seen on the sense line also restarts
 both counts. Either way the effective start is the last release, so the 30- and 45-minute rules hold (CDS §2.3.2.4).
-A 1U leaves a 3U slot in about 0.1–0.2 s and nothing touches the switches afterwards. One failure mode remains: after
-completion the RF silence still restarts whenever the sense line reads stowed, so a sense line failed "stowed" in
-orbit keeps the radio silent indefinitely while the spacecraft is otherwise healthy (RID LV-15).
+A 1U leaves a 3U slot in about 0.1–0.2 s and nothing touches the switches afterwards. Once the 45-minute silence has
+completed it is **latched** (`rf_silence.rs`, SRS-F087; RID LV-15 closed): a stowed reading afterwards no longer
+restarts it, so a sense line that fails "stowed" in orbit cannot keep the radio silent (the NRCSD IDD §4.1.4(5) likewise
+limits the reset to the first 30 min).
 
 ### 8.6 No beacon heard
 
@@ -194,13 +198,16 @@ orbit keeps the radio silent indefinitely while the spacecraft is otherwise heal
 |----|--------|
 | S+2 h | Nothing expected yet from the Bay Area in most cases; check SatNOGS and the AMSAT network |
 | First Bay Area pass ≥ 15° | Search ± 10 kHz around the downlink (Doppler ± 3.5 kHz at 145.9 MHz); update the elements from the SpaceX state vector and the 18th SDS candidates |
-| S+24 h | Assume low SOC (§8.4) or a stowed antenna; keep listening every pass; send `GET_STATUS` blind on each pass (the receiver is on in every mode) |
+| S+24 h | Assume low SOC (§8.4) or a stowed antenna; keep listening every pass; send `GET_HOUSEKEEPING` blind on each pass (the receiver is on in every mode once the 45-minute silence is over) |
 | S+30 d | The loss-of-contact inhibit would stop the transmitter if no command was authenticated; it has no effect on a spacecraft that was never heard |
 
 ### 8.7 Unpowered clock
 
-The OBC has no real-time clock through storage (none is fitted; CDS §2.3.3 would allow one), so at separation the
-spacecraft knows only the time since boot (the beacon's `T=` field). UTC comes from the GNSS receiver once it runs, or
+A mission clock is fitted: the Micro Crystal RV-3028-C7 on the OBC, supplied by 3V3_RTC from the EPS's always-on rail
+3V3_AO (RID AV-10; HK2 `RT`). That rail is downstream of the deployment-switch inhibits, so the clock is **unpowered
+through integration and storage** and starts at separation with its power-loss flag set: the conclusion is unchanged,
+at separation the spacecraft knows only the time since boot (the beacon's `T=` field); afterwards the clock keeps time
+across OBC resets. UTC comes from the GNSS receiver once it runs, or
 from ground correlation of the first frames. Version 1.0's "time within 1 s of UTC at delivery" cannot be met and is
 withdrawn.
 
@@ -241,3 +248,4 @@ the simulation's 15° contact mask are conservative.
 | 2.2 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Re-run at the Rev E baseline with flight software round 2 (475 km, 2028-11-01, four burn lines): §5 LEOP table from the new commissioning run (magnetorquers from S+121 s, IDLE under the commissioning hold until `COMMISSIONING_RELEASE` at S+36.7 h, one wing resistor, then the AntS, orbit 1: 6.45 Wh generated against 0.89 Wh used; the §5 note removed) and from `leop_passes.py` at 475 km (eclipse at separation 33.3 %, ≤ 28.8 min); §6 pass budget and commissioning energy; §7 the full run's re-entry; §8 variants re-run (wings failed, low SOC, outage, eclipse); §9 items provided; §10 contact schedule |
 | 2.3 | 2026-10-27 | CDR S&MA analysis (decision C-14) | §10: the 15° commanding mask of the pass statistics and the simulation noted as conservative against the 10° commanding rule |
 | 2.4 | 2026-10-27 | CDR design (EPS board) | §3 shipped SoC aligned with SQSO-BSA-001 D §6 (≤ 30 % by air per the IATA 2026 guidance for PI 967; 60 % by road) |
+| 2.5 | 2026-10-27 | CDR round 3, launch and operations (finding P3A-07) | §8.1 deployment retries 50 min apart as coded (`RETRY_DELAY_MS`; was "60 s apart", all in one eclipse); §8.5 the RF silence latched after completion (LV-15; was "restarts after completion"); §8.6 `GET_HOUSEKEEPING` for the blind command; §8.7 the RV-3028 mission clock is fitted but unpowered in storage (the conclusion holds); §6 step numbers aligned with SQSO-COMM-001 2.1 (C-7 commissioning release, C-9 GNSS, C-10 validation, C-11 review) |

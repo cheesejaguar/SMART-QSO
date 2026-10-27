@@ -3,8 +3,8 @@
 # no stack connector) up through a deck opening to EPS J1 / J2 on the EPS bottom side in connector zone Z1 (-X, +Y),
 # with a service loop under the EPS: every wire 0.12 m, which keeps the leads' conductance at or below the 0.008 W/K the
 # thermal design carries. Pack leads 22 AWG (two per pole, 1.2 A worst per wire against 2.5 A derated), behind the
-# sense-board fuse F0 (FM12A72V5.0A, 5 A, BAT_TOP) and ahead of the EPS fuse F2; cell taps behind FT0-FT4 (FM12A72V3/4A,
-# 0.75 A: 83 % of 0.90 A derated 28 AWG). PTFE over-sleeve,
+# sense-board fuses F0A + F0B (BAT_TOP) and F0N (BAT_BOT, cell-1 negative), FM12A72V5.0A, and ahead of the EPS fuse F2;
+# cell taps behind 3 x 68.1 ohm and FT0-FT4 (FM12A72V3/4A): a tap short is limited to 82 mA. PTFE over-sleeve,
 # twisted quad, no metal clamps. Micro-Fit terminals take 20-24 AWG, Pico-Clasp 28-32 AWG.
 metadata:
   title: W1 Battery pack to EPS v3 (SQSO-HW-DIAG-001; SQSO-HAR-001 2.0)
@@ -17,7 +17,7 @@ options:
 connectors:
   BATT:
     type: battery sense board solder pads (flying leads)
-    subtype: staked within 10 mm of the pads; F0 in BAT_TOP, FT0-FT4 in the taps
+    subtype: staked within 10 mm of the pads; F0A, F0B in BAT_TOP, F0N in BAT_BOT, 3 x 68.1 ohm + FT0-FT4 in the taps
     notes: pack side; NTC2 returns to TAP0 inside the pack
     pinlabels: [BAT_TOP, BAT_TOP, BAT_BOT, BAT_BOT, NTC1, NTC1_RTN, HTR+, HTR-, TAP0, TAP1, TAP2, TAP3, TAP4, NTC2]
   J1:
@@ -46,7 +46,7 @@ cables:
     gauge: 28 AWG
     length: 0.12
     colors: [BK, BN, RD, OG, YE, WH]
-    notes: "M22759/33-28; sense only (balancing 18 mA); taps fused 0.75 A at the pack"
+    notes: "M22759/33-28; sense only (balancing 9 mA); a tap short is limited to 82 mA at the pack"
 
 connections:
   - - BATT: [1-4]

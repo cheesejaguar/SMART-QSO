@@ -135,9 +135,12 @@ def tasks(fm_at_risk: bool, em_funds: date = date(2027, 1, 15), fm_funds: date =
              ("EM_FAB", "EM_LL")),
         Task("EM_TEST", "EM development tests: Jetson heat path and burst energy, EM TVAC, pathfinder vibe,"
              " shock if VI-07 requires it, RF/EMC pre-scan, GNSS noise, antenna pattern", 8 * W, ("EM_INT",)),
+        Task("BATT_ABUSE", "Custom-battery abuse tests on sacrificial EM-design packs (BSA D §3.1, V-BSA-9;"
+             " Falcon 9 set, 3-4 weeks; ISS backup set 8-12 weeks)", 4 * W, ("EM_FAB",)),
         Task("FLATSAT_500H", "Reliability programme: >= 500 h powered on the EM boards with flight software"
              " (REL §6; ETP §6, VI-11)", 4 * W, ("EM_INT",)),
-        Task("CDR", "Independent CDR (Table G-7) with EM data", 1 * W, ("EM_TEST", "LAYOUT", "FLATSAT_500H")),
+        Task("CDR", "Independent CDR (Table G-7) with EM data", 1 * W, ("EM_TEST", "LAYOUT", "FLATSAT_500H",
+                                                                     "BATT_ABUSE")),
         Task("CDR_RID", "CDR RID closure", 3 * W, ("CDR",)),
         # ---- flight model
         Task("FUND_FM", "FM and launch funding committed (R11: decision by Q2 2027)", 0, snet=fm_funds),

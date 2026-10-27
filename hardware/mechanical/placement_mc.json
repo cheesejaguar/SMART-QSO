@@ -9,60 +9,60 @@
  ],
  "results": {
   "cbe_nominal": {
-   "angle_deg": 1.0204997365836939,
-   "ratio": 1.0557759967527924
+   "angle_deg": 1.147680737773946,
+   "ratio": 1.0557409823150015
   },
   "cbe_sigma1mm": {
-   "angle_mean_deg": 1.6360913974281432,
-   "angle_p95_deg": 3.687405404296445,
-   "within_5deg": 0.99,
-   "ratio_p5": 1.0501833438249133
+   "angle_mean_deg": 1.6890661096933917,
+   "angle_p95_deg": 3.8340177233109762,
+   "within_5deg": 0.9885,
+   "ratio_p5": 1.050151487530466
   },
   "cbe_sigma2mm": {
-   "angle_mean_deg": 2.774121967416332,
-   "angle_p95_deg": 6.328853842582497,
-   "within_5deg": 0.8645,
-   "ratio_p5": 1.0452247588714902
+   "angle_mean_deg": 2.8010215006548234,
+   "angle_p95_deg": 6.457183042686085,
+   "within_5deg": 0.858,
+   "ratio_p5": 1.0451846169331869
   },
   "cbe_sigma3mm": {
-   "angle_mean_deg": 4.1925078144946495,
-   "angle_p95_deg": 10.484287675489906,
-   "within_5deg": 0.667,
-   "ratio_p5": 1.0400376098567794
+   "angle_mean_deg": 4.214059355929702,
+   "angle_p95_deg": 10.421397126380201,
+   "within_5deg": 0.663,
+   "ratio_p5": 1.0399850441273777
   },
   "cbe_sigma5mm": {
-   "angle_mean_deg": 6.950785140684491,
-   "angle_p95_deg": 16.820127580180596,
-   "within_5deg": 0.4365,
-   "ratio_p5": 1.0297564512232902
+   "angle_mean_deg": 6.9656726736034456,
+   "angle_p95_deg": 16.998772797686865,
+   "within_5deg": 0.4385,
+   "ratio_p5": 1.0297274120928295
   },
   "mev_nominal": {
-   "angle_deg": 0.8820947552222493,
-   "ratio": 1.046805577760068
+   "angle_deg": 0.6872716844675544,
+   "ratio": 1.046778192257142
   },
   "mev_sigma1mm": {
-   "angle_mean_deg": 1.7808172980270731,
-   "angle_p95_deg": 4.0607762782793655,
-   "within_5deg": 0.985,
-   "ratio_p5": 1.041402126283879
+   "angle_mean_deg": 1.707406889401605,
+   "angle_p95_deg": 3.9077513114773197,
+   "within_5deg": 0.987,
+   "ratio_p5": 1.0413774371904154
   },
   "mev_sigma2mm": {
-   "angle_mean_deg": 3.168708459082492,
-   "angle_p95_deg": 7.789229539887155,
-   "within_5deg": 0.803,
-   "ratio_p5": 1.0366720224833528
+   "angle_mean_deg": 3.1316386684743263,
+   "angle_p95_deg": 7.61399899283544,
+   "within_5deg": 0.8025,
+   "ratio_p5": 1.0366422623296672
   },
   "mev_sigma3mm": {
-   "angle_mean_deg": 4.806797808727658,
-   "angle_p95_deg": 11.758162067181877,
+   "angle_mean_deg": 4.7893933013025585,
+   "angle_p95_deg": 11.769129331661919,
    "within_5deg": 0.6075,
-   "ratio_p5": 1.031363887796559
+   "ratio_p5": 1.0313586428721586
   },
   "mev_sigma5mm": {
-   "angle_mean_deg": 8.1765341695117,
-   "angle_p95_deg": 19.992727746943913,
-   "within_5deg": 0.383,
-   "ratio_p5": 1.0216531781414684
+   "angle_mean_deg": 8.17082020862511,
+   "angle_p95_deg": 20.083923724291687,
+   "within_5deg": 0.381,
+   "ratio_p5": 1.0216173433471862
   }
  }
 }

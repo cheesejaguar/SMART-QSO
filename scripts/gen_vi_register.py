@@ -107,18 +107,19 @@ EVENT_TASKS: Dict[str, Tuple[str, str, str]] = {
 WHEN_RULES: List[Tuple[str, str]] = [
     (r"\brfq\b|request(?:ed)? (?:in|with) the (?:rfq|quote)", "RFQ"),
     (r"before the em (?:order|procurement|buy)|em order|procurement|purchase|vendor quote|receiving inspection"
-     r"|before (?:the )?order", "PREORDER"),
+     r"|before (?:the )?order|\border\b|on receipt", "PREORDER"),
     (r"before (?:the )?(?:carrier |em |pcb )?layout|layout (?:release|freeze)|before pcb release|eps cdr", "PRELAYOUT"),
     (r"\bpdr\b", "PDR"),
     (r"contract|integrator(?:'s)? icd|mission icd|integrator", "CON"),
-    (r"before the em (?:pack|harness|assembly|build)|before em assembly|em harness build|em build", "EMB"),
+    (r"before the em (?:pack|harness|assembly|build)|before em assembly|em harness build|em build"
+     r"|first shipment of a pack", "EMB"),
     (r"flatsat|bench|\bhil\b|bring-up|(?:obc|eps|rf|carrier|payload|jetson|board) em\b|em board", "FS"),
     (r"\bem\b|engineering model|em thermal|\bemt\b|pathfinder", "EMT"),
     (r"\bcdr\b|before (?:the )?fm build|before the flight boards", "CDR"),
-    (r"flight (?:boards?|pack|lot)|fm boards?|before integration|each harness", "FMB"),
+    (r"flight[ -](?:boards?|pack|lot)|fm boards?|before integration|each harness", "FMB"),
     (r"\bfm\b|flight unit|flight model|flight article|integration\b", "FMI"),
-    (r"protoflight|\bpfe\b|environmental|after vibration", "PFE"),
-    (r"pre-ship|\bpsr\b|delivery|before ship", "PSR"),
+    (r"protoflight|\bpfe\b|environmental|after vibration|residual-dipole|dipole", "PFE"),
+    (r"pre-ship|\bpsr\b|delivery|before ship|before launch", "PSR"),
     (r"at integration|final charge", "INT"),
     (r"site is designated|station", "TCS"),
     (r"on orbit|commissioning|after launch|in orbit", "ORB"),
@@ -127,10 +128,17 @@ WHEN_RULES: List[Tuple[str, str]] = [
 #: Items whose defining document lacks a usable field: ID -> fields. "event" is an event code or a date; "why" is the
 #: reason (RID). The defining document's owner mirrors these in the next revision of that document.
 OVERRIDES: Dict[str, Dict[str, str]] = {
-    "VI-LV-12": {"status": "Closed by analysis (2026-10-27): every enclosed volume vents; ratios 3.2-9.4 m (RF shield"
-                           " cans, SQSO-RF-BRD-001 D §10), 1U gross volume 1.135 L over > 22.3 mm² of rail and panel"
-                           " gaps; no other sealed volume in the CAD (battery and Jetson mounts are open frames)",
-                 "why": "LV-19: the analysis needs no hardware; done from the CAD"},
+    **{f"AV-V{k}": {"event": "FS", "why": "ICD_OBC_ADCS §12.4 has no timing column: EM bench and flatsat"}
+       for k in (1, 2, 3, 5, 6, 8)},
+    "AV-V7": {"event": "PREORDER", "why": "ICD_OBC_ADCS §12.4 has no timing column: inspection of the ISIS ICD with"
+                                          " the AntS quote, before the EM order; EM test at the flatsat"},
+    "VI-RFB-12": {"event": "2026-11-13", "why": "RFB-10: dated in the RID and the CPM task RFB_PRE, before layout"},
+    "VI-LV-12": {"event": "2026-12-15", "owner": "Mechanical lead",
+                 "why": "LV-19: the analysis needs no hardware: from the CAD before the PDR package (DA-15); the RF"
+                        " shield cans are done (V/A 3.2-9.4 m, SQSO-RF-BRD-001 D §10)"},
+    "V-EMC-1": {"event": "EMT", "why": "the carrier EM is tested in the EM phase; 'layout freeze' is the FM carrier"
+                                      " layout (FM_LAYOUT, after the CDR)"},
+    "V-JET-2": {"event": "2027-02-01", "why": "JETB-06: NVIDIA guides by 2027-02-01, before the carrier layout (CPM JET_DG)"},
     "V-HAR-11": {"event": "PREORDER", "why": "SE-23: E595 data per part number before the EM order (2027-01-15)"},
     "V-HAR-3": {"event": "PREORDER", "why": "SE-23, EPSB-09: vendor drawings and gold part numbers before the EM order"},
     "VI-RFB-13": {"event": "2027-01-15", "why": "RFB-10: against the ISIS AntS ICD, obtained with the AntS quote,"
@@ -275,7 +283,8 @@ def parse_items(root: Path) -> Tuple[List[Item], List[str]]:
                 combined = get(column(header, "test and pass"))
                 head, sep, tail = combined.partition("Pass:")
                 test, criterion = (head, tail) if sep else (combined, combined)
-            when = " ".join(x for x in (get(i_art) if i_art != i_when else "", get(i_when)) if x)
+            art = get(i_art) if i_art != i_when else ""
+            when = get(i_when) if art.strip() == get(i_when).strip() else " ".join(x for x in (art, get(i_when)) if x)
             items.append(Item(ident, rel, n, plain(test), plain(criterion), plain(get(i_ver)), plain(when),
                               owner=OWNERS.get(rel, "Systems engineer")))
     return items, problems
@@ -411,7 +420,7 @@ def expand_ids(text: str) -> List[str]:
     """Item IDs cited in a RID's text, with ranges and lists expanded: VI-RFB-01..09, VI-01 to VI-06,
     VI-RF-01, 03, 08."""
     out: List[str] = []
-    for m in re.finditer(r"((?:VI|V)-(?:[A-Z0-9]+-)*)(\d{1,2})((?:\s*(?:\.\.|to|–|-)\s*(?:(?:VI|V)-(?:[A-Z0-9]+-)*)?\d{1,2})"
+    for m in re.finditer(r"\b((?:VI|V)-(?:[A-Z0-9]+-)*)(\d{1,2})((?:\s*(?:\.\.|to|–|-)\s*(?:(?:VI|V)-(?:[A-Z0-9]+-)*)?\d{1,2})"
                          r"|(?:,\s*\d{1,2}\b)+)?", text):
         prefix, first, rest = m.group(1), m.group(2), m.group(3) or ""
         width = len(first)
