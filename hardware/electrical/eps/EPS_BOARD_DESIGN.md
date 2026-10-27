@@ -13,7 +13,7 @@ generated), [`eps_calcs.py`](eps_calcs.py) (every computed value in this documen
 `python hardware/electrical/eps/design.py` and `python3 hardware/electrical/eps/eps_calcs.py`.
 
 **Governing documents**: `docs/BASELINE_PARAMETERS.md` Rev E (governs every value); `docs/hardware/EPS_DESIGN.md` 2.2
-(architecture); `hardware/electrical/INTERCONNECT.md` (SQSO-ICX-001, board-to-board pins); `hardware/eps/PDU_DESIGN.md` 1.3, `hardware/eps/EPS_ELECTRICAL_DESIGN.md` 1.3,
+(architecture); `hardware/electrical/INTERCONNECT.md` (SQSO-ICX-001 B, board-to-board pins and harness bundles); `hardware/eps/PDU_DESIGN.md` 1.3, `hardware/eps/EPS_ELECTRICAL_DESIGN.md` 1.3,
 `hardware/eps/BATTERY_DESIGN.md` 2.3, `hardware/eps/SOLAR_ARRAY_DESIGN.md` 2.1; `docs/environment/BATTERY_SAFETY_ASSESSMENT.md`
 (SQSO-BSA-001), `docs/environment/EMC_ANALYSIS.md` (SQSO-EMC-001), `docs/environment/POWER_BUDGET_ANALYSIS.md` (SQSO-PBA-001
 v2.0), `docs/environment/THERMAL_ANALYSIS.md` (SQSO-THA-001 v2.0), `docs/environment/RADIATION_ANALYSIS.md` Rev D §5.3;
@@ -493,7 +493,7 @@ clear), and the OBC still has the analog lines and the two INA228s. Programming 
 | J15–J17 | Pico-Clasp 3 | DS1, DS2, DS3 (C, NC, NO) | one harness per switch, on its own rail |
 | J18 | Micro-Fit 3.0 2×2, 0430450412 | VBAT_JET ×2, GND ×2 | W5 (change: VBAT, not 5 V) |
 | J19 | Micro-Fit 3.0 2×3 | PA 5 V switched ×2, GND ×3, radio 3.3 V switched | W4 (change) |
-| J20, J21 | Pico-Clasp 2 | ADCS sensor 3.3 V, GNSS 3.3 V | W6B to OBC J6, W9B to OBC J4 (there is no ADCS board; the OBC's GNSS translators take their receiver side from this rail) |
+| J20, J21 | Pico-Clasp 2 | ADCS sensor 3.3 V, GNSS 3.3 V | W6B to OBC J6 (J20 at the −X edge, +Y side), W9B to OBC J4 (J21 at the **+X edge, +Y side**, SQSO-ICX-001 B §2.1); there is no ADCS board; the OBC's GNSS translators take their receiver side from this rail |
 | J22 | FTSH 2×2 | EPS controller programming | GSE |
 
 ### 13.2 Control and status lines from the OBC (for the chair and the OBC designer)
@@ -631,6 +631,7 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 | Item | Requirement |
 |------|-------------|
 | Outline and mounting | PC/104 90.17 × 95.89 mm, four Ø3.18 mm holes at the PC/104 positions, keep-out Ø6.4 mm copper-free ring except the GND-bonded mounting hole H1 (single frame bond, star with AGND at U37); the frame vendor's stack drawing governs (BUILD_VS_BUY §2.2) |
+| Connector edges (harness bundles, SQSO-ICX-001 B §2.1) | J21 (W9B, GNSS 3.3 V) on the **+X edge, +Y side** (y +24 … +34), into the (+X, +Y) bundle; J20 (W6B) on the −X edge, +Y side, into the (−X, +Y) bundle; J18 (W5A) and J19 (W4B) on the −X edge, −Y side, into the (−X, −Y) bundle; the EPS-only connectors (J1, J2, J4–J17) where the harness design's wire list places them within the §2.1 allowances |
 | Stack-up | 6 layers, 1.6 mm, FR-4 Tg ≥ 170 °C (polyimide preferred for TVAC): L1 parts/power (2 oz), L2 GND, L3 power (PACK_P, VBAT, VTRK islands), L4 signals, L5 GND, L6 parts/power (2 oz); IPC-6012 Class 3/A |
 | Domains | PACK domain (U1, U2, Q1–Q3, Q6/Q7, F2/RT1/F3, RS6/RS7, J1/J2 area) in one corner on its own BAT_BOT copper, joined to GND only through Q6/Q7; U50 straddles the boundary; ≥ 1.0 mm gap between BAT_BOT and GND copper |
 | Power paths | pack line (J1 → F2 → RT1 → F3 → RS6 → Q1/Q2 → PACK_P → Q4 → Q5 → RS8): ≥ 3 mm/A on 2 oz outer layers, ≥ 2 A design current (5 A fuse); Kelvin sense to RS5–RS8 and RS20–RS23 |
@@ -718,4 +719,5 @@ derated limits with ≥ 17 K margin at +60 °C board (U17 93 °C against 110 °C
 |---------|------|--------|-------------|
 | A | 2026-10-27 | CDR design (EPS board) | Initial build-to design: schematic as code, BOM, ERC, calculations, interfaces, layout constraints, verification items |
 | B | 2026-10-27 | CDR design (EPS board) | Interconnect changes from SQSO-ICX-001 §7 (E1–E8): VJET_RB (J3-19) and VSW1_RB (J3-37) readbacks; SW11 U39 TPS1H000-Q1 VBAT_MTQ (J3-36/39, ADCS_EN, 0.32–0.40 A); 3V3_RTC (J3-38); J20 → OBC J6, J21 → OBC J4; OBC pins PB2, PF3, PE7, PF4, PG1, PF5; pack-current, stress and thermal tables recomputed; U17 transient Tj corrected to 93 °C (the calculation output; Version A quoted 79 °C) |
+| B (amended) | 2026-10-27 | CDR design (EPS board) | J21 placed on the +X edge, +Y side for W9B in the (+X, +Y) bundle (SQSO-ICX-001 B §2.1); connector-edge row added to §17; no netlist change |
 | B, note | 2026-10-27 | CDR consistency | Citations to BASELINE Rev E, RADIATION Rev D, ICD-001 v1.2; no OBC device on I2C2 (TMP235 analog); §21 item 9 rendered |
