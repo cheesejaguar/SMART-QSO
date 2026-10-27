@@ -59,7 +59,9 @@ link budget. Revision C replaces it.
 | **Total per station** | | | **≈ $4,900** |
 
 **Budget at these values (SQSO-LBA-001 v3.2, 475 km):** beacon +7.9 dB at 5° (median gain); telecommand at 25 W +7.8 dB
-at 5° (median gain, +6 dB interference) and +2.6 dB at 10° (10th-percentile gain); at 50 W +5.6 dB at 10°. The 50 W
+at 5° (median gain, +6 dB interference) and +2.6 dB at 10° (10th-percentile gain); at 50 W +5.6 dB at 10°. With the
+receiver as designed on the RF board (2 dB demodulator allowance, SQSO-LBA-001 v3.2 §6.4) 50 W gives +3.8 dB at 10°
+and +5.6 dB at the 15° commanding mask. The 50 W
 setting is the baseline for both stations (GND-R3 allows it everywhere in the United States).
 
 ### 3.2 Site criteria

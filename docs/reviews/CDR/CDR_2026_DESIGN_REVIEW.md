@@ -154,7 +154,7 @@ L-2 M licences and ephemeris demonstration).
 ## 6. RID log
 
 <!-- RID-SUMMARY-BEGIN -->
-289 RIDs: severity 1: 29, severity 2: 157, severity 3: 103.
+290 RIDs: severity 1: 29, severity 2: 157, severity 3: 104.
 
 | Disposition | Round 1 | Final |
 |-------------|---------|-------|
@@ -163,9 +163,9 @@ L-2 M licences and ephemeris demonstration).
 | Closed by chair decision | 36 | 35 |
 | Verification item | 41 | 40 |
 | Decision point (dated) | 13 | 13 |
-| Implementation | 75 | 18 |
+| Implementation | 76 | 19 |
 
-Open implementation RIDs: SE-01, SE-15, SE-16, SMA-15, AV-03, AV-12, AV-13, GNC-07, GNC-08, RFB-11, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, MCAD-08, OBCB-01, OBCB-02.
+Open implementation RIDs: SE-01, SE-15, SE-16, SMA-15, AV-03, AV-12, AV-13, FSW-14, GNC-07, GNC-08, RFB-11, EPSB-01, JETB-11, JETB-01, JETB-03, JETB-09, MCAD-08, OBCB-01, OBCB-02.
 <!-- RID-SUMMARY-END -->
 
 Severity 1 = mission or safety critical; 2 = must close before fabrication; 3 = should fix. "Round 1" is the
@@ -499,6 +499,7 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | FSW-11 | 3 | 3·10⁻⁴ nutation gain fails without a gyro | CD | Closed by design change | NUTATION_GAIN_NO_GYRO = 1·10⁻⁴ |
 | FSW-12 | 3 | Three documents name different magnetometers and gyros; L293D cannot run at 3.3 V | CD | Closed by design change | ADCS_DESIGN 1.5; ICD_OBC_ADCS §12 |
 | FSW-13 | 2 | OBC selector and transponder scheduler had no design | CD | Closed by design change | SQSO-PAY-SEL-001 (design complete; implementation post-CDR) |
+| FSW-14 | 3 | Repeated health-check faults log every 10 s: a low-SOC episode fills the 100-entry fault log in 17 minutes | IMP | Implementation | Log a repeated condition on onset and clearance with a count (flight software round 3) |
 
 #### Radiation (RAD)
 

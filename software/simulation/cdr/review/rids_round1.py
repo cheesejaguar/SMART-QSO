@@ -254,6 +254,7 @@ RIDS = [
     ("FSW-11", 3, "3·10⁻⁴ nutation gain fails without a gyro", "CD", "NUTATION_GAIN_NO_GYRO = 1·10⁻⁴"),
     ("FSW-12", 3, "Three documents name different magnetometers and gyros; L293D cannot run at 3.3 V", "CD", "ADCS_DESIGN 1.5; ICD_OBC_ADCS §12"),
     ("FSW-13", 2, "OBC selector and transponder scheduler had no design", "CD", "SQSO-PAY-SEL-001 (design complete; implementation post-CDR)"),
+    ("FSW-14", 3, "Repeated health-check faults log every 10 s: a low-SOC episode fills the 100-entry fault log in 17 minutes", "IMP", "Log a repeated condition on onset and clearance with a count (flight software round 3)"),
     ("RAD-01", 2, "Margin on 10 krad is 1.90×, below 2×", "CH", "BASELINE §6: ≥ 2.1 mm Al-equivalent by sector analysis"),
     ("RAD-02", 3, "SIL dose model low by 0.55-0.64", "IMP", "sqso-sil env/radiation.rs (round 2)"),
     ("RAD-03", 3, "Upset rate and mitigation claims unsupported", "CA", "RADIATION_ANALYSIS C §5"),

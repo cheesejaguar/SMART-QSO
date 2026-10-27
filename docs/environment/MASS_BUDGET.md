@@ -26,8 +26,8 @@ margin against each mass limit, the centre of gravity (CG) and the inertia tenso
 | Margin to the EXOpod Nova 1U limit, 2.5 kg | +44.7 % | +36.9 % |
 | Margin to the NRCSD backup limit, 2.40 kg | +38.9 % | +31.4 % |
 | CG, stowed (recommended layout, §5) | (−0.8, −0.7, −4.7) mm | (−1.2, −1.0, −4.5) mm |
-| CG, stowed, **from the CAD** (layout B as modelled, CBE / MEV; §6.6) | (+0.2, −0.0, −1.9) / (+0.3, −0.1, −0.7) mm | not modelled |
-| Deployed inertia **from the CAD** (AntS option A, CBE / MEV; §6.6) | Iyy/max(Ixx, Izz) 1.058 / 1.049; major axis 1.4° / 0.6° from +Y | not modelled |
+| CG, stowed, **from the CAD** (layout B as modelled, CBE / MEV; §6.6) | (+0.2, +0.1, −1.9) / (+0.2, +0.0, −0.7) mm | not modelled |
+| Deployed inertia **from the CAD** (four AntS elements: 2 m ±X, 70 cm ±Y; CBE / MEV; §6.6) | Iyy/max(Ixx, Izz) **1.045 / 1.037** (≥ 1.03 met by 0.007 with growth); major axis 1.7° / 0.5° from +Y | not modelled |
 | CG limit | ±20 mm per axis (CDS Rev 14.1 §2.2.11, Table 2) | same |
 
 Margin as defined by AIAA S-120A: (limit − MEV)/MEV. Both options are green at CDR by the guidance quoted in §2.2
@@ -68,9 +68,10 @@ option) on one or more solids; the CAD total equals the MEL total exactly (1,494
 section), so **the MEL masses and margins are those of §3.1**. What changes is the geometry behind §5 and §6: the CAD places each part where it
 fits (no overlaps, checked by boolean intersection) instead of the reference layout's free boxes, uses the bought parts'
 published envelopes (CR0002 rods 10.5 × 10.5 × 47 mm, not 70 mm; AntS 98 × 98 × 7 mm on a −Z face recessed 1.5 mm), the
-antenna configuration the chair adopted (option A: one 2 m element along +X, one 70 cm element along −X; BASELINE §7) and
+antenna configuration of the RF design and BASELINE Rev E §7 (four ISIS AntS elements: 2 m along ±X, 70 cm along ±Y; the
+first CAD issue carried only two, 2 m +X and 70 cm −X) and
 a placement chosen to cancel the product of inertia Iyz (§6.6). Results: the stowed CG moves from −4.7 to −1.9 mm in Z
-(CBE); the deployed inertia is 3 % lower on every axis; the deployed major axis is within 1.4° (CBE) and 0.6° (MEV) of +Y,
+(CBE); the deployed inertia is 3 % lower on every axis; the deployed major axis is within 1.7° (CBE) and 0.5° (MEV) of +Y,
 where the reference layout gave 13–15°, which did not meet the BASELINE §4 limit of 5°. **Row 5 (internal brackets,
 30 g CBE) is re-split, not grown (finding MCAD-02 of SQSO-MECH-CAD-001):** the torquer deck that the CAD adds (X rod, GNSS
 receiver) is a 1.0 mm Al skeleton of 7.8 g (a solid plate would be 23 g) and takes 9 g with its clips; the Jetson
@@ -224,10 +225,10 @@ The AntS VHF elements are taken along ±X (parallel to the wings) unless stated;
 
 | Case | Layout A, rods | Layout B, rods | Layout B, coils | **Layout B, rods, CAD (v3.1)** | Limit |
 |------|----------------|----------------|-----------------|--------------------------------|-------|
-| Stowed, CBE (x, y, z) | (−0.8, −0.7, −4.8) mm | (−0.8, −0.7, −4.7) mm | (−1.2, −1.0, −4.5) mm | **(+0.2, −0.0, −1.9) mm** | ±20 mm |
-| Stowed, MEV | (−0.7, −0.6, −4.3) mm | (−0.7, −0.6, −3.7) mm | (−1.1, −1.0, −3.6) mm | **(+0.3, −0.1, −0.7) mm** | ±20 mm |
-| Deployed, CBE | (−0.8, +2.2, −4.8) mm | (−0.8, +2.2, −4.7) mm | (−1.2, +1.7, −4.5) mm | (+0.6, +2.2, −1.9) mm | — |
-| One wing deployed (W1) | (+0.6, +0.8, −4.8) mm | (+0.6, +0.8, −4.7) mm | (+0.2, +0.3, −4.5) mm | (+1.9, +1.1, −1.9) mm | — |
+| Stowed, CBE (x, y, z) | (−0.8, −0.7, −4.8) mm | (−0.8, −0.7, −4.7) mm | (−1.2, −1.0, −4.5) mm | **(+0.2, +0.1, −1.9) mm** | ±20 mm |
+| Stowed, MEV | (−0.7, −0.6, −4.3) mm | (−0.7, −0.6, −3.7) mm | (−1.1, −1.0, −3.6) mm | **(+0.2, +0.0, −0.7) mm** | ±20 mm |
+| Deployed, CBE | (−0.8, +2.2, −4.8) mm | (−0.8, +2.2, −4.7) mm | (−1.2, +1.7, −4.5) mm | (+0.2, +2.3, −1.9) mm | — |
+| One wing deployed (W1) | (+0.6, +0.8, −4.8) mm | (+0.6, +0.8, −4.7) mm | (+0.2, +0.3, −4.5) mm | (+1.4, +1.1, −1.9) mm | — |
 
 Placement uncertainty: moving every item independently by ±5 mm (1σ) per axis moves the CG by 1.2 mm (1σ). The stowed CG
 is within 5 mm of the geometric centre, with ≥ 15 mm margin to the CDS limit on every axis. The −Z offset comes from the
@@ -254,14 +255,14 @@ About the CG, kg·m² (×10⁻³), body axes. "VHF along X": the two AntS VHF ta
 | B coils, deployed, MEV | 3.606 | 5.154 | 5.049 | −0.001 | −0.014 | −0.025 | 3.606, 5.043, 5.160 | 13° | 1.021 |
 | B rods, one wing (W1) deployed, CBE | 2.867 | 3.950 | 3.742 | — | — | — | 2.819, 3.742, 3.998 | 12.5° | 1.056 |
 | B rods, no wing deployed, antennas out, CBE | 2.824 | 3.587 | 3.337 | — | — | — | 2.822, 3.336, 3.590 | 5.4° | 1.075 |
-| **CAD (v3.1), B rods, AntS option A, stowed, CBE** | 2.713 | 3.080 | 2.799 | −0.011 | +0.005 | +0.024 | 2.712, 2.798, 3.082 | 5.1° | 1.100 |
-| **CAD, stowed, MEV** | 3.129 | 3.558 | 3.276 | −0.015 | +0.004 | +0.029 | 3.128, 3.273, 3.561 | 6.1° | 1.086 |
-| **CAD, deployed, CBE** | **2.776** | **3.964** | **3.747** | −0.009 | +0.035 | −0.005 | 2.775, 3.748, 3.964 | **1.4°** | **1.058** |
-| **CAD, deployed, MEV** | **3.200** | **4.525** | **4.314** | −0.013 | +0.037 | +0.001 | 3.198, 4.315, 4.525 | **0.6°** | **1.049** |
-| CAD, deployed, CBE, MEL hybrid antennas (2 m ±X, 70 cm ±Y; compare row 8) | 2.814 | 4.217 | 4.038 | −0.010 | +0.005 | −0.005 | 2.814, 4.038, 4.217 | 1.5° | 1.044 |
-| CAD, deployed, MEV, MEL hybrid antennas (compare row 9) | 3.240 | 4.793 | 4.623 | −0.014 | +0.004 | +0.001 | 3.240, 4.623, 4.793 | 0.6° | 1.037 |
-| CAD, W1 deployed only, CBE | 2.742 | 3.664 | 3.414 | −0.172 | +0.025 | +0.006 | — | 10.2° | 1.073 |
-| CAD, antennas out, wings stowed, CBE | 2.705 | 3.374 | 3.085 | −0.011 | +0.035 | +0.016 | — | 3.2° | 1.094 |
+| **CAD (v3.1), B rods, four AntS elements (2 m ±X, 70 cm ±Y), stowed, CBE** | 2.716 | 3.077 | 2.801 | −0.009 | +0.001 | +0.032 | 2.716, 2.797, 3.081 | 6.7° | 1.099 |
+| **CAD, stowed, MEV** | 3.133 | 3.554 | 3.277 | −0.013 | −0.001 | +0.037 | 3.133, 3.272, 3.560 | 7.7° | 1.085 |
+| **CAD, deployed, CBE (compare row 8)** | **2.813** | **4.215** | **4.035** | −0.009 | +0.001 | −0.005 | 2.813, 4.035, 4.215 | **1.7°** | **1.045** |
+| **CAD, deployed, MEV (compare row 9)** | **3.239** | **4.791** | **4.619** | −0.012 | −0.001 | +0.000 | 3.239, 4.619, 4.791 | **0.5°** | **1.037** |
+| CAD, deployed, CBE, two elements only (2 m +X, 70 cm −X; the former option A) | 2.775 | 3.962 | 3.744 | −0.007 | +0.032 | −0.005 | 2.774, 3.745, 3.962 | 1.5° | 1.058 |
+| CAD, deployed, MEV, two elements only | 3.198 | 4.523 | 4.311 | −0.011 | +0.032 | +0.000 | 3.197, 4.312, 4.523 | 0.5° | 1.049 |
+| CAD, W1 deployed only, CBE | 2.779 | 3.917 | 3.704 | −0.172 | −0.010 | +0.005 | — | 8.6° | 1.058 |
+| CAD, antennas out, wings stowed, CBE | 2.742 | 3.625 | 3.374 | −0.010 | +0.001 | +0.016 | — | 3.6° | 1.074 |
 
 The CAD rows use the tensor convention of the rows above (off-diagonal terms are −Σ m·x·y and so on); the reference-layout
 rows were written with the same convention.
@@ -359,8 +360,8 @@ and runs every case above; it needs a tree that compiles). The runs above were m
 ### 6.5 Corrected Values for the Flight Software and the Simulation (for the chair)
 
 - `sqso_fsw::adcs::INERTIA`: Version 3.0 proposed **(0.0032, 0.0046, 0.0044) kg·m²** (reference layout B, hybrid
-  antennas, mean of CBE and MEV). **Version 3.1, from the CAD (§6.6), antenna option A, mean of CBE and MEV:
-  (0.0030, 0.0042, 0.0040) kg·m²** (diagonal; the products are below 3.3 × 10⁻⁵ kg·m², Ixz the largest). To be replaced
+  antennas, mean of CBE and MEV). **Version 3.1, from the CAD (§6.6), four AntS elements, mean of CBE and MEV:
+  (0.0030, 0.0045, 0.0043) kg·m²** (diagonal; the products are below 3.3 × 10⁻⁵ kg·m², Ixz the largest). To be replaced
   by the measured stowed inertia plus the weighed wings before flight. For coils (reference layout only):
   (0.0034, 0.0049, 0.0047).
 - Mission simulation (`sqso-sil/src/env/attitude.rs`): use the full inertia tensor of §6.1 (products included), the
@@ -377,13 +378,13 @@ its own inertia is included (not only its CG). Differences from the reference la
 | Item | Reference layout (§4) | CAD (v3.1) | Effect |
 |------|------------------------|-----------|--------|
 | AntS face | Outside −Z, centre −53 mm | Housing z −55.5 to −48.5 (−Z face recessed 1.5 mm, STR-11) | +1 mm |
-| Antenna elements, deployed | Hybrid: 2 m ±X, 70 cm ±Y | Option A (chair): one 2 m tape along +X, one 70 cm along −X | Iyy, Izz −0.25 × 10⁻³ |
+| Antenna elements, deployed | Hybrid: 2 m ±X, 70 cm ±Y | The same four ISIS AntS elements (2 m ±X, 70 cm ±Y; the first CAD issue had two) | — |
 | Battery | Centre −35 mm, 74 × 65 × 18.5 box | Four cells along X, centre −32.9 mm, clamp −44.9 to −20.9, on isolators at (±38.5, ±31) | Ixx, Iyy −0.02 × 10⁻³ |
 | Magnetorquer rods | 70 × 10 mm bars | CR0002 10.5 × 10.5 × 47 mm (published): X on the deck at (0, +36, −10), Y beside the battery at (+42, 0, −33), Z at (−41.5, 0) from −44 to +3 through notches in the deck and the EPS board | small |
 | Boards | Boxes 90 × 96 × 6–12 mm at −12 … +36 | PC/104 substrates and component envelopes: EPS −3.0, OBC +5.0, carrier +18.0, module +23.6, spreader +27.8, RF +34.8 (substrate bottom z) | CG +1 to +3 mm in Z |
 | Jetson module and spreader | Centred | Module centred at y −6, spreader at y −3, SO-DIMM on the −Y edge, centre supports at (0, ±21): chosen to cancel Iyz | Iyz → 0 |
 | RBF, access port | (20, −47, −20) | −Y face, −Z end zone of the panel (no cells there): (±20, −50, −43) | Iyz |
-| Gyro M-G370PDT0 (row 25) | Inside the OBC box | On the OBC in its socket at (−20, +30.5), 14.0 mm high, through a window in the carrier with a 2.2 g Al stiffening frame (OBC item C3) | with the carrier items below: axis 1.4° / 0.6° (from 0.2° / 1.6°) |
+| Gyro M-G370PDT0 (row 25) | Inside the OBC box | On the OBC in its socket at (−20, +30.5), 14.0 mm high, through a window in the carrier with a 2.2 g Al stiffening frame (OBC item C3) | with the carrier items below: axis 1.5° / 0.5° with two antenna elements (from 0.2° / 1.6°) |
 | Magnetometer (rows 24, 26; OBC item C13) | Module box at (+30, +30, −46) | Board A2 (RM3100) in the +Z slot at (+24, +27), board on the end frame and parts below it; Ti screws (row 24's 10 g and row 26's 2 g kept: no MEL change) | small (CG and inertia as for the slot allocation) |
 | Jetson thermal interface (rows 20–23; SQSO-JET-BRD-001 §14) | Spreader plate on a TIM layer | Spreader pedestal 22 × 22 × 0.75 mm over the SoC lid and a 0.5 mm second face (1.8 g Al, row 23), gap pads 1.0 / 2.0 mm (row 22), steel module standoffs MP2/MP3 (0.8 g, row 21) | small |
 | Harness | One 90 mm box | Four bundles in the ±X wall gaps at y = ±(24 … 34) mm, full height | Ixy, Iyz → 0 |
@@ -394,17 +395,19 @@ its own inertia is included (not only its CG). Differences from the reference la
 Iyy − Izz is only 0.17 × 10⁻³ kg·m², a product Iyz of 4 × 10⁻⁵ tilts it by 13°. The CG offset in Y that the deployed
 wings cause (+2.0 mm) multiplies every item that sits far from the CG in Z. The CAD cancels Iyz by placement only (no
 ballast): moving the Jetson module, its clamp and the spreader to y = −6 mm, the RBF and the access port to the −Y face
-and the harness into four symmetric bundles brings Iyz to −4.6 × 10⁻⁶ (CBE) and +1.1 × 10⁻⁶ kg·m² (MEV), and the axis to
-1.4° and 0.6°. **The result is sensitive to placement**: moving every internal part independently by a Gaussian error
+and the harness into four symmetric bundles brings Iyz to −5.1 × 10⁻⁶ (CBE) and +0.5 × 10⁻⁶ kg·m² (MEV), and the axis to
+1.7° and 0.5° (four AntS elements). **The result is sensitive to placement**: moving every internal part independently by a Gaussian error
 of σ per axis (2,000 trials; frame, panels, wings and AntS held) gives
 
 | σ per axis | Mean angle CBE / MEV | 95th percentile CBE / MEV | Within 5°, CBE / MEV | Iyy/max(Ixx, Izz), 5th percentile CBE / MEV |
 |------------|----------------------|---------------------------|----------------------|---------------------------------------------|
-| 1 mm | 1.8° / 1.7° | 4.0° / 3.9° | 98.8 % / 98.9 % | 1.052 / 1.044 |
-| 2 mm | 2.9° / 3.2° | 7.0° / 7.6° | 83.8 % / 80.6 % | 1.047 / 1.038 |
-| 5 mm | 7.3° / 8.2° | 17.4° / 19.9° | 41.9 % / 37.3 % | 1.030 / 1.022 |
+| 1 mm | 2.1° / 2.0° | 4.7° / 4.5° | 96.3 % / 97.2 % | 1.039 / 1.032 |
+| 2 mm | 3.5° / 4.0° | 8.3° / 9.8° | 75.1 % / 69.1 % | 1.034 / 1.027 |
+| 5 mm | 8.6° / 10.3° | 20.8° / 27.1° | 35.5 % / 31.3 % | 1.019 / 1.012 |
 
-The ratio requirement (≥ 1.03) holds for placement errors up to about 3 mm; the 5° requirement needs the as-built
+The ratio requirement (≥ 1.03) holds with growth for placement errors up to about 1.5 mm (four elements; the fix if the
+measured unit falls short is 2 × 10 g of ballast on the Z axis at the end frames, +0.011 on the ratio,
+SQSO-MECH-CAD-001 §5.2); the 5° requirement needs the as-built
 products of inertia within about ±1.5 × 10⁻⁵ kg·m², which only a drawing-controlled layout and a measured, trimmed flight
 unit can give. **Proposed design provision (SQSO-MECH-CAD-001 §5.4): two 5 g trim-mass positions** at the ±Y edges of
 the +Z end frame (each 5 g at y = ±45 mm, z = +49 mm moves Iyz by ∓1.1 × 10⁻⁵ kg·m², about 3° of axis tilt), set after
@@ -451,4 +454,4 @@ and delete the "Mass, under review" row.
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial CDR release |
 | 2.0 | 2026-10-16 | Funding audit (TB-06) | Re-issued as a bottom-up MEL with maturity-based growth allowances and one limit (2.00 kg, CDS Rev 14.1); CBE 1.69 kg, predicted 1.92–2.00 kg |
 | 3.0 | 2026-10-27 | CDR structures review (STR-01, STR-02, STR-03) | MEL rebuilt for the build-versus-buy configuration (two magnetorquer options): CBE 1.49/1.57 kg, MEV 1.73/1.82 kg, margin +15.9/+9.6 %; catalogue maturity code C1/C2; CG and full inertia tensor from a reference layout; ADCS Monte Carlo re-run with the computed inertia (the published result needs Iyy/Izz ≥ 1.03); recommended stack order and AntS clocking; corrected flight inertia constant and proposed BASELINE §4 rows for the chair |
-| 3.1 | 2026-10-27 | Mechanical design (SQSO-MECH-CAD-001) | CAD reconciliation: MEL masses and margins unchanged (the CAD carries every row exactly); CG and full inertia tensor from the CAD solids of layout B with AntS option A (§1, §5, §6.1 rows, §6.6): stowed CG (+0.2, −0.0, −1.9) mm CBE, deployed Iyy/max 1.058 CBE / 1.049 MEV, major axis 1.4° / 0.6° from +Y after placement balancing; placement Monte Carlo and trim-mass provision; corrected flight inertia constant (§6.5); products-of-inertia measurement added (§8); row 5 re-split for the skeleton torquer deck (MCAD-02, no MEL change, §1.2); two centre supports per board > 50 g (chair decision) noted against row 34; wing hinge hardware of SQSO-MECH-001 B; gyro in its socket through a window in the Jetson carrier (OBC item C3), Jetson carrier item M1 (row 23 raised to 66.6 g for the spreader's SoC pedestal: CBE 1,494.3 g, MEV 1,727.7 g, margin +15.8 % with rods, +9.5 % with coils; gap pads, module standoffs, flush fastener at (0, −21)); magnetometer board A2 in the +Z slot (OBC item C13; MEL row 24 unchanged); 2.0 mm carrier without the window frame, the (+X, −Y) harness bundle narrowed above z −26 for the W4A ribbon (ICX E12); mass properties recomputed (CBE CG z −1.9 mm, axis 1.4° / 0.6°) |
+| 3.1 | 2026-10-27 | Mechanical design (SQSO-MECH-CAD-001) | CAD reconciliation: MEL masses and margins unchanged (the CAD carries every row exactly); CG and full inertia tensor from the CAD solids of layout B with AntS option A (§1, §5, §6.1 rows, §6.6): stowed CG (+0.2, +0.1, −1.9) mm CBE, deployed Iyy/max 1.045 CBE / 1.037 MEV with the four AntS elements, major axis 1.7° / 0.5° from +Y after placement balancing; placement Monte Carlo and trim-mass provision; corrected flight inertia constant (§6.5); products-of-inertia measurement added (§8); row 5 re-split for the skeleton torquer deck (MCAD-02, no MEL change, §1.2); two centre supports per board > 50 g (chair decision) noted against row 34; wing hinge hardware of SQSO-MECH-001 B; gyro in its socket through a window in the Jetson carrier (OBC item C3), Jetson carrier item M1 (row 23 raised to 66.6 g for the spreader's SoC pedestal: CBE 1,494.3 g, MEV 1,727.7 g, margin +15.8 % with rods, +9.5 % with coils; gap pads, module standoffs, flush fastener at (0, −21)); magnetometer board A2 in the +Z slot (OBC item C13; MEL row 24 unchanged); 2.0 mm carrier without the window frame, the (+X, −Y) harness bundle narrowed above z −26 for the W4A ribbon (ICX E12); four AntS elements modelled (2 m ±X, 70 cm ±Y; ratio 1.045 / 1.037), the RF board's MMCX jacks and W10 coax; mass properties recomputed (CBE CG z −1.9 mm, axis 1.7° / 0.5°) |

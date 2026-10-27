@@ -1,7 +1,7 @@
 # Mission Simulation (Software in the Loop)
 
 **Document ID**: SQSO-SIL-001
-**Version**: C
+**Version**: D
 **Date**: 2026-10-27
 **Status**: Draft
 
@@ -166,27 +166,39 @@ suites run that way, unchanged except where SIL-06 changed a specified value.
 
 ## 7. Results
 
-The reference run: `--scenario full`, seed 20280601, deployment 2028-06-01 06:00 UTC, 500 km sun-synchronous at
-LTAN 22:30, 730 days of operations. It found **0 anomalies and 0 warnings in 37 checks** (about 15 minutes on one
-core). Revision B's values are with the 1.4 ADCS gains, the 6°/s spin, the M-G370PDT0 gyro model and the 4.10 V
-charge set point. The main values:
+The reference run: `--scenario full`, seed 20280601, integration 2028-09-15, deployment 2028-11-01 06:00 UTC, 475 km
+sun-synchronous at LTAN 22:30, 730 days of operations, passivation by telecommand, then the decay to re-entry. It found
+**0 anomalies and 0 warnings in 42 checks** (about 28 minutes on one core; 732 days simulated, 11,225 orbits).
+Revision C's values are with the flight software of the CDR round 2 (8°/s spin, the CAD inertia tensor of MASS_BUDGET
+v3.1, the four burn lines, stored housekeeping, acknowledgements, receiver recovery, passivation by telecommand), the
+LBA v3.0 link model and the 207 Ω heater. The main values:
 
 | Area | Result |
 |------|--------|
-| LEOP | First burn 30.0 min and first RF 45.0 min after separation; antennas and wings sensed deployed at 30.1 min; detumbled (rate across +Y below 0.5°/s) after 0.8 h |
-| Attitude | Spin about +Y at 6.0°/s; in sunlight +Y within 2.3° of the Sun on average (95th percentile 4.3°, 99.9 % of the time within 15°); 3.5° on average at eclipse exit. The samples beyond 15° are just after three of the single-event resets and after passivation, when the OBC goes dark |
-| Power | Depth of discharge at most 3.2 % per eclipse in operations (median 0.9 %); lowest SOC in operations 90.4 % (the 4.10 V set point is about 91 % of the rated capacity); 26,650 Wh drawn from the array and 23,687 Wh used, the regulator curtailing the rest at full charge; capacity fade 1.4 %; gauge error at most 0.5 % |
-| Thermal | Battery +0.5 to +20.3 °C, never outside the charge window; OBC −12.0 to +27.7 °C; PA at most 27.0 °C; Jetson at most 30.4 °C |
-| Downlink | 1.40 s longest key-down, 2.2 % worst 60 s duty; longest beacon gap 169 s; 96.9 % of 29,795 passes with a beacon decoded (98.8 % in revision A, at 2°/s); no frame while not permitted |
-| Transponder | Enabled about 900 min and keyed about 57 min a day; at most 15.0 % of an orbit keyed; 98.0 % of the uplink demand repeated while its gates held; never radiating while not permitted; 168 s in all (0.01 % of its keyed time) within one pass of an eclipse entry |
-| Jetson | 174,302 beacons with Jetson text; 0.036 Wh per accepted beacon (gate 0.1 Wh) |
-| Operations | 1,443 of 1,454 telecommands executed (the rest lost on the link), no authentication failure, no loss-of-contact inhibit; 5 single-event OBC resets, each recovered through DETUMBLE; 1 Jetson latch-up, the rail cut by the guard after 1.0 s; no watchdog reset or brownout; OBC availability 100.000 % |
-| End of life | TX-OFF and passivation at day 730; no charge into the pack afterwards; re-entry 3.03 years after the design life (5.03 years after deployment) |
+| LEOP | First burn 30.0 min and first RF 45.0 min after separation; wings sensed deployed at 30.2 min, antennas at 30.6 min; at most one burn resistor on at once; detumbled (rate across +Y below 0.5°/s) after 0.2 h |
+| Attitude | Spin about +Y at 8.05°/s (median in sunlight, ACTIVE); in sunlight +Y within 1.8° of the Sun on average (95th percentile 3.5°, 99.98 % of the time within 15°); at the first record after each eclipse exit 2.6° on average (median 2.6°, 95th percentile 4.6°; 10-minute records). The 1.9 h beyond 15° are the first Sun acquisition, 22 to 36 min after separation, and the spin-up after five of the nine single-event resets (days 66, 94, 188, 328 and 609) |
+| Power | Depth of discharge at most 3.7 % per eclipse (2.7 % after commissioning, median 1.0 %); lowest SOC in operations 90.1 %; 30,599 Wh drawn from the array and 27,209 Wh used, the regulator curtailing the rest at full charge; capacity fade 1.6 %; gauge error at most 0.4 % |
+| Thermal | Battery +4.9 to +20.0 °C, never outside the charge window; OBC −10.9 to +20.5 °C; PA at most 20.0 °C; Jetson at most 20.9 °C |
+| Downlink | 2.20 s longest key-down, 20.7 % worst 60 s duty (the dump frames included); longest beacon gap 249 s; 95.3 % of 28,542 passes with a beacon decoded; 1,259,310 frames, none while not permitted |
+| Transponder | Enabled about 889 min and keyed about 53 min a day; at most 15.0 % of an orbit keyed; 96.7 % of the uplink demand repeated while its gates held; never radiating while not permitted; 145 s in all (0.01 % of its keyed time) within one pass of an eclipse entry |
+| Jetson | 173,082 beacons with Jetson text from 9,596 power-ons; 0.036 Wh per accepted beacon (gate 0.1 Wh) |
+| Operations | 1,372 of 1,401 telecommands executed (the rest lost on the link), no authentication failure, no loss-of-contact inhibit; 1,370 acknowledgements radiated (99.9 %); 8,664 dump frames with 34,656 stored records; 9 single-event OBC resets, each recovered through DETUMBLE; 7 command-receiver hangs, each cleared by the flight software's power cycle (longest 24.4 h); no Jetson latch-up in this seed; no watchdog reset or brownout; OBC availability 100.000 %; total dose 4.9 krad |
+| End of life | PASSIVATE_ARM and PASSIVATE_EXECUTE at day 730.1, the charge path opened by EOL_ARM then EOL_FIRE; no charge into the pack afterwards; the OBC dark 2.0 days later; re-entry 2.02 years after the design life (4.02 years after deployment) |
 
-The battery sits near full charge for most of the mission (revision A found the same at 4.20 V). The charge set point
-is now 4.10 V a cell (SIL-18; BUILD_VS_BUY §7). The same run at 4.20 V (`--set charge_v_cell=4.20`) also passes every
-check, with the same 1.4 % fade: the model's calendar fade depends on the state of charge only linearly, so it cannot
-show the benefit the published data give a lower set point (§8).
+The fault log of the run (its texts and counts are in `summary.json`) needs a reading:
+
+- The 6,740 "Low SOC in health check" and 3,044 "Low battery voltage detected" entries all fall on days 731 and 732,
+  between 1.25 days after passivation and the OBC going dark: the pack drains with the array disconnected. None is in
+  storage, LEOP or operations. They come every 10 s (the health check's period and each battery-voltage read), so a
+  low-SOC episode fills the 100-entry fault log in about 17 minutes. In operations the 30 % health threshold would be
+  crossed only on the way to the SAFE entry at 25 %, and would then push the earlier entries out of the log within the
+  hour; rate-limiting the two messages (log the onset, not every sample) is a candidate change for the flight software.
+- "SAFE" (1) and "EMERGENCY" (1) are the operating-state changes the state machine logs; both are after passivation
+  (SOC 24 % and 14 %), so the `safe-entries` check, which counts after commissioning and before passivation, is 0.
+  "Entered SAFE mode" (12) is the EPS power mode, not the operating state: each of the 11 boots (integration, separation
+  and the nine single-event resets) starts in the SAFE power mode before the mode manager raises it within the same pass,
+  and the twelfth is the post-passivation SAFE. "DETUMBLE", "IDLE" and "ACTIVE" are likewise the state changes after
+  each boot.
 
 ## 8. Limits and open items
 
@@ -206,3 +218,11 @@ show the benefit the published data give a lower set point (§8).
 - The battery's calendar fade depends on the state of charge only linearly in the model. Published data show a
   larger benefit from a lower end-of-charge voltage than the model gives (SIL-18), so the model's fade at 4.10 V
   is pessimistic.
+
+## Revision History
+
+| Version | Date | Changes |
+|---------|------|---------|
+| B | 2026-10-26 | The 1.4 ADCS gains, the 6°/s spin, the M-G370PDT0 gyro model and the 4.10 V charge set point; §7 reference run at 500 km, 2028-06-01 |
+| C | 2026-10-27 | Flight software round 2 (§1 to §6, §8): 475 km, 2028-11-01, integration at 60 % SOC and L-47 d; LBA v3.0 link, CAD inertia, four burn lines and the burn buck, 207 Ω heater, Rev C dose, receiver hangs, the EOL latch through EOL_ARM and EOL_FIRE; new settings, checks and findings SIL-19 to SIL-23 |
+| D | 2026-10-27 | §7 with the round-2 reference run (42 checks, 0 anomalies, 0 warnings): the attitude row from the time series, the fault-log entries explained (low SOC and voltage after passivation; SAFE power mode at each boot) |

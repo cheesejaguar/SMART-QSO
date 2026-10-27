@@ -34,7 +34,7 @@ Every number is reproduced by the scripts in `software/simulation/cdr/rf/` (§9)
 | Beacon at the 485 km altitude cap (the bound) | 0.5 W, 5°, −3 / −10 dBi | +7.8 / +0.8 dB | Met / closes |
 | Beacon to a portable station (5 dBi Yagi, no Doppler correction) | 0.5 W, −3 dBi | −4.2 dB at 5°, +1.2 dB at 20°, +6.1 dB at 45° | Usable from about 17°, at 1 W from about 10° |
 | Beacon to a SatNOGS omni station (0 dBic, 1,000 K) | 0.5 W, −3 dBi | −7.1 dB at 5°, +0.7 dB at 30°, +5.9 dB at zenith | Usable above about 28° only |
-| Telecommand uplink margin ≥ 6 dB (proposed here, §1.2) at 10° | 25 W, 14 dBic, −10 dBi spacecraft gain, +6 dB terrestrial interference | **+2.6 dB** at 10°, +6.2 dB at 20°; +8.6 dB at 10° without interference | **Not met at 10°**; met at 20°, or from about 11° with 50 W (§6.1) |
+| Telecommand uplink margin ≥ 6 dB (proposed here, §1.2) at 10° | 25 W, 14 dBic, −10 dBi spacecraft gain, +6 dB terrestrial interference | **+2.6 dB** at 10°, +6.2 dB at 20°; +8.6 dB at 10° without interference. Receiver as designed (§6.4): +0.8 dB at 10° (25 W), **+3.8 dB at 50 W PEP** | **Not met at 10°**; met at 20°, or from about 11° with 50 W (§6.1); with the designed receiver from about 16° at 50 W |
 | Telecommand, median gain, interference +6 dB | 25 W, 5° | +7.8 dB | Met |
 | Transponder usable (12 dB SINAD end to end) | 5 W handheld + handheld Yagi up, handheld Yagi down | 20 dB at 5°, 27 dB at 20° | Met from 5° |
 | Transponder usable for a handheld with a whip, both ways | 5 W, whip, −3 dBi | 1.8 dB at 5°, 14.9 dB at 20°, 26 dB at zenith | Usable from about 17° (12 dB SINAD) |
@@ -42,8 +42,10 @@ Every number is reproduced by the scripts in `software/simulation/cdr/rf/` (§9)
 
 **Verdict.** The 2 m beacon closes with the required margin to a reference station from 5° at 0.5 W. The telecommand
 uplink at 25 W does not hold a 6 dB margin at 10° once a 6 dB terrestrial-interference allowance and the antenna's
-10th-percentile gain are both taken; telecommand at 50 W (the 50 W PEP limit near Beale AFB applies at the Bay Area
-site, §6.1), or commanding above 20°, restores it. Handheld users with whips are transponder users above about 17°
+10th-percentile gain are both taken; with the budget receiver (1,000 K, the simulated threshold) telecommand at 50 W
+(the 50 W PEP limit near Beale AFB applies at the Bay Area site, §6.1), or commanding above 20°, restores it. With the
+receiver as designed on the RF board (SQSO-RF-BRD-001 Version C, §6.4: lower noise, but 2 dB more demodulator loss
+allowed) 50 W gives +3.8 dB at 10° and meets 6 dB from about 16°. Handheld users with whips are transponder users above about 17°
 only. The largest open item is not the budget itself but its inputs that need hardware: the antenna pattern on the
 1U body with wings, the receiver noise figure, and the transmitter's 3rd harmonic and phase noise (§8).
 
@@ -116,12 +118,12 @@ make the emission 11K4F2D, and is corrected there.
 | Parameter | Value | Basis |
 |-----------|-------|-------|
 | Transmitter power | 0.5 W nominal (+27 dBm), 1 W maximum (+30 dBm) | BASELINE §7 |
-| Filter, cable and connector loss | 1.0 dB (the analysed LPF of §7.2 has 0.6 dB with inductor Q 80; 0.4 dB for 150 mm RG-316 and connectors) | `software/simulation/cdr/rf/desense_emc.py` |
+| Filter, cable and connector loss | 1.0 dB allocated (the analysed LPF of §7.2 has 0.6 dB with inductor Q 80; 0.4 dB for cable and connectors). As designed (SQSO-RF-BRD-001 Version C §4.3) the transmitter sets its power at the board port after the LPF, and port to antenna is **0.44 dB** worst at 146 MHz (0.22 m of 1.37 mm coax, two MMCX pairs, worst-case mismatch; return loss ≥ 13.6 dB): the downlink margins here are conservative by 0.56 dB (1 W setting: 29.1–29.7 dBm at the antenna) | `software/simulation/cdr/rf/desense_emc.py`; `hardware/electrical/rf/rf_calcs.py` §16 |
 | Antennas | ISIS AntS 1U–3U on a ±Z face: separate 2 m (≈ 0.5 m) and 70 cm (≈ 0.17 m) tape elements deploying in the plane of the face (BASELINE §7; `docs/hardware/BUILD_VS_BUY.md` §2.6) | |
 | Pattern | Half-wave-dipole-shaped about the element axis, **0 dBi peak** (filed), null filled to −20 dBi by the body and wings [assumption until the EM pattern measurement, VI-RF-01] | §5 |
 | Gain toward the station, along passes, element across the spin axis | Median −1.9 dBi (−2.2 dBi at 5–10° elevation); 10th percentile −9.4 dBi | §5.2 |
 | Design values in the tables | **−3 dBi (median) and −10 dBi (10th percentile)**; 0 dBi (peak) for the uplink upper bound | §5.2 |
-| Receiver system noise temperature | **1,000 K** at the antenna port (Earth at 290 K in view, RX filter 1.5 dB, LNA NF ≤ 2 dB: 650 K; 350 K allowance for in-band interference at a quiet site). This is a requirement on the receiver (`docs/hardware/RF_DESIGN.md` RF-P006), not a measured value | ITU_APPENDIX4_DATA §D |
+| Receiver system noise temperature | **1,000 K** at the antenna port in the tables (Earth at 290 K in view, RX filter 1.5 dB, LNA NF ≤ 2 dB: 650 K; 350 K allowance for in-band interference at a quiet site). This is a requirement on the receiver (`docs/hardware/RF_DESIGN.md` RF-P006). As designed: **548–598 K** at the antenna terminals with 0.62 dB of cable, connectors and mismatch at 436 MHz (was 503–550 K with 0.25 dB), so 898–948 K with the allowance; the design also carries a 2 dB demodulator implementation loss (§6.4) | ITU_APPENDIX4_DATA §D; SQSO-RF-BRD-001 §6.1 |
 | Terrestrial interference at 435 MHz | A further **+6 dB** (and +10 dB sensitivity) on the receiver noise over populated areas. 420–450 MHz is a radiolocation band in the United States in which the amateur service is secondary (47 CFR 97.303(b)); 435–438 MHz is a satellite-only sub-band by IARU band plan but is used terrestrially in places [assumption: on-orbit measurements by earlier missions show 5–15 dB rises; to be measured on orbit, VI-RF-09] | |
 
 ### 2.5 Ground stations
@@ -436,6 +438,35 @@ conditions, and only from about 30° over populated regions.
 The listener's downlink sets the result for every combination except a whip uplink at low elevation. LB-4 is **met**: for
 handheld Yagis from 5°, and for whips from about 17° (the requirement is 30°).
 
+### 6.4 Uplink with the receiver as designed (SQSO-RF-BRD-001 Version C)
+
+The RF board (`hardware/electrical/rf/RF_BOARD_DESIGN.md` §4.3, §6.1; `hardware/electrical/rf/rf_calcs.py` §1, §16)
+gives, at the antenna terminals with the 0.62 dB worst-case cable path at 436 MHz: system noise 548 K typical / 598 K
+worst, and sensitivities of **−121.4 dBm** (12 dB SINAD voice) and **−115.8 dBm** (telecommand, 90 % of frames) worst
+case. Those sensitivities carry a **2 dB implementation loss** for the CC1200's frequency output demodulated in the TNC
+(not yet characterized, VI-RFB-01) on top of the thresholds of §3.2: they correspond to 55.0 dB-Hz for telecommand
+(53.0 dB-Hz in §6.1) and 49.4 dB-Hz for voice (47.4 dB-Hz). Against the tables above (1,000 K, the §3.2 thresholds)
+the design changes every uplink margin by +10 log(1000 / 948) − 2.0 = **−1.8 dB** worst (−1.5 dB typical), with the
+350 K interference allowance kept on top of the design noise.
+
+Telecommand margin (dB), 475 km, receiver as designed, worst case (typical in brackets):
+
+| Station power | Spacecraft gain, interference | 5° | 10° | 20° | 30° |
+|---------------|-------------------------------|----|-----|-----|-----|
+| 25 W | −3 dBi, +6 dB | +6.0 (+6.3) | +7.8 (+8.1) | +11.4 | +13.8 |
+| 25 W | −10 dBi, +6 dB | −1.0 (−0.7) | **+0.8** (+1.1) | +4.4 | +6.8 |
+| **50 W PEP** | −3 dBi, +6 dB | +9.0 (+9.3) | +10.8 (+11.1) | +14.4 | +16.8 |
+| **50 W PEP** | −10 dBi, +6 dB | +2.0 (+2.3) | **+3.8** (+4.1) | +7.4 | +9.8 |
+| 50 W PEP | −10 dBi, +0 dB | +8.0 | +9.8 | +13.4 | +15.8 |
+
+LB-3 (≥ +6 dB at 10°, −10 dBi, +6 dB) is therefore **not met at 10° even at 50 W PEP** with the designed receiver
+(+3.8 dB); 50 W meets it from about 16° and 25 W from about 27°. The command-pass mask of 15° in the contact analysis
+(SQSO-GND-001 §5) leaves +5.6 dB at 50 W in the worst case. The 2 dB is an allowance, not a measurement: if VI-RFB-01
+measures the TNC demodulator within 0.5 dB of the simulated one, the budget values of §6.1 return (50 W: +5.6 dB at
+10° worst). Transponder uplink SINAD near threshold (§6.2) falls by the same 1.8 dB: a 5 W handheld with a whip reaches
+12 dB SINAD from about 12° instead of 11° in quiet conditions. The downlink is unaffected by the receiver and gains the
+0.56 dB of §2.4 that the tables do not credit.
+
 ## 7. Receiver Desense and EMC in the RF Chain
 
 `software/simulation/cdr/rf/desense_emc.py`; inputs stated there. The transponder is full duplex on one spacecraft: the
@@ -554,4 +585,4 @@ python3 desense_emc.py --out desense.json           # §7
 | 2.0 | 2026-10-16 | Funding audit (TB-05) | Re-issued at the baseline orbit, frequencies and power: noise floor corrected; antenna pattern and ground stations stated; telecommand and transponder links added |
 | 3.0 | 2026-10-27 | CDR review, communications panel | CDR re-issue (BASELINE §7, TB-05): simulated demodulator thresholds; pass-sampled pattern with the 6°/s spin and three element options; handheld, mobile and SatNOGS stations; transponder SINAD end to end; Doppler, CTCSS; desense, filter and intermodulation analysis; telecommand at 25 W found short of the proposed 6 dB at 10°; verification items VI-RF-01 to VI-RF-10 |
 | 3.1 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: altitude row (500 km analysed; baseline 475 km target, 485 km cap), uplink request windows (§2, §7.1) and the 8°/s spin of BASELINE Rev E noted against the 6°/s pass analysis (§1); 525 km rows labelled as a bound. Analysis values unchanged |
-| 3.2 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Re-run at the Rev E baseline: every budget at 475 km with the 485 km cap as the bound (was 500 km, with 525 km); pass and fading analysis (§4.4, §5) at 8°/s (6°/s compared) from 2028-11-01. Beacon margin at 5° +7.9 dB (was +7.6), +0.9 dB at the 10th-percentile gain (was +0.6); telecommand +2.6 dB at 10° (was +2.3); station A 98.2 % of frames with the ±5 s jitter as built, 96.6 % without (was 97.2 % and 95.6 % at 6°/s); fades 5 s every 22.5 s; Doppler ±3.49 / ±10.42 kHz |
+| 3.2 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | RF board Version C (MMCX, 0.22 m of 1.37 mm coax: 0.44 dB at 146 MHz, 0.62 dB at 436 MHz; T_sys 548–598 K; sensitivity −121.4 / −115.8 dBm worst): §2.4 and new §6.4, telecommand with the designed receiver +0.8 dB at 10° at 25 W, +3.8 dB at 50 W PEP (worst), LB-3 met from about 16° at 50 W. Re-run at the Rev E baseline: every budget at 475 km with the 485 km cap as the bound (was 500 km, with 525 km); pass and fading analysis (§4.4, §5) at 8°/s (6°/s compared) from 2028-11-01. Beacon margin at 5° +7.9 dB (was +7.6), +0.9 dB at the 10th-percentile gain (was +0.6); telecommand +2.6 dB at 10° (was +2.3); station A 98.2 % of frames with the ±5 s jitter as built, 96.6 % without (was 97.2 % and 95.6 % at 6°/s); fades 5 s every 22.5 s; Doppler ±3.49 / ±10.42 kHz |
