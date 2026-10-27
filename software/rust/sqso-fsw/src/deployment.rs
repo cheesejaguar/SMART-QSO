@@ -881,6 +881,9 @@ mod tests {
         last: Option<Report>,
         /// Every flight-log line, newline-separated
         text: Text,
+        /// The AntS's temperature (`None`: no answer), and its reads
+        ants_c: Option<f64>,
+        ants_reads: u32,
     }
 
     struct Text {
@@ -951,6 +954,11 @@ mod tests {
         fn stowed(&mut self) -> bool {
             self.stowed
         }
+        fn ants_temperature_c(&mut self) -> Option<f64> {
+            assert!(self.arm, "the AntS is read with its controller powered");
+            self.ants_reads += 1;
+            self.ants_c
+        }
         fn log(&mut self, _level: Level, message: fmt::Arguments<'_>) {
             let _ = fmt::Write::write_fmt(&mut self.text, message);
             let _ = fmt::Write::write_str(&mut self.text, "\n");
@@ -975,6 +983,8 @@ mod tests {
                 reports: 0,
                 last: None,
                 text: Text { buf: [0; 4096], len: 0 },
+                ants_c: Some(5.0),
+                ants_reads: 0,
             }
         }
         /// Burning on any of the element's drivers
