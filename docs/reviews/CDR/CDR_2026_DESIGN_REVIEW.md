@@ -1,10 +1,10 @@
 # SMART-QSO Design Review against the NPR 7123.1D CDR Criteria (2026-10-27)
 
 **Document ID**: SQSO-REV-CDR-002
-**Version**: A (draft: round 2 in progress)
+**Version**: B
 **Date**: 2026-10-27
-**Status**: Draft. Engineering assessment by AI reviewers against the NASA CDR criteria; **not an independent review
-board** (§1.2)
+**Status**: Complete: no open review action. Engineering assessment by AI reviewers against the NASA CDR criteria;
+**not an independent review board** (§1.2); the chair decisions await the PI's ratification (DA-01)
 
 ---
 
@@ -778,7 +778,89 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 
 ## 7. Verdict
 
-<!-- Written after the closure verification. -->
+### 7.1 What the review concludes
+
+**No review action is open.** All 412 RIDs carry a final disposition (§6); none is "Implementation". Two
+independent verification rounds checked the closures against the repository. Round 3 reopened 45 RIDs and raised
+106 new findings; round 4 reopened 4 more and raised 3, all severity 3. All of these are closed or dispositioned. The
+last round found no code defect. 622 Rust tests and 56 C suites pass, and the safety-critical coverage gate (32 files,
+100 % lines and conditions) and the image and stack checks pass. Every document gate in CI passes, and the full
+mission simulation (SQSO-SIL-001 G) runs 730 days with 0 anomalies in 50 checks.
+
+**The design is complete to the level an analysis-and-schematic review can reach, and it closes.**
+- Every margin in §3.3 is positive against its requirement:
+  - mass +14.0 %;
+  - power +45 % sun-pointed (photodiodes and albedo modelled) and +27 % tumbling;
+  - first mode × 4.0;
+  - strength and board fatigue positive at MEV;
+  - total dose × 2.04 at the altitude cap;
+  - orbital lifetime and casualty risk within NASA-STD-8719.14C;
+  - schedule float +71 d against 67 d.
+- The launch story is traced end to end: a Falcon 9 Transporter rideshare, through Exolaunch, in an EXOpod Nova; 86
+  launch requirements with their sources; the ISS/NRCSD backup with its design deltas (§3.1).
+- The concept of operations is shown minute by minute in the mission simulation: separation, the 30-minute wait,
+  wings then the temperature-gated antenna, RF silence to 45 min, detumble and capture, commissioning, two years of
+  operations, passivation and decay (§3.2).
+- The parts were audited line by line against −40/+70 °C, and every flight BOM line is orderable.
+- Board-level and system FMEAs, the battery safety assessment (two-fault tolerant on every catastrophic hazard) and
+  the software hazard analysis cover the boards as designed, including the two board firmware items, which now have
+  requirements.
+
+**What "closed" means here.** A closure records evidence in the repository. Where the evidence can only come from
+hardware or from an outside party, the RID closes as a dated item, not as a result:
+
+| Kind | Count | What remains |
+|------|-------|--------------|
+| Verification items (VI) | 33 RIDs; 228 items in the generated register (SQSO-VIR-001) | Each with a test, a pass criterion, an event and date, and an owner; most fall on the EM (2027-06 to 2027-07) and the protoflight campaign |
+| Decision points (DP) | 34 RIDs; dated actions DA-01 to DA-22 (SCHEDULE §5) | Each with an owner and a date; the PI owns most of them |
+| Chair decisions (CH) | 35 RIDs; decisions C-1 to C-24 (§4) | Proposals by AI reviewers, not decisions of a board: they bind nothing until the PI ratifies them (DA-01, by 2027-01-12) |
+
+### 7.2 Maturity against the NPR 7123.1D criteria
+
+Judged honestly against Table G-7, SMART-QSO is **at the level of a strong PDR with CDR-depth analysis, not past a
+CDR**:
+- **No independent board has reviewed it.** This review is an engineering assessment by AI reviewers (§1.2); the
+  independent PDR is planned for 2027-01-12 and the independent CDR for 2027-09-28.
+- **No PCB layout and no engineering model exist.** The board designs are schematics with selected parts, ERC-clean,
+  with their calculations.
+- **Every figure is predicted, none measured:** mass, power, thermal, structural, RF and attitude. The firmware has
+  not run on hardware and its pin map is provisional.
+- Several values rest on vendor statements not yet in hand, each a dated action (SQSO-MFG-003 §12):
+  - the ISIS AntS cold limits and its temperature command;
+  - the CR0002 rod rating;
+  - the RD01MUS3 minimum temperature;
+  - the CC1200 TX-OFF leakage;
+  - the fuse I²t data.
+
+What it gives the independent PDR is a design with no known open defect, the evidence for every claim, and the list
+of what only hardware can show.
+
+### 7.3 What the PI must do next (dated)
+
+| By | Action |
+|----|--------|
+| 2026-11-06 | Request the NASA DAS usage agreement (DA-06); ISIS AntS RFQ with its ICD (DA-19) |
+| 2026-11-15 | Request the FCC Space Bureau consultation with the agenda (DA-11) |
+| 2026-12-01 | Name the independent PDR board (DA-03); ratify the board firmware languages (DA-22) |
+| 2026-12-15 | Accept or reject the reliability estimates (DA-02, C-9); export counsel (DA-13); engage the layout designers (DA-04); vendor statements V-1, V-2, V-5, V-6 (SQSO-MFG-003 §12) |
+| 2026-12-31 | Name the contracting legal entity (DA-05); send the integrator RFQs (DA-07) |
+| 2027-01-05 | Telecommand station agreements (DA-10) |
+| 2027-01-12 | Ratify or reject chair decisions C-1 to C-24 and CR-2026-007 to -019 (DA-01); the proposed requirement wordings of DA-20; independent PDR |
+| 2027-01-15 | EM order, after the procurement data reviews (DA-18) and the parts' vendor actions |
+
+### 7.4 Risks the review accepts, and why
+
+- **AntS temperature gate.** The gate relies on the ISIS temperature command (assumed until AV-V7 confirms it).
+  Off the nominal path, the spacecraft can be silent for about 26 hours. The cover is a blind forced deployment from
+  the ground (C-18, C-19).
+- **Pointing.** Pointing meets its power-derived requirement (C-23) only up to a 7 mA·m² residual dipole (C-24).
+  There is no margin at that limit, so the flight unit's dipole test is a hard gate.
+- **Smart Beacon experiment.** Its 0.1 Wh go/no-go is met in simulation under assumed inputs (0.065 Wh). Only VI-02
+  on the EM decides it. The fixed-template beacon is the flight baseline regardless (D5).
+- **Fuses below rating.** The end-of-life fuse F1 and the backup overcharge fuse F3 are below the −40 °C part rule.
+  They are covered by placement, by the firing rules and by flight-lot qualification (V-EPS-8), not by their ratings.
+- **Bus parts without radiation data.** Most bus parts have no radiation data. They are covered by lot testing and
+  screening before the CDR (RAD-V3, RAD-V4); a part that fails is changed before the FM layout.
 
 ---
 
@@ -787,3 +869,4 @@ disposition when the RID was raised; "Final" is its disposition after round 2 an
 | Version | Date | Description |
 |---------|------|-------------|
 | A | 2026-10-27 | Draft during round 2 |
+| B | 2026-10-27 | Rounds 3 and 4: independent closure verification, parts audit, board firmware requirements, decisions C-16 to C-24, the design to SIL G; §7 verdict; no open review action |

@@ -2,7 +2,7 @@
 ## SMART-QSO
 
 **Document Number:** SQSO-CRL-001
-**Revision:** I
+**Revision:** J
 **Date:** 2026-10-27
 **Reference:** `docs/project/CONFIGURATION_MANAGEMENT_PLAN.md` §4.3 to §4.4, §6.3
 
@@ -35,6 +35,8 @@ logged here; the Git history records them.
 | CR-2026-015 | 2026-10-27 | I | BASELINE §3 launch-cost row and backup trigger; SQSO-AUD-005 Rev F | Program-side launch cost $57k–195k (was $30k–100k), all-in $142k–345k; the backup trigger read on the integrator's slot price | Proposed by the design review; PI decision required by 2027-01-12 (DA-01) | ROM F implemented; BASELINE §3 by the chair after the decision |
 | CR-2026-016 | 2026-10-27 | I | EPS-F012 (`docs/hardware/EPS_DESIGN.md`); BSA H3b count basis; ICD-001 1.6 | Hardware load shed covers the Jetson rail only (the PA is no longer shed); F0B a diverse fuse (MIL-PRF-23419/8, Littelfuse) | Proposed by the design review; PI decision required by 2027-01-12 | Implemented in the design (SQSO-EPS-BRD-001 E) |
 | CR-2026-017 | 2026-10-27 | I | SYS-600, SYS-601 (`docs/requirements/SYSTEM_REQUIREMENTS.md` §11); THERMAL_DESIGN §1.1; ETP §3.4 and §9 deviation 8; BASELINE §8 thermal row | Per-unit allowable flight temperatures from the parts' ratings (−30 °C cold for every board, −40 °C for the first orbit after separation, tested at its AFT without the 10 °C margin: GEVS deviation); heater 0.70 W at 12.0 V (207 Ω; was 0.72 W) | Proposed by the design review (RID THM-04); PI decision required by 2027-01-12 | Implemented in THERMAL_DESIGN 1.5, ETP D (amended), SYSTEM_REQUIREMENTS G (proposed), SQSO-THA-001 2.2; BASELINE §8 pending the PI |
+| CR-2026-018 | 2026-10-27 | I | SYS-512, VI-02, MSC E-02, SRS-F151; BASELINE §6 AI-model row; SYS-510 | One Smart Beacon burst definition (≤ 10 min, ≤ 3.6 kJ) and the 0.1 Wh metric per accepted beacon line (decision C-20) | Approved by the review chair (C-20); PI ratification DA-01 by 2027-01-12 | Implemented in SRS-F151, SYS-510, SYS-512 (REQ-002 H), ETP E VI-02, MSC 2.3, BASELINE §6 |
+| CR-2026-019 | 2026-10-27 | I | ADCS-P002/F003/P003 (`docs/hardware/ADCS_DESIGN.md` 1.9); SYS-401 to SYS-404; MRD-061 (Rev G); BASELINE §5 generation and §8 ADCS row; ETP residual-dipole limit; SQSO-PBA-001 2.5; first-beacon timing (CONOPS, MISSION_TIMELINE, ICD-013) | Pointing requirement restated for power and sun-vector knowledge withdrawn (C-22, C-23); residual-dipole limit 10 → 7 mA·m² (C-24); temperature-gated AntS deployment and transmitter hold until it deploys (C-18, C-19) | Approved by the review chair (C-18, C-19, C-22 to C-24); PI ratification DA-01 by 2027-01-12 | Implemented in ADCS_DESIGN 1.9, REQ-002 H (amended), MRD Rev G, BASELINE §5 and §8, ETP, PBA 2.5, SRS 1.12 |
 
 ## 3. Change Requests
 
@@ -1145,6 +1147,82 @@ Submitter: Flight software (CDR round 3, fifth part; RID P3F-G-03, decision C-20
    Date: —
 ```
 
+### CR-2026-019: pointing restated for power, residual-dipole limit, AntS gate and transmitter hold (decisions C-18, C-19, C-22 to C-24)
+
+```
+Change Request Number: CR-2026-019
+Date Submitted: 2026-10-27
+Submitter: CDR chair (rounds 3 and 4; RIDs P3T-09, P3F-G-02, P3F-G-07, P4-02)
+
+1. Configuration Item Affected:
+   ADCS-F002, F003, P002, P003 (withdrawn), P007 (docs/hardware/ADCS_DESIGN.md 1.9);
+   SYS-401 to SYS-404 (docs/requirements/SYSTEM_REQUIREMENTS.md H, amended);
+   MRD-061 (docs/requirements/MISSION_REQUIREMENTS.md Rev G);
+   BASELINE §5 generation rows and §8 ADCS row; ETP residual-dipole limit;
+   SQSO-PBA-001 2.5; SRS-F165, F167, F169, F171; CONOPS, MISSION_TIMELINE,
+   COMMISSIONING_PLAN and ICD-013 first-beacon timing
+
+2. Description of Change:
+   - ADCS-P002 restated for power: pointing loss ≤ 5 % of sunlit generation and
+     the Sun within 30° of +Y for ≥ 95 % of sunlit time, in every Monte Carlo
+     trial with the face-photodiode and Earth-albedo model; sun-vector knowledge
+     is not a requirement (the ±5° of C-22 withdrawn), rate knowledge ≤ 0.2°/s
+     kept; no onboard three-axis estimator.
+   - Residual-dipole limit 10 → 7 mA·m² (design 3 mA·m²), measured on the flight
+     unit in a Helmholtz cage.
+   - Power budget carries the albedo-case generation: 3.84 W sun-pointed EOL
+     (3.79 W worst trial), +45 % (+43 %) by the PBA method.
+   - The AntS deploys only when its own temperature reads ≥ −17 °C, deferring
+     50 min at a time; after 30 deferrals or 3 unreadable readings it releases
+     after 20 min of continuous sun; the transmitters stay silent while the AntS
+     deployment is pending.
+
+3. Reason for Change:
+   With the photodiodes and albedo modelled the old pointing and knowledge
+   requirements could not be met (12° mean, 74 % within 15°, knowledge 27° at the
+   95th percentile) while generation fell only 2 %; at 10 mA·m² the restated
+   requirement fails in 6 of 40 trials. An ungated AntS release after an
+   eclipse separation would be at −44 °C against its −20 °C qualification, and
+   keying into stowed elements trips the VSWR protection.
+
+4. Impact Assessment:
+   - Technical: no hardware change; the flight software implements the gate and
+     the hold (tests in Rust and C; SIL scenarios ants_cold, ants_cap,
+     ants_notemp); the flight unit's dipole test has a tighter pass limit.
+   - Schedule, cost: none.
+   - Risk: first beacon later after a cold separation (81 min in the SIL; up to
+     about 25.8 h off the nominal path, covered by a forced DEPLOY_RETRY); a
+     flight unit above 7 mA·m² needs demagnetising, re-harnessing or the
+     albedo-immune +Y sun sensor.
+
+5. Affected Documents:
+   docs/hardware/ADCS_DESIGN.md, docs/requirements/SYSTEM_REQUIREMENTS.md,
+   docs/requirements/MISSION_REQUIREMENTS.md, docs/BASELINE_PARAMETERS.md,
+   docs/environment/ENVIRONMENTAL_TEST_PLAN.md, docs/environment/POWER_BUDGET_ANALYSIS.md,
+   hardware/adcs/SENSOR_DESIGN.md, docs/test_procedures/TP-ADCS-003_Algorithm_Test.md,
+   docs/software/SOFTWARE_REQUIREMENTS.md, mission/CONOPS.md,
+   docs/operations/MISSION_TIMELINE.md, docs/operations/COMMISSIONING_PLAN.md,
+   docs/interfaces/ICD_SPACE_GROUND.md.
+
+6. Verification Required:
+   Analysis: ADCS Monte Carlo (ADCS_DESIGN §11.6). Test: TP-ADCS-003 photodiode
+   response on the EM; Helmholtz-cage dipole of the flight unit; AntS
+   temperature telemetry with the ISIS statement (AV-V7); flatsat deployment
+   sequence.
+
+7. CCB Decision:
+   [x] Approved: decisions C-18, C-19, C-22 to C-24 (CDR chair, 2026-10-27);
+   PI ratification DA-01 (2027-01-12).
+
+8. Implementation:
+   Assigned to: GN&C, flight software, EPS
+   Completed: documents and code 2026-10-27
+
+9. Verification:
+   Verified by: —
+   Date: —
+```
+
 ---
 
 ## 4. Revision History
@@ -1160,3 +1238,4 @@ Submitter: Flight software (CDR round 3, fifth part; RID P3F-G-03, decision C-20
 | G | 2026-10-27 | CR-2026-016: load shed scope and pack-fuse diversity | SMART-QSO Team |
 | H | 2026-10-27 | CR-2026-017: per-unit allowable flight temperatures (SYS-600/601, THERMAL_DESIGN §1.1), the first-orbit cold case and its GEVS deviation (ETP §9 deviation 8), heater 0.70 W in BASELINE §8; proposed by the design review, PI decision by 2027-01-12 | Design review, round 3 |
 | I | 2026-10-27 | CR-2026-018: one Smart Beacon burst definition (10 min, 3.6 kJ) and the energy metric per accepted line (SYS-512, VI-02, MSC E-02, SRS-F151; decision C-20) | Flight software, round 3 |
+| J | 2026-10-27 | CR-2026-019: pointing restated for power, residual-dipole limit 7 mA·m², AntS temperature gate and transmitter hold (decisions C-18, C-19, C-22 to C-24); summary rows for CR-2026-018 and -019 | CDR chair |
