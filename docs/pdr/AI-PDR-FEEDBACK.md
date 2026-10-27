@@ -3,6 +3,11 @@
 > **Funding audit notice (2026-10-14):** this feedback was produced by an AI model, not by NASA or
 > any independent review board, and its findings were never dispositioned. It is retained as a record
 > of the design-risk concerns it raised (several remain open; see `docs/funding_audit/FINDINGS_REGISTER.md`).
+>
+> **Historical record (2025-08-19).** Superseded for current values by `docs/BASELINE_PARAMETERS.md` and
+> `docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`. Its "NASA EDR Agent" sender is an AI model with no NASA affiliation, and
+> the documents it reviewed (`docs/pdr/SMART-QSO_PDR.md`, `docs/ENVIRONMENT.md`, `docs/CUBESAT_SURVEY.md`) are
+> themselves historical. Still good for: the list of early design-risk concerns.
 
 **To:** SMART-QSO Engineering Team
 **From:** NASA EDR Agent (AI Reviewer)

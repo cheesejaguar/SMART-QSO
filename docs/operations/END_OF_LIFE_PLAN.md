@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-EOL-001
-**Revision:** D
+**Revision:** E
 **Date:** 2026-10-27
 **Reference:** NASA-STD-8719.14C; 47 CFR 97.207(b), 97.207(g)(1)(iii), (g)(1)(vii)(D)(1), (g)(3); 97.211(b)
 **Governing sources:** disposal and re-entry, `docs/regulatory/filings/ODAR_SMART-QSO.md` (SQSO-REG-018) Draft D §4–§6;
@@ -75,18 +75,24 @@ stations for the passivation pass and the confirmation passes.
 
 ## 3. Passivation Procedure
 
-### 3.1 What the spacecraft does (SQSO-ICD-013 v0.10 §6.4; SRS-F110, F111, F155; SQSO-EPS-BRD-001 §7)
+### 3.1 What the spacecraft does (SQSO-ICD-013 v0.15 §6.4; SRS-F110, F111, F155, F157; SQSO-EPS-BRD-001 §7; SMART-QSO-ICD-001 §4.6)
 
-1. `PASSIVATE_ARM` (0x70, operational key, 4-byte argument: the ASCII code `EOL!`) arms for 600 s and drives nothing.
-   A wrong code is rejected (`INVALID_PARAM`); an arm not executed within 600 s lapses silently (logged).
-2. `PASSIVATE_EXECUTE` (0x71, **recovery key**, no argument) within those 600 s executes. Without a live arm it is
-   `NOT_ALLOWED` and does nothing. The two keys are held by two custodians: a two-person rule for an irreversible act.
+1. `PASSIVATE_ARM` (0x70, operational key, 4-byte argument: the ASCII code `EOL!`) arms for 600 s and arms the EPS
+   with the two-processor sequence (RID P3E-11): it reads `EOL_STATE` and goes on only with bit 0 (armed) clear and
+   bit 2 (fuse intact) set, writes the key 0x3C then 0xC3 to `EOL_KEY` (0x7E), raises `EOL_ARM` (PF4) inside the
+   key's 10 s so the EPS arm latch sets, confirms bit 0 set and drops `EOL_ARM`. A refused key or a latch not set fails
+   the command (`EXEC_FAIL`). A wrong code is rejected (`INVALID_PARAM`); an arm not executed within 600 s lapses
+   silently (logged).
+2. `PASSIVATE_EXECUTE` (0x71, **recovery key**, no argument) within those 600 s executes. Without a live arm and a
+   confirmed EPS latch it is `NOT_ALLOWED` and does nothing. The two keys are held by two custodians: a two-person rule for an irreversible act.
    There is no first-year lockout.
 3. On execute, in this order (RID REG-12; the order until SQSO-ICD-013 v0.9 was TX-OFF first, which left the result
    unobservable): (a) the passivation record is persisted (`FLASH_REGION_EOL`, layout version 2), so every later boot
    carries the passivation through; (b) **while the spacecraft still transmits** (beacon, housekeeping and the
-   command acknowledgement continue), in sunlight, `EOL_ARM` is raised, its rising edge setting the EPS arm latch, and
-   200 ms later `EOL_FIRE` is held for 60–120 s, dropped once the EPS reports the charge path open after the minimum. If
+   command acknowledgement continue), in sunlight, with the latch set at the arm and the EPS board at or above 0 °C by
+   the INA228 die temperatures (a cold board is waited for at most 6 h of each attempt, an unreadable temperature not
+   at all; SRS-F111, RID SMA-B20), `EOL_FIRE` (PG1) is held for 60–120 s, dropped once the EPS reports the charge path
+   open (bit 1 set, bit 2 clear) after the minimum. If
    the spacecraft is in eclipse at the execute, **the fire waits for sunlight** while the spacecraft keeps transmitting;
    an eclipse before 60 s drops both lines and the fire is repeated at the next sunlight; an unconfirmed fire is
    repeated, at most 3 attempts in all, across resets; (c) the **final report**: HK1 and HK2 three times, 60 s apart,
@@ -139,7 +145,7 @@ acknowledgement (§4.5). `GET_HOUSEKEEPING` (0x09) returns an HK1 frame on deman
 | Step | Action | Go / verification from telemetry |
 |------|--------|----------------------------------|
 | 1 | Acquisition: decode the beacon and send `GET_HOUSEKEEPING` | Call sign KK6GDB-11; `MODE` IDLE or ACTIVE; `SOC` ≥ 550 ‰; `VB` ≥ 14,000 mV; `PA` > 0 (sunlit); `TB` 0–45 °C (0.1 °C units: 0–450); `TX=1`; `PS=0/<EOL_STATE>/0` with EOL_STATE bit 2 set (fuse F1 intact) and bit 1 clear; no new `FL` entry since the review; time to the predicted eclipse entry ≥ 6 min after the planned execute. **No go** if any fails: end the pass, re-plan |
-| 2 | Send `PASSIVATE_ARM` (operational key, argument `EOL!`) | Acknowledgement `ack KK6GDB-11: C=<counter> R=0 N=0`; the next HK1 (send `GET_HOUSEKEEPING`) shows `PS=1`. If `R` is not 0: stop, diagnose (wrong code, counter); a second ARM with a new counter is allowed |
+| 2 | Send `PASSIVATE_ARM` (operational key, argument `EOL!`) | Acknowledgement `ack KK6GDB-11: C=<counter> R=0 N=0`; the next HK1 (send `GET_HOUSEKEEPING`) shows `PS=1` with EOL_STATE bit 0 (EPS latch armed) set. If `R` is not 0: stop, diagnose (wrong code, counter; `EXEC_FAIL` means the EPS refused the key or the latch did not set); a second ARM with a new counter is allowed |
 | 3 | Within 600 s of the ARM acknowledgement, and no later than the latest execute time of the pass plan: send `PASSIVATE_EXECUTE` (recovery key) | Acknowledgement `R=0`; beacons continue; HK1 (after every fifth beacon, or on `GET_HOUSEKEEPING`) shows `PS=2` (firing). `NOT_ALLOWED` means the arm lapsed: repeat steps 2–3 with new counters while the pass lasts. **Send nothing after the acknowledged execute** |
 | 4 | Receive the final report: three HK1/HK2 pairs 60 s apart, 60–120 s after the execute | HK1 `PS=4/<EOL_STATE>/<attempts>` and HK2 `EOL=<EOL_STATE>/<attempts>`: **passivated** when EOL_STATE bit 1 (fired: charge path open) is set and bit 2 (fuse intact) clear; attempts 1–3. Bit 1 clear after 3 attempts: the fire was not confirmed (§5.4) |
 | 5 | Listen to the end of the pass on the downlink frequency with a spectrum display | No carrier on the downlink channel from 180 s after the first report frame (the beacon would be due every 60–180 s) |
@@ -314,3 +320,4 @@ deployment (nominal to conservative projection; ODAR §5 covers conjunctions dur
 | B | 2026-10-27 | CDR 2026 consistency pass: notice that §3–§10 are stale (drag device, 400–500 km, 25-year rule) with the governing sources (ODAR, BASELINE Rev E §3, §5, the EOL disconnect of SQSO-EPS-BRD-001 §7) | CDR documentation review |
 | C | 2026-10-27 | Rewritten to the Rev E baseline (RID SE-15): end-of-mission decision criteria and extension conditions; the two-step passivation of SQSO-ICD-013 v0.8 §6.4 (PASSIVATE_ARM 0x70, operational key; PASSIVATE_EXECUTE 0x71, recovery key, within 600 s; TX-OFF, then the one-shot charge disconnect F1 of SQSO-EPS-BRD-001 §7) step by step with telemetry verification; cases in which passivation cannot be commanded (loss-of-contact inhibit, BASELINE §7; no autonomous passivation); FCC post-space notification; re-entry by natural decay with the wings deployed within 5 years of mission end, with the lifetimes and probability of ODAR Draft D. Drag device, 25-year rule, Part 25 and the autonomous passivation sequence withdrawn | CDR S&MA analysis |
 | D | 2026-10-27 | CDR round 3 (RID REG-12): passivation in the implemented order of SQSO-ICD-013 v0.10 (§1, §3.1): the charge disconnect fired while still transmitting, the final report (three HK1/HK2 pairs with `EOL_STATE`, the fuse state and the attempts), then TX-OFF; §3.2 the execute early in a sunlit (morning) pass, the fire waiting for sunlight and evening passes mostly in eclipse; §3.4 the pass steps with the report as the verification, and what to do if it is missed; §3.5 the result is now observable (EOL-1 closed); §5.4 the unconfirmed fire reported; EOL-6; MEV 1.75 kg; Appendix A | CDR round 3, launch and operations |
+| E | 2026-10-27 | Documentation audit (post-CDR 2026): §3.1 the two-processor arm at `PASSIVATE_ARM` (EOL_KEY, EOL_ARM, latch confirmed; RID P3E-11, SRS-F157) and the fire on EOL_FIRE alone with the EPS board at ≥ 0 °C or after the 6 h bound (SMA-B20), per SQSO-ICD-013 v0.15 §6.4 (was "arm drives nothing", EOL_ARM at the execute); §3.4 step 2 checks the latch | Documentation audit |

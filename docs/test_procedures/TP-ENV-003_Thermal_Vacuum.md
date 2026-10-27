@@ -2,12 +2,17 @@
 ## TP-ENV-003
 
 **Document Number:** TP-ENV-003
-**Revision:** E
+**Revision:** F
 **Date:** 2026-10-27
 **Reference:** GSFC-STD-7000B (GEVS) §2.6.3 and Appendix B §2.6; `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev D (amended) §3.4-§3.5
 and §9 deviation 8 (levels); `hardware/structure/THERMAL_DESIGN.md` 1.5 §1.1 (allowable flight temperatures, AFT); SpaceX Rideshare Payload User's Guide v11 Table 6-2; LSP-REQ-317.01 Rev B Table 1 (bake-out)
 
 **Requirements verified:** SYS-600, SYS-601 (cold survival limit open, TBR-TPENV003-001), SYS-602, SYS-702, SYS-706, SYS-707
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -50,7 +55,7 @@ against the battery cap.
 | Pumpdown | Ambient | Until < 10⁻⁵ Torr (spacecraft unpowered: launch configuration) | Decreasing |
 | Bake-out (outgassing phase) | +60 °C | ≥ 6 hours after stabilisation | ≤ 1 × 10⁻⁴ Torr |
 | Hot start | +60 °C | Power on after bake-out; boot within 30 s (SYS-300) | < 10⁻⁵ Torr |
-| Hot operational | +60 °C | ≥ 3 hours (stabilisation + performance test); one 120 s Jetson burst | < 10⁻⁵ Torr |
+| Hot operational | +60 °C | ≥ 3 hours (stabilisation + performance test); one Jetson burst (one power-on of at most 10 min including boot, BASELINE §6, SYS-512) | < 10⁻⁵ Torr |
 | Hot non-operating | +60 °C | ≥ 2 hours | < 10⁻⁵ Torr |
 | Transition | ≤ 1 °C/min | | < 10⁻⁵ Torr |
 | Cold operational | -40 °C | ≥ 3 hours; charging must be inhibited below 0 °C (SYS-602); battery heater enabled, battery above -20 °C; Jetson off below its -15 °C gate | < 10⁻⁵ Torr |
@@ -104,7 +109,7 @@ plateaus; a limited functional test at the others.
 |------|--------|----------|----------|-----|
 | 1 | Ramp to +60°C (hot operational plateau) | ≤ 1°C/min | ______ °C/min | |
 | 2 | Stabilize at +60°C | 98 % of TCs within ±2°C, or < 0.1 °C/h | ______ | |
-| 3 | Hot soak (≥ 3 hrs) with one 120 s Jetson burst; battery charging inhibited above +45 °C | Maintain +60°C; burst ends on the OBC limit | ______ hrs | |
+| 3 | Hot soak (≥ 3 hrs) with one Jetson burst (≤ 10 min including boot); battery charging inhibited above +45 °C | Maintain +60°C; burst ends on the OBC limit | ______ hrs | |
 | 4 | Functional test | TP-SYS-001 pass | ______ | |
 | 5 | Power off | Spacecraft safe | ______ | |
 | 6 | Hold +60°C unpowered (hot non-operating) | Survival temp | ______ °C | |
@@ -218,3 +223,4 @@ plateaus; a limited functional test at the others.
 | C | 2026-10-16 | Cold survival limit marked open between -40 °C (SYS-601) and -30 °C (Rev B), tracked as TBR-TPENV003-001 in the new §9 for the PI; §3.1 cites SYS-601 (findings VV-06, VV-17) | SMART-QSO Team |
 | D | 2026-10-27 | CDR review (PM/SE/V&V): levels from `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C: operational plateaus +60/-30 °C (10 °C margin, GSFC-STD-7000B), non-operating +60 °C (battery cap) and -40 °C at the structure, bake-out +60 °C for 6 h at ≤ 1 × 10⁻⁴ Torr, 8 cycles, hot and cold starts, thermal balance, ≤ 1 °C/min; battery monitoring limits corrected (the +45 °C limit is a charge limit); post-test deployment replaced by continuity; SYS-602, SYS-706, SYS-707 added. Was GSFC-STD-7000A, ± 5 °C, 4 cycles | CDR review, PM/SE/V&V |
 | E | 2026-10-27 | CDR round 3, thermal (RID THM-04, CR-2026-017): levels from ETP Rev D (amended) §3.4: cold operational plateau and cold start at -40 °C (AFT -30 °C - 10 °C; the cold start tests the first-orbit extension of the AFT to -40 °C at its AFT without the 10 °C margin, ETP §9 deviation 8), V-THM-8 cited; operational AFT row from THERMAL_DESIGN 1.5 §1.1; Jetson and RF PA cold monitoring limits -40 °C | CDR thermal analyst |
+| F | 2026-10-27 | Documentation audit (post-CDR 2026): Jetson burst is one power-on ≤ 10 min (C-20; was 120 s); not-yet-run banner | Documentation audit |

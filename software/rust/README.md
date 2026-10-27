@@ -31,11 +31,13 @@ a bounds-checked error, or at worst a controlled reset (see [Rules](#rules)).
 
 `firmware/` is the flight image. It uses embassy-stm32 0.6 (features `stm32l4r5zi`, `dual-bank`, `time-driver-tim2`: TIM1, TIM3, TIM8 and TIM15 belong to the magnetorquers and the captures),
 embassy-executor 0.10, embassy-time 0.5 and cortex-m-rt. There is one async main task (`firmware/src/main.rs`). It
-starts the independent watchdog (IWDG) at its longest timeout (about 32 s) before the clock set-up, so a PLL that never
-locks resets the OBC. It then brings the chip up (80 MHz from the 4 MHz MSI through the PLL, M = 1, N = 40, R = 2),
+starts the independent watchdog (IWDG) at its operating timeout, 25.6 s (reload 3200; 24.1–27.8 s over the LSI
+tolerance, below the TPS3850 supervisor's 29.3 s minimum: `hardware/obc/OBC_DESIGN.md`), before the clock set-up, so a
+PLL that never locks resets the OBC. It then brings the chip up (80 MHz from the 4 MHz MSI through the PLL, M = 1, N = 40, R = 2),
 installs the HAL drivers and calls `Executive::start()`. After that it loops on `step()` and
-`Timer::after_millis(20).await`, and the core sleeps in the executor between passes. The watchdog manager sets the
-operating timeout (30 s, `WDT_HW_TIMEOUT_MS`).
+`Timer::after_millis(20).await`, and the core sleeps in the executor between passes. The watchdog manager refreshes the IWDG
+only at the supervisor's WDI falling edges, every 10 s while every stage checks in (`WDT_HW_TIMEOUT_MS`, SRS-F050,
+SRS-F146).
 
 The HAL (`hal/*.h`) is implemented in Rust as `#[no_mangle]` `hal_*` functions:
 
@@ -46,7 +48,7 @@ The HAL (`hal/*.h`) is implemented in Rust as `#[no_mangle]` `hal_*` functions:
 | `hal_capture.h` | `capture.rs` | TIM3 captures of the GNSS 1PPS (PC6) and the RV-3028's 1 Hz (PC8), TIM8 both edges of PTT_EXCITER (PC7): the clock check and the exciter's keyed time |
 | `hal_timer.h` | `timer.rs` | Time base from embassy-time (milliseconds since boot) |
 | `hal_wdt.h`, `hal_reset.h` | `wdt.rs` | IWDG; reset cause from the RCC CSR flags |
-| `hal_uart.h` | `uart.rs` | Buffered UARTs: Jetson USART1 (PA9/PA10, 8N2: the module's receiver needs two stop bits), debug USART3 (PD8/PD9) |
+| `hal_uart.h` | `uart.rs` | Buffered UARTs: Jetson USART1 (PA9/PA10, 8N2: the module's receiver needs two stop bits), debug USART3 (PD8/PD9), GNSS receiver LPUART1 (PB11 TX, PG8 RX) |
 | `hal_i2c.h` | `i2c.rs` | I2C2 (EPS controller 0x48, the INA228s 0x44 and 0x40, AntS 0x31; PF1/PF0), I2C4 (ADS7138 0x10, RM3100 0x20; PD12/PD13), I2C1 (RV-3028-C7 0x52) |
 | `hal_spi.h` | `spi.rs` | Logical bus 0: SPI2 with the BMI088 gyro's chip select PD0; bus 1: SPI3 with the M-G370PDT0's PD1 (mode 3); bus 2: SPI2 with the BMI088 accelerometer's PD4. Each bus keeps its own configuration, applied when its chip select is asserted. The sensor drivers are `sqso_fsw::mg370`, `bmi088`, `rm3100`, `ads7138`, `rv3028`, `ina228` (built against the data sheets and tested with register-level mocks; not run on hardware) |
 | `hal_adc.h` | `adc.rs` | ADC1, VDDA measured against VREFINT, MCU temperature from TS_CAL; the downlink monitors TX_TEMP (PA0), TX_FWD (PC0) and TX_REV (PC1), the power ones square-law (an RMS detector); front-end scaling provisional (TBR-SRS-003) |
@@ -54,7 +56,7 @@ The HAL (`hal/*.h`) is implemented in Rust as `#[no_mangle]` `hal_*` functions:
 | `hal_radio.h` | `radio.rs` | The KISS TNC on USART2 (PD5/PD6, 9600 baud) for both directions (CR-2026-005): received frames decoded by `sqso_protocol::kiss`, with the FCS the TNC removed appended again; downlink frames written after the TNC parameters, from a 1 KB buffer that holds the longest stream, so the write never waits |
 
 Not provided: the HAL's callback timers and the watchdog early-warning callback. Both are refused, as they were in the
-former C port. The release image is 207,284 B of text, 26,400 B of data and 17,052 B of bss (2026-10-27, round 3, third part); the data, the bss and
+former C port. The release image is 211,604 B of text, 27,192 B of data and 17,052 B of bss (2026-10-27, after round 3, fifth part; `software/flight/docs/MEMORY_POLICY.md` §3.2); the data, the bss and
 the 8 KB stack are in SRAM2 (parity). The vector table is at 0x08000000, the initial SP is 0x20040000 and the entry point
 is `Reset`. No hardware has run it. CI builds the image and checks those properties.
 
@@ -138,36 +140,38 @@ station run one implementation of each format (findings SW-04, SW-24).
 ## Build and test
 
 ```bash
+# From the repository root.
 # Everything the C side needs: cargo builds the library (sqso-clib) and the
 # simulation (sqso-sim) through software/flight/cmake/rust.cmake; ctest runs
 # the C suites against the Rust
 cmake -S software/flight -B build && cmake --build build && ctest --test-dir build
 
 # Rust unit tests and lints (host)
-cd software/rust
-cargo test --workspace
-cargo clippy --workspace --all-targets -- -D warnings
-cargo fmt --all --check
+(cd software/rust && cargo test --workspace && \
+  cargo clippy --workspace --all-targets -- -D warnings && cargo fmt --all --check)
 
 # The flight software library for the Cortex-M4F
-cargo build --release -p sqso-ffi --target thumbv7em-none-eabihf
+(cd software/rust && cargo build --release -p sqso-ffi --target thumbv7em-none-eabihf)
 
 # The firmware image (its own workspace)
-cd firmware && cargo build --release && cargo clippy --release -- -D warnings
-# target/thumbv7em-none-eabihf/release/sqso-firmware; on a board: cargo run --release (probe-rs)
+(cd software/rust/firmware && cargo build --release && cargo clippy --release -- -D warnings)
+# software/rust/firmware/target/thumbv7em-none-eabihf/release/sqso-firmware;
+# on a board: cargo run --release (probe-rs)
 
 # Fuzzing (nightly and cargo-fuzz: cargo install cargo-fuzz)
-cd software/rust/fuzz
-cargo +nightly fuzz list
-cargo +nightly fuzz run telecommand -- -max_total_time=300
+(cd software/rust/fuzz && cargo +nightly fuzz list && \
+  cargo +nightly fuzz run telecommand -- -max_total_time=300)
 
 # Coverage of the Rust from the C suites and the Rust unit tests together
 cmake -S software/flight -B build -DENABLE_COVERAGE=ON && cmake --build build
 LLVM_PROFILE_FILE=$PWD/build/profraw/%p-%m.profraw ctest --test-dir build
 software/flight/scripts/rust_coverage.sh build 90
 
+# The mission simulation (docs/test/SIL_MISSION_SIMULATION.md)
+(cd software/rust && cargo build --profile sil --locked -p sqso-sil)
+
 # Python module for the payload and ground tools
-pip install software/rust/sqso-py
+pip install ./software/rust/sqso-py
 ```
 
 The toolchain is pinned in `rust-toolchain.toml` (1.97.0, with the `thumbv7em-none-eabihf` target), and rustup installs
@@ -257,14 +261,15 @@ Measured 2026-10-24.
 - **The C suites as the specification.** 49 ctest entries: 45 CMocka suites with 695 `cmocka_unit_test` cases
   (`test_executive_jetson`, which runs the host simulation with a pseudo-terminal as the Jetson port, and
   `test_downlink_sim`, which decodes the simulation's beacons as the TNC gets them, are two entries each), the `no_dynamic_memory` check and `Simulation_Run` (the host simulation, checked for a clean shutdown). They run
-  unchanged against the Rust on the host and under AddressSanitizer and UBSan.
+  unchanged against the Rust on the host and under AddressSanitizer and UBSan. On 2026-10-27 there are 56 entries
+  (52 suites, 758 cases; `software/flight/tests/README.md`).
 - **Coverage.** Rust line coverage is 94.8 %, from the C suites plus the 358 Rust unit tests (gate 90 %). Flight-software
   line coverage, C and Rust together, is 94.8 % (gate 80 %). Branch and condition coverage is 81.1 % (gate 80 %). The
   26 safety-critical files (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.2; the transponder and the operations
   record added on 2026-10-27) are at 100 % of lines and conditions, gated file by file, with 15 reviewed
   `// COVERAGE-EXEMPT:` lines (CR-2026-003, in place of MC/DC). On 2026-10-27: Rust lines 94.3 %, branches and
   conditions 81.4 %.
-- **Stack.** The image's worst case is 6,004 B of the 8 KB budget on 2026-10-27 (5,004 B on 2026-10-25, the figures below; SRS-C003; `scripts/stack_usage.py`):
+- **Stack.** The image's worst case is 5,812 B of the 8 KB budget on 2026-10-27 (after CDR round 3, fifth part; `software/flight/docs/MEMORY_POLICY.md` §6.2) and was 5,004 B on 2026-10-25, the figures below (SRS-C003; `scripts/stack_usage.py`):
   3,368 B in thread mode plus one handler per priority level. Every frame the script reads from the image agrees with
   LLVM's own `.stack_sizes` (303 functions; the other 34, compiler-builtins and assembly, are read from the image only).
   The call graph has no cycle except the panic handler's single nesting. Not yet measured on hardware (HIL-044).
@@ -352,14 +357,17 @@ Still open:
 - **Hardware bring-up.** Run the firmware on an STM32L4R5ZI board (the `probe-rs` runner is configured in
   `firmware/.cargo/config.toml`). Measure the loop timing, the stack high-water mark (HIL-044, against the static
   worst case) and the power, and check every HAL driver against the part (TP-FLATSAT-001).
-- **Downlink hardware.** The downlink is written (`downlink.h`, CR-2026-005) but the TNC and transmitter are not
-  selected (SQSO-ICD-005): their parameters, the thresholds and the monitor scaling are TBR-SRS-003, checked by
-  HIL-060 to HIL-064 (`docs/reviews/KNOWN_ISSUES.md` KI-001).
-- **ADCS drivers and real sensor readings.** The magnetometer, sun sensor and magnetorquer drivers, and ADC-based
-  sensor-table readings with the real front-end scaling, wait for parts and the EPS sense circuits
-  (`docs/reviews/KNOWN_ISSUES.md` KI-001).
-- **Pin map.** `firmware/src/gpio.rs` is provisional until the OBC schematic baselines a pinout.
-  `hardware/obc/OBC_DESIGN.md` and `hardware/obc/STORAGE_DESIGN.md` disagree on PA4–PA7 and PC0–PC1 (FRAM WP#/HOLD#,
-  now on PE0/PE1).
+- **Downlink hardware.** The downlink is written (`downlink.h`, CR-2026-005). The receiver, TNC and transmitter are
+  designed (`hardware/electrical/rf/RF_BOARD_DESIGN.md`, SQSO-RF-BRD-001: CC1200 receiver, the TNC on its own
+  STM32L431 as a separate firmware item) but not built; the downlink parameters, thresholds and monitor scaling stay
+  TBR-SRS-003 until the EM transmitter test, checked by HIL-060 to HIL-064 (`docs/reviews/KNOWN_ISSUES.md` KI-001).
+- **ADCS sensor inputs and real sensor readings.** The magnetorquers are driven through `hal_mtq.h` (`firmware/src/mtq.rs`),
+  and drivers for the gyros, magnetometer, ADC, clock and current monitors exist (`sqso_fsw::mg370`, `bmi088`,
+  `rm3100`, `ads7138`, `rv3028`, `ina228`; register-level mocks only), but `adcs_read_magnetometer()` and
+  `adcs_read_sun_sensors()` still return the simulated field and sun vector, and the sensor table's readings wait for
+  the EPS sense circuits' front-end scaling (`docs/reviews/KNOWN_ISSUES.md` KI-001).
+- **Pin map.** `firmware/src/gpio.rs` follows the master pin allocation of SQSO-ICX-001
+  (`hardware/electrical/INTERCONNECT.md`), a draft not yet fabricated; it stays provisional until the OBC board is built
+  and checked (TP-FLATSAT-001).
 - **Jetson deployment** builds `sqso_protocol` on the Jetson, with Rust installed by
   `software/payload/ansible/deploy_payload.yml`. Shipping a prebuilt aarch64 wheel would remove that step.

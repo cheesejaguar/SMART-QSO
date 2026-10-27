@@ -2,11 +2,16 @@
 ## TP-INT-006
 
 **Document Number:** SQSO-TP-INT-006
-**Version:** 1.3
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.4
+**Date:** 2026-10-27
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** SYS-001, SYS-002, SYS-003, SYS-004, SYS-005
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -22,17 +27,18 @@ This procedure defines the final mechanical assembly and integration verificatio
 - Final mechanical assembly
 - Harness installation verification
 - Antenna stowage verification
-- Solar panel installation (if deployable)
+- Solar wing installation (two deployable wings, `docs/BASELINE_PARAMETERS.md` §4)
+- Inertia ballast installation (2 × 10 g, decision C-13)
 - Mass properties measurement
 - Fit check with deployer mockup
 
 ### 2.2 Prerequisites
-All preceding integration tests must be complete:
-- TP-INT-001 (EPS Integration) PASS
-- TP-INT-002 (OBC Integration) PASS
-- TP-INT-003 (RF Integration) PASS
-- TP-INT-004 (ADCS Integration) PASS
-- TP-INT-005 (Jetson Integration) PASS
+All preceding integration tests must have passed before this procedure starts (none has been run):
+- TP-INT-001 (EPS Integration)
+- TP-INT-002 (OBC Integration)
+- TP-INT-003 (RF Integration)
+- TP-INT-004 (ADCS Integration)
+- TP-INT-005 (Jetson Integration)
 
 ---
 
@@ -63,8 +69,8 @@ All preceding integration tests must be complete:
 |-----------|---------------|--------------|
 | Precision scale | 0.1g resolution, 5kg range | Yes |
 | CG measurement fixture | Custom or commercial | Yes |
-| MOI measurement fixture | Torsional pendulum or equivalent | Optional |
-| Deployer mockup | Representative of flight deployer | N/A |
+| MOI measurement fixture | Spin-balance instrument, ± 0.5 % moments, ± 1 × 10⁻⁵ kg·m² products (ETP §3.7; VI-MCAD-03) | Yes |
+| Deployer mockup | Integrator's test pod (EXOpod Nova) or representative | N/A |
 | Torque wrench | 0.1-5 N·m range | Yes |
 | Inspection microscope | 10x minimum | No |
 | Calipers | 0.01mm resolution | Yes |
@@ -117,17 +123,17 @@ All preceding integration tests must be complete:
 | 4 | Verify strain relief | At all connectors | | |
 | 5 | Check clearances | Min 1mm to structure | | |
 
-### 8.3 Antenna Stowage
+### 8.3 Antenna Stowage (ISIS AntS)
 
 | Step | Action | Expected Result | Actual | P/F |
 |------|--------|-----------------|--------|-----|
-| 1 | Coil/fold antenna elements | Per procedure | | |
-| 2 | Secure with restraint | Nylon line/mechanism | | |
-| 3 | Install burn wire | Proper routing | | |
+| 1 | Stow the AntS elements (2 m along ±X, 70 cm along ±Y) | Per the ISIS stowing procedure | | |
+| 2 | Verify the AntS's own restraints | Per the ISIS procedure | | |
+| 3 | Read the AntS status over I2C3 | All four elements read stowed | | |
 | 4 | Verify stowed dimensions | Within envelope | | |
 | 5 | Verify deployment path clear | No obstructions | | |
 
-### 8.4 Solar Panel Installation (If Deployable)
+### 8.4 Solar Wing Installation
 
 | Step | Action | Expected Result | Actual | P/F |
 |------|--------|-----------------|--------|-----|
@@ -136,6 +142,8 @@ All preceding integration tests must be complete:
 | 3 | Install restraint mechanism | Properly tensioned | | |
 | 4 | Verify stowed dimensions | Within envelope | | |
 | 5 | Connect solar array harness | Proper routing | | |
+| 6 | Install the two burn resistors per wing and their restraint line | Resistance 4–6.9 Ω each (ICD_OBC_ADCS §12.4); the stowed tapes 4–6 mm under the wings (BASELINE §7) | | |
+| 7 | Install the inertia ballast, 2 × 10 g W-Ni-Cu on the +Z end frame | Per drawing; trimmed later from the measured tensor (C-13) | | |
 
 ### 8.5 Final Closeout
 
@@ -143,7 +151,7 @@ All preceding integration tests must be complete:
 |------|--------|-----------------|--------|-----|
 | 1 | Install access panels | All fasteners torqued | | |
 | 2 | Install end plates | Per spec | | |
-| 3 | Verify kill switch access | Accessible from exterior | | |
+| 3 | Verify the three deployment switches (DS1–DS3, three rails) | Free to actuate (BASELINE §4) | | |
 | 4 | Verify RBF pin access | Accessible | | |
 | 5 | Apply thread locker | Per drawing notes | | |
 | 6 | Final torque all fasteners | Per spec, witness marks | | |
@@ -156,7 +164,8 @@ All preceding integration tests must be complete:
 | 2 | Measure CG X position | Within 2cm of center | | |
 | 3 | Measure CG Y position | Within 2cm of center | | |
 | 4 | Measure CG Z position | Within 2cm of center | | |
-| 5 | Record results | Document | | |
+| 5 | Measure moments and products of inertia | Iyy ≥ 1.03 × max(Ixx, Izz), major axis within 5° of +Y, deployed (BASELINE §4; VI-MCAD-03) | | |
+| 6 | Record results | Document | | |
 
 **Mass Properties Table:**
 
@@ -173,7 +182,7 @@ All preceding integration tests must be complete:
 |------|--------|-----------------|--------|-----|
 | 1 | Measure overall X dimension | 100mm ± 0.1mm | | |
 | 2 | Measure overall Y dimension | 100mm ± 0.1mm | | |
-| 3 | Measure overall Z dimension | 113.5mm ± 0.5mm | | |
+| 3 | Measure overall Z dimension | 113.5 mm (CDS Rev 14.1 Appendix B tolerance; BASELINE §4) | | |
 | 4 | Verify rail straightness | < 0.1mm bow | | |
 | 5 | Verify rail surface finish | < 1.6 µm Ra | | |
 | 6 | Check for protrusions | None beyond envelope | | |
@@ -185,7 +194,7 @@ All preceding integration tests must be complete:
 | 1 | Obtain deployer mockup | Representative dimensions | | |
 | 2 | Insert CubeSat into mockup | Smooth insertion | | |
 | 3 | Verify rail engagement | Full contact | | |
-| 4 | Verify deployment switch actuation | Proper depression | | |
+| 4 | Verify deployment switch actuation | All three switches depressed | | |
 | 5 | Verify extraction | Smooth removal | | |
 | 6 | Repeat insertion 3 times | Consistent results | | |
 
@@ -261,3 +270,4 @@ Any non-conformance shall be:
 | 1.1 | 2026-10-16 | Mass limit 2.00 kg (SYS-002, CDS Rev 14.1) replaces 1.33 kg, the CDS Rev 13 value (TB-06) |
 | 1.2 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
 | 1.3 | 2026-10-16 | Stale note removed: the §8.6 table and §9 already give 2.00 kg (SYS-002) since 1.1 (finding VV-06) |
+| 1.4 | 2026-10-27 | Documentation audit (post-CDR 2026): prerequisites no longer marked PASS; AntS stowage, solar wings, ballast, inertia measurement, three switches; status and banner |

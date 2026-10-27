@@ -2,11 +2,16 @@
 ## TP-INT-002
 
 **Document Number:** SQSO-TP-INT-002
-**Version:** 1.1
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.2
+**Date:** 2026-10-27
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** SYS-021, SYS-300, SYS-302, SYS-320, SYS-321, SYS-323, SRS-F005
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -27,8 +32,8 @@ This procedure defines the integration test for the On-Board Computer (OBC) with
 
 ## 3. APPLICABLE DOCUMENTS
 
-1. ICD_OBC_EPS.md
-2. hardware/obc/OBC_DESIGN.md
+1. `docs/interfaces/ICD_OBC_EPS.md` (SMART-QSO-ICD-001)
+2. `hardware/electrical/obc/OBC_BOARD_DESIGN.md` (SQSO-OBC-BRD-001) and `hardware/electrical/INTERCONNECT.md` (SQSO-ICX-001)
 3. TP-EPS-001 (prerequisite)
 4. TP-INT-001 (prerequisite)
 
@@ -42,7 +47,7 @@ This procedure defines the integration test for the On-Board Computer (OBC) with
 | Oscilloscope | 200 MHz |
 | Logic analyzer | 8 channel |
 | UART adapter | USB-UART |
-| J-Link debugger | SWD compatible |
+| ST-Link or J-Link debugger | SWD, through the access port J9 |
 
 ---
 
@@ -61,15 +66,15 @@ This procedure defines the integration test for the On-Board Computer (OBC) with
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
-| 1 | Enable 3.3V rail | 3.3V ±0.1V | |
-| 2 | Measure OBC current | < 50 mA idle | |
-| 3 | Verify watchdog LED | Blinking | |
+| 1 | Enable 3V3_AO (OBC fed through SW10 as 3V3_OBC) | 3.3 V ± 2 % (`docs/hardware/EPS_DESIGN.md` §4) | |
+| 2 | Measure OBC current | Record; 0.04 A nominal, below the SW10 0.15 A trip (EPS_DESIGN §5) | |
+| 3 | Verify the watchdog is kicked | IWDG refreshed; no supervisor reset | |
 
 ### 6.2 Boot Test [SYS-300, SRS-F005]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
-| 1 | Apply power | Boot within 5s | |
+| 1 | Apply power | Flight software running within 30 s (SYS-300) | |
 | 2 | Check console output | Boot messages | |
 | 3 | Verify software version | Correct version | |
 | 4 | Check boot reason | Power-on reset | |
@@ -78,9 +83,9 @@ This procedure defines the integration test for the On-Board Computer (OBC) with
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
-| 1 | I2C scan (EPS bus) | Devices found | |
-| 2 | I2C scan (ADCS bus) | Devices found | |
-| 3 | UART loopback (Jetson) | Data echoed | |
+| 1 | I2C2 (EPS controller, 0x48) and I2C1 (RTC RV-3028, 0x52) | Devices answer (OBC_BOARD_DESIGN) | |
+| 2 | I2C4 (ADS7138, RM3100 0x20) and SPI3/SPI2 (M-G370, BMI088) | Devices answer; IDs read | |
+| 3 | USART1 to the Jetson carrier (115200 baud, OBC transmits 8N2; `docs/interfaces/ICD_OBC_JETSON.md`) | Data echoed | |
 | 4 | GPIO test | All pins toggle | |
 | 5 | ADC test | Valid readings | |
 
@@ -90,8 +95,8 @@ This procedure defines the integration test for the On-Board Computer (OBC) with
 
 | Criterion | Requirement |
 |-----------|-------------|
-| Boot time | < 10 seconds |
-| Power consumption | < 100 mW |
+| Boot time | < 30 seconds (SYS-300) |
+| Power consumption | Recorded; within the SW10 trip (0.15 A) |
 | All interfaces | Functional |
 
 ---
@@ -102,3 +107,4 @@ This procedure defines the integration test for the On-Board Computer (OBC) with
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
 | 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
+| 1.2 | 2026-10-27 | Documentation audit (post-CDR 2026): buses, addresses and rails from OBC_BOARD_DESIGN and EPS_DESIGN; boot within 30 s (SYS-300; was 5 s and 10 s); status and banner |

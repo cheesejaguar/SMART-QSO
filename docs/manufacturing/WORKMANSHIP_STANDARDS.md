@@ -1,10 +1,12 @@
 # SMART-QSO Workmanship Standards
 
 **Document ID**: SQSO-WKS-001
-**Version**: 1.1
+**Version**: 1.3
 **Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Draft (no hardware built). The workmanship plan, SQSO-WP-001 (`docs/manufacturing/WORKMANSHIP_PLAN.md`), carries
+the same standards with the inspection, non-conformance and records process; where the two differ on a value, the
+design documents cited here govern
 
 ## 1. Purpose
 
@@ -109,7 +111,7 @@ Cracks              No             Yes
 
 | Parameter | Requirement |
 |-----------|-------------|
-| Material | HumiSeal 1B73 (acrylic) |
+| Material | Arathane 5750 A/B (LV) polyurethane, preferred; HumiSeal 1B73 (acrylic) and Dow 1-2577 alternates, E595 data open (`docs/compliance/MATERIALS_LIST.md` §5) |
 | Thickness | 25-75 μm |
 | Coverage | All exposed surfaces |
 | Masking | Connectors, test points |
@@ -117,10 +119,13 @@ Cracks              No             Yes
 
 ### 4.4 Staking
 
+The thresholds are the same as WORKMANSHIP_PLAN §5.1 (the stricter of the values the two documents carried before
+version 1.3); §10.2 likewise matches the plan's §13.
+
 | Component | Staking |
 |-----------|---------|
-| Heavy components (>2g) | Required |
-| Tall components (>10mm) | Required |
+| Heavy components (> 2 g) | Required |
+| Tall components (> 6 mm) | Required |
 | Connectors | Required |
 | Crystals | Required |
 
@@ -174,17 +179,22 @@ Cracks              No             Yes
 | Hole alignment | No forced fits |
 | Thread engagement | >2× diameter |
 | Torque | Per fastener table |
-| Locking | Thread lock or locknut |
+| Locking | Per §6.3: locking insert or prevailing-torque locknut plus staking; no thread-locker alone |
 | Verification | Torque stripe |
 
 ### 6.2 Torque Values
 
-| Fastener | Torque (in-lb) | Torque (N-m) |
-|----------|----------------|--------------|
-| M2 | 1.5 | 0.17 |
-| M2.5 | 2.5 | 0.28 |
-| M3 | 5.0 | 0.56 |
-| M4 | 12 | 1.35 |
+Flight torques are set joint by joint in `hardware/structure/STRUCTURAL_DESIGN.md` §8.1, which governs:
+
+| Fastener | Torque (N·m) | Joint |
+|----------|--------------|-------|
+| M2 A286 | 0.15 | PCB mounting and centre supports, hinges, access panels |
+| M2 Ti-6Al-4V | 0.10–0.15 | Cell-retention locator plates 0.10; Z-rod clips and inertia ballast 0.15 |
+| M2.5 A286 | 0.35 | Structure assembly, heat spreader |
+| M2.5 Ti-6Al-4V | 0.20 ± 10 % | Battery isolators (polymer-bushed) |
+| M3 A286 | 0.60 | PCB stack studs |
+
+The Version 1.1 generic values (M2 0.17, M2.5 0.28, M3 0.56, M4 1.35 N·m) are withdrawn.
 
 ### 6.3 Thread Locking
 
@@ -334,11 +344,12 @@ Storage:
 
 | Record | Retention |
 |--------|-----------|
-| Inspection reports | Life of mission |
-| Photographs | Life of mission |
-| Nonconformance | Life of mission |
-| Calibration | 3 years |
-| Training | 3 years |
+| Travelers | Permanent |
+| Inspection reports | Permanent |
+| Photographs | Permanent |
+| Nonconformance | Permanent |
+| Calibration | Per the calibration programme, at least 3 years |
+| Training | Duration of employment, at least 3 years |
 
 ### 10.3 Nonconformance
 
@@ -385,3 +396,5 @@ NONCONFORMANCE PROCESS
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 1.1 | 2026-10-27 | CDR S&MA review | §2 standards corrected (NASA-STD-8739.6B, J-STD-001 space addendum, 8739.4A, 8739.1B; 8739.3 cancelled; 8739.1 title); Sn63Pb37 only; thread-locking rules without non-compliant Loctite grades |
+| 1.2 | 2026-10-27 | Documentation audit (post-CDR 2026) | Status "CDR Baseline" replaced by Draft, with the relation to the workmanship plan; §4.3 conformal coat Arathane 5750 per MATERIALS_LIST §5 (HumiSeal 1B73 an alternate); §6.1 locking aligned with §6.3; §6.2 torques from STRUCTURAL_DESIGN §8.1 |
+| 1.3 | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up | §4.4 staking thresholds and §10.2 record retention made identical to SQSO-WP-001 D §5.1 and §13 (the stricter value of each: staking above 2 g or 6 mm; inspection, photograph, nonconformance and traveler records permanent) |

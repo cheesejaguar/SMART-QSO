@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REG-002
-**Revision:** D
+**Revision:** E
 **Date:** 2026-10-27
 
 ---
@@ -32,11 +32,12 @@ Technical data: [ITU_APPENDIX4_DATA.md](filings/ITU_APPENDIX4_DATA.md). Baseline
 | Authorization | Status | Draft / reference |
 |---------------|--------|-------------------|
 | Space station licensee and call sign | **KK6GDB**, station KK6GDB-11 (decision D1, 2026-10-15) | Pathway determination §8 |
-| Designated telecommand stations (97.211(a)) | **None agreed**; ≥ 2 needed before the IARU request (target 2027-01-05) | `docs/ground/GROUND_STATION_DESIGN.md` §3 |
+| Designated telecommand stations (97.211(a)) | **None agreed**; ≥ 2, at least 1,000 km apart, needed before the IARU request (written agreements due 2027-01-05, `mission/SCHEDULE.md` DA-10) | `docs/ground/GROUND_STATION_DESIGN.md` §3 |
 | IARU frequency coordination | **Not started**; planned submission 2027-01-26 | [IARU_COORDINATION_REQUEST_v40.md](filings/IARU_COORDINATION_REQUEST_v40.md) |
 | FCC Part 97 pre-space notification (97.207(g)(1)) | **Not filed**; planned early filing 2027-01-19, replacement by 2027-06-30 | [FCC_97-207_PRE_SPACE_NOTIFICATION.md](filings/FCC_97-207_PRE_SPACE_NOTIFICATION.md) |
 | ITU API / notification (filed by the FCC) | **Not filed** | [ITU_APPENDIX4_DATA.md](filings/ITU_APPENDIX4_DATA.md) |
-| Orbital debris assessment (DAS) | **Draft; DAS not yet run** | [ODAR_SMART-QSO.md](filings/ODAR_SMART-QSO.md) |
+| FCC Space Bureau consultation (D3) | **Not yet requested**; request due 2026-11-15, meeting by 2027-01-05, outcome recorded by 2027-01-08 (`mission/SCHEDULE.md` DA-11) | [REGULATORY_ROADMAP.md](REGULATORY_ROADMAP.md) §6 |
+| Orbital debris assessment (DAS) | **Draft; DAS not yet run**; NASA DAS usage agreement to be requested by 2026-11-06, DAS run by 2027-01-08 (DA-06) | [ODAR_SMART-QSO.md](filings/ODAR_SMART-QSO.md) |
 | NOAA remote sensing | **No license required** (internal determination); NOAA confirmation not requested | [NOAA determination](filings/NOAA_REMOTE_SENSING_DETERMINATION.md) |
 | Export classification | **Self-classified, counsel review pending** | [Export memo](filings/EXPORT_CLASSIFICATION_MEMO.md) |
 | NTIA / NASA Form 1722 / DoD / NOAA spectrum coordination | **Not applicable** (no Federal frequencies) | — |
@@ -46,7 +47,8 @@ Timeline and deadlines: [REGULATORY_ROADMAP.md](REGULATORY_ROADMAP.md).
 ## 5. RF Exposure
 
 At ≤ 1 W into a ~0 dBi antenna from ≥ 400 km, the power density at the ground is many orders of magnitude below the
-FCC limits in 47 CFR 1.1310. Telecommand stations at 50 W into a 14 dBic antenna must make their own 47 CFR 1.1310
+FCC limits in 47 CFR 1.1310. Telecommand stations radiating ≥ 64 dBm EIRP (decision C-14: ≥ 100 W PEP into ≥ 15.5 dBic, or ≤ 50 W PEP into
+≥ 17.8 dBic at 47 CFR 2.106 US270 sites; BASELINE Rev E §7) must make their own 47 CFR 1.1310
 evaluation (controlled and uncontrolled exposure distances) as part of the station set-up (`docs/ground/GROUND_STATION_DESIGN.md` §3). Ground-test RF safety is covered by `docs/test_procedures/TP-RF-002_Conducted_Power.md`
 (conducted into a dummy load).
 
@@ -72,3 +74,4 @@ evaluation (controlled and uncontrolled exposure distances) as part of the stati
 | B | 2026-10-14 | Rewritten after funding audit: amateur-only frequency plan, actual status, withdrawn claims listed | Funding audit |
 | C | 2026-10-27 | Licensee designated (D1); telecommand stations status; uplink range; planned filing dates; ground-station RF exposure note | CDR review, communications panel |
 | D | 2026-10-27 | CDR 2026 consistency pass: uplink request windows from BASELINE Rev E §7 | CDR documentation review |
+| E | 2026-10-27 | Documentation audit (post-CDR 2026): §4 FCC consultation (DA-11) and the DAS agreement (DA-06) added, stations ≥ 1,000 km apart (DA-10); §5 telecommand station power and gain per C-14 (was 50 W into 14 dBic) | Documentation audit |

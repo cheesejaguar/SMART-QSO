@@ -8,6 +8,13 @@
 > `docs/hardware/EPS_DESIGN.md` v2.0 and the power closure `docs/environment/POWER_BUDGET_ANALYSIS.md` v2.0 (EOL
 > orbit average 2.43 W tumbling, 3.93 W sun-pointed, not the "≥ 4 W, 8–10 W sunlit" of §1.2). This file is kept as a
 > record.
+>
+> **Documentation audit (2026-10-27): current values.** The versions and figures above were current on the day of the
+> notice. Today: EPS design `docs/hardware/EPS_DESIGN.md` 2.5 with the build-to board design
+> `hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001); EOL orbit average delivered to the bus **2.48 W
+> tumbling, 3.84 W sun-pointed** (BASELINE §5, from `docs/environment/POWER_BUDGET_ANALYSIS.md` v2.5 §4). The other
+> documents in this directory: `BATTERY_DESIGN.md`, `SOLAR_ARRAY_DESIGN.md`, `PDU_DESIGN.md`, `EPS_ELECTRICAL_DESIGN.md`
+> (see `hardware/README.md`).
 
 ### Executive Summary
 
@@ -376,3 +383,4 @@ The recommended system configuration balances performance requirements with reso
 |-----|------|-------------|
 | — | undated | Trade study (unsourced) |
 | 1 | 2026-10-27 | CDR review notice: superseded by BUILD_VS_BUY §2.4 and EPS_DESIGN v2.0 |
+| 2 | 2026-10-27 | Documentation audit (post-CDR 2026): current-values note (EPS_DESIGN 2.5, SQSO-EPS-BRD-001, BASELINE §5 generation) and the directory's contents |

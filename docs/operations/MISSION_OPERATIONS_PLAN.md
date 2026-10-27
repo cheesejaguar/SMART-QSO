@@ -2,8 +2,8 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-MOP-001
-**Revision:** B
-**Date:** 2026-10-25
+**Revision:** C
+**Date:** 2026-10-27
 **Reference:** NPR 7120.5, NPR 7123.1
 
 ---
@@ -16,28 +16,29 @@ This Mission Operations Plan defines the operational procedures, team organizati
 
 ### 2.1 Mission Objectives
 
-1. Demonstrate autonomous AI-generated amateur radio beacons
-2. Validate TinyLM/TinyML operation in LEO environment
-3. Provide educational amateur radio contact opportunities
-4. Collect spacecraft health telemetry for model validation
+From `docs/mission/MISSION_SUCCESS_CRITERIA.md` (SQSO-MSC-001) §2 and BASELINE §2:
+
+1. **MO-1 (primary):** a single-channel U/V FM transponder for worldwide amateur contacts, duty-gated by available power
+2. **MO-2:** a 1200 bps AX.25 telemetry beacon in published formats
+3. **MO-3:** an onboard AI experiment: the OBC selector schedules the transponder within the power budget and selects
+   beacon templates, with hard limits outside the model and fallback to a conventional transponder (D5)
+4. **MO-4:** operation within Part 97 and the debris rules, including TX-OFF and end-of-mission passivation
+5. **E-1 (experiment, not a success gate):** Jetson-generated beacon text, enabled only if the measured energy per
+   accepted beacon line is ≤ 0.1 Wh (decision C-20)
 
 ### 2.2 Mission Phases
 
 | Phase | Duration | Activities |
 |-------|----------|------------|
-| Launch & Early Ops (LEOP) | 0-7 days | Deployment, checkout, commissioning |
-| Commissioning | 7-30 days | Full system checkout, calibration |
-| Primary Mission | 30-365 days | Nominal operations, AI beacon generation |
-| Extended Mission | 365-730 days | Continued operations if healthy |
-| End-of-Life (EOL) | Final 30 days | Passivation, deorbit preparation |
+| Launch & Early Ops (LEOP) | Separation to about S+1 d | 45-minute RF silence, deployment, first beacon, first authenticated command, TX-OFF proof (`docs/operations/MISSION_TIMELINE.md` §5) |
+| Commissioning | Days 1–14 | Steps C-1 to C-11 of `docs/operations/COMMISSIONING_PLAN.md`; transponder and Jetson only after `COMMISSIONING_RELEASE` |
+| Primary Mission | Day 14 to 2 years (design life; minimum 12 months) | Duty-gated transponder, beacon, selector; Jetson experiment if its gate passes |
+| End-of-Life (EOL) | At the end of the mission | Two-key passivation (`docs/operations/END_OF_LIFE_PLAN.md`); re-entry within 5 years of the mission end |
 
 ### 2.3 Success Criteria
 
-| Level | Criteria |
-|-------|----------|
-| Full Success | All objectives met, 12-month operation |
-| Partial Success | Primary beacon operations for 6 months |
-| Minimum Success | Initial checkout complete, 10+ beacons received |
+Defined in SQSO-MSC-001 (L1 at 30 days, L2 at 12 months, L3 at 24 months; BASELINE §2). The Jetson experiment is not
+a gate for any level.
 
 ## 3. Operations Organization
 
@@ -171,8 +172,9 @@ post-deployment RF silence inhibits the transmitter.
   hands off to another designated station.
 - **Cessation of emissions.** TX-OFF is the first command of any interference report; it latches in NVM and is
   cleared only by an authenticated TX-ON (`docs/BASELINE_PARAMETERS.md` §7, 97.207(b)).
-- **Transponder.** The FM transponder is duty-gated by power and thermal limits (decision D4); its schedule is set by
-  command within those limits. Not yet implemented onboard (`mission/CONOPS.md`, as built).
+- **Transponder.** The FM transponder is duty-gated by power and thermal limits (decision D4): sunlit, ACTIVE, SOC ≥ 55 %,
+  PA below 70 °C, keyed ≤ 25 % of 100 min (`sqso_fsw::transponder`; SQSO-ICD-003 §5.5); `XPDR_ENABLE` (0x34) and
+  `XPDR_DISABLE` (0x35) allow or stop it, and it runs only after `COMMISSIONING_RELEASE`.
 - **Counters and keys.** Each station uses its own key and never reuses a counter; key rotation uses the recovery key
   (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md`).
 
@@ -211,7 +213,7 @@ post-deployment RF silence inhibits the transmitter.
 1. Monitor SOC trend over multiple passes
 2. Analyze eclipse/sun pattern
 3. Check ADCS attitude data
-4. If SOC < 30%, expect transition to SAFE mode
+4. Below 40 % SOC expect ACTIVE → IDLE, below 25 % SAFE, below 15 % EMERGENCY (beacon shed) (BASELINE §5)
 5. Monitor for automatic recovery
 
 #### 6.2.4 Thermal Anomaly
@@ -234,63 +236,31 @@ post-deployment RF silence inhibits the transmitter.
 
 ## 7. Mission Phases
 
-### 7.1 LEOP (Launch and Early Operations)
+### 7.1 LEOP and Commissioning
 
-**Duration:** Days 0-7
+The LEOP sequence minute by minute, with energy and ground actions, is `docs/operations/MISSION_TIMELINE.md`
+(SQSO-MTL-001) §5; commissioning, days 1–14, step by step with entry and exit criteria, is
+`docs/operations/COMMISSIONING_PLAN.md` (SQSO-COMM-001). They govern this section.
 
-| Day | Activities |
-|-----|------------|
-| 0 | Launch, separation, initial acquisition |
-| 0-1 | Antenna deployment verification |
-| 1-2 | Power system checkout |
-| 2-3 | ADCS checkout, detumble verification |
-| 3-5 | Communication system verification |
-| 5-7 | Initial AI payload activation |
+### 7.2 Primary Mission
 
-**Success Criteria:**
-- Beacons received and decoded
-- Power positive
-- Attitude stabilizing
-- Telemetry within limits
-
-### 7.2 Commissioning
-
-**Duration:** Days 7-30
-
-| Week | Activities |
-|------|------------|
-| 2 | Full sensor checkout, calibration |
-| 3 | Extended AI payload operations |
-| 4 | Performance characterization |
-
-**Success Criteria:**
-- All subsystems operational
-- AI-generated beacons validated
-- Telemetry trending nominal
-
-### 7.3 Primary Mission
-
-**Duration:** Days 30-365
+**Duration:** Day 14 to the end of the 2-year design life
 
 | Activity | Frequency |
 |----------|-----------|
 | Beacon monitoring | Continuous |
+| Authenticated contact | At least once in every 14-day loss-of-contact period |
+| `DUMP_TLM` of the stored housekeeping | Daily (as in commissioning) or as passes allow |
+| Ephemeris to Space-Track | After every pass until cataloged, then per SQSO-REG-015 |
 | Trend analysis | Weekly |
 | Status reports | Monthly |
-| Performance reviews | Quarterly |
+| Success declarations | L1 at 30 days, L2 at 12 months, L3 at 24 months (SQSO-MSC-001 §9) |
 
-### 7.4 Extended Mission
+### 7.3 Mission Extension
 
-**Duration:** Days 365-730 (if approved)
+An extension beyond 2 years is decided on the conditions of `docs/operations/END_OF_LIFE_PLAN.md` §2.2.
 
-| Criterion | Threshold |
-|-----------|-----------|
-| Power system | Positive energy balance |
-| Communication | Regular beacon reception |
-| Thermal | Within operational limits |
-| ADCS | Stable attitude |
-
-### 7.5 End-of-Life
+### 7.4 End-of-Life
 
 See END_OF_LIFE_PLAN.md for detailed procedures.
 
@@ -395,3 +365,4 @@ See END_OF_LIFE_PLAN.md for detailed procedures.
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-25 | §4.2 telecommand stations and §5.5 telecommand and transponder operations, from the baseline (the plan described a receive-only ground segment) | SMART-QSO Team |
+| C | 2026-10-27 | Documentation audit (post-CDR 2026): §2 objectives, phases and success criteria from SQSO-MSC-001 and BASELINE §2 (were AI-beacon objectives, a 12-month full success and 30-day commissioning); §5.5 the transponder as implemented (was "not yet implemented"); §6.2.3 the SOC thresholds of BASELINE §5; §7 LEOP and commissioning point to SQSO-MTL-001 and SQSO-COMM-001, primary mission to 2 years | Documentation audit |

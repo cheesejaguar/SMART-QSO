@@ -2,7 +2,7 @@
 ## TP-ENV-002
 
 **Document Number:** TP-ENV-002
-**Revision:** F (interim levels)
+**Revision:** G (interim levels)
 **Date:** 2026-10-27
 **Reference:** SpaceX Rideshare Payload User's Guide, Version 11, August 2026 ("UG v11",
 <https://storage.googleapis.com/rideshare-static/Rideshare_Payload_Users_Guide.pdf>): §4.1.6, Table 4-6, §6.1.2, §6.6,
@@ -15,6 +15,11 @@ which set the protoflight level (`docs/environment/ENVIRONMENTAL_TEST_PLAN.md` R
 > profile tied to no provider (finding LA-05). No test has been run.
 
 **Requirements verified:** SYS-700, SYS-703, SYS-704, SYS-705
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -122,7 +127,7 @@ Flight unit: 1 minute per axis. Engineering model (pathfinder, `ENVIRONMENTAL_TE
 | Step | Action | Expected Result | Result | P/F |
 |------|--------|-----------------|--------|-----|
 | 1 | Visual inspection | No damage | ______ | |
-| 2 | Mass measurement | Within the current mass list (BASELINE §4: CBE 1.49 kg, MEV 1.73 kg, limit 2.00 kg or the dispenser limit) | ______ kg | |
+| 2 | Mass measurement | Within the current mass list (BASELINE §4: CBE 1.52 kg, MEV 1.75 kg, limit 2.00 kg, or the dispenser limit: EXOpod Nova 1U 2.5 kg) | ______ kg | |
 | 3 | CG measurement | Within 2 cm of the geometric centre (CDS Rev 14.1 Table 2) | ______ cm | |
 | 4 | Functional test | TP-SYS-001 pass | ______ | |
 | 5 | Read and record the OBC boot counter and fault log | Recorded | ______ | |
@@ -209,7 +214,7 @@ UG v11 Table 6-6; force limiting is preferred (UG v11 §6.7.6). Record every not
 | 3 | Torque check | All fasteners tight | ______ | |
 | 4 | Read the OBC boot counter and fault log | Unchanged from §5.1 step 5 (no boot during vibration) | ______ | |
 | 5 | Functional test | TP-SYS-001 pass | ______ | |
-| 6 | Burn-wire continuity and stowed-state telemetry; a deployment only if the integrator agrees in writing (deployment tests run before this procedure: TP-ENV-005 Rev B) | Continuity within the pre-test value ± 10 %; stowed | ______ | |
+| 6 | Burn-wire continuity and stowed-state telemetry; a deployment only if the integrator agrees in writing (deployment tests run before this procedure: TP-ENV-005 version 1.1 or later) | Continuity within the pre-test value ± 10 %; stowed | ______ | |
 
 Actuating deployables after a protoflight test changes the flight configuration (CDS Rev 14.1 §3.5.2.1). For a fully
 containerized CubeSat, UG v11 §6.3 item 7 allows burn wires to be replaced and reset identically, with evidence that the
@@ -259,3 +264,4 @@ original burn wire did not fail in the test. Any other rework needs the integrat
 | D (interim) | 2026-10-16 | §1: SYS-700 now names the launch provider's levels (SQSO-REQ-002 Rev D, PI to ratify), so the note that its GEVS wording needed updating is replaced (finding LA-05) | SMART-QSO Team |
 | E (interim) | 2026-10-27 | CDR review (PM/SE/V&V): protoflight level raised from the MPE (5.57 Grms) to the GEVS-B Appendix B envelope of MPE + 3 dB and workmanship (8.18 Grms), 1 min/axis on the flight unit and 2 min/axis on the EM (`docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C §3.1); SYS-703 to SYS-705 added; post-test deployment replaced by continuity checks | CDR review, PM/SE/V&V |
 | F (interim) | 2026-10-27 | CDR 2026 consistency pass: mass check values from BASELINE Rev E §4 (CBE 1.49 kg, MEV 1.73 kg) | CDR documentation review |
+| G | 2026-10-27 | Documentation audit (post-CDR 2026): mass check CBE 1.52 kg / MEV 1.75 kg and the Nova 2.5 kg limit (BASELINE Rev E amended; was 1.49/1.73 kg); not-yet-run banner | Documentation audit |

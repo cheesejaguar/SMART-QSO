@@ -1,6 +1,16 @@
-## OPTIMIZE_JETSON.md — Power Optimization Guide for Jetson Orin Nano ("Super")
+## OPTIMIZE_JETSON.md — Power Optimization Guide for Jetson Orin Nano
 
-This guide consolidates practical levers to minimize average and peak power draw on NVIDIA Jetson Orin Nano–class modules (including higher‑bin “Super” variants). It prioritizes changes that are robust in headless deployments and measurable with standard tools.
+This guide consolidates practical levers to minimize average and peak power draw on NVIDIA Jetson Orin Nano–class modules. It prioritizes changes that are robust in headless deployments and measurable with standard tools.
+
+> **Flight configuration (documentation audit, 2026-10-27).** This is a general bench guide, not the flight
+> configuration. For SMART-QSO, `docs/BASELINE_PARAMETERS.md` §6 and the carrier design
+> `hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md` (SQSO-JET-BRD-001) govern: Jetson Orin Nano 8 GB module flashed
+> with the **original (non-Super) configuration** (`jetson-orin-nano-devkit`, not `-super`), **7 W mode = nvpmodel ID 1**
+> as the default (4 cores ≤ 960 MHz), VDD_IN capped at 6.5 W (INA3221 channel 1 `curr1_max` = 1300 mA), ≤ 8 W input
+> including the carrier, **no fan** (passive spreader to the frame), no Wi-Fi, Bluetooth, Ethernet, display or camera
+> on the carrier, and every burst ended by a commanded `SHUTDOWN` (SQSO-JET-BRD-001 §19 F2, F4). The Jetson runs only
+> the gated beacon-text experiment (SmolLM2-360M-Instruct or Qwen3-0.6B, INT4; BASELINE §6, decision D5). Sections 6,
+> 7, 9 and 11 below do not apply to the flight carrier.
 
 ### 0) Measure first (baseline and regressions)
 - Tegrastats: `sudo tegrastats --interval 1000` (watch `POM_5V_IN`, `CPU`, `GPU`, `EMC`)
@@ -91,7 +101,7 @@ Script `/usr/local/sbin/jetson_lowpower.sh`:
 ```bash
 #!/usr/bin/env bash
 set -euo pipefail
-sudo nvpmodel -m 0 || true
+sudo nvpmodel -m 1 || true   # ID 1 = 7 W on the original Orin Nano configuration (SQSO-JET-BRD-001 §0)
 for cpu in /sys/devices/system/cpu/cpu[0-9]*; do
   echo powersave | sudo tee $cpu/cpufreq/scaling_governor >/dev/null || true
   echo 1200000 | sudo tee $cpu/cpufreq/scaling_max_freq >/dev/null || true
@@ -127,3 +137,7 @@ sudo powertop --auto-tune 2>/dev/null || true
 - tegrastats, jtop, nvpmodel
 - TensorRT Best Practices
 
+| Revision | Date | Description |
+|----------|------|-------------|
+| — | undated | Bench guide |
+| A | 2026-10-27 | Documentation audit (post-CDR 2026): flight-configuration note (original configuration, 7 W mode ID 1, 6.5 W cap, no fan); "Super" removed from the title; the example script sets mode ID 1 (was 0) |

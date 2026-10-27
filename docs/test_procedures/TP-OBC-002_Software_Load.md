@@ -2,11 +2,16 @@
 ## TP-OBC-002
 
 **Document Number:** SQSO-TP-OBC-002
-**Version:** 1.1
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.2
+**Date:** 2026-10-27
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** SYS-300 (boot time); loading itself is a process step that no requirement covers
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -20,8 +25,8 @@ Verify OBC software loading, version verification, and configuration.
 
 | Equipment | Specification |
 |-----------|---------------|
-| ST-Link debugger | V3 |
-| Development PC | STM32CubeIDE |
+| ST-Link debugger | V3 (SWD through the access port, J9) |
+| Development PC | Rust toolchain pinned by `software/rust/rust-toolchain.toml`; the image built with `cargo build --release` in `software/rust/firmware` |
 | Serial terminal | 115200 baud |
 
 ---
@@ -36,7 +41,7 @@ Verify OBC software loading, version verification, and configuration.
 | 4 | Reset and boot | Boot banner appears | |
 | 5 | Query version | Matches SVD | |
 | 6 | Verify CRC | Matches build | |
-| 7 | Load configuration | Config accepted | |
+| 7 | Load configuration and the telecommand keys through the umbilical (`software/ground/tools/key_provision.py`; never over RF, SYS-326) | Every reply `SQGR 00` | |
 
 ---
 
@@ -57,3 +62,4 @@ Verify OBC software loading, version verification, and configuration.
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
 | 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
+| 1.2 | 2026-10-27 | Documentation audit (post-CDR 2026): Rust toolchain and firmware build replace STM32CubeIDE; keys through the umbilical; status and banner |

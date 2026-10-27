@@ -1,7 +1,7 @@
 # SMART-QSO RF Board: Build-to Design
 
 **Document ID**: SQSO-RF-BRD-001
-**Version**: F
+**Version**: H
 **Date**: 2026-10-27
 **Status**: Build-to design for the engineering model (EM): schematic captured as code with selected, orderable parts,
 netlist, BOM, ERC, calculations and layout rules. Not built, not measured. Values follow
@@ -12,16 +12,17 @@ format), `rf_board_bom.csv` (BOM), `rf_board_erc.log` (electrical rule check), `
 `rf_calcs.json` (every calculated value in this document). Block drawing: `hardware/diagrams/schematics/S4_rf_board.py`
 (version 2); harnesses `hardware/diagrams/wiring/W4_rf_board.yml` (version 3) and `W10_rf_coax.yml` (version 3).
 
-**Governing documents**: [RF_DESIGN.md](../../../docs/hardware/RF_DESIGN.md) (SMART-QSO-RF-001 2.1),
-[TRANSMITTER_DESIGN.md](../../rf/TRANSMITTER_DESIGN.md) (SQSO-RF-TX-001 1.5),
-[RF_ELECTRICAL_DESIGN.md](../../rf/RF_ELECTRICAL_DESIGN.md) (SQSO-RF-003 1.3),
-[ANTENNA_DESIGN.md](../../rf/ANTENNA_DESIGN.md) (SQSO-RF-ANT-001 2.3),
+**Governing documents**: [RF_DESIGN.md](../../../docs/hardware/RF_DESIGN.md) (SMART-QSO-RF-001),
+[TRANSMITTER_DESIGN.md](../../rf/TRANSMITTER_DESIGN.md) (SQSO-RF-TX-001),
+[RF_ELECTRICAL_DESIGN.md](../../rf/RF_ELECTRICAL_DESIGN.md) (SQSO-RF-003),
+[ANTENNA_DESIGN.md](../../rf/ANTENNA_DESIGN.md) (SQSO-RF-ANT-001),
 [BUILD_VS_BUY.md](../../../docs/hardware/BUILD_VS_BUY.md) §3, [ICD_OBC_RF.md](../../../docs/interfaces/ICD_OBC_RF.md)
-(SQSO-ICD-003 2.0), [LINK_BUDGET_ANALYSIS.md](../../../docs/environment/LINK_BUDGET_ANALYSIS.md) (SQSO-LBA-001 3.0),
-[EPS_DESIGN.md](../../../docs/hardware/EPS_DESIGN.md) 2.0, [EMC_ANALYSIS.md](../../../docs/environment/EMC_ANALYSIS.md),
-[THERMAL_ANALYSIS.md](../../../docs/environment/THERMAL_ANALYSIS.md) v2.0,
-[EEE_PARTS_LIST.md](../../../docs/manufacturing/EEE_PARTS_LIST.md) Rev C. Derating: NASA EEE-INST-002 Level 3 as
-adapted in EEE_PARTS_LIST Rev C §12 (resistors 50 % power, MLCC 50 % voltage, transistors 50 % power and current,
+(SQSO-ICD-003), [LINK_BUDGET_ANALYSIS.md](../../../docs/environment/LINK_BUDGET_ANALYSIS.md) (SQSO-LBA-001),
+[EPS_DESIGN.md](../../../docs/hardware/EPS_DESIGN.md) and the EPS board [EPS_BOARD_DESIGN.md](../eps/EPS_BOARD_DESIGN.md) (SQSO-EPS-BRD-001),
+[INTERCONNECT.md](../INTERCONNECT.md) (SQSO-ICX-001), [HARNESS_DESIGN.md](../../harness/HARNESS_DESIGN.md) (SQSO-HAR-001 2.0), [EMC_ANALYSIS.md](../../../docs/environment/EMC_ANALYSIS.md),
+[THERMAL_ANALYSIS.md](../../../docs/environment/THERMAL_ANALYSIS.md),
+[EEE_PARTS_LIST.md](../../../docs/manufacturing/EEE_PARTS_LIST.md) (Revisions of the cited documents: `docs/DOCUMENT_REGISTER.md`.) Derating: NASA EEE-INST-002 Level 3 as
+adapted in EEE_PARTS_LIST §12 (resistors 50 % power, MLCC 50 % voltage, transistors 50 % power and current,
 regulators 70 % current, IC junction ≤ 80 % of maximum; FET RF peak drain voltage ≤ 75 % of V(BR)DSS).
 
 ---
@@ -64,7 +65,7 @@ Three findings change the earlier documents and are reported for the chair (§15
 
 | Requirement (source) | Design value | Margin / status |
 |----------------------|--------------|-----------------|
-| Receive 435.000–437.300 MHz (BASELINE §7) | CC1200 410–475 MHz band; SAW passband 433–437 MHz guaranteed (8 MHz typical −3 dB) | 437.0–437.3 MHz only on the SAW's typical bandwidth; centre moves −15.7 kHz/K (+861/−548 kHz over −30…+60 °C): **recommend the IARU request ask for 435.050–436.500 MHz** (§6.4) |
+| Receive the coordinated uplink: BASELINE Rev E §7 requests 435.222–435.778 MHz, or else 436.222–436.500 MHz (the intersection of this board's 435.050–436.500 MHz limit, §6.4, with the EPS comb windows); the earlier 435.000–437.300 MHz range is superseded | CC1200 410–475 MHz band; SAW passband 433–437 MHz guaranteed (8 MHz typical −3 dB) | Both requested windows are inside the guaranteed SAW passband; centre moves −15.7 kHz/K (+861/−548 kHz over −30…+60 °C); 437.0–437.3 MHz would be only on the SAW's typical bandwidth (§6.4) |
 | System noise ≤ 650 K with a 290 K source; budget 1,000 K (RF-P006, LBA §2.4) | 552 K typical, 603 K worst at the antenna terminals (cables, connectors and worst-case mismatch included, W10 v3; L106 18 nH, F) | +0.7 / +0.3 dB to 650 K; 902–953 K with the 350 K interference allowance: +0.5 / +0.2 dB to 1,000 K |
 | Sensitivity: telecommand 90 % frames at 53.0 dB-Hz; voice 12 dB SINAD at 47.4 dB-Hz (RF-P011) | −116.2 / −115.8 dBm telecommand, −121.8 / −121.4 dBm voice (typ / worst, 2 dB implementation loss) | The LBA used 1,000 K; this receiver is 0.2–0.5 dB better |
 | RX filter: ≥ 60 dB at 144–146, ≥ 40 dB at 250–330 and 560–620 MHz, ≤ 1.5 dB in band (RF-P007) | FL1 + SAW (§6.2) | 144–146: ≥ 60 dB specified (69 dB without the traps, 134 dB computed with them); 250–330: ≥ 49.7 dB; 560–620: ≥ 45.3 dB; loss before the LNA 1.03 dB worst. The SAW (2.1–4.2 dB) sits after the LNA; RF-P007 is restated in RF_DESIGN 2.1 accordingly |
@@ -75,7 +76,7 @@ Three findings change the earlier documents and are reported for the chair (§15
 | Deviation ±3.0 kHz beacon (10K4F2D), ±5.0 kHz voice with limiter (RF-P004) | Digital: ±6.3 kHz = ADC full scale; AFSK 2.86–3.14 kHz; repeat limit 4.47–4.90 kHz | Inside ±0.5 kHz; Carson bandwidth 10.7 kHz at the high AFSK corner (filed 10.4 kHz): measure the 99 % bandwidth (VI-RF-15) |
 | Spurious ≤ 25 µW and ≥ 46 dBc at 1 W (97.307(e)); 3rd harmonic ≥ 70 dBc at the antenna port (BASELINE §7) | §7.4 | 2nd −89 dBc, 3rd −90 dBc, 4th −90 dBc with the board-leakage floor; +20 dB to 70 dBc |
 | Desense ≤ 0.5 dB at 1 W (RF-P009) | §7.5 | ≤ 0.01 dB at 2.2 MHz; 0.44 dB even 100 kHz from 3f at 70 dBc |
-| PA efficiency ≈ 1.5 W DC at 0.5 W RF (BASELINE §5) | 1.84 W | **+0.34 W (23 %) over; finding 2** |
+| Transponder DC at 0.5 W RF: allocation 1.85 W DC (BASELINE Rev E §5, after finding 2; was ≈ 1.5 W) | 1.84 W | Inside the allocation by 0.01 W |
 | TX_FWD, TX_REV, TX_TEMP to the OBC ADC (ICD-003 §4.2) | 2.5 V at 1 W (P = 0.16 V² W, `adc.rs`); 10 mV/°C, 0.5 V at 0 °C | Scalings of the firmware unchanged |
 | KISS TNC on USART2 9600, AFSK 1200, HDLC, full duplex (ICD-003 §5) | STM32L431 firmware | §5.3; firmware is a new item |
 | `XPDR_EN` heartbeat, monostable ≈ 50 ms, CTCSS, 120 s timer, AND, 2:1 select, mute, readbacks (BUILD_VS_BUY §3.2) | §8 | All in hardware except the TONE_OK relay (§8.3) |
@@ -144,15 +145,15 @@ Placement:
 | 3 | TNC_TXD (to OBC USART2 RX) | RF → OBC | 3.1 V CMOS push-pull, 100 Ω series | PD6 |
 | 5 | TX_PWR_SEL | OBC → RF | 3.3 V CMOS; 1 kΩ series, 100 kΩ pull-down (0.5 W at OBC reset) | PE3 |
 | 6 | XPDR_EN | OBC → RF | 100 Hz square wave; 1 kΩ series, 100 kΩ pull-down; edges trigger U401 | PE4 (TIM7 heartbeat) |
-| 8 | TONE_OK | RF → OBC | **3.1 V CMOS push-pull through 1 kΩ, high = CTCSS 67.0 Hz decoded**; low with the TNC in reset (100 kΩ pull-down) | OBC input, pin to be allocated by the OBC designer |
-| 9 | XPDR_KEY | RF → OBC | **3.1 V CMOS push-pull through 1 kΩ, high = repeat path keyed** (EN_OK · TONE_OK · NOT_TOT) | OBC input, pin to be allocated |
-| 10 | PTT_EXCITER | RF → OBC | **3.1 V CMOS push-pull through 1 kΩ, high = transmitter keyed** (beacon or repeat, TX permitted) | OBC input, pin to be allocated; a timer input-capture pin lets the firmware measure keyed time |
+| 8 | TONE_OK | RF → OBC | **3.1 V CMOS push-pull through 1 kΩ, high = CTCSS 67.0 Hz decoded**; low with the TNC in reset (100 kΩ pull-down) | OBC PC9 (EXTI9), 10 kΩ, 100 kΩ pull-down (SQSO-ICX-001 §3.2) |
+| 9 | XPDR_KEY | RF → OBC | **3.1 V CMOS push-pull through 1 kΩ, high = repeat path keyed** (EN_OK · TONE_OK · NOT_TOT) | OBC PG12 (EXTI12), as TONE_OK |
+| 10 | PTT_EXCITER | RF → OBC | **3.1 V CMOS push-pull through 1 kΩ, high = transmitter keyed** (beacon or repeat, TX permitted) | OBC PC7 (TIM8_CH2 input capture: the firmware measures keyed time), as TONE_OK |
 | 11 | TX_TEMP | RF → OBC | 0.3–1.7 V (10 mV/°C, 0.5 V at 0 °C), 1 kΩ / 100 nF | PA0 |
 | 12 | TX_FWD | RF → OBC | 0–2.5 V, 2.5 V at 1 W, P = 0.16 V² W; 1 kΩ / 100 nF | PC0 |
 | 13 | TX_REV | RF → OBC | as TX_FWD; 1.25 V at 3:1 and 1 W | PC1 |
 | 14 | AGND | — | Monitor return | — |
-| 15 | **RX_CD** | RF → OBC | **3.1 V CMOS push-pull through 1 kΩ, high = carrier above the receiver's carrier-sense threshold** (CC1200 GPIO2 = CARRIER_SENSE, RSSI threshold AGC_CS_THR set 6 dB above the measured noise floor, buffered by U480); 100 kΩ pull-down. Not the CTCSS decision: any carrier, including terrestrial interference | OBC input, pin to be allocated by the OBC designer (RID RFB-07) |
-| 16 | **RX_FAULT** | RF → OBC | **3.1 V CMOS push-pull through 1 kΩ, high = receiver fault** (§8.6); 100 kΩ pull-down: an unpowered board or an unwired line reads not fault | OBC input, pin to be allocated by the OBC designer (RID RFB-07) |
+| 15 | **RX_CD** | RF → OBC | **3.1 V CMOS push-pull through 1 kΩ, high = carrier above the receiver's carrier-sense threshold** (CC1200 GPIO2 = CARRIER_SENSE, RSSI threshold AGC_CS_THR set 6 dB above the measured noise floor, buffered by U480); 100 kΩ pull-down. Not the CTCSS decision: any carrier, including terrestrial interference | OBC PG0 (EXTI0), 10 kΩ, 100 kΩ pull-down (SQSO-ICX-001 §3.2; RID RFB-07) |
+| 16 | **RX_FAULT** | RF → OBC | **3.1 V CMOS push-pull through 1 kΩ, high = receiver fault** (§8.6); 100 kΩ pull-down: an unpowered board or an unwired line reads not fault | OBC PF13 (EXTI13), 10 kΩ, 100 kΩ pull-down (SQSO-ICX-001 §3.2; RID RFB-07) |
 
 The readback outputs are V_DIG logic (3.10 V ± 1.5 %): VOH ≥ 2.9 V at the 1 kΩ, so an STM32 input (VIH 0.7 × VDD =
 2.31 V at 3.3 V) reads them with 0.6 V margin. They are valid whenever RADIO_3V3 is on; with the radio unpowered they
@@ -162,7 +163,8 @@ configured by mistake as an output safe (3.3 mA).
 ### 4.2 J2, power (W4B, Molex Pico-Clasp 6, gold: 203556-0607)
 
 Connector (D, SQSO-HAR-001 2.0 item R-1): a gold Pico-Clasp vertical SMT header, 0.38 µm gold. It replaces the tin
-501331-0607 and mates the 501330-0600 housing with gold 501334 terminals. The 6-circuit code is inferred from
+501331-0607 and mates the 501330-0600 housing with gold 501193-9000 terminals (501334 is the tin terminal,
+SQSO-HAR-001 2.0 §3.1). The 6-circuit code is inferred from
 Molex's 203556-0307 and -1407 listings; the drawing check is VI-RFB-12.
 
 Placement (C16): top side on the −Y edge strip outside the shield, at about (−26, −44) mm, next to the PA in the
@@ -173,15 +175,15 @@ W4B (item R-2): 28 AWG M22759/33 wire, the Pico-Clasp crimp range. Three twisted
 most 5 mm untwisted at each end; 0.145 m long. Drops: 37 mV on PA_5V at the 1 W load (0.485 A), and 7.2 mV on RADIO_3V3 at its
 0.047 A worst (scaled from SQSO-HAR-001 §9.2).
 
-| J2 pin | Rail | Source (EPS_DESIGN 2.0 §4) | Load on this board |
+| J2 pin | Rail | Source (SQSO-EPS-BRD-001 §8.3, §13.1) | Load on this board |
 |--------|------|----------------------------|--------------------|
 | 1 | RADIO_3V3 | 3V3_AO through SW2 (RADIO_EN) | 31 mA typ / 38 mA worst receiving; +7–9 mA repeat path; +44–51 mA while keyed (LMX2571) |
 | 3, 4 | PA_5V | 5V_PA buck through SW3 (RF_TX_EN, hardware TX-OFF) | 1.6 mA idle while permitted; 0.368 A at 0.5 W; 0.485 A at 1 W (E: includes the LMX2571, 46 mA) |
 | 2, 5, 6 | GND | — | — |
 
-EPS's table gives SW2 0.1 A peak and SW3 0.54 A peak: both cover this board. The 0.25 A trip of SW2 is above any
-single-event-latch-up current a part on this board would draw from its normal 38 mA, so it does not detect latch-up:
-recommend the EPS designer set the SW2 trip at 0.12 A or the OBC watch the RADIO rail current (§15).
+The EPS board's switches cover this board: SW2 trips at 0.102–0.141 A and SW3 at 0.918–1.071 A (SQSO-EPS-BRD-001 §8.3).
+The earlier 0.25 A SW2 trip could not see a latch-up of the 38 mA load; the EPS board took the recommended 0.12 A
+(§15 item 4), and its controller also reports the rail current.
 
 ### 4.3 RF connectors and antenna cables (C; W10 version 3)
 
@@ -222,7 +224,7 @@ space in the gaps ([MECHANICAL_DESIGN.md](../../mechanical/MECHANICAL_DESIGN.md)
 | Wall-gap run | x −45.4 … −48.4, y +20.0 … +24.0 (70 cm pair) and −20.0 … −24.0 (2 m pair) | z +32.4 … −39.2 | Tied to the shear-panel side every 30 mm (harness design) |
 | Bottom bend and AntS run | from x −46.9, z −39.2, R 7 inboard to z −46.2 | under the battery end caps (bottom z −44.9, 0.6 mm clear) and over the −Z end frame (inner face −46.9), into the 70 × 70 mm cut-out to the AntS ports (z −48.5) | Last 5–75 mm depends on the AntS port positions (VI-RFB-13) |
 | J1 (W4A) | §4.1: right-angle TFM-108, pin field y −39.3 … −27.7, header and plug in x +30.0 … +43.1 | ≤ 7.0 mm (SQSO-HAR-001 §10); **10.0 mm allocation** kept; 12.0 mm is free to the +Z end frame. The SFSDT cable leaves toward +X, with no bend over the top | Mated geometry from the Samtec drawing: VI-RFB-12 |
-| J2 (W4B) | §4.2 | **8.0 mm allocation** for the Pico-Clasp header, housing and the 28 AWG twisted-pair bend | Mated height from the Molex drawing: VI-RFB-12 |
+| J2 (W4B) | §4.2 | **8.0 mm allocation** for the Pico-Clasp header, housing and the 28 AWG twisted-pair bend: in the CAD 6.0 mm for the mated header and housing (`RF_J2_mated`, z +36.4 … +42.4) and the bend in the harness step-over zone TE_MXMY2 above it (z +43.6 … +48.2; SQSO-MECH-CAD-001 D §6.9), so the mated header and housing must stay ≤ 7.2 mm | Mated height from the Molex drawing: VI-RFB-12 |
 
 **Bend radius (D, SQSO-HAR-001 item R-3).** Both bends are 7 mm: the top bend over the board edge and the bottom
 bend above the −Z end frame. That is 5.1 × OD, below the harness design's 6 × OD (8.2 mm) workmanship rule for
@@ -294,7 +296,7 @@ own TPS7A2033 on +5V_PA:
   power-down current.
 
 RADIO_3V3 now feeds only the receive and repeat loads, 47 mA worst. Its minimum at the board is 3.217 V
-(`rf_calcs.json` rx_power.rail_min_at_board), from 3V3_AO at −2 % (EPS_DESIGN 2.0 §4) less these drops:
+(`rf_calcs.json` rx_power.rail_min_at_board), from 3V3_AO at −2 % (SQSO-EPS-BRD-001 §8.1) less these drops:
 
 | Drop | mV |
 |------|---:|
@@ -387,7 +389,8 @@ from the PA output to the LNA input node** (layout §10).
 | Rejected: CMX138A 6.144 MHz; 38.4 MHz reference (bit clock 4.8 MHz); 26 MHz reference (bit clock 3.25 MHz) | 436.224; 436.8; 435.5 MHz |
 
 Recommendation for the IARU request (with the SAW's temperature drift, §2): **uplink 435.050–436.500 MHz**, clear of
-the 435.000 MHz bit-clock and crystal harmonics and centred in the SAW.
+the 435.000 MHz bit-clock and crystal harmonics and centred in the SAW. BASELINE Rev E §7 takes it with the EPS comb
+windows: 435.222–435.778 MHz, or else 436.222–436.500 MHz.
 
 ### 6.5 Frequency reference
 
@@ -449,7 +452,7 @@ footprint was found. The path:
 1. **Manufacturer statement.** The RF lead obtains a written Mitsubishi statement of the minimum operating case
    temperature and any cold-start limit, dated before the EM order (2027-01-15).
 2. **EM characterisation at −40 °C (VI-RFB-14).** Pass criteria at −40 °C, and at +70 °C for the record:
-   - Output power at both settings within RF-P003 (27.0 / 30.0 ± 0.5 dBm) under the APC loop.
+   - Output power at both settings within RF-P003 (27.0 ± 0.5 dBm; 29.5–30.0 dBm, never above 1 W) under the APC loop.
    - DC power at 0.5 W ≤ 1.1 × the room value.
    - No oscillation or spurious above −60 dBc from 1 to 1,000 MHz into a 3:1 load at all phases.
    - Drain-current and gate-bias settling within 100 ms of key-up.
@@ -487,8 +490,8 @@ control, class-B-like).
 | 12 Ω | 0.77 W | 27.80 dBm | 1.53 W |
 
 No load line now meets 1.5 W at 0.5 W (12 Ω gives 1.53 W and only 0.6 W maximum); Version E adds 0.08 W for the LMX2571's own LDO (SMA-B16). The design keeps the 1 W function. Options for
-the chair (§15): accept 1.84 W (orbit average +0.085 W at 25 % transponder duty; the ACTIVE tumbling margin falls by about 4 points
-from +31 %, to be re-run by the PBA owner); or a drain-switched 0.5 W mode (a 4.0 V buck on the board would give ≈ 1.46 W, at the cost of a switching
+the chair (§15): accept 1.84 W (orbit average +0.085 W at 25 % transponder duty; the ACTIVE tumbling margin, re-run by the PBA owner, is
++27 % with 1.84 W: SQSO-PBA-001 2.5, BASELINE §5); or a drain-switched 0.5 W mode (a 4.0 V buck on the board would give ≈ 1.46 W, at the cost of a switching
 converter beside a full-duplex receiver, rejected here for EMC); or a 6 V PA rail (EPS change; 1 W with 1.5 dB margin,
 no gain at 0.5 W).
 
@@ -653,8 +656,9 @@ repeat path is bounded in hardware.
 
 ### 8.5 Hardware TX permit
 
-TX-OFF (RF_TX_EN low, `rf_control`), the loss-of-contact and RF-silence inhibits, the three deployment switches and
-the EPS low-voltage shed all act by removing PA_5V (SW3; EPS_DESIGN 2.0 §5, §8). The board turns the presence of
+TX-OFF (RF_TX_EN low, `rf_control`), the loss-of-contact and RF-silence inhibits and the three deployment switches
+all act by removing PA_5V (SW3; SQSO-EPS-BRD-001 §6, §8.3; the EPS hardware load shed no longer includes the PA, §8.4
+there, SMA-B05). The board turns the presence of
 PA_5V into two independent hardware enables: (1) divider R803/R804 → U804 Schmitt buffer → TX_PERMIT_HW, an input of
 the PTT gate (so the LMX2571 CE, the PCM1808 clock and the PA enable all need it); (2) divider R805/R806 → the ON pin
 of U805, which powers the LMX2571 itself (E: U805 is the LMX2571's own TPS7A2033, fed from +5V_PA, so it also has no
@@ -902,21 +906,21 @@ VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 s
 
 | # | Change | Owner | Recommended text or action |
 |---|--------|-------|----------------------------|
-| 1 | OBC inputs for the three readbacks (RID RF-21 / AV-05): TONE_OK on W4 J1-8, XPDR_KEY on J1-9, PTT_EXCITER on J1-10; 3.1 V CMOS push-pull through 1 kΩ, active high, valid while RADIO_3V3 is on; three GPIO inputs with pull-down, PTT_EXCITER preferably on a timer input-capture pin | OBC designer (pins), AV (firmware) | Allocate three STM32 pins; firmware reads them into the transponder statistics and checks keyed time against TX_FWD |
-| 2 | W4 signal connector 10 → 16 positions (FTSH-108 in B; TFM-108 right-angle from D): XPDR_EN (missing from W4), readbacks J1-8/9/10, and (B) RX_CD J1-15, RX_FAULT J1-16 | OBC designer | OBC J-RF pinout per §4.1; two more OBC inputs with pull-downs for RX_CD and RX_FAULT (RID RFB-07) |
+| 1 | OBC inputs for the three readbacks (RID RF-21 / AV-05): TONE_OK on W4 J1-8, XPDR_KEY on J1-9, PTT_EXCITER on J1-10; 3.1 V CMOS push-pull through 1 kΩ, active high, valid while RADIO_3V3 is on; three GPIO inputs with pull-down, PTT_EXCITER preferably on a timer input-capture pin | OBC designer (pins), AV (firmware) | Allocate three STM32 pins; firmware reads them into the transponder statistics and checks keyed time against TX_FWD. **Pins done:** PC9, PG12, PC7 (SQSO-ICX-001 §3.2) |
+| 2 | W4 signal connector 10 → 16 positions (FTSH-108 in B; TFM-108 right-angle from D): XPDR_EN (missing from W4), readbacks J1-8/9/10, and (B) RX_CD J1-15, RX_FAULT J1-16 | OBC designer | OBC J-RF pinout per §4.1; two more OBC inputs with pull-downs for RX_CD and RX_FAULT (RID RFB-07). **Done:** OBC J2 TFM-108, RX_CD PG0, RX_FAULT PF13 |
 | 3 | OBC SPI2 (PB13–PB15, PD0, "RF transceiver" in `spi.rs`) is no longer used by the radio | OBC designer, AV | Free the pins |
-| 4 | SW2 trip current 0.25 A does not detect latch-up of a 38 mA load | EPS designer | SW2 current limit ≈ 0.12 A, or OBC monitoring of the RADIO rail current with a power cycle of RADIO_EN |
-| 5 | 3V3_AO tolerance ±3 % leaves 39 mV for the LMX2571's 3.15 V minimum | EPS designer | ±2 % set point, or confirm ±3 % includes load and temperature |
-| 6 | Transponder DC 1.84 W at 0.5 W RF (1.76 W before E) (BASELINE §5 says ≈ 1.5 W) | Chair (BASELINE §5), PBA | "FM transponder (0.5 W RF ≈ 1.85 W DC), duty ≤ 25 %: 0.46 W"; or a 6 V PA rail (§7.3; the 12 Ω load line no longer reaches 1.5 W after E) |
+| 4 | SW2 trip current 0.25 A does not detect latch-up of a 38 mA load | EPS designer | SW2 current limit ≈ 0.12 A, or OBC monitoring of the RADIO rail current with a power cycle of RADIO_EN. **Done:** SW2 0.102–0.141 A (SQSO-EPS-BRD-001 §8.3) |
+| 5 | 3V3_AO tolerance ±3 % leaves 39 mV for the LMX2571's 3.15 V minimum | EPS designer | ±2 % set point, or confirm ±3 % includes load and temperature. **Done:** 3V3_AO ±2 % (SQSO-EPS-BRD-001 §8.1); the LMX2571 now has its own LDO (Version E, §5.1) |
+| 6 | Transponder DC 1.84 W at 0.5 W RF (1.76 W before E) (BASELINE §5 says ≈ 1.5 W) | Chair (BASELINE §5), PBA | "FM transponder (0.5 W RF ≈ 1.85 W DC), duty ≤ 25 %: 0.46 W"; or a 6 V PA rail (§7.3; the 12 Ω load line no longer reaches 1.5 W after E). **Done:** BASELINE Rev E §5 (1.84 W designed, 1.85 W allocation) |
 | 7 | 1 W setting 29.5–30.1 dBm | Chair | Keep "1 W maximum" for the filing; RF-P003 1 W level 30.0 +0.3/−0.6 dB |
-| 8 | Uplink request 435.050–436.500 MHz (SAW temperature drift, 435.000 MHz clock harmonics) | Chair (IARU request), REG | Add to the IARU request alongside the 437.3 MHz upper bound |
+| 8 | Uplink request 435.050–436.500 MHz (SAW temperature drift, 435.000 MHz clock harmonics) | Chair (IARU request), REG | Add to the IARU request alongside the 437.3 MHz upper bound. **Done:** BASELINE Rev E §7 requests 435.222–435.778 MHz, or else 436.222–436.500 MHz |
 | 9 | Receiver changed from "AX5043/SA818 class" to CC1200; the repeat audio passes through the TNC firmware | Chair (BUILD_VS_BUY §3.2 text) | "…the receiver's demodulated audio, produced by the TNC MCU from the CC1200's frequency samples (no analog FM receiver IC is in production within the power budget); tone decode, band-limiting, level limit, key gate, timer and TX permit in hardware" |
 | 10 | TNC firmware is a new software item | Chair (SDP) | Add to the software inventory, Class C, with tests VI-RFB-01, -05 |
 | 11 | ±1.0 ppm over 2 years needs a re-trim | Chair, AV | **Closed (RFB-05):** ground-side correction from the measured downlink offset; RF-P005 and VI-RF-14 amended (RF_DESIGN 2.3 amended) |
 | 12 | ICD-003 §4.2/§4.3/§6/§8: readbacks wired, TONE_OK etc. levels, RADIO_EN-to-ready ≤ 50 ms (MCU boot ≈ 5 ms, CC1200 set-up ≈ 10 ms, TCXO ≤ 2 ms), connector part, ADC scalings confirmed | Chair (ICD owner) | Update from §4 |
 | 13 | VI-RF-11 "unkeys within 100 ms in every case": a stalled main loop takes up to 118 ms (60 ms lease + 58 ms) | AV / chair | Measure from the last edge (≤ 59 ms), or shorten the lease to ≤ 40 ms |
 | 14 | (B, amended; D) C16 layout constraints: J1 right-angle TFM-108 on the top side, pin field y −39.3 … −27.7, header and plug in x +30.0 … +43.1, cable toward +X (SQSO-HAR-001 R-1); J2 gold Pico-Clasp at (−26, −44); shield frame notched at x > +30.0, y < −26.0; top-side connectors exceed the 2 mm outside-shield envelope (mated heights open, Samtec and Molex drawings, VI-RFB-12); zone M1 on the RF board | Mechanical designer | Carry the notch and the connector envelopes in the CAD model. W4A (flat SFSDT on the +X shear panel) and W4B (28 AWG twisted pairs) are as SQSO-HAR-001 2.0 routes them |
-| 15 | (C) RF connectors and antenna cables, **settled**: MMCX jacks J3–J6 on the top side at x −34.5 (J3/J4 in a −X notch of the shield frame, x < −30.0, y −28.0 … −16.0), 1.37 mm cables with right-angle MMCX plugs, down the −X wall gap in the bands y ±(20.0 … 24.0), to the AntS's MMCX ports (assumed). Envelopes, the cable path and the bends in §4.3 | Mechanical designer (CAD envelopes, shield notch); harness designer (W10 v3, ties in the gap; HARNESS_DESIGN §4.7 H7 still says RG-316 and SMA); chair (TRANSMITTER_DESIGN §11 and RF_ELECTRICAL_DESIGN connector rows still say SMA end launch) | Put the §4.3 envelopes in the CAD model in one pass; keep the −X bands y ±(20 … 24) free of harness; update H7 to W10 v3. The CAD model's AntS has two elements (option A: 2 m +X, 70 cm −X); this board and ANTENNA_DESIGN 2.1 use four (2 m ±X, 70 cm ±Y): the model needs the four-element case for the port count |
+| 15 | (C) RF connectors and antenna cables, **settled**: MMCX jacks J3–J6 on the top side at x −34.5 (J3/J4 in a −X notch of the shield frame, x < −30.0, y −28.0 … −16.0), 1.37 mm cables with right-angle MMCX plugs, down the −X wall gap in the bands y ±(20.0 … 24.0), to the AntS's MMCX ports (assumed). Envelopes, the cable path and the bends in §4.3 | Mechanical designer (CAD envelopes, shield notch); harness designer (W10 v3, ties in the gap; HARNESS_DESIGN §4.7 H7 still says RG-316 and SMA); chair (TRANSMITTER_DESIGN §11 and RF_ELECTRICAL_DESIGN connector rows still say SMA end launch) | Put the §4.3 envelopes in the CAD model in one pass; keep the −X bands y ±(20 … 24) free of harness; update H7 to W10 v3. The CAD model's AntS has two elements (option A: 2 m +X, 70 cm −X); this board and ANTENNA_DESIGN 2.1 use four (2 m ±X, 70 cm ±Y): the model needs the four-element case for the port count. **Status:** W10 v3 is in SQSO-HAR-001 2.0 (§4, 1.37 mm coax, MMCX), and the CAD carries four AntS elements (MECHANICAL_DESIGN §5.2) |
 
 ## 16. Not Verified
 
@@ -954,3 +958,5 @@ VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 s
 | E (amended) | 2026-10-27 | CDR thermal (THM-04) | Y451 to ABLS-3.6864MHZ-L4-T (−55 … +125 °C, ±30/±50 ppm) for the −40 °C first-orbit board cold case; was ABLS-3.6864MHZ-B4-T (−20 … +70 °C); harmonic plan rechecked at ±80 ppm (§12) |
 | F | 2026-10-27 | CDR parts temperature audit (SQSO-MFG-003) | Q601 cold-operation path (Mitsubishi statement before 2027-01-15, EM characterisation at −40 °C VI-RFB-14, TX_TEMP keying limit or CMX901 as fallbacks, §7.2); L106 20 nH → 0603HP-18NXGLU (FL1 0.73 dB worst, return loss ≥ 19.1 dB, 144–146 MHz ≥ 134 dB; T_sys 552–603 K, §6.1–§6.2); L605 → 0807SQ-10NGLC (10.2 nH, longer land pattern); BFP640F lifetime buy (60 pieces by 2027-03-31, §12); J1 plating code -L (TFM-108-01-L-D-RA); test temperature ranges −40 … +70 °C (VI-RFB-07, -09, -10, VI-RFB-15) |
 | F (amended) | 2026-10-27 | TNC firmware SRS (SQSO-SRS-TNC-001) | §7.7: LMX2571 verification uses the existing MUXout readback (SDO_LD_SEL), only while PTT is low because LMX_LD gates PA_EN; the data sheet does not state that writes are accepted with CE low, so the design writes after CE high and 100 µs, ending with R0 FCAL_EN = 1; the residual is a locked-frequency upset during a transmission, bounded to ≤ 5 s by keyed rewrites; the CC1200 is not isolated by TX-OFF (RADIO_3V3 stays): its PA pin has no RF path, and the firmware bounds (minimum PA, no STX, 1 s MARCSTATE check) keep any leakage below −60 dBm, estimated, VI-RFB-16; TNC-FW-LMX in §13 |
+| G | 2026-10-27 | Documentation audit (post-CDR 2026) | Governing documents cited by ID (revisions in the register; several were cited at superseded revisions), with the EPS board, the interconnect and the harness design added; §2 uplink and transponder-DC rows to BASELINE Rev E (windows 435.222–435.778 / 436.222–436.500 MHz; 1.85 W allocation); §4.1 OBC pins as allocated in SQSO-ICX-001 §3.2 (were "to be allocated"); §4.2 SW2/SW3 limits of the EPS board and the gold Pico-Clasp terminal 501193-9000 (501334 is tin); §7.3 tumbling margin +27 % (PBA 2.5); §8.5 the PA is no longer in the EPS load shed (SMA-B05); §15 items 1, 2, 4, 5, 6, 8 marked done. No circuit change |
+| H | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up | §4.3 J2 row: how the 8.0 mm allocation sits in the CAD (6.0 mm header and housing plus the TE_MXMY2 bend zone; housing ≤ 7.2 mm); J1's 10.0 mm allocation now modelled in the CAD; RF-P003 1 W level written 29.5–30.0 dBm, never above 1 W (SYS-201; was 30.0 ± 0.5 dBm), §7.3 still shows the saturated 30.14 dBm at the 5.15 V rail, held by the APC at 30.0 dBm; BOM J2 note: gold Pico-Clasp terminals are 501193-9000 (501334 is the tin terminal) |

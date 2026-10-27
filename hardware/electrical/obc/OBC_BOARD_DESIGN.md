@@ -1,7 +1,7 @@
 # SMART-QSO OBC Board: Build-to Design
 
 **Document ID**: SQSO-OBC-BRD-001
-**Version**: E
+**Version**: G
 **Date**: 2026-10-27
 **Status**: CDR build-to electrical design for the engineering model (EM): schematic captured as code with selected,
 orderable parts, netlist, BOM, ERC (clean, waivers listed) and calculations. No PCB layout, no hardware; every number
@@ -24,11 +24,11 @@ and [`a3_board_nets.csv`](a3_board_nets.csv) (the access-port board A3), [`obc_c
 `<CAD venv>/bin/python hardware/electrical/obc/design.py`. The master pin allocation and the board-to-board signal
 lists are in [INTERCONNECT.md](../INTERCONNECT.md) (SQSO-ICX-001).
 
-**Governing documents**: `docs/BASELINE_PARAMETERS.md` Rev D (governs); `hardware/obc/OBC_DESIGN.md` (SQSO-CDH-OBC-001
-1.7, §13 open items); `docs/interfaces/ICD_OBC_ADCS.md` 1.1 §12, `ICD_OBC_JETSON.md` 1.2, `ICD_OBC_EPS.md` 1.1,
-`ICD_OBC_RF.md` 2.1; `docs/hardware/ADCS_DESIGN.md` 1.5, `PAYLOAD_DESIGN.md` 1.1 §11, `BUILD_VS_BUY.md` §2.5–§2.7, §5;
-`docs/environment/RADIATION_ANALYSIS.md` Rev C §5–§6; the EPS board SQSO-EPS-BRD-001 §8.3, §13.2 and the RF board
-SQSO-RF-BRD-001 §4.1 (the other ends of every interface); `docs/manufacturing/EEE_PARTS_LIST.md` Rev C §2A.
+**Governing documents**: `docs/BASELINE_PARAMETERS.md` Rev E (governs); `hardware/obc/OBC_DESIGN.md` (SQSO-CDH-OBC-001,
+§13 open items); `docs/interfaces/ICD_OBC_ADCS.md` (SQSO-ICD-004) §12, `ICD_OBC_JETSON.md` (SMART-QSO-ICD-002),
+`ICD_OBC_EPS.md` (SMART-QSO-ICD-001), `ICD_OBC_RF.md` (SQSO-ICD-003); `docs/hardware/ADCS_DESIGN.md`,
+`PAYLOAD_DESIGN.md` §11, `BUILD_VS_BUY.md` §2.5–§2.7, §5; `docs/environment/RADIATION_ANALYSIS.md` §5–§6; the EPS board SQSO-EPS-BRD-001 §8.3, §13.2 and the RF board
+SQSO-RF-BRD-001 §4.1 (the other ends of every interface); `docs/manufacturing/EEE_PARTS_LIST.md` §2A. Revisions of the cited documents: `docs/DOCUMENT_REGISTER.md`.
 
 ---
 
@@ -136,7 +136,7 @@ termination except the connector mating faces and X1.
 
 ## 4. MCU Supply and Decoupling
 
-- **Entry.** 3V3_OBC arrives on J1-1/2 (two 28 AWG wires, 0.088 A each at the SW10 trip). D2 SMF5.0A (5.0 V standoff,
+- **Entry.** 3V3_OBC arrives on J1-1/2 (two 30 AWG SFSDT wires, 0.088 A each at the SW10 trip). D2 SMF5.0A (5.0 V standoff,
   9.2 V clamp; 3.4 V is 68 % of the standoff, leakage < 1 µA), C1 22 µF and C2 10 µF bulk.
 - **Inrush.** 39.7 µF on 3V3_OBC charges in 1.0 ms at SW10's minimum limit (0.130 A), well inside its 8 ms FAULT
   deglitch: the OBC does not trip its own supply at power-up. Keep the 3V3_OBC capacitance below 150 µF at layout.
@@ -184,8 +184,8 @@ cause register reports U2's resets as "pin reset"; the RTC event log tells a sup
 time and the IWDG flag. A latch-up in the MCU that NRST cannot clear is cleared by SW10 on the EPS (current trip and
 retry); an OBC rail stuck in a non-tripping fault, or a hang the resets do not clear, is caught by the EPS controller's
 heartbeat watch (Version D, SMA-B09: the OBC writes a register of the controller at 0x48 on I2C2 every 60 s; after
-10 min without it the controller pulls SW10's EN low through a one-shot limited to one 10 s pulse per 10 min; EPS item
-E14). The heartbeat travels on I2C2 (PF1/PF0, W3 pins 5–6, the EPS controller's address 0x48), with its two parallel
+600 s without it the controller pulls SW10's EN low for 1.95 s through the hardware one-shot U82, no cycle within 600 s
+of a controller start or of the last cycle, at most 3 cycles in 24 h; SQSO-EPS-BRD-001 §12, item E14). The heartbeat travels on I2C2 (PF1/PF0, W3 pins 5–6, the EPS controller's address 0x48), with its two parallel
 pull-ups; if I2C2 itself is stuck the heartbeat stops and the power cycle also clears an OBC-held bus. Item C10
 closed.
 
@@ -225,14 +225,14 @@ ground time command re-sets it.
 
 ### 9.1 Latch-up-protected sensor rails
 
-Each sensor has its own TPS2553-Q1 (U5 gyro, U6 BMI088, U7 magnetometer and sun-sensor front end) from 3V3_ADCS, with
+Each sensor has its own TPS2553-Q1 (U5 gyro, U6 BMI088, U7 sun-sensor front end, U35 magnetometer from Version D) from 3V3_ADCS, with
 ILIM tied to IN: **current limit 50 / 75 / 100 mA (min / typ / max)**, reached in 2 µs; after the 8 ms FAULT deglitch
 FAULT pulls EN low (R_FAULT **220 kΩ**, C_RETRY 2.2 µF X7R): the rail is off for **0.18–0.33 s** (0.6 × R × C, 0.29 s
 nominal; the minimum takes the X7R's −15 % at −40 °C, −10 % tolerance, −15 % DC bias at 3.3 V and −5 % ageing: still
 ≥ 0.1 s, RADIATION_ANALYSIS §5.3; Version D's 100 kΩ gave 0.08 s at that corner; `snsw_retry_off_*`). A commanded
 turn-on now takes up to 0.55 s (one RC to the EN threshold): the flight software waits ≥ 0.6 s after an enable before
 using a sensor and retries; a persisting latch-up repeats the cycle. BAT54 diodes make a commanded turn-off
-fast. Each EN node is read back through 100 kΩ (GYRO_RB PF10, IMU2_RB PF11, SNS_RB PF12): low with the enable high
+fast. Each EN node is read back through 100 kΩ (GYRO_RB PF10, IMU2_RB PF11, SNS_RB PF12, MAG_RB PF15): low with the enable high
 means a trip.
 
 | Rail | Normal maximum | Limit minimum | Margin |
@@ -243,7 +243,7 @@ means a trip.
 | 3V3_MAG (RM3100 on A2 × 1.6, U34 and U33 B side; Version D, SMA-B18) | 2.3 mA | 50 mA | 22× |
 
 RADIATION_ANALYSIS §5.3 proposed 40 mA for the gyro; the lowest TPS2553-Q1 setting is 50–100 mA, which a latch-up
-(typically hundreds of milliamperes) still trips. The EPS's SW4 (0.265–0.339 A) is the upstream breaker for all three.
+(typically hundreds of milliamperes) still trips. The EPS's SW4 (0.265–0.339 A) is the upstream breaker for all four.
 
 The gyro needs VCC 3.15–3.45 V. Worst case at the gyro: 3V3_AO − 3 % (3.201 V) less SW4, the W6B harness, U5 and the
 trace: **3.195 V, 45 mV above the minimum**. Recommended to the EPS designer: a ± 2 % set point (interface change E8).
@@ -279,16 +279,16 @@ random input (MECHANICAL_DESIGN §4.3.2, in-axis, mean of the footprint nodes):
 
 | Input axis | Response at the module (in axis) | 3σ peak | Cross axes |
 |------------|----------------------------------|---------|------------|
-| X | 22.2 Grms | 67 g | 4.5 / 10.5 Grms |
-| Y | 25.0 Grms | 75 g | 3.1 / 11.7 Grms |
-| Z | 21.7 Grms | 65 g | 1.8 / 3.2 Grms |
+| X | 21.9 Grms | 66 g | 4.6 / 6.8 Grms |
+| Y | 24.0 Grms | 72 g | 2.5 / 8.8 Grms |
+| Z | 36.9 Grms | 111 g | 2.6 / 4.9 Grms |
 
 Epson's data sheet (M-G370PDG0, Rev 1.2, table 1.1, absolute maximum ratings) gives only **shock 1000 g, half-sine
 0.5 ms**; it gives no random or sine vibration rating, and no qualification levels were found in Epson's public
 material (the PDT0 variant's sheet was not obtained; the PDG0 sheet is the same family and package). As a quasi-static
-load the 3σ peaks are 13–15× below the shock rating, so the module will not be overstressed by a single peak; but a shock
+load the 3σ peaks are 9–15× below the shock rating, so the module will not be overstressed by a single peak; but a shock
 rating says nothing about fatigue of the module's internal interconnects, its FTMH header in the CLM socket or the
-sensing elements' bias under 60 s per axis of 22–25 Grms broadband input, and the stack modes (326–396 Hz) put most of
+sensing elements' bias under 60 s per axis of 22–37 Grms broadband input, and the stack modes (322–391 Hz) put most of
 that energy in one band. The rating is therefore **neither shown exceeded nor shown met**.
 
 Decision: **no isolation; a verification item instead (V-OBC-16)**. An isolator would add a resonance (an elastomer
@@ -299,7 +299,7 @@ OBC EM with an M-G370 of the flight lot fitted on X1 with its two screws (locked
 self-locking female threads in the board-side standoffs, no anaerobic thread-locker (MATERIALS_LIST: Loctite 242 is
 non-compliant for outgassing); screw heads and the module edge staked with Scotch-Weld 2216, staking only, not
 structural), random vibration at the FE-predicted module levels (the stack input at
-protoflight level and duration, or a board-level input shaped to give ≥ 22.2 / 25.0 / 21.7 Grms at the module), and a
+protoflight level and duration, or a board-level input shaped to give ≥ 21.9 / 24.0 / 36.9 Grms at the module), and a
 shock test to the launch provider's SRS when it is issued; functional tests before and after on a rate table: bias
 change ≤ 0.01 °/s (10 % of the 0.1 °/s budget of SENSOR_DESIGN §4.1), scale factor change ≤ 0.2 %, noise within 10 %
 of the pre-test value, no DIAG_STAT flags, no SPI errors. The gyro is unpowered during launch, so no in-test function
@@ -330,7 +330,7 @@ connect if unused).
 starts a conversion only when the MCU asks, in the 950–1000 ms coils-off window, with DRDY marking the end, which is
 exactly the timing ICD-004 §12.2 requires ("single-shot conversions triggered in the window"); (2) it is 3× better than
 the Monte Carlo's 50 nT noise assumption; (3) about 3 g with board and harness; (4) cost. Against it: no radiation data
-(covered by its own latch-up switch U7 and the RAD-V3 lot test, like every other COTS part without data).
+(covered by its own latch-up switch U35 and the RAD-V3 lot test, like every other COTS part without data).
 
 **Location (Version B re-assessment).** The question is how far the sensor is from the three CR0002 rods, whose
 remanence after each burst (hysteresis) the 50 ms settle cannot remove (RID GNC-04, AV-V4), and from the currents
@@ -356,7 +356,7 @@ near x = 0 (926), under the SO-DIMM connector, which is no better for the Jetson
 **Recommended hardware: board A2 at the CAD's +Z magnetometer slot, (+24, +27) mm, z +40.4 … +48.4** (where
 MECHANICAL_DESIGN §4.1 already reserves a magnetometer). A2 is a 24 × 24 mm, two-layer, 1.6 mm board with the RM3100
 (U1 MagI2C, L1/L2 Sen-XY-f, L3 Sen-Z-f, six 121 Ω, REXT 33 kΩ, 10 µF + 100 nF), its harness connector J1 and one ESD
-array; it carries no switch and no isolation, which stay on the OBC (U7, U14, U33), so a fault on A2 or W6E trips U7
+array; it carries no switch and no isolation, which stay on the OBC (U35, U34, U33), so a fault on A2 or W6E trips U35
 and nothing else. It is mounted to the +Z end frame by non-magnetic fasteners (titanium or brass, not A286 near the
 coils) with the coils' axes on the body axes. What this gives:
 
@@ -399,12 +399,12 @@ left during a measurement are the rods' non-repeatable remanence, which is what 
 
 **Circuit** (PNI Doc 1017252 R07, figure 4-2, on A2): MagI2C U1 (13156) with two Sen-XY-f (13104) and one Sen-Z-f
 (13101); 121 Ω bias resistors at both ends of each coil (six); REXT 33 kΩ (180 kHz clock); I2CEN high, SA0 = SA1 = 0
-(0x20); AVDD and DVDD together on 3V3_SNS (10 µF + 100 nF). On the OBC (Version D, SMA-B18): **3V3_MAG from its own
+(0x20); AVDD and DVDD together on 3V3_MAG (10 µF + 100 nF). On the OBC (Version D, SMA-B18): **3V3_MAG from its own
 latch-up switch U35** (MAG_EN PF14, trip readback MAG_RB PF15), I2C4 through **its own repeater U34** TCA9517-Q1
 (enabled only while 3V3_MAG is up, 4.7 kΩ pull-ups on the sensor side), so a fault on A2 or W6E no longer takes the
 sun sensors (Version C shared U7 and U14), DRDY back through U33 SN74LVC1T45-Q1 (B side on 3V3_MAG) to PD11,
-J10 (Pico-Clasp 6: 3V3_SNS, GND, SDA, SCL, DRDY, GND) with an ESD array and a 100 kΩ pull-down on DRDY. Harness W6E,
-0.10 m of 28 AWG up the (+X, +Y) bundle (about 0.06 m routed plus a service loop; excess stowed below z +20, away from
+J10 (Pico-Clasp 6: 3V3_MAG, GND, SDA, SCL, DRDY, GND) with an ESD array and a 100 kΩ pull-down on DRDY. Harness W6E,
+0.090 m of 28 AWG up the (+X, +Y) bundle (SQSO-HAR-001 2.0 §4: route plus a service loop; excess stowed below z +20, away from
 A2): sensor-side rise time 139 ns (4.7 kΩ, about 35 pF), inside 300 ns for
 400 kHz; 100 kHz recommended. Layout rules for A2: §21.
 
@@ -440,7 +440,8 @@ reachable: §25). Resistance ≈ 51 Ω from the CubeSpace brochure table (column
 | Supply current, three saturated, 14.4 V | 0.083 A (97 % bridge efficiency) |
 
 So the bridges run from VBAT: VBAT_MTQ from a new EPS switch SW11 on ADCS_EN (interface change E3), entering on
-J1-36 and J1-39 (0.115 A per 28 AWG wire at the worst fault, 46 % of its derated 0.25 A), with D3 SMBJ20A (20 V
+J1-36 and J1-39 (30 AWG SFSDT: 0.115 A per wire at the bridges' limit, 0.20 A at the SW11 limit, 31 % of the derated 0.65 A,
+SQSO-HAR-001 2.0 §9.1), with D3 SMBJ20A (20 V
 standoff, 32.4 V clamp, below the DRV8876's 40 V absolute maximum) and 5 × 4.7 µF 50 V.
 
 ### 10.2 H-bridges
@@ -659,8 +660,8 @@ rated −40 °C. Heat sources for the thermal model: three DRV8876 (0.14 W each 
 | A3 SMF24A (UMB_CHG, UMB_VMON) | standoff vs 16.8 V | 16.8 V | 24 V | 70 % (TVS: standoff above the maximum) | < 100 % | yes |
 | A3 Micro-D contacts | current | 0.25 A | 3 A | 8 % | 50 % | yes |
 | Pico-Clasp contacts (J3–J8, J10; A2 J1) | current | ≤ 0.34 A (trip) | 1 A | ≤ 34 % | 50 % | yes |
-| W3 28 AWG (VBAT_MTQ) | current | 0.115 A | 0.25 A derated | 46 % | 100 % of derated | yes |
-| W6B 26 AWG (3V3_ADCS) | current | 0.339 A at the SW4 trip | 0.5 A derated | 68 % | 100 % | yes |
+| W3 30 AWG (VBAT_MTQ) | current | 0.20 A at the SW11 limit | 0.65 A derated | 31 % | 100 % of derated | yes |
+| W6B 28 AWG (3V3_ADCS) | current | 0.339 A at the SW4 trip | 0.90 A derated | 38 % | 100 % | yes |
 | FM25V20A | SPI clock | 20 MHz | 40 MHz | 50 % | — | yes |
 
 ## 19. Parts
@@ -689,7 +690,7 @@ stress, finish and how its MPN was checked. Summary of the active parts:
 | Translators | TI TXU0304QPWRQ1 ×2, TXU0204QPWRQ1 ×2, SN74LVC1T45QDCKRQ1 ×6, TCA9517DGKRQ1 ×2; Nexperia 2N7002BK (Q1, access-port reset request) | AEC-Q100 | Active | no data |
 | ESD | TI TPD4E05U06QDQARQ1 ×18 (+1 on A2, +2 on A3), TPD1E05U06QDPYRQ1 ×2 (+1 on A3); Littelfuse SMF24A ×2 on A3 | AEC-Q101 (TI) | Active (TI); SMF24A not checked | — |
 | Passives | Murata GCM (AEC-Q200), Panasonic ERJ-3EKF / ERA-3AEB (AEC-Q200), Vishay CRCW-e3 | automotive | series codes checked, values not | — |
-| Connectors | Samtec TFM-120/108/105-01-L-D-RA (right-angle, −L 15 µin gold per catalog F-226; Version D's "-S" is the single-row option), CLM-110; Molex Pico-Clasp **203556** gold (2035560607 J3, J5, J7, J10 and A2 J1; 2035560207 J4, J6; 2035561207 J8; −40…+105 °C); Micro-D M83513/25-C01NN on A3 | — | Samtec not checked; Pico-Clasp series Active (EPS board), the 14-position part by pattern | — |
+| Connectors | Samtec TFM-120/108/105-01-L-D-RA (right-angle, −L 15 µin gold per catalog F-226; Version D's "-S" is the single-row option), CLM-110; Molex Pico-Clasp **203556** gold (2035560607 J3, J5, J7, J10 and A2 J1; 2035560207 J4, J6; 2035561207 J8; −40…+105 °C); Micro-D M83513/25-C01NN on A3 | — | Samtec not checked; Pico-Clasp series Active (EPS board), the 12-position part by pattern | — |
 
 No radiation data was found for any of these parts except the M-G370's TID. All are covered by the latch-up trips of
 §16 and by RAD-V3 lot-sample testing (EEE_PARTS_LIST §2A.4). TID: the board sits mid-stack (RADIATION_ANALYSIS §4:
@@ -753,7 +754,7 @@ Version A's guidance conflicted with them it has been changed (marked "Version B
 | V-OBC-13 | Thermal vacuum of the OBC EM at −20…+60 °C with the coils driven | all functions; DRV8876 case ≤ 70 °C | §17 | OBC EM |
 | V-OBC-14 | ESD: IEC 61000-4-2 ± 8 kV contact at each connector pin (unpowered) | no damage; functional | §16 | OBC EM (one unit) |
 | V-OBC-15 | Back-power into the unpowered OBC (= V-ICX-3) | ≤ 3.0 mA, 3V3_OBC < 0.5 V | §16 | flatsat |
-| V-OBC-16 | Gyro random vibration and shock: OBC EM with a flight-lot M-G370 on X1 (screws in prevailing-torque self-locking threads, staked with Scotch-Weld 2216; no thread-locker), random at the FE-predicted module levels (≥ 22.2 / 25.0 / 21.7 Grms in axis) for the protoflight duration, shock to the launch SRS; header continuity monitored | before/after on a rate table: bias change ≤ 0.01 °/s, scale factor change ≤ 0.2 %, noise within 10 %, no DIAG_STAT flags or SPI errors; no continuity interruption > 1 µs | §9.2; with VI-STR-02 | OBC EM |
+| V-OBC-16 | Gyro random vibration and shock: OBC EM with a flight-lot M-G370 on X1 (screws in prevailing-torque self-locking threads, staked with Scotch-Weld 2216; no thread-locker), random at the FE-predicted module levels (≥ 21.9 / 24.0 / 36.9 Grms in axis) for the protoflight duration, shock to the launch SRS; header continuity monitored | before/after on a rate table: bias change ≤ 0.01 °/s, scale factor change ≤ 0.2 %, noise within 10 %, no DIAG_STAT flags or SPI errors; no continuity interruption > 1 µs | §9.2; with VI-STR-02 | OBC EM |
 | V-OBC-17 | Spreader NTC: carrier off and on, RT1 (or a decade box) at −40, −15, 25, 70, 95 °C equivalents; open and short at J3 | reading within ± 0.5 K of the reference at −15 and 70 °C; open reads < −50 °C, short > 150 °C; reading unchanged with the carrier off | §11.3, E10 | flatsat with the carrier |
 | V-OBC-18 | Access-port board A3: continuity of every Micro-D pin to its OBC J9 / EPS J13 pin through W8A and W11; isolation GND–PACK_N, debug group to charge group and both to the shell, at 50 V; ESD ± 8 kV contact at each Micro-D pin (unpowered); charge at 0.5 A through the GSE plug | continuity as SQSO-ICX-001 §3.6; isolation ≥ 100 MΩ (GND–PACK_N ≥ 100 kΩ with the EPS connected and DS2 open, V-EPS-4); no damage; charge drop ≤ 50 mV across A3 | §15.1 | flatsat |
 | V-OBC-19 | FMEA design changes (Version D): U3 removed or held unresponsive with U36 fitted; a short on 3V3_MAG and SDA_M held low; I2C2 SDA held low with I2C3 active; one pull-up of each I2C pair removed | the mirror is read; the sun sensors (U7, U14) keep working; the AntS (both controllers) answers; each bus works at 100 kHz | SMA-B07, B10, B18 | OBC EM, flatsat |
@@ -763,7 +764,7 @@ Version A's guidance conflicted with them it has been changed (marked "Version B
 | RID | Status | Evidence |
 |-----|--------|----------|
 | SE-01 (OBC share) | **Closed for the OBC board**: schematic with selected parts, netlist, BOM, ERC, calculations, layout rules | this document; `design.py`, `obc_board.net`, `obc_board_bom.csv`, `obc_board_erc.log`, `obc_calcs.py`. Layout and the EM build remain (V-OBC-*) |
-| AV-01 | **Closed** (design); firmware change open | SQSO-ICX-001 B §4 (every pin, one function), §6 (28 changes for the flight software) |
+| AV-01 | **Closed** (design); firmware change open | SQSO-ICX-001 §4 (every pin, one function), §6 (38 changes for the flight software, Version D) |
 | AV-02 | **Closed** (design); flight-software kick open | §6: TPS3850H33-Q1, window 4.9 s (lower bound) / 29.3–39.3 s (440 nF C0G, Version E), kick every 10 s with the IWDG refreshed at the same edge; V-OBC-1, -2 |
 | AV-03 | **Pins and hardware closed**; drivers are flight software; the magnetometer's rod coupling is verified by AV-V4 | §9 (magnetometer on board A2, §9.4), §10; ICX §6 rows 10–17; V-OBC-5 to -8, -11, -16 |
 | AV-05 / RF-21 | **Closed** (pins and circuits); firmware reading them open | §13: PC9, PG12, PC7 (capture) |
@@ -798,7 +799,7 @@ changes in SQSO-ICX-001 §6. In addition:
 
 | # | Change | Owner | Recommended action or text |
 |--:|--------|-------|----------------------------|
-| C1 | Magnetometer from "buy a module" to the RM3100 on board A2 at the +Z end frame (Version B; Version A had it on the OBC) | chair (BUILD_VS_BUY §1, §2.7; MASS_BUDGET row 24: 10 g → 3 g with board and harness; ADCS_DESIGN §3.2.1) | "Magnetometer: PNI RM3100 on board A2 at the +Z end-frame slot (+24, +27) mm, harness W6E to OBC J10 (SQSO-OBC-BRD-001 §9.4); a bought module with I2C at 3.3 V fits the same slot and harness if AV-V4 fails" |
+| C1 | Magnetometer from "buy a module" to the RM3100 on board A2 at the +Z end frame (Version B; Version A had it on the OBC) | chair (BUILD_VS_BUY §1, §2.7; MASS_BUDGET row 24: the board and harness estimate is ≈ 3 g, but the mass budget keeps the module's 10 g allocation (MASS_BUDGET v3.4 §6.6, "no MEL change"), so the MEL holds about 7 g of conservatism here; ADCS_DESIGN §3.2.1) | "Magnetometer: PNI RM3100 on board A2 at the +Z end-frame slot (+24, +27) mm, harness W6E to OBC J10 (SQSO-OBC-BRD-001 §9.4); a bought module with I2C at 3.3 V fits the same slot and harness if AV-V4 fails" |
 | C2 | Coil driver DRV8876-Q1 from VBAT (not DRV8833 on 3.3 V); new EPS switch SW11 | chair (ADCS_DESIGN §6.1), EPS designer (E3) | as §10 |
 | C3 | Gyro stack clearance | mechanical designer | **closed** by MECHANICAL_DESIGN D-11 (gyro through the carrier window, X1 at (−20, +30.5)); adopted in §9.2 and §21 |
 | C4 | ICD-004 AV-V3 pass criterion "900 ms + 1 ms" → "900 ms + 2 ms" | chair (ICD_OBC_ADCS §12.4) | bridge tSLEEP is up to 1 ms |
@@ -810,7 +811,7 @@ changes in SQSO-ICX-001 §6. In addition:
 | C10 | OBC rail fault that does not trip SW10 is undetected | chair / EPS | **closed** in Version D (SMA-B09): heartbeat over I2C2 to the controller (0x48), EPS one-shot on SW10's EN (SQSO-ICX-001 E14) |
 | C11 | hardware/diagrams README findings F2, F3, F8, F9, F10, F13, F14, F16 (OBC part) are answered by SQSO-OBC-BRD-001 / SQSO-ICX-001 | chair (SQSO-HW-DIAG-001) | mark them |
 | C12 | Epson vibration and shock qualification data for the M-G370 family (the data sheet gives only 1000 g shock) | procurement / OBC | request from Epson; V-OBC-16 regardless |
-| C13 | MECHANICAL_DESIGN §4.1, §4.4, §6.9 | mechanical designer | magnetometer slot (+24, +27) holds board A2 (24 × 24 × 8 mm, ≈ 2 g plus harness), non-magnetic fasteners; the §4.4 rows "RM3100 in the (+X, −Y) corner" and "magnetometer to the rods" replaced by §9.4 of this document (carrier keep-out withdrawn); the 20 mm non-ferromagnetic zone round A2 (RF shield lid and clips, patch-adapter fasteners, trim masses at y ± 45, end-frame fasteners); harness W6E (0.10 m) and W8A (0.15 m) in the bundles, excess stowed below z +20; the connector envelope exceptions of §21 (heights); OBC frame bond: none (§21) |
+| C13 | MECHANICAL_DESIGN §4.1, §4.4, §6.9 | mechanical designer | magnetometer slot (+24, +27) holds board A2 (24 × 24 × 8 mm, ≈ 2 g plus harness), non-magnetic fasteners; the §4.4 rows "RM3100 in the (+X, −Y) corner" and "magnetometer to the rods" replaced by §9.4 of this document (carrier keep-out withdrawn); the 20 mm non-ferromagnetic zone round A2 (RF shield lid and clips, patch-adapter fasteners, trim masses at y ± 45, end-frame fasteners); harness W6E (0.090 m) and W8A (0.145 m) in the bundles (SQSO-HAR-001 2.0 §4), excess stowed below z +20; the connector envelope exceptions of §21 (heights); OBC frame bond: none (§21) |
 | C14 | Rod remanence | ADCS owner / procurement | ask CubeSpace for the CR0002 remanence; ≤ 0.18 mA·m² per rod needs no flight-software calibration at the +Z slot (§9.4) |
 | C15 | Magnetometer gating | chair / flight software | the magnetometer is not used for actuation while JET_PG or PTT_EXCITER is high (logged only); per-polarity-state bias table if AV-V4 needs it (SQSO-ICX-001 §6 row 12) |
 | C16 | RF board | RF designer | no ferromagnetic top-side parts or shield clips within 20 mm of (+24, +27) (A2 is 4 mm above the RF board's parts there); PA supply and return paired; J1 of the RF board in the (+X, −Y) corner to meet the OBC's J2 ribbon (§21) |
@@ -836,7 +837,7 @@ changes in SQSO-ICX-001 §6. In addition:
 - **Gyro vibration rating**: the M-G370 data sheet read (PDG0, Rev 1.2) gives only the 1000 g shock; no random or sine
   rating and no Epson qualification levels were found; V-OBC-16 and item C12.
 - **Spreader NTC curve**: β = 3976 K is assumed for the "10K3" curve; the TE GA10K3MCD1 table was not read.
-- **Connector mated heights** (FTSH with FFSD, Pico-Clasp with plug and wire bend) against the 8.0 mm allocation (9.0 mm free
+- **Connector mated heights** (TFM with SFSDT, Pico-Clasp with plug and wire bend) against the 8.0 mm allocation (9.0 mm free
   under the 2.0 mm carrier) were not checked against the Samtec and Molex drawings (§21).
 - **Magnetometer coupling numbers** come from a two-charge model of the rods at the CAD centres; the rods' remanence is
   not published, so §9.4 states the allowable remanence rather than a predicted field; AV-V4 measures it. The Sen-Z-f
@@ -854,3 +855,5 @@ changes in SQSO-ICX-001 §6. In addition:
 | D | 2026-10-27 | Board FMEA SQSO-FMEA-003 A (§23.1): AntS on its own I2C3 (PG7/PB4, W3 pins 28 and 40; LPUART1_TX to PB11), two parallel pull-ups per line on I2C2 and I2C3; CWD as two parallel strings of two 470 nF in series; second FRAM U36 (CS# PD7); RST_REQ through Q1 in place of NRST at J9 and A3; magnetometer on its own switch U35 and repeater U34 (MAG_EN PF14, MAG_RB PF15); defined open states on DEPLOY_SENSE, SOLAR_SENSE, EPS_ALERT_N and TX_TEMP; heartbeat path to the EPS (C10 closed); V-OBC-1 extended, V-OBC-19; counts 381 / 71 / 268 |
 | E | 2026-10-27 | Parts temperature audit SQSO-MFG-003: CWD = four parallel strings of two 220 nF C0G (KEMET C1210C224J3GACAUTO) in series, window re-derived with tolerance and temperature (4.9–29.3 s; one fault 3.7–22.0 s / 6.1–36.6 s), IWDG reload 3200 recommended; D4 1N4148WQ-7-F; A3 J1 M83513/25-C01NN; Pico-Clasp headers 203556 gold; TFM plating −L; R_FAULT 100 → 220 kΩ so the X7R C_RETRY at −40 °C still gives ≥ 0.1 s (0.18–0.33 s); counts 385 / 72 / 270 |
 | E, amended | 2026-10-27 | Watchdog coupling (RID P3F-A-03): the IWDG is refreshed only at the WDI edge (§6 Kick and IWDG rows), AV-02 window 4.9 / 29.3–39.3 s, SMA-B08 reload 3200 |
+| F | 2026-10-27 | Documentation audit (post-CDR 2026): governing documents to BASELINE Rev E, the others by ID (revisions in the register); §9.1, §9.4 the magnetometer on its own switch U35, repeater U34 and rail 3V3_MAG (stale U7, U14, 3V3_SNS removed); §9.2 and V-OBC-16 the gyro responses of the current FE design case (MECHANICAL_DESIGN §4.3.2, `fem_results.json`: 21.9 / 24.0 / 36.9 Grms; was 22.2 / 25.0 / 21.7); §4, §10.1, §18 W3 30 AWG and W6B 28 AWG against the SQSO-HAR-001 2.0 §9.1 derating; §6 heartbeat cycle as SQSO-EPS-BRD-001 §12 (1.95 s, 600 s, 3 per 24 h); W6E 0.090 m, W8A 0.145 m; J8 12-way; AV-01 cites ICX D. No circuit change |
+| G | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: §23 item C1 states that MASS_BUDGET keeps row 24 at the 10 g module allocation (the ≈ 3 g board-and-harness figure is not taken into the MEL), so the two documents no longer read as disagreeing |

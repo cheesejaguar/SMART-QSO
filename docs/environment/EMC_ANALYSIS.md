@@ -1,7 +1,7 @@
 # SMART-QSO Electromagnetic Compatibility Assessment
 
 **Document ID**: SQSO-EMC-001
-**Version**: E
+**Version**: F
 **Date**: 2026-10-27
 **Status**: CDR assessment (analysis and design rules). No unit exists; the emission levels of the Jetson carrier,
 the converters and the PA are not yet measured. The tests that close it are in §6 and in
@@ -96,20 +96,20 @@ above 11.2 V (12.4 V at 58 % SOC). This sets the launch state of charge (SQSO-BS
 | E3 | Separate the PA supply from the Jetson's: a dedicated PA converter, or the Jetson carrier fed from VBAT through its own converter behind the eFuse; the 5 V buck shared by both (S2 sheet) is not acceptable for supply-induced modulation of the downlink | EPS, payload | S1, S4 |
 | E4 | Receiver, CTCSS decoder and TNC supplied through their own LDO from 3V3_AO (PSRR ≥ 40 dB at the PWM frequency); magnetorquer drivers on a separately filtered branch | EPS, RF | S3 |
 | E5 | Magnetometer samples only with the coils off (time-multiplexed in the flight software) and ≥ 40 mm from the coils and the Jetson's 5 V wiring; twisted pairs for coil and Jetson power | ADCS | S3 |
-| E6 | RC filters (1 kΩ + 0.1 µF, as drawn on S1) on every BMS cell tap and NTC, at the AFE; ferrites on the pack harness | EPS | S4 |
+| E6 | RC filters on every BMS cell tap and NTC with a pole at ≤ 20 kHz (as amended in §5.1; first written as 1 kΩ + 0.1 µF at the AFE, as drawn on S1); ferrites on the pack harness | EPS | S4 |
 | E7 | Shielded or twisted RF-adjacent harness; coax for the 70 cm and GNSS antennas (W10) routed away from the 2 m element base | Harness | S4 |
 | E8 | Converter under-voltage lock-out at 10.8 V falling (below the BMS cut at 11.2 V, so the BMS, not a converter brown-out, decides); OBC brown-out reset above the 3V3_AO drop-out | EPS | S5 |
 | E9 | BMS AFE in ship mode (BQ76952 SHUTDOWN, set by the GSE through the umbilical) from pack assembly to deployment; woken by the deployment switch closure | EPS | S6 |
 
 ### 5.1 Deviations in the EPS board design
 
-The EPS board design (`hardware/electrical/eps/EPS_BOARD_DESIGN.md`, SQSO-EPS-BRD-001 Version B §2.2 and §8.1) meets
+The EPS board design (`hardware/electrical/eps/EPS_BOARD_DESIGN.md`, SQSO-EPS-BRD-001 Version G §2.2 and §8.1) meets
 rules E1–E5, E7 and E9 as written and departs from two. Both are recorded here as the board report states them; E6 is
 amended at the EPS designer's request.
 
 | Rule | Rule as written | EPS board design | Reason given (SQSO-EPS-BRD-001 §2.2) | Disposition |
 |------|-----------------|------------------|--------------------------------------|-------------|
-| E6 | 1 kΩ + 0.1 µF on every BMS cell tap and NTC, at the AFE | 100 Ω + 0.1 µF at the BQ76952 AFE (its internal balancing at ≈ 18 mA); 1 kΩ + 0.1 µF at the BQ771806 secondary protector | 1 kΩ would cut balancing to ≈ 3 mA; 100 Ω / 0.1 µF is a 16 kHz pole, ample against the 145.9 MHz field | **E6 amended:** RC filters on every BMS cell tap and NTC, a pole at ≤ 20 kHz (100 Ω + 0.1 µF at the AFE, 1 kΩ + 0.1 µF at the secondary protector); verified by V-EMC-5 |
+| E6 | 1 kΩ + 0.1 µF on every BMS cell tap and NTC, at the AFE | From Version D: 204 Ω (3 × 68.1 Ω current-limiting chain) on the battery sense board plus 10 Ω + 0.1 µF at the BQ76952 AFE (internal balancing ≈ 9 mA); 1 kΩ + 0.1 µF at the BQ771806 secondary protector, which is on the sense board from Version F (Versions A–C: 100 Ω + 0.1 µF at the AFE, balancing ≈ 18 mA) | 1 kΩ would cut balancing to ≈ 3 mA; the 214 Ω tap loop with 0.1 µF is a pole of about 7 kHz, ample against the 145.9 MHz field | **E6 amended:** RC filters on every BMS cell tap and NTC, a pole at ≤ 20 kHz (the sense-board chain with 10 Ω + 0.1 µF at the AFE, 1 kΩ + 0.1 µF at the secondary protector); verified by V-EMC-5 |
 | E8 | Converter under-voltage lock-out at 10.8 V falling | 7.5 V falling (3V3_AO) and 8.7 V falling (5V_PA, burn buck); 10.5 V and 12.1 V rising | The LMR43620's fixed EN hysteresis makes a 10.8 V fall a 15.1 V start; the rule's intent (the BMS, not a converter brown-out, decides, below 11.2 V) is met | Accepted: the intent of E8 holds, since every lock-out is below the 11.2 V BMS cut; V-EMC-6 |
 
 ## 6. Verification
@@ -148,3 +148,4 @@ pass criteria in numbers:
 | C | 2026-10-27 | CDR S&MA analysis (RID SE-16) | §4 re-run with `bus_transients.py` modelling the one-resistor-at-a-time burn (0.67 A nominal, 0.75 A worst case, 1.0 A limit, 2.0 A four-driver fault) in place of the 1.7 A two-resistor burn; lowest-SOC table; cold-soak burn 14.1–14.4 V (was 12.8–13.4 V in the two-resistor bound) |
 | D | 2026-10-27 | CDR design (EPS board) | §1 and §3: third-harmonic requirement ≥ 70 dB per BASELINE §7 (was 60 dBc) |
 | E | 2026-10-27 | CDR flight software, round 3 (fourth part) | §3 the burn time 10 s (decision C-17; was 8 s) |
+| F | 2026-10-27 | Documentation audit (post-CDR 2026) | §5 rule E6 stated as amended; §5.1 E6 row brought to SQSO-EPS-BRD-001 G (3 × 68.1 Ω chain on the battery sense board with 10 Ω + 0.1 µF at the AFE, the secondary protector on the sense board; was the 100 Ω of Versions A–C) |

@@ -1,4 +1,4 @@
-//! `hal_gpio.h` on the STM32L4R5: the pin allocation of SQSO-ICX-001 B §4.1
+//! `hal_gpio.h` on the STM32L4R5: the pin allocation of SQSO-ICX-001 D §4.1
 //! (`hardware/electrical/INTERCONNECT.md`, the master allocation; its §6
 //! lists the changes from the earlier, provisional map).
 //!
@@ -70,12 +70,12 @@ pub(crate) fn input(p: Peri<'static, impl Pin>) -> Option<Flex<'static>> {
 }
 
 /// Install the pins (at reset, before the flight software runs), in
-/// `HalGpioPin_t` order; `main.rs` builds the table from SQSO-ICX-001 B
+/// `HalGpioPin_t` order; `main.rs` builds the table from SQSO-ICX-001 D
 pub(crate) fn install(pins: [Option<Flex<'static>>; COUNT]) {
     GPIO.install(Gpio { pins });
 }
 
-/// Install every pin of SQSO-ICX-001 B §4.1 in `HalGpioPin_t` order, at
+/// Install every pin of SQSO-ICX-001 D §4.1 in `HalGpioPin_t` order, at
 /// reset, before the flight software runs: outputs low first
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn install_board(

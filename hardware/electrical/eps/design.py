@@ -333,7 +333,7 @@ def TP(net, ref=None):
 def connectors():
     # Every harness connector on the bottom side in the SQSO-HAR-001 2.0 section 10.1 zones (Z1-Z5, +X edge); headers
     # in gold (EEE_PARTS_LIST 2A.3 item 5: no tin contacts). Pico-Clasp: Molex 203556 (0.38 um Au mating, Au flash post),
-    # mates the 501330 housings with gold 501334 terminals. Micro-Fit 3.0: 43045 right-angle, 0.76 um Au mating.
+    # mates the 501330 housings with gold 501193-9000 terminals (501334 is tin). Micro-Fit 3.0: 43045 right-angle, 0.76 um Au mating.
     def pico(n, ref, val, rating_use, note, zone):
         chk = {6: "Digi-Key: Active (Au 0.38 um)", 8: "Digi-Key: listed"}.get(n, "pattern (203556-xx07): confirm (V-HAR-3)")
         return place(CONN(f"PicoClasp_{n}", n), ref, val, f"2035560{n}07", "Molex", f"Pico-Clasp 1.0 mm {n} pos vertical SMT, bottom side",
@@ -360,7 +360,7 @@ def connectors():
     j = place(CONN("TFM_2x20", 40), "J3", "OBC", "TFM-120-02-L-D-A", "Samtec", "Tiger Eye TFM 1.27 mm 2x20 vertical SMT, bottom side",
               "Samtec rating per contact (SFSDT 30 AWG: 0.5 A derated, SQSO-HAR-001)",
               "3V3_OBC 0.18 A and VBAT_MTQ 0.40 A (SW11 limit max) on 2 pins each",
-              "W3 (SFSDT discrete-wire cable) per SQSO-ICX-001 3.1; +X edge, |y| < 15.5 mm", "Au 10 uin on the contact (plating code -L, Samtec TFM ordering table); matte Sn tail, soldered with SnPb and coated",
+              "W3 (SFSDT discrete-wire cable) per SQSO-ICX-001 3.1; +X edge, |y| < 15.5 mm", "Au 15 uin on the contact (plating code -L, Samtec catalog F-226, as on the OBC and RF boards; to confirm with Samtec, V-HAR-3); matte Sn tail, soldered with SnPb and coated",
               "pattern from the Samtec TFM series (listed mated set TFM-110-02-L-D-A): lead style -02 (SMT), plating -L, alignment -A; latch option to confirm with Samtec (V-HAR-3)")
     for i, nm in enumerate(pins, 1):
         link(nm, j[f"P{i}"])

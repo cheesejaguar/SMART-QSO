@@ -1,15 +1,15 @@
 # SMART-QSO Verification and Validation Plan
 
 **Document ID**: SQSO-VVP-001
-**Version**: 1.3
+**Version**: 1.4
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Draft (was labelled "CDR Baseline"; no CDR has been held, BASELINE §1)
 
 > **CDR review note (2026-10-27).** This plan keeps the V&V process (methods, levels, flow). The test levels,
-> articles, flow, facilities and verification items are in `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C; the
+> articles, flow, facilities and verification items are in `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` (Rev E); the
 > method, planned event and status of every requirement are in the VCRM, `docs/verification/VERIFICATION_MATRIX.md`
-> Rev C; the dates are in `mission/SCHEDULE.md`. Where this plan differs from them, they govern.
+> (Rev E) and its items in `docs/verification/VI_REGISTER.md`; the dates are in `mission/SCHEDULE.md`. Where this plan differs from them, they govern.
 > `mission/VNV_PLAN.md` is superseded by this plan.
 
 ## 1. Purpose
@@ -196,10 +196,14 @@ Level 1: Component Test
 |----------|---------|-------------------------------|------|
 | Unit and integration tests in CI | Host (simulated HAL) | Continuous | `software/rust/README.md`; CI coverage gates |
 | Mission simulation (SIL) and ADCS Monte Carlo | Host | 2026-11 to 2027-01 | `docs/test/SIL_MISSION_SIMULATION.md` |
-| Flatsat and HIL on the STM32L4R5 | Flatsat, EM | 2027-04 to 2027-06 | TP-FLATSAT-001; `software/flight/tests/hil/HIL_TEST_PLAN.md` |
-| EM development tests | EM | 2027-06 to 2027-08 | ENVIRONMENTAL_TEST_PLAN Rev C §6 |
-| FM integration, functional, DITL, end-to-end | FM | 2027-11 to 2028-01 | TP-INT, TP-SYS-001, TP-SYS-002, TP-GS-001 |
-| Protoflight environmental | FM | 2028-01 to 2028-02 | ENVIRONMENTAL_TEST_PLAN Rev C §4 |
+| EM integration, flatsat and HIL on the STM32L4R5 | Flatsat, EM | 2027-06-01 to 2027-07-27 | TP-FLATSAT-001; `software/flight/tests/hil/HIL_TEST_PLAN.md` |
+| EM development tests | EM | 2027-07-27 to 2027-09-21 | ENVIRONMENTAL_TEST_PLAN §6 |
+| FM integration, functional, DITL, end-to-end | FM | 2027-12-21 to 2028-02-01 | TP-INT, TP-SYS-001, TP-SYS-002, TP-GS-001 |
+| Protoflight environmental | FM | 2028-03-03 to 2028-04-21 | ENVIRONMENTAL_TEST_PLAN §4 |
+| Pre-ship review | FM | 2028-05-19 | `docs/integration/PRE_SHIP_CHECKLIST.md` |
+
+Dates are the critical-path events of `docs/verification/VI_REGISTER.md` §3.1 (from `mission/SCHEDULE.md`; planning
+launch about 2028-11-01, BASELINE §3); they were the earlier 2027-04 to 2028-02 plan until version 1.4.
 
 ### 7.3 Test Procedures
 
@@ -225,7 +229,7 @@ Level 1: Component Test
 | Environment | Configuration | Use |
 |-------------|---------------|-----|
 | Development | PC + simulators | Unit test |
-| Flatsat | EDU hardware | Integration |
+| Flatsat | EM boards (development boards until they exist) | Integration |
 | HITL | Flight-like | System test |
 | Environmental | Chambers | Qualification |
 | Ground Station | Ops config | E2E test |
@@ -245,10 +249,10 @@ Level 1: Component Test
 
 | Tool | Purpose |
 |------|---------|
-| Unity | Unit test framework |
-| CMock | Mocking framework |
-| CTest | Test runner |
-| J-Link | Debug/programming |
+| CMocka | C test suites (the specification of the flight modules, `software/flight/tests`) |
+| cargo test | Rust unit and integration tests (`software/rust`) |
+| CTest | Test runner for the C suites and the host simulation |
+| ST-Link / probe-rs | Debug/programming of the STM32L4R5 |
 | Logic Analyzer | Signal verification |
 | Spectrum Analyzer | RF verification |
 | Power Supply | EPS simulation |
@@ -351,3 +355,4 @@ Level 1: Component Test
 | 1.1 | 2026-10-16 | SMART-QSO Team | Environmental procedure IDs aligned with `docs/test_procedures/` (vibration TP-ENV-002, thermal vacuum TP-ENV-003, EMC TP-ENV-004; TP-ENV-001 is the pre-environmental baseline); TP-FLAT-001 corrected to TP-FLATSAT-001 as in the RTM (finding VV-18) |
 | 1.2 | 2026-10-16 | SMART-QSO Team | §6.1 rows cite the defined requirement with the stated meaning (SYS-215, MRD-053, SYS-211, SYS-210, SYS-021, MRD-025) in its wording; status cells unchanged (finding VV-06) |
 | 1.3 | 2026-10-27 | CDR review (PM/SE/V&V) | Status corrected to Draft; §6 matrix withdrawn in favour of the VCRM Rev C (undefined IDs, a conflicting watchdog value and unevidenced "verified" marks); §7.2 campaign summary dated from `mission/SCHEDULE.md`; pointer to ENVIRONMENTAL_TEST_PLAN Rev C |
+| 1.4 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): references to ETP Rev C and VCRM Rev C updated (both are Rev E) with the VI register; §7.2 campaign dates from the critical-path events of the VI register (EM 2027-06 to 2027-09, FM 2027-12 to 2028-02, protoflight 2028-03 to 2028-04, pre-ship 2028-05-19; were 2027-04 to 2028-02); §9.1 test tools CMocka and cargo test (were Unity/CMock, not used) |

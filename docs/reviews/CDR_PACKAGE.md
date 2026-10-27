@@ -1,13 +1,23 @@
 # SMART-QSO Critical Design Review (CDR) Package
 
+> **Historical record (2026-01-02).** Superseded for current values by
+> [`docs/BASELINE_PARAMETERS.md`](../BASELINE_PARAMETERS.md) and
+> [`docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`](CDR/CDR_2026_DESIGN_REVIEW.md). It is the CDR package generated on
+> 2026-01-02 with the self-assessed review records (finding PI-03); its statement that a PDR was completed is not
+> true. No independent CDR has been held: the project is in Phase B (pre-PDR), and the independent PDR (2027-01-12)
+> and CDR (2027-09-28) are planned in `mission/SCHEDULE.md` (BASELINE §1). The record is kept as written; its values,
+> statuses, approvals and the dated "superseded" notes in its body are those of their dates and are not to be cited.
+> Still useful for: the January 2026 design and traceability as the funding audit found them (findings PI-03, PI-04).
+> Index of the review documents: [README.md](README.md).
+
 > **Funding audit notice (2026-10-14): internal self-assessment, not an independent review.**
 > This record was generated on 2026-01-02 without named independent reviewers, signatures, or a
 > RID/RFA log. Its PASS/APPROVED/COMPLETE statements are **not substantiated** and must not be cited
 > to funders or regulators as review outcomes. See `docs/funding_audit/FUNDING_AUDIT_REPORT.md` and
-> finding F-PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
+> finding PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
 
 **Document Number**: SMART-QSO-CDR-001
-**Version**: 1.5
+**Version**: 1.6
 **Date**: 2026-01-02
 **Status**: Ready for Review
 
@@ -498,3 +508,4 @@ genhtml coverage.info --output-directory coverage_report
 | 1.3 | 2026-10-16 | Funding audit | §6 mass, power-generation and link-margin rows cite the controlled analyses (TB-05, TB-06, TB-14) |
 | 1.4 | 2026-10-16 | SMART-QSO Team | Requirement rows use the specification wording; the B-dot and battery-protection rows cite SYS-421 and SYS-113 (SRS-F070 and SRS-S002 mean other requirements); status cells unchanged (finding VV-06) |
 | 1.5 | 2026-10-25 | SMART-QSO Team | §4.1: dated note under the block diagram (OBC FreeRTOS superseded by the Embassy executor, no RTOS; CR-2026-002); diagrams unchanged |
+| 1.6 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): historical-record banner (superseded by BASELINE and SQSO-REV-CDR-002; no PDR or CDR held); notice cites finding PI-03 (was F-PI-03); body unchanged |

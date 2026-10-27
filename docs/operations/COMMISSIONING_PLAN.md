@@ -1,11 +1,11 @@
 # SMART-QSO Commissioning Plan
 
 **Document ID**: SQSO-COMM-001
-**Version**: 2.3
+**Version**: 2.4
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Draft for CDR. Commands are the flight dictionary as of flight software round 3
-(`software/flight/command_dictionary.json`, 30 commands; framing, keys and results in SQSO-ICD-013
+(`software/flight/command_dictionary.json`, 32 commands; framing, keys and results in SQSO-ICD-013
 `docs/interfaces/TELECOMMAND_AUTHENTICATION.md` §7–§8; summary in `docs/operations/COMMAND_DICTIONARY.md` §1.1).
 Telemetry is the beacon tail, the housekeeping frames HK1 and HK2, the command acknowledgement and the stored records
 (`docs/operations/TELEMETRY_DICTIONARY.md` §4.3–§4.6). Steps that still depend on something the design does not provide
@@ -71,7 +71,7 @@ absent from the downlink (RID LV-27) is closed by HK1 and HK2.
 | C-6 | Beacon conformance | Days 2–5 | C-3 |
 | C-7 | Commissioning release and transponder | Days 3–8 | C-3, C-4 |
 | C-8 | AI payload (Jetson) and fallback | Days 8–11 | C-7 |
-| C-9 | GNSS and operator ephemeris | From first contact | C-1; ground pipeline **blocked** (LV-04) |
+| C-9 | GNSS and operator ephemeris | From first contact | C-1; ground pipeline implemented, demonstration VI-LV-13 open |
 | C-10 | Operations validation and SAFE drill | Days 11–13 | C-3 to C-8 |
 | C-11 | Commissioning review and close-out | Day 14 | All |
 
@@ -95,7 +95,7 @@ that each is started on its own step.
 
 | | |
 |---|---|
-| Entry | Separation report and SpaceX state vector received; S+45 min passed (the radio, receiver included, is unpowered until then). The transmitters stay silent while the AntS deployment is pending (decision C-19, SRS-F167), so after an eclipse separation from a cold dispenser the first beacon can come one or more 50-minute slots later (S+81 min in the simulation), at worst about S+27 h; the receiver is on meanwhile |
+| Entry | Separation report and SpaceX state vector received; S+45 min passed (the radio, receiver included, is unpowered until then). The transmitters stay silent while the AntS deployment is pending (decision C-19, SRS-F167), so after an eclipse separation from a cold dispenser the first beacon can come one or more 50-minute slots later (S+81 min in the simulation), at worst about S+25.8 h (the 30-deferral cap, decision C-18; SIL `ants_cap`); the receiver is on meanwhile, and a blind `DEPLOY_RETRY` 0 with the force byte deploys the AntS at once (§4) |
 | Commands | None |
 | Proof | Beacon decoded with source KK6GDB-11 and the call sign at the start of the text; tail values: `M=` IDLE (SAFE or a missing beacon means a low separation SOC, MISSION_TIMELINE §8.4; ACTIVE is impossible under the hold), `SOC=` ≥ 40, `BV=` 14.4–16.4 V, `SUN=` alternating with the orbit; `T=` consistent with the separation time (T counts seconds since boot, so T ≈ time since separation unless the OBC reset; HK1 `BOOT` and `RST` say whether it did); the first HK1 (after the fifth beacon): `HOLD=1`, `XP=0`, `TX=1`, `RFS` complete, `DEP` deployment state; Doppler curve matching the SpaceX state vector within the dispersion |
 | Expected | First beacon pass over the Bay Area (≥ 5°) S+0.7 to S+12.1 h after separation (median S+5.3 h); anywhere in the network after about S+1.8 h (simulation; SQSO-MTL-001 §5, §10) |
@@ -139,7 +139,7 @@ certification.
 | | |
 |---|---|
 | Entry | C-2 |
-| Commands | `GET_HOUSEKEEPING`; `ADCS_SET_GYRO_ALIGN` (0x25) with the matrix measured on the flight unit (VI-MCAD-05; persisted, refused unless every element is within 1.1 and the determinant within 0.05 of 1); `ADCS_SET_MAG_BIAS` (0x26) per rod polarity state once the on-orbit bias estimate is available (AV-V4; persisted); `ADCS_DETUMBLE` (0x21) only if `W` stays above 0.5°/s across +Y beyond S+5 h; `DEPLOY_RETRY` (0x50: 0 antenna, 1 solar wings) in a sunlit pass if `DEP` reports an element FAILED (refused during the 30-minute wait and during a burn); `ADCS_SET_GEOMETRY` (0x24: 1 wing W1 only, 2 wing W2 only, 3 no wing) only as C-5.1 below decides (decision C-21: with one wing out the spacecraft stays at preset 0 until the identification names the wing) |
+| Commands | `GET_HOUSEKEEPING`; `ADCS_SET_GYRO_ALIGN` (0x25) with the matrix measured on the flight unit (VI-MCAD-05; persisted, refused unless every element is within 1.1 and the determinant within 0.05 of 1); `ADCS_SET_MAG_BIAS` (0x26) per rod polarity state once the on-orbit bias estimate is available (AV-V4; persisted); `ADCS_DETUMBLE` (0x21) only if `W` stays above 0.5°/s across +Y beyond S+5 h; `DEPLOY_RETRY` (0x50: 0 antenna, 1 solar wings; a second byte 1 forces the antenna past its temperature gate, C-18) in a sunlit pass if `DEP` reports an element FAILED (refused during the 30-minute wait and during a burn); `ADCS_SET_GEOMETRY` (0x24: 1 wing W1 only, 2 wing W2 only, 3 no wing) only as C-5.1 below decides (decision C-21: with one wing out the spacecraft stays at preset 0 until the identification names the wing) |
 | Proof | `DEP`: deployment COMPLETE, AntS elements 15 (all four), both wing senses deployed; `W` body rates: spin about +Y at about 8°/s, transverse rates below 0.5°/s; `AM` sun-pointing; `SUN=1` through each sunlit pass; `PA` and the SOC recovering at about 8 % per sunlit orbit after a discharge, which needs the wings; beacon signal strength against range consistent with a deployed 2 m monopole (≈ +8 dB margin at 5°, BASELINE §7); HK2 `GY` the gyro in use |
 | Exit | `DEP` complete and the spin stable on 3 consecutive passes; or, with an element failed after its retries, the geometry preset set and the power case of MISSION_TIMELINE §8.2 confirmed |
 
@@ -183,8 +183,8 @@ albedo).
 |---|---|
 | Entry | C-7 (hold released); ACTIVE; sunlit; SOC ≥ 55 %; `TJ` ≥ −15 °C |
 | Commands | `PLD_ENABLE` (0x40); observe; `PLD_DISABLE` (0x41); `PLD_ENABLE` |
-| Proof | With the payload disabled the beacon text is a template and the telemetry tail is unchanged; with it enabled, generated lines appear in batches of ≥ 10, each passing the ground copy of the content filter (`docs/BEACON_SPEC.md` §6); HK2 `JB` (bursts, the last burst's energy, its lines, bursts ended by the energy gate), `JP` (clean switch-offs) and `HL` = 0 (no hard-limit violation). The D5 gate is measured from orbit: the burst energy at the carrier input divided by the accepted lines, against ≤ 0.1 Wh (360 J) per accepted beacon (simulation: about 0.036 Wh) |
-| Exit | Fallback demonstrated; 100 generated beacons decoded with no filter failure; energy per accepted beacon within the D5 gate, or the experiment left disabled |
+| Proof | With the payload disabled the beacon text is a template and the telemetry tail is unchanged; with it enabled, generated lines appear in batches of ≥ 10, each passing the ground copy of the content filter (`docs/BEACON_SPEC.md` §6); HK2 `JB` (bursts, the last burst's energy, its lines, bursts ended by the energy gate), `JP` (clean switch-offs) and `HL` = 0 (no hard-limit violation). The D5 gate is measured from orbit: the burst energy at the carrier input divided by the accepted lines, against ≤ 0.1 Wh (360 J) per accepted beacon line, over ≥ 10 bursts (decision C-20; MSC E-02; simulation: 0.065 Wh, SIL_MISSION_SIMULATION G §7) |
+| Exit | Fallback demonstrated; 100 generated beacons decoded with no filter failure; energy per accepted beacon line within the D5 gate over ≥ 10 bursts, or the experiment left disabled |
 
 ### C-9 GNSS and operator ephemeris
 
@@ -194,7 +194,7 @@ albedo).
 | Commands | `GNSS_REQUEST` (0x60) to start a session before a pass if no recent fix (its power gates still apply: Jetson off, SOC ≥ 40 %; the transponder is held off during a session); sessions also run by themselves every orbit in launch and early operations, then four a day (SRS-F084) |
 | Proof | HK1 `GF` (age of the latest fix, satellites used) and `GS` (sessions run / with a fix); operator ephemeris (CCSDS OEM with covariance) accepted by Space-Track and SpaceX Space Traffic Coordination within 24 h of first contact, after every pass and at least every 24 h until the 18th SDS catalogs the object (UG v11 §9.5.7.2) |
 | Exit | NORAD ID assigned, positional data public, operator contact public; object claimed within 30 days |
-| Status | The onboard chain is implemented; the ground orbit determination from the fixes and the OEM upload are **blocked** (LV-04). Until they exist, the third-party service contracted before integration delivers the ephemeris |
+| Status | The onboard chain is implemented, and so is the ground chain: `software/ground/tools/ephemeris_tool.py` decodes the `GNS` frames and makes the CCSDS OEM with covariance (SQSO-GND-002 Rev A; 24 h procedure §7; RID LV-04 closed by design change). Its end-to-end demonstration with the SpaceX and Space-Track test interfaces (VI-LV-13, by L-2 M) is open; until it passes, the third-party service contracted before integration is the contingency |
 
 ### C-10 Operations validation and SAFE drill
 
@@ -235,3 +235,4 @@ albedo).
 | 2.1 | 2026-10-27 | CDR round 3, launch and operations (RID LV-13) | Brought to the command dictionary of flight software round 3 (30 commands): HK1 and HK2 as the proof of each step (`GET_HOUSEKEEPING` 0x09, `DUMP_TLM` 0x0A), the acknowledgement rule; C-7 is the commissioning release (`COMMISSIONING_RELEASE` 0x08, with `XPDR_DISABLE`/`XPDR_ENABLE` 0x35/0x34 and `PLD_DISABLE` first), so the transponder runs only after the release; deployment retry (`DEPLOY_RETRY` 0x50), `ADCS_SET_GEOMETRY` 0x24, `ADCS_SET_GYRO_ALIGN` 0x25 and `ADCS_SET_MAG_BIAS` 0x26 in C-5; `GNSS_REQUEST` 0x60 in C-9; `EPS_CLEAR_LOCKOUT` 0x14 in C-4; `PASSIVATE_ARM`/`PASSIVATE_EXECUTE` 0x70/0x71 excluded; commanding above 10° (12° in the degraded mode, C-14) and the uplink offset from the measured downlink (RFB-05); pass statistics from SQSO-MTL-001 2.3 (first beacon pass median S+5.3 h, at most S+12.1 h; first commanding pass median S+6.4 h, at most S+13.7 h); the D5 energy gate measured from HK2. Version 2.0 said the transponder started by itself at S+53 min, that there was no housekeeping downlink, deployment retry or GNSS command, that commands went only above 15° and that the dictionary had 17 commands |
 | 2.2 | 2026-10-27 | CDR flight software, round 3, fourth part (decision C-19) | C-1 entry and §8: the first beacon waits for the AntS sequence's end (SRS-F167) |
 | 2.3 | 2026-10-27 | CDR flight software, round 3, fifth part (decision C-21) | C-5.1 added: the one-wing identification (method B from the body-rate tilt, method A from the array-power harmonic), pass criteria from ADCS_DESIGN 1.9 §11.7; preset 0 until the wing is named (SRS-F171, HK2 `GE`) |
+| 2.4 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): status 32 commands in the dictionary (was 30); C-1 the C-18 cap case at about S+25.8 h (was S+27 h) and the forced `DEPLOY_RETRY`; C-5 the force byte; C-8 the C-20 metric per accepted line over ≥ 10 bursts, simulation 0.065 Wh (SIL G; was 0.036 Wh); C-9 the ground ephemeris chain implemented (RID LV-04 closed; was "blocked") |

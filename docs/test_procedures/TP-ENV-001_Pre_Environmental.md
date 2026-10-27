@@ -2,11 +2,16 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** TP-ENV-001
-**Revision:** C
-**Date:** 2026-01-02
+**Revision:** D
+**Date:** 2026-10-27
 **Reference:** GSFC-STD-7000 (GEVS), NASA Ames SmallSat Heritage
 
 **Requirements verified:** SYS-001, SYS-002, SYS-003, SYS-200, SYS-201, SYS-203, SYS-206, SYS-210
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -28,7 +33,7 @@ This procedure establishes a pre-environmental test baseline for the SMART-QSO C
 |----------|-------|
 | GSFC-STD-7000 | General Environmental Verification Standard (GEVS) |
 | Cal Poly CDS Rev 14.1 | CubeSat Design Specification |
-| SQSO-REQ-001 | System Requirements |
+| SQSO-REQ-002 | System Requirements Specification |
 | TP-SYS-001 | Comprehensive Functional Test |
 
 ## 4. Test Article
@@ -93,15 +98,15 @@ This procedure establishes a pre-environmental test baseline for the SMART-QSO C
 | 8.2.1 | Zero scale | Reading = 0.0g | |
 | 8.2.2 | Place unit on scale | Stable reading | |
 | 8.2.3 | Record mass | Mass = ____g | |
-| 8.2.4 | Verify mass < 2000g | Per CDS requirement | |
+| 8.2.4 | Verify mass ≤ 2000 g and within the dispenser limit (EXOpod Nova 1U 2.5 kg) | Per SYS-002; compare with MEV 1,755 g (BASELINE §4) | |
 | 8.2.5 | Remove unit from scale | | |
 
 **Mass Measurement Record:**
 
 | Parameter | Requirement | Measured | P/F |
 |-----------|-------------|----------|-----|
-| Total mass | < 2000g (1U) | g | |
-| Mass margin | > 10% | % | |
+| Total mass | ≤ 2000 g (SYS-002); CBE 1,520 g, MEV 1,755 g (BASELINE §4) | g | |
+| Mass margin | Record against the 2.00 kg design limit (BASELINE §4: +14.0 % at MEV) | % | |
 
 ### 8.3 Dimensional Verification [SYS-001]
 
@@ -143,6 +148,7 @@ This procedure establishes a pre-environmental test baseline for the SMART-QSO C
 | CG X offset | < 20mm | mm | |
 | CG Y offset | < 20mm | mm | |
 | CG Z offset | < 20mm | mm | |
+| Deployed inertia (wings and AntS deployed, from the measured tensor) | Iyy ≥ 1.03 × max(Ixx, Izz), major axis within 5° of +Y (BASELINE §4; VI-MCAD-03; ETP §3.7) | | |
 
 ### 8.5 Functional Test
 
@@ -165,8 +171,8 @@ This procedure establishes a pre-environmental test baseline for the SMART-QSO C
 | 8.6.2 | Command beacon transmission | TX active | |
 | 8.6.3 | Measure center frequency | The IARU-coordinated downlink frequency ±5 kHz (TBD until coordination, TBD-SYS-001; SYS-200, SYS-206) | |
 | 8.6.4 | Measure output power | 0.5 W nominal (as configured); never above 1 W (SYS-201) | |
-| 8.6.5 | Measure spurious emissions | >40dB below carrier | |
-| 8.6.6 | Measure modulation deviation | 3.5kHz 0.5kHz | |
+| 8.6.5 | Measure spurious emissions | ≥ 46 dB below carrier and ≤ 25 µW; third harmonic ≥ 70 dB (SYS-203) | |
+| 8.6.6 | Measure modulation deviation | 3.0 kHz ± 0.5 kHz (TP-RF-004) | |
 | 8.6.7 | Verify AX.25 decode | Clean decode | |
 | 8.6.8 | Document spectrum plot | Screenshot | |
 
@@ -176,28 +182,28 @@ This procedure establishes a pre-environmental test baseline for the SMART-QSO C
 |-----------|-------------|----------|-----|
 | Center frequency | IARU-coordinated frequency ±5 kHz (TBD-SYS-001; SYS-200, SYS-206) | MHz | |
 | Output power | 0.5 W nominal; ≤ 1 W (SYS-201) | W | |
-| Spurious emissions | >40dB suppression | dB | |
-| FM deviation | 3.5 0.5kHz | kHz | |
-| Occupied bandwidth | <16 kHz | kHz | |
+| Spurious emissions | ≥ 46 dB; third harmonic ≥ 70 dB (SYS-203) | dB | |
+| FM deviation | 3.0 ± 0.5 kHz | kHz | |
+| Occupied bandwidth | ≤ 10.4 kHz telemetry (10K4F2D), ≤ 16 kHz transponder (16K0F3E) (BASELINE §7) | kHz | |
 
 ### 8.7 Power Characterization
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
-| 8.7.1 | Measure battery voltage | 7.2-8.4V | |
-| 8.7.2 | Measure safe mode current | <150mA | |
-| 8.7.3 | Measure idle mode current | <500mA | |
-| 8.7.4 | Measure active mode current | <1A | |
-| 8.7.5 | Measure peak current (Jetson burst) | <2.5A | |
+| 8.7.1 | Measure battery voltage | 11.2–16.4 V (4S; BASELINE §5) | |
+| 8.7.2 | Measure safe mode power | Record against 0.79 W | |
+| 8.7.3 | Measure idle mode power | Record against 1.18 W | |
+| 8.7.4 | Measure active mode power | Record against 2.60 W sun-pointed bottom-up | |
+| 8.7.5 | Measure peak power (Jetson burst) | Jetson ≤ 8 W at the carrier input (SYS-501) plus the ACTIVE load | |
 
 **Power Characterization Record:**
 
 | Mode | Expected | Measured | P/F |
 |------|----------|----------|-----|
-| Safe | <0.6W | W | |
-| Idle | <1.8W | W | |
-| Active | <3.5W | W | |
-| Burst | <10W | W | |
+| Safe | 0.79 W (BASELINE §5) | W | |
+| Idle | 1.18 W (BASELINE §5) | W | |
+| Active | 2.60 W sun-pointed, 1.91 W tumbling, bottom-up (BASELINE §5) | W | |
+| Jetson burst | ≤ 8 W at the carrier input (SYS-501) | W | |
 
 ### 8.8 Documentation
 
@@ -206,7 +212,7 @@ This procedure establishes a pre-environmental test baseline for the SMART-QSO C
 | 8.8.1 | Complete all data sheets | All fields filled | |
 | 8.8.2 | Archive photographs | Labeled and stored | |
 | 8.8.3 | Archive spectrum plots | Labeled and stored | |
-| 8.8.4 | Generate test report | Signed | |
+| 8.8.4 | Generate test report | Report written; signature fields left blank until the test is run | |
 
 ---
 
@@ -294,3 +300,4 @@ This matrix shall be completed after environmental testing by comparing pre- and
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; it had cited only standards (finding VV-06) | SMART-QSO Team |
 | C | 2026-10-16 | Steps 8.6.3 and 8.6.4 and their record rows corrected and cited: the IARU-coordinated downlink frequency ±5 kHz (SYS-200, SYS-206, TBD-SYS-001; was 145.825 MHz) and 0.5 W nominal, never above 1 W (SYS-201; was up to 2 W) (finding VV-06) | SMART-QSO Team |
+| D | 2026-10-27 | Documentation audit (post-CDR 2026): 4S battery voltage (was 7.2–8.4 V), mode powers from BASELINE §5, mass and inertia against BASELINE §4, deviation and spurious per SYS-203; banner | Documentation audit |

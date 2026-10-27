@@ -2,7 +2,7 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-006
-**Revision:** H
+**Revision:** I
 **Date:** 2026-10-27
 **Reference:** JPL D-60411 (Power of Ten), NPR 7150.2
 
@@ -37,7 +37,7 @@ embassy-stm32 generates, feature `memory-x`), with the cortex-m-rt `link.x`:
 |--------|-------|------|-------|
 | Flash | 0x08000000 | 2 MB (dual bank) | Vector table, code, constants, `.data` initial values |
 | SRAM1 | 0x20000000 | 192 KB | Not linked. The NMI's cause record (12 B at 0x2002FFF0, §10.3), which survives a reset |
-| SRAM2 | 0x20030000 | 64 KB, parity | `.data`, `.bss` and `.uninit` at its start: every static, the executor's task and the flight software's state (43,452 B on 2026-10-27, round 3, third part); the 8 KB stack at its top, growing down from 0x20040000 (since Revision F, RID AV-13). The link fails if the statics, the 32-byte guard and the stack outgrow SRAM2 (`ASSERT` in `memory.x`) |
+| SRAM2 | 0x20030000 | 64 KB, parity | `.data`, `.bss` and `.uninit` at its start: every static, the executor's task and the flight software's state (44,244 B on 2026-10-27, after round 3, fifth part); the 8 KB stack at its top, growing down from 0x20040000 (since Revision F, RID AV-13). The link fails if the statics, the 32-byte guard and the stack outgrow SRAM2 (`ASSERT` in `memory.x`) |
 | SRAM3 | 0x20040000 | 384 KB | Not used |
 | FRAM (FM25V20A, SPI1) | external | 256 KB | Non-volatile records (§8), on U3 (CS# PG5) and mirrored on U36 (CS# PD7; SQSO-ICX-001 D §6 row 32, RID SMA-B10) |
 
@@ -47,16 +47,17 @@ SRAM into regions for "critical data (TMR)" and "buffers, logs", and listed a ba
 
 ### 3.2 Memory Budget
 
-Measured from the release image (2026-10-27, flight software round 3, third part, `arm-none-eabi-size`; CI job STM32L4 Cross-Compile
-(library) prints the same):
+Measured from the release image (2026-10-27, after flight software round 3, fifth part: a local build of the tree with
+the pinned toolchain, `cargo build --release --locked`, `arm-none-eabi-size`, in the documentation audit; CI job STM32L4
+Cross-Compile (library) prints the same):
 
 | Category | Used | Available | Margin |
 |----------|------|-----------|--------|
-| Code and constants (text) | 207,284 B | 2 MB flash (SRS-C004: 256 KB) | 90 % (21 % of SRS-C004) |
-| Initialized data (data) | 26,400 B | (in SRAM2; initial values in flash) | — |
+| Code and constants (text) | 211,604 B | 2 MB flash (SRS-C004: 256 KB) | 90 % (19 % of SRS-C004) |
+| Initialized data (data) | 27,192 B | (in SRAM2; initial values in flash) | — |
 | Zeroed data (bss) | 17,052 B | (in SRAM2) | — |
-| Static RAM (data + bss) | 43,452 B | 64 KB SRAM2, less the 8 KB stack and its 32-byte guard (57,312 B) | 24 % (13,860 B free between the statics and the guard) |
-| Stack | Worst case 6,332 B (static analysis, §6.2) | 8 KB budget below 0x20040000, in SRAM2 (SRS-C003) | 23 % |
+| Static RAM (data + bss) | 44,244 B | 64 KB SRAM2, less the 8 KB stack and its 32-byte guard (57,312 B) | 23 % (13,068 B free between the statics and the guard) |
+| Stack | Worst case 5,812 B (static analysis, §6.2) | 8 KB budget below 0x20040000, in SRAM2 (SRS-C003) | 29 % |
 | Heap | None | — | — |
 
 ---
@@ -98,8 +99,9 @@ All buffers have sizes fixed at compile time. There is no buffer pool and no all
 | Buffer | Size | Where |
 |--------|------|-------|
 | Jetson UART receive / transmit | 512 B / 256 B | `software/rust/firmware/src/main.rs` (`ConstStaticCell`) |
-| TNC UART receive / transmit | 1,024 B / 16 B | same |
+| TNC UART receive / transmit | 1,024 B / 1,024 B (`RADIO_TX_LEN`, at least the longest KISS stream) | same |
 | Debug UART receive / transmit | 64 B / 512 B | same |
+| GNSS UART (LPUART1) receive / transmit | 256 B / 64 B | same |
 | Module state (fault log 100 entries, flight log, sensor table of 32, key table, scheduler, watchdog table, ...) | Fixed arrays | One `cell::Global` per module in `software/rust/sqso-ffi/src` |
 | Frame and line buffers | `LINE_MAX`, `TEXT_MAX`, receive frame sizes | Stack arrays in the function that uses them |
 
@@ -124,7 +126,7 @@ SRS-C003: the stack shall not exceed 8 KB.
 There is one stack (cortex-m-rt), from the initial SP 0x20040000 (the top of SRAM2) downward. The executor runs one
 task, and the interrupt handlers use the same stack. The Embassy task's state (the async main function's locals held
 across an `await`, including the executive's state) is static, in `.bss`, not on the stack. The budget is the 8 KB
-below the initial SP, 0x2003E000 to 0x2003FFFF; the static data end at `__ebss` (0x2003A9BC on 2026-10-27, round 3, third part), 13,860 B
+below the initial SP, 0x2003E000 to 0x2003FFFF; the static data end at `__ebss` (0x2003ACD4 on 2026-10-27, after round 3, fifth part), 13,068 B
 below the guard.
 
 ### 6.2 Worst Case (static analysis)
@@ -145,6 +147,7 @@ analysis counts it.
 | 2026-10-27, CDR flight software round 2 | 6,004 B (thread 4,448 B, handlers 1,556 B) | 73.3 % | The same path (`run_housekeeping` 968 B, `housekeeping` 688 B, `sensors_get_by_id` 656 B, then the fault path); the handlers add the NMI (148 B, §10.3) at its own priority level |
 | 2026-10-27, CDR flight software round 3 | 6,236 B | 76.1 % | The same path (`housekeeping` 712 B with the HK2 counters); the stack now in SRAM2 |
 | 2026-10-27, CDR flight software round 3, third part | 6,332 B (thread 4,776 B, handlers 1,556 B) | 77.3 % | The same path (`run_housekeeping` 1,032 B, `housekeeping` 744 B with the GNSS, FRAM, AntS-gate and passivation-reason fields, `sensors_get_by_id` 656 B, then the fault path) |
+| 2026-10-27, after round 3, fifth part (documentation audit, local build) | 5,812 B (thread 4,256 B, handlers 1,556 B) | 70.9 % | `scripts/stack_usage.py` on the current tree; the CI run of the same step is the record |
 
 The first run gave 12,820 B. The code changed to bring it down: core's exact float formatting (a 2 KB frame) replaced
 by `sqso_fsw::fixed`; the fault path's console line built without `core::fmt`; large locals moved out of the async main
@@ -276,7 +279,7 @@ static is read at least once a minute by the main loop, which is not proven for 
   STM32CubeProgrammer `-ob SRAM2_PE=0`); the boot console and HK2 `PE` report the state (SRS-F154). Every boot that finds it off logs "SRAM2 parity off (option bit SRAM2_PE)".
 - **NMI.** An SRAM2 parity error (SYSCFG_CFGR2.SPF), a flash double-bit ECC error (FLASH_ECCR.ECCD, with its address)
   or a clock-security failure raises the NMI. The handler records the cause in SRAM1 (tag, cause, complement, address:
-  outside the linked RAM, so neither erased nor zeroed at boot) and resets at once (`SCB::sys_reset`), without the 30 s
+  outside the linked RAM, so neither erased nor zeroed at boot) and resets at once (`SCB::sys_reset`), without the 25.6 s
   wait for the watchdog. Every output to the EPS and the radio is low through the reset (the EPS boards pull them down).
 - **Next boot.** Once the fault log is loaded, the record is read and cleared, and "Reset by NMI: SRAM2 parity error"
   (or flash ECC, clock security) is logged at CRITICAL; the latched error flags are cleared. The state is then what
@@ -328,7 +331,7 @@ a disagreement toward the safe side (SRS-F133):
 ### 11.3 Testing
 
 - 12 fuzz targets: every parser, and the fixed-point formatter (30 s each in CI).
-- Worst-case stack by static analysis of the image, in CI (§6.2): 6,332 B of 8 KB.
+- Worst-case stack by static analysis of the image, in CI (§6.2): 5,812 B of 8 KB (2026-10-27).
 - SRAM2 parity and the NMI: fault injection on the EM (RAD-V6 in RADIATION_ANALYSIS: an SRAM2 bit flipped through the debugger; flash ECC test mode), not done.
 - Stack overflow (HIL-004), high-water mark (HIL-044) and memory stress tests on hardware: not done (no hardware has run the image).
 
@@ -346,3 +349,4 @@ a disagreement toward the safe side (SRS-F133):
 | F | 2026-10-27 | §3.1 the stack moved into SRAM2 (initial SP 0x20040000; RID AV-13), SRAM3 unused; §3.2 budget of the round-3 image; §6 worst case 6,236 B, the budget and guard addresses; §8.1 region ADCS_CAL; §10.3 the programming procedure sets `SRAM2_PE`; §10.5 the stack no longer unprotected | SMART-QSO Team (CDR flight software, round 3) |
 | G | 2026-10-27 | §3.1 the second FRAM U36 (RID SMA-B10); §8.2 every record mirrored, read from the mirror when the first FRAM fails, the degraded mode without either (SRS-F160); §3.2 and §6 the image and worst-case stack of round 3, second part | SMART-QSO Team (CDR flight software, round 3, second part) |
 | H | 2026-10-27 | §3.2 and §6 the image and worst-case stack of round 3, third part (text 207,284 B, data 26,400 B, bss 17,052 B; 6,332 B of 8 KB), the statics' end 0x2003A9BC (Revision G named these without changing the figures) | SMART-QSO Team (CDR flight software, round 3, third part) |
+| I | 2026-10-27 | Documentation audit (post-CDR 2026): §5.1 TNC transmit buffer 1,024 B (was 16 B) and the GNSS UART buffers, as in `firmware/src/main.rs`; §3.2, §6 and §11.3 the image after round 3, fifth part (text 211,604 B, data 27,192 B, bss 17,052 B; stack 5,812 B; `__ebss` 0x2003ACD4), from a local build; §10.3 the 25.6 s watchdog | SMART-QSO Team |

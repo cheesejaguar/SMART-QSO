@@ -1,10 +1,19 @@
 # SMART-QSO Flight Readiness Review Package
 
 **Document ID**: SQSO-FRR-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: Template (Pre-FRR)
+**Status**: Template (Pre-FRR). No FRR has been held
+
+> **Template for a future review: not held.** No flight readiness review has been held, no flight unit exists, and
+> nothing in this document records a result: every count, version, status and signature field is to be filled in at
+> the review. For a rideshare through an integrator, the project's own flight readiness check is the **pre-ship review
+> before delivery to the integrator** (`mission/SCHEDULE.md` §4: earliest 2028-05-19, delivery required by 2028-09-12,
+> L − 50 days, for the 2028-11-01 planning launch); the launch-vehicle FRR is SpaceX's and the integrator's. Values to
+> check against are in [BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md); the current review record is
+> [CDR_2026_DESIGN_REVIEW.md](CDR/CDR_2026_DESIGN_REVIEW.md) (an engineering assessment, not an independent board).
+> Index of the review documents: [README.md](README.md).
 
 ## 1. Purpose
 
@@ -25,8 +34,8 @@ This document provides the Flight Readiness Review (FRR) package for the SMART-Q
 
 ### 2.2 Entrance Criteria
 
-- [ ] CDR complete and closed
-- [ ] All CDR actions closed
+- [ ] Independent CDR held (planned 2027-09-28) and its RIDs closed
+- [ ] Every verification item of `docs/verification/VI_REGISTER.md` due before delivery passed
 - [ ] Environmental testing complete
 - [ ] Flight software delivered
 - [ ] Operations team certified
@@ -52,9 +61,9 @@ This document provides the Flight Readiness Review (FRR) package for the SMART-Q
 
 | Item | Version | Status |
 |------|---------|--------|
-| Flight Software | 1.0.0 | [ ] Baselined |
-| Payload Software | 1.0.0 | [ ] Baselined |
-| Configuration | 1.0.0 | [ ] Baselined |
+| Flight Software (`software/rust`, Embassy firmware) | | [ ] Baselined |
+| Payload Software (`software/payload`) | | [ ] Baselined |
+| Configuration (keys, NVM parameters) | | [ ] Baselined |
 
 ### 3.3 Ground System Status
 
@@ -64,35 +73,39 @@ This document provides the Flight Readiness Review (FRR) package for the SMART-Q
 | Backup Ground Station | [ ] Ready | |
 | Mission Operations | [ ] Ready | |
 | Tracking (TLE) | [ ] Ready | |
+| GNSS ephemeris with covariance to the integrator within 24 h of first contact (SpaceX UG v11 §9.5.7.2) | [ ] Ready | |
+| Second telecommand station, ≥ 1,000 km from the first (BASELINE §1) | [ ] Ready | |
 
 ## 4. Verification Summary
 
 ### 4.1 Requirements Verification
 
+Totals from the generated traceability matrix (`docs/verification/RTM.csv`) at the time of the review.
+
 | Category | Total | Verified | Open | Status |
 |----------|-------|----------|------|--------|
-| Functional | 45 | | | [ ] |
-| Performance | 15 | | | [ ] |
-| Interface | 12 | | | [ ] |
-| Environmental | 8 | | | [ ] |
-| Safety | 8 | | | [ ] |
-| **Total** | **88** | | | |
+| Functional | | | | [ ] |
+| Performance | | | | [ ] |
+| Interface | | | | [ ] |
+| Environmental | | | | [ ] |
+| Safety | | | | [ ] |
+| **Total** | | | | |
 
 ### 4.2 Test Summary
 
 | Test Campaign | Tests | Pass | Fail | Waived |
 |---------------|-------|------|------|--------|
-| Unit Tests | 478 | | | |
-| Flatsat Tests | 7 | | | |
-| Integration Tests | 12 | | | |
-| Environmental | 4 | | | |
-| End-to-End | 3 | | | |
+| Unit Tests | | | | |
+| Flatsat Tests | | | | |
+| Integration Tests | | | | |
+| Environmental (protoflight campaign) | | | | |
+| End-to-End | | | | |
 
 ### 4.3 Open Test Failures
 
 | Test | Failure | Disposition |
 |------|---------|-------------|
-| - | None | - |
+| | | |
 
 ## 5. Configuration Status
 
@@ -107,20 +120,26 @@ This document provides the Flight Readiness Review (FRR) package for the SMART-Q
 
 | Item | Drawing/Spec | As-Built | Match |
 |------|--------------|----------|-------|
-| Structure | SQSO-STR-001 | | [ ] |
-| EPS | SQSO-EPS-001 | | [ ] |
-| OBC | SQSO-OBC-001 | | [ ] |
-| RF | SQSO-RF-001 | | [ ] |
-| Software | SQSO-SVD-001 | v1.0.0 | [ ] |
+| Structure | SQSO-MECH-CAD-001, SQSO-STR-001 | | [ ] |
+| EPS | SQSO-EPS-BRD-001 | | [ ] |
+| OBC | SQSO-OBC-BRD-001 | | [ ] |
+| RF | SQSO-RF-BRD-001 | | [ ] |
+| Jetson carrier | SQSO-JET-BRD-001 | | [ ] |
+| Interconnect | SQSO-ICX-001 | | [ ] |
+| Software | SQSO-SVD-001 | | [ ] |
 
 ## 6. Safety Status
 
 ### 6.1 Hazard Closure
 
+System hazard reports HR-01 to HR-16 (`docs/safety/SYSTEM_SAFETY_DATA_PACKAGE.md`, SQSO-SDP-002) and software
+hazards HZ-001 to HZ-006 (`docs/safety/SAFETY_DATA_PACKAGE.md`, SQSO-SDP-001); one row each at the review.
+
 | Hazard | Status | Verification |
 |--------|--------|--------------|
-| HZ-001 Unintended RF | [ ] Closed | |
-| HZ-002 Battery Discharge | [ ] Closed | |
+| HR-01 … HR-16 | [ ] Closed | |
+| HZ-001 Unintended RF Emission | [ ] Closed | |
+| HZ-002 Battery Over-discharge | [ ] Closed | |
 | HZ-003 Thermal Damage | [ ] Closed | |
 | HZ-004 Software Hang | [ ] Closed | |
 | HZ-005 Memory Corruption | [ ] Closed | |
@@ -138,15 +157,17 @@ This document provides the Flight Readiness Review (FRR) package for the SMART-Q
 
 ### 7.1 Open Risks
 
+From `mission/RISK_REGISTER.md` at the time of the review.
+
 | Risk ID | Description | Likelihood | Consequence | Mitigation | Status |
 |---------|-------------|------------|-------------|------------|--------|
-| - | No critical risks | - | - | - | - |
+| | | | | | |
 
 ### 7.2 Risk Acceptance
 
 | Risk Level | Accepted | Not Accepted |
 |------------|----------|--------------|
-| High | 0 | 0 |
+| High | | |
 | Medium | | |
 | Low | | |
 
@@ -185,39 +206,42 @@ This document provides the Flight Readiness Review (FRR) package for the SMART-Q
 
 | Document | Version | Status |
 |----------|---------|--------|
-| Mission Operations Plan | 1.0 | [ ] Approved |
-| Contingency Procedures | 1.0 | [ ] Approved |
-| Command Dictionary | 1.0 | [ ] Approved |
-| Telemetry Dictionary | 1.0 | [ ] Approved |
-| Training Records | - | [ ] Complete |
-| Software Version Description | 1.0 | [ ] Approved |
-| Known Issues | 1.0 | [ ] Approved |
+| Mission Operations Plan | | [ ] Approved |
+| Contingency Procedures | | [ ] Approved |
+| Command Dictionary | | [ ] Approved |
+| Telemetry Dictionary | | [ ] Approved |
+| Training Records | | [ ] Complete |
+| Software Version Description | | [ ] Approved |
+| Known Issues | | [ ] Approved |
 
 ### 9.2 Waivers and Deviations
 
 | ID | Description | Approval | Status |
 |----|-------------|----------|--------|
-| - | None required | - | - |
+| | | | |
 
 ## 10. Launch Campaign Readiness
 
-### 10.1 Launch Site Activities
+### 10.1 Integrator Activities
+
+Planned sequence: `docs/operations/MISSION_TIMELINE.md` §3 and `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md` §9.
 
 | Activity | Date | Status |
 |----------|------|--------|
-| Spacecraft ship | | [ ] Complete |
+| Delivery to the integrator (≈ L − 50 d) | | [ ] Complete |
 | Receiving inspection | | [ ] Complete |
-| Battery charge | | [ ] Complete |
-| Deployer integration | | [ ] Complete |
 | Final functional | | [ ] Complete |
+| Final charge to 60 % ± 5 % SOC (≈ L − 47 d) | | [ ] Complete |
+| Key load, `ARM_FLIGHT`, RBF removed, integration into the EXOpod Nova (≈ L − 47 d) | | [ ] Complete |
 
 ### 10.2 Launch Constraints
 
 | Constraint | Requirement | Status |
 |------------|-------------|--------|
-| Battery SOC | > 95% | [ ] Met |
+| Battery SOC at integration | 60 % ± 5 % (BASELINE §4; separation SOC ≥ 40 %) | [ ] Met |
+| Storage drain, all inhibits open | ≤ 20 µA (SQSO-LVR-001 LVR-071) | [ ] Met |
 | Configuration | Flight | [ ] Verified |
-| Remove-before-flight | All removed | [ ] Verified |
+| Remove-before-flight | Removed at integration | [ ] Verified |
 
 ## 11. FRR Checklist
 
@@ -298,7 +322,7 @@ Safety: ______________ Date: _______
 
 | Action | Owner | Due | Status |
 |--------|-------|-----|--------|
-| - | - | - | - |
+| | | | |
 
 ### 13.2 Launch Authorization
 
@@ -315,3 +339,4 @@ Upon successful FRR closure:
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial template |
+| 1.1 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): banner (template, not held; milestone: pre-ship review, `mission/SCHEDULE.md`); pre-filled results removed (counts, versions 1.0.0, "None" failures, risks and waivers); battery SOC 60 % ± 5 % at integration (was > 95 %; BASELINE §4); integrator activities per MISSION_TIMELINE; as-built rows cite the build-to designs (SQSO-EPS-001, -OBC-001 and -RF-001 do not exist); hazards HR-01 to HR-16 and HZ-001 to HZ-006; GNSS ephemeris and second telecommand station rows |

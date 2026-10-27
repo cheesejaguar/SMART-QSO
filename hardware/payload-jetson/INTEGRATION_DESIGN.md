@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-PAY-JET-001
-**Version:** 1.1
+**Version:** 1.2
 **Date:** 2026-10-27
 **Status:** CDR Baseline
 
@@ -15,21 +15,26 @@
 > pad; mechanical design §6.10), §9 (PC/104 carrier in the stack under the spreader, MECHANICAL_DESIGN §4.1) and §10.3
 > (power-off by `SHUTDOWN` and the carrier's shutdown latch). The "Super" name is wrong for the flight configuration: the
 > module is flashed with the original configuration so that the 7 W mode exists (TB-13).
+>
+> **Documentation audit (2026-10-27, version 1.2).** §1.1 and §7 corrected to the carrier design (7 W mode, VDD_IN
+> capped at 6.5 W, ≤ 8 W including the carrier). The thermal limits of §6.1, §6.5 and §11.2 are superseded by SYS-603
+> Rev G as carried in BASELINE §6: spreader ≤ +40 °C in a 600 s batch, junction ≤ 95 °C, spreader ≤ +70 °C if stuck on
+> (CR-2026-010; thermal interface in SQSO-JET-BRD-001 §14 and `hardware/structure/THERMAL_DESIGN.md`).
 
 ## 1. Overview
 
-This document defines the integration design for the NVIDIA Jetson Orin Nano Super AI compute module within the SMART-QSO 1U CubeSat.
+This document defines the integration design for the NVIDIA Jetson Orin Nano 8 GB AI compute module within the SMART-QSO 1U CubeSat. The module runs only the gated beacon-text experiment (BASELINE §6, decision D5).
 
 ### 1.1 Module Specification
 
 | Parameter | Value |
 |-----------|-------|
-| Module | Jetson Orin Nano Super |
+| Module | Jetson Orin Nano 8 GB (P/N 900-13767-0030-000), original (non-Super) flash configuration (BASELINE §6) |
 | GPU | Ampere with 1024 CUDA cores |
-| CPU | 6-core Arm Cortex-A78AE |
+| CPU | 6-core Arm Cortex-A78AE (4 cores ≤ 960 MHz in the 7 W mode) |
 | RAM | 8 GB LPDDR5 |
-| AI Performance | 67 TOPS (INT8) |
-| Power Range | 7W - 25W (configurable) |
+| Power mode | 7 W (nvpmodel ID 1), VDD_IN capped at 6.5 W; ≤ 8 W input including the carrier (SQSO-JET-BRD-001 §0, §13) |
+| Module input | 5 V only (VDD_IN 4.75–5.25 V), made on the carrier from VBAT |
 | Interface | 260-pin SO-DIMM |
 
 ### 1.2 Integration Requirements
@@ -226,20 +231,18 @@ Jetson die → TIM → Heatspreader → TIM → Structure → Radiator
 
 ### 7.1 DVFS Configuration
 
-| Mode | CPU Freq | GPU Freq | Power |
-|------|----------|----------|-------|
-| Low power | 500 MHz | 300 MHz | 3W |
-| Balanced | 1.0 GHz | 600 MHz | 7W |
-| Max perf | 1.5 GHz | 900 MHz | 15W |
+Flight mode only (SQSO-JET-BRD-001 §0): 7 W, nvpmodel ID 1 of the original configuration, 4 CPU cores ≤ 960 MHz,
+2 TPC ≤ 408 MHz, EMC 2133 MHz. The 15 W and higher modes are not used; the Super configuration's modes are not
+available on the flight flash.
 
 ### 7.2 Power Limiting
 
 | Parameter | Setting |
 |-----------|---------|
-| Power model | MAXN capped |
-| Power limit | 8W |
-| Thermal limit | 70°C |
-| Fan mode | Disabled (passive) |
+| Power model | 7 W mode (ID 1) |
+| Power limit | VDD_IN 6.5 W (INA3221 channel 1 `curr1_max` = 1300 mA); ≤ 8 W at the carrier input |
+| Thermal limit | SYS-603 Rev G (BASELINE §6) |
+| Fan mode | No fan (passive) |
 
 ### 7.3 Runtime Power Control
 
@@ -250,6 +253,7 @@ sudo nvpmodel -m 1  # 7W mode
 # Set clock limits
 sudo jetson_clocks --store
 sudo jetson_clocks --restore
+# Each burst ends with SHUTDOWN commanded by the OBC (SQSO-JET-BRD-001 §7.4)
 ```
 
 ---
@@ -380,3 +384,4 @@ If Jetson fails, OBC reverts to template beacon text:
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 1.1 | 2026-10-27 | CDR note: carrier designed (SQSO-JET-BRD-001 A); §2–§6, §9 and §10.3 superseded as listed |
+| 1.2 | 2026-10-27 | Documentation audit (post-CDR 2026): §1.1 module (8 GB, original configuration, 7 W, 5 V input), §7 power modes and limits to SQSO-JET-BRD-001; thermal limits to SYS-603 Rev G (note) |

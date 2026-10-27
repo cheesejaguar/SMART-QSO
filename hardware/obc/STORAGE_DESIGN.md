@@ -2,9 +2,15 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-OBC-002
-**Version:** 1.8
+**Version:** 1.9
 **Date:** 2026-10-27
 **Status:** Draft (pins of §3.4 updated to the build-to design SQSO-OBC-BRD-001)
+
+> **Documentation audit (2026-10-27, version 1.9).** The OBC board has **no secondary storage**: no SD card, no external
+> flash, no MRAM (SQSO-OBC-BRD-001 §7). Storage is two FM25V20A FRAMs on SPI1 (the second a mirror) and the MCU's 2 MB
+> dual-bank internal flash (two images). The 7-day housekeeping store (≈ 88 kB, BASELINE §8) fits one FRAM. §4, §5.1
+> (SD card part), §7.2, the SD rows of §8.2, §9 and §10.1 are kept as the record of the earlier plan and do not apply;
+> the SD interface of §4.3 used SPI2 pins of the superseded STM32L476 plan.
 
 ---
 
@@ -137,7 +143,7 @@ inputs.
 
 ---
 
-## 4. Secondary Storage (SD Card)
+## 4. Secondary Storage (SD Card) — not in the design (see the note at the top)
 
 ### 4.1 Use Cases
 
@@ -355,8 +361,8 @@ Directory structure:
 | Component | Active (mW) | Standby (mW) |
 |-----------|-------------|--------------|
 | FRAM | 15 | 0.01 |
-| SD Card | 150 | 1 |
-| Total | 165 | 1 |
+| SD Card | (not fitted) | — |
+| Total | 15 | 0.01 |
 
 ### 9.2 Power Optimization
 
@@ -437,3 +443,4 @@ The interface is defined in SQSO-ICD-013 (`docs/interfaces/TELECOMMAND_AUTHENTIC
 | 1.6 | 2026-10-27 | Header version aligned with the history (was 1.0 after 1.5). §3.4 FRAM pins from the master pin allocation SQSO-ICX-001 (SPI1 on PG2–PG5, WP# PE0, HOLD# PE1) |
 | 1.7 | 2026-10-27 | §3.3 extended storage allocated as implemented (`software/rust/firmware/src/fram.rs`): sensor configuration, backup, operations record, five-minute and sixty-second housekeeping, event-window table, passivation record; §3.3.1 stored housekeeping |
 | 1.8 | 2026-10-27 | §3.4 against SQSO-ICX-001 D (amended): the firmware has moved to SPI1 PG2–PG5; second FRAM U36 on CS# PD7; MCU named STM32L4R5ZIT6 in the diagram |
+| 1.9 | 2026-10-27 | Documentation audit (post-CDR 2026): no SD card, external flash or MRAM in the board design (SQSO-OBC-BRD-001 §7); §4 and the SD rows marked as not applicable; §9.1 total without the SD card |

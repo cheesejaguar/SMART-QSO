@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-ADCS-SEN-001
-**Version:** 1.2
+**Version:** 1.3
 **Date:** 2026-10-27
 **Status:** CDR Baseline
 
@@ -11,22 +11,25 @@
 ## 1. Overview
 
 This document defines the Attitude Determination and Control System (ADCS) sensor design for the SMART-QSO 1U CubeSat.
+The sensor circuits, pins and parts of record are in the OBC build-to design `hardware/electrical/obc/OBC_BOARD_DESIGN.md`
+(SQSO-OBC-BRD-001) §9 and `docs/interfaces/ICD_OBC_ADCS.md` (SQSO-ICD-004), which govern where this document differs.
+There is no ADCS board. Nothing has been built or measured.
 
 ### 1.1 Sensor Suite
 
 | Sensor | Quantity | Purpose |
 |--------|----------|---------|
-| Magnetometer | 1 (3-axis) | B-field measurement |
-| Sun Sensors | 6 | Sun vector determination |
-| Gyroscope | 1 (3-axis) | Rate sensing (optional) |
+| Magnetometer | 1 (3-axis), PNI RM3100 on board A2 | B-field measurement |
+| Sun Sensors | 6 panel photodiodes | Sun direction for the spin law |
+| Gyroscope | 1 (3-axis) primary plus 1 cold spare | Rate sensing (required, §4) |
 
 ### 1.2 Performance Requirements
 
 | Parameter | Requirement | Source |
 |-----------|-------------|--------|
-| Attitude knowledge | ±10° (3σ) | Mission |
-| Rate knowledge | ±1°/s | Detumble |
-| Sun pointing accuracy | ±15° | Power |
+| Attitude knowledge | None: no onboard attitude estimate (decision C-22); sun-vector knowledge is not a requirement (C-23) | `docs/hardware/ADCS_DESIGN.md` §2 |
+| Rate knowledge | ≤ 0.2°/s per axis in use (ADCS-P007) | ADCS_DESIGN §2.2 |
+| Sun pointing (ADCS-P002) | ≤ 5 % of sunlit generation lost to pointing and the Sun within 30° of +Y for ≥ 95 % of sunlit time, in every Monte Carlo trial (C-23) | Power; BASELINE §8 |
 
 ---
 
@@ -36,22 +39,22 @@ This document defines the Attitude Determination and Control System (ADCS) senso
 
 | Parameter | Value |
 |-----------|-------|
-| Type | 3-axis MEMS magnetometer |
-| Part | LIS3MDL, BMM150, or equivalent |
-| Range | ±16 gauss (±1.6 mT) |
-| Resolution | 0.5 mGauss (50 nT) |
-| Noise | < 3 mGauss RMS |
-| Interface | I2C (400 kHz) |
-| Power | < 1 mW |
+| Type | 3-axis magneto-inductive magnetometer |
+| Part | **PNI RM3100** (SQSO-OBC-BRD-001 §9.4; LIS3MDL and BMM150 withdrawn) |
+| Range | ± 800 µT, linear ± 200 µT |
+| Resolution | 13 nT |
+| Noise | 15 nT at 200 cycle counts |
+| Interface | I2C4 at 0x20, single-shot on command with DRDY |
+| Power | 260 µA at 8 Hz three-axis |
 
 ### 2.2 Placement
 
 | Parameter | Value |
 |-----------|-------|
-| Location | ADCS board, away from magnetorquers |
+| Location | Board A2 (24 × 24 mm) at the +Z end frame, slot (+24, +27) mm, harness W6E to OBC J10 |
 | Orientation | Aligned with spacecraft body axes |
-| Distance from torquers | > 50 mm |
-| Distance from battery | > 30 mm |
+| Distance from torquers | Set by the rod-remanence coupling at the slot (SQSO-OBC-BRD-001 §9.4) |
+| Magnetic keep-out | No ferromagnetic part within 20 mm of A2 (SQSO-OBC-BRD-001 §24 C13) |
 
 ### 2.3 Calibration Requirements
 
@@ -90,12 +93,10 @@ Where:
 
 | Parameter | Value |
 |-----------|-------|
-| Type | Silicon photodiode |
-| Part | VEMD1060X or equivalent |
-| Spectral response | 400-1100 nm |
-| Active area | 1-4 mm² |
-| FOV | ±60° (120° total) |
-| Current output | 10-100 µA in sun |
+| Type | Silicon photodiode, bought with the panels (BUILD_VS_BUY §2.3) |
+| Part | Named by the panel vendor (VEMD1060X withdrawn) |
+| FOV | Cosine response |
+| Current output | Short-circuit current ≤ 4.0 mA at AM0 normal incidence (amplifier clips at 5.25 mA) |
 
 ### 3.3 Configuration
 
@@ -122,10 +123,10 @@ sun_vector = normalize(sun_vector)
 
 | Component | Value | Purpose |
 |-----------|-------|---------|
-| Transimpedance amp | TLV2371 | Current to voltage |
-| Gain resistor | 10kΩ | Sets sensitivity |
-| ADC | OBC internal | Digitize signal |
-| Sample rate | 10 Hz | Sufficient for control |
+| Transimpedance amp | TLV9002-Q1 (three duals), zero bias | Current to voltage |
+| Gain resistor | 619 Ω 0.1 %, Cf 10 nF C0G | Sets sensitivity (up to 10 kΩ if the panel diode is smaller) |
+| ADC | ADS7138-Q1, 12 bits, I2C4 0x10 | Digitize signal; 1.30 µA per LSB |
+| Sample rate | 1 Hz (ADCS_DESIGN §4.2.1) | Sufficient for the spin law |
 
 ---
 
@@ -153,9 +154,9 @@ SIL-05; `docs/hardware/ADCS_DESIGN.md` §4.2.1). The selection is in `docs/hardw
 
 | Mode | Gyroscope Use |
 |------|---------------|
-| Detumble | Rate measurement for B-dot |
-| Pointing | Rate feedback for control |
-| Eclipse | Propagate attitude |
+| Detumble | Capture criterion (rate across +Y and spin about +Y) |
+| Pointing | Rate feedback for nutation damping and the spin hold |
+| Eclipse | Rate feedback for the spin hold (no attitude is propagated: C-22) |
 
 ### 4.3 Bias Estimation
 
@@ -194,28 +195,26 @@ option is an albedo-immune sun sensor on +Y (§3.1: slit or digital types).
 
 | Parameter | Value |
 |-----------|-------|
-| Bus | I2C2 on OBC |
-| Speed | 400 kHz |
-| Pull-ups | 4.7kΩ to 3.3V |
-| Cable length | < 100 mm |
+Pins and buffers: `docs/interfaces/ICD_OBC_ADCS.md` and `hardware/electrical/INTERCONNECT.md` §4, which govern.
 
-### 6.2 I2C Addresses
+| Parameter | Value |
+|-----------|-------|
+| Magnetometer and sun-sensor ADC bus | I2C4 (SCL PD12, SDA PD13) through a TCA9517-Q1; MAG_DRDY PD11 |
+| Primary gyro bus | SPI3 (PC10–PC12, CS PD1), DRDY PD10 |
+| Magnetometer harness | W6E, ≈ 0.09 m |
+
+### 6.2 Bus Addresses
 
 | Device | Address |
 |--------|---------|
-| Magnetometer | 0x1E |
-| Gyroscope | 0x6A |
+| Magnetometer RM3100 | I2C4 0x20 |
+| Sun-sensor ADC ADS7138-Q1 | I2C4 0x10 |
+| Gyroscope M-G370PDT0 | SPI3 (no address) |
 
 ### 6.3 ADC Channels (Sun Sensors)
 
-| Channel | Sensor |
-|---------|--------|
-| ADC_IN8 | Sun +X |
-| ADC_IN9 | Sun -X |
-| ADC_IN10 | Sun +Y |
-| ADC_IN11 | Sun -Y |
-| ADC_IN12 | Sun +Z |
-| ADC_IN13 | Sun -Z |
+The six photodiode amplifiers occupy six inputs of the ADS7138-Q1; AIN6 is a TMP235-Q1 beside the gyros and AIN7 is
+VBAT_MTQ / 6 (SQSO-OBC-BRD-001 §9.5). The channel-to-face assignment is in the board's netlist.
 
 ---
 
@@ -234,9 +233,12 @@ option is an albedo-immune sun sensor on +Y (§3.1: slit or digital types).
 
 | Sensor | TID Tolerance |
 |--------|---------------|
-| Magnetometer MEMS | > 30 krad |
-| Photodiodes | > 100 krad |
-| Gyroscope MEMS | > 30 krad |
+| Magnetometer RM3100 | No published data: own latch-up switch and the RAD-V3 lot test (SQSO-OBC-BRD-001 §9.4) |
+| Photodiodes | Panel vendor's data |
+| Gyroscope M-G370PDT0 | TID pass to 20 krad(Si); no SEL data (§4.1) |
+| Gyroscope BMI088 | No data (§4.1) |
+
+Design level 10 krad(Si) with the shielding rule of BASELINE §6.
 
 ### 7.3 Temperature Compensation
 
@@ -256,7 +258,7 @@ option is an albedo-immune sun sensor on +Y (§3.1: slit or digital types).
 |------|-------------|
 | Calibration | Hard/soft iron determined |
 | Accuracy | ±1° in Earth field |
-| Noise | < 5 mGauss RMS |
+| Noise | ≤ 50 nT (the Monte Carlo assumption) |
 | Temperature | Stable -20°C to +50°C |
 
 ### 8.2 Sun Sensor Tests
@@ -264,15 +266,15 @@ option is an albedo-immune sun sensor on +Y (§3.1: slit or digital types).
 | Test | Requirement |
 |------|-------------|
 | FOV verification | ±60° response |
-| Sun vector accuracy | ±5° |
+| Response | Against the photodiode-and-albedo model (no sun-vector accuracy requirement, C-23) |
 | Threshold determination | Correct albedo rejection |
 
 ### 8.3 System-Level Tests
 
 | Test | Requirement |
 |------|-------------|
-| Attitude determination | ±10° accuracy |
-| Sensor fusion | Consistent output |
+| Sun direction and pointing | Photodiode response against the model (TP-ADCS-003); ADCS-P002 by the Monte Carlo (ADCS_DESIGN §11.6) |
+| Rate | ADCS-P007 (≤ 0.2°/s per axis in use) |
 | Fault detection | Identify bad sensor |
 
 ---
@@ -298,3 +300,4 @@ option is an albedo-immune sun sensor on +Y (§3.1: slit or digital types).
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 1.1 | 2026-10-26 | §4: gyro required; Epson M-G370PDT0 primary, BMI088 backup; bias ≤ 0.1°/s from the ADCS Monte Carlo (BUILD_VS_BUY §5–§6) |
 | 1.2 | 2026-10-27 | §5: TRIAD and EKF out of the flight baseline (decisions C-22, C-23); the sensors' use and the requirements on them; the albedo-immune +Y sun sensor recorded as the option (finding P3F-G-07) |
+| 1.3 | 2026-10-27 | Documentation audit (post-CDR 2026): brought into line with SQSO-OBC-BRD-001 §9 and SQSO-ICD-004: §1 gyro required, requirements per C-22/C-23 (ADCS-P002, ADCS-P007); §2 RM3100 on board A2 (LIS3MDL/BMM150 and the ADCS board withdrawn); §3 panel photodiodes, TLV9002-Q1 and ADS7138-Q1; §4.2 no attitude propagation; §6 buses I2C4 and SPI3; §7.2 radiation data per part; §8 tests per C-23 |

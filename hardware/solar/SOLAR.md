@@ -10,6 +10,11 @@
 > (and are never both normal to the sun). The vendor comparison must be redone against the baseline layout with
 > datasheets before any selection.
 
+> **Documentation audit (2026-10-27): current values.** The array table is now `hardware/eps/SOLAR_ARRAY_DESIGN.md`
+> 2.2 (§3, §9); the EOL orbit average delivered to the bus is **2.48 W tumbling, 3.84 W sun-pointed** from the
+> mission simulation (BASELINE §5; `docs/environment/POWER_BUDGET_ANALYSIS.md` v2.5 §4); the 2.14 W isotropic-tumble
+> figure is kept only as a bound.
+
 > **CDR review notice (2026-10-27): recommendation withdrawn.** The recommended GomSpace deployable exists only for
 > 3U and 6U (`docs/hardware/BUILD_VS_BUY.md` §2.8 item 3), and no vendor sells the double-sided 1U wing pair of the
 > baseline layout. The decision is to buy assembled body panels and custom wings from one panel vendor (DHV,
@@ -485,3 +490,4 @@ Implementation of the recommended solution will proceed with early procurement t
 | — | undated | Trade study |
 | 1 | 2026-10-16 | Funding audit notice (TB-14): power figures superseded |
 | 2 | 2026-10-27 | CDR review notice: recommendation withdrawn; panel buy per BUILD_VS_BUY §2.2–§2.3 |
+| 3 | 2026-10-27 | Documentation audit (post-CDR 2026): current-values note (SOLAR_ARRAY_DESIGN 2.2, BASELINE §5 generation) |

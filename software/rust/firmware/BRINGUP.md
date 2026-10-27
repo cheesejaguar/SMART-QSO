@@ -43,7 +43,7 @@ every row of its §6 change list, flight software round 3), written for the OBC 
 
 | Function (flight map) | Pins | On the NUCLEO-L4R5ZI | Consequence |
 |-----------------------|------|----------------------|-------------|
-| Console, USART3 | PD8 TX, PD9 RX, 115200 8N1 | The ST-LINK virtual COM port is on LPUART1 (PG7 TX, PG8 RX), which the firmware does not use | The console is **not** on the ST-LINK USB port. Wire a 3.3 V adapter: PD8 to the adapter's RX, PD9 to its TX, GND to GND (header pins *(UM2179)*) |
+| Console, USART3 | PD8 TX, PD9 RX, 115200 8N1 | The ST-LINK virtual COM port is on LPUART1 (PG7 TX, PG8 RX). The firmware uses LPUART1 for the GNSS receiver with TX on PB11, not PG7, and RX on PG8 (`src/uart.rs`), so the VCP shows no console output | The console is **not** on the ST-LINK USB port. Wire a 3.3 V adapter: PD8 to the adapter's RX, PD9 to its TX, GND to GND (header pins *(UM2179)*) |
 | Jetson link, USART1 | PA9 TX, PA10 RX, 115200 | PA9/PA10 may be wired to the USB OTG connector (VBUS sense, ID) *(UM2179)* | Check before wiring the adapter; leave the OTG connector unplugged |
 | TNC, USART2 | PD5 TX, PD6 RX, 9600 | free *(UM2179)* | Uplink frames in and downlink frames out (KISS). With no TNC, a logic analyzer on PD5 shows each beacon: the five TNC parameter commands, then the frame (HIL-030) |
 | ALERT input (pull-up) | PB7 | LD2 (blue LED) | The LED loads the input: LD2 may glow and the ALERT level read is not meaningful |
@@ -112,14 +112,14 @@ unreadable input). `$ELF` and `$PKG` are those of §4.
 |---|-------|-----|------|-----|
 | 1 | Probe and part | `probe-rs list`; `probe-rs info --chip STM32L4R5ZITx` | The probe is listed; the part answers on SWD (ARMv7-M core) | — |
 | 2 | Boot to the console banner | Start the console capture, then power-cycle the board (or press B2) and time it | `[SYSTEM] SMART-QSO Flight Software Started`, then `[SYSTEM] Version: 0.2.0-dev` and the mission phase, power mode and SOC line, within 30 s of power-on (SRS-F001) | HIL-001 |
-| 3 | Watchdog running and kicked | `arm-none-eabi-nm -S -C "$ELF" \| grep sqso_firmware::wdt::`; then `probe-rs read --chip STM32L4R5ZITx b32 <TIMEOUT_MS> 1` and `probe-rs read --chip STM32L4R5ZITx b8 <RUNNING> 1`; `probe-rs read --chip STM32L4R5ZITx b32 <LAST_KICK_MS> 2` five times, about 0.5 s apart | TIMEOUT_MS = 0x7530 (30,000 ms, the operating timeout); RUNNING = 01; LAST_KICK_MS (milliseconds since boot, low word first) changes between every two reads | HIL-043 |
+| 3 | Watchdog running and kicked | `arm-none-eabi-nm -S -C "$ELF" \| grep sqso_firmware::wdt::`; then `probe-rs read --chip STM32L4R5ZITx b32 <TIMEOUT_MS> 1` and `probe-rs read --chip STM32L4R5ZITx b8 <RUNNING> 1`; `probe-rs read --chip STM32L4R5ZITx b32 <LAST_KICK_MS> 2` five times, about 5 s apart | TIMEOUT_MS = 0x6400 (25,600 ms, the operating timeout, `WDT_HW_TIMEOUT_MS`); RUNNING = 01; LAST_KICK_MS (milliseconds since boot, low word first) advances by about 10,000 every 10 s (the refresh comes with each WDI falling edge, SRS-F050), never more than 25.6 s apart; PG11 (WDI) toggles on a logic analyzer | HIL-043 |
 | 4 | Loop timing | `tools/loop_timing.py --elf "$ELF" --samples 5 --interval 10` (after at least a minute of running) | Longest pass ≤ 20 ms, no overruns, `passes` grows between samples | HIL-040 |
-| 5 | Stack high-water mark | `tools/stack_high_water.py --stack-usage "$PKG"/stack_usage.txt --elf "$ELF" --save stack_dump.txt` | Used ≤ the static worst case of the image (5,004 B on 2026-10-25) and < 8,192 B | HIL-044 |
+| 5 | Stack high-water mark | `tools/stack_high_water.py --stack-usage "$PKG"/stack_usage.txt --elf "$ELF" --save stack_dump.txt` | Used ≤ the static worst case of the image (`stack_usage.txt` in the package; 5,812 B on 2026-10-27, `software/flight/docs/MEMORY_POLICY.md` §6.2) and < 8,192 B | HIL-044 |
 | 6 | FRAM read and write | Wire an FM25V20A at 3.3 V to SPI1 (§2), then reset three times, at least 5 s after each banner (the mission data is saved every 100 passes, 2 s) | The first boot on a blank part shows `[MISSION] Initialized new mission data`; each later boot shows `[MISSION] Loaded mission data (reset #n)` with n one higher than the boot before (the reset count is read from and written to the FRAM) | HIL-002 (part) |
 | 7 | Jetson link, USART1 | Adapter on PA9/PA10 at 115200 8N1 (§2) | The OBC sends `TELEMETRY` and `BEACON_REQ` lines in the `docs/interfaces/ICD_OBC_JETSON.md` §4 format with valid CRCs; a `BEACON_RSP` with the request's sequence number and a valid CRC, typed back, gives `[UART] Beacon text from Jetson (N chars)` on the console | HIL-032 (part) |
 | 8 | KISS frames, USART2 | Adapter on PD5/PD6 at 9600 8N1; build a frame with `software/ground/tools/telecommand_builder.py <command> --key-file <throwaway key> --counter 1 --ax25 <spacecraft call> <station call> --kiss --out frame.bin`, then `stty -F /dev/ttyUSB1 9600 raw && cat frame.bin > /dev/ttyUSB1` | With no key provisioned the command is refused: a `[FAULT]` line with the rejection reason appears on the console (the first of a run of rejections is logged). Executing a command (HIL-031 proper) needs a provisioned key over the GSE port | HIL-031 (part) |
 | 9 | Loop timing and stack again | Steps 4 and 5 again after steps 7 and 8, before any reset (a reset repaints the budget and zeroes the timing). Step 6 reset the board last, so this covers the boot and steps 7-8 | As steps 4 and 5 | HIL-040, HIL-044 |
-| 10 | Watchdog timeout | The HIL-003 commands below | The processor resets within 30 s of the halt; the next boot's reset cause is WATCHDOG (2) | HIL-003 |
+| 10 | Watchdog timeout | The HIL-003 commands below | The processor resets within 25.6 s of the last refresh (24.1–27.8 s over the LSI tolerance), so at most about 28 s after the halt; the next boot's reset cause is WATCHDOG (2) | HIL-003 |
 | 11 | Stack guard | Power-cycle first if the runner was used (§4); `tools/guard_test.py --elf "$ELF"` after a minute of running | MemManage in the guard (CFSR.MSTKERR, or DACCVIOL with MMFAR in 0x2003DFE0-0x2003DFFF), then a reset, then reset cause WATCHDOG (2) | HIL-004 |
 
 Notes on the steps:
@@ -147,7 +147,7 @@ Notes on the steps:
   probe-rs write $C b32 0xE000EDFC 0x01000000   # DEMCR: TRCENA only, no vector catch
   probe-rs write $C b32 0xE0042008 0x00000000   # DBGMCU_APB1FZR1: the IWDG runs while the core is halted
   probe-rs write $C b32 0xE000EDF0 0xA05F0003   # DHCSR: halt
-  # within 30 s the IWDG resets the processor (time it)
+  # within 25.6 s of the last refresh (24.1-27.8 s) the IWDG resets the processor (time it)
   probe-rs write $C b32 0xE000EDF0 0xA05F0001   # DHCSR: run, in case the core is still halted after the reset
   probe-rs read  $C b32 <RESET_CAUSE> 1         # 00000002 = WATCHDOG (hal_reset.h); address from nm -C
   ```

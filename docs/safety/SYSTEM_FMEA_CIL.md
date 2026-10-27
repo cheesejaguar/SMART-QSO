@@ -1,7 +1,7 @@
 # SMART-QSO System (Hardware) FMEA and Critical Items List
 
 **Document ID**: SQSO-FMEA-002
-**Version**: D
+**Version**: E
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR draft, functional level, at BASELINE Rev E. Version C rested on BASELINE Rev D, `docs/hardware/BUILD_VS_BUY.md`
@@ -13,7 +13,7 @@ carries (§3, §4). Piece-part FMEA follows the engineering model.
 
 This FMEA extends the software FMEA (SQSO-FMEA-001, `docs/safety/SOFTWARE_FMEA.md`) to the hardware of the whole
 spacecraft. It feeds the system hazard analysis (SQSO-SDP-002), the reliability block diagram and success
-probabilities (`docs/environment/RELIABILITY_ANALYSIS.md` v2.0) and the risk register.
+probabilities (`docs/environment/RELIABILITY_ANALYSIS.md` v2.3) and the risk register.
 
 - **Method:** functional and hardware FMEA in the form of MIL-STD-1629A tasks 101 (FMEA) and 102 (criticality, by
   category, without a numerical criticality number), tailored for Class D under NPR 8705.4B. Each item lists the
@@ -29,32 +29,32 @@ probabilities (`docs/environment/RELIABILITY_ANALYSIS.md` v2.0) and the risk reg
 | **4** | Negligible |
 
 - **Critical items:** every Category 1 item and every Category 2 single point (§3).
-- Success levels L1, L2, L3 and their criteria are those of `docs/mission/MISSION_SUCCESS_CRITERIA.md` (v2.1).
+- Success levels L1, L2, L3 and their criteria are those of `docs/mission/MISSION_SUCCESS_CRITERIA.md` (v2.3).
 - **Board level:** SQSO-FMEA-003 analyses the EPS (Rev D), battery sense board, OBC, magnetometer board A2, access-port
-  board A3, RF board, Jetson carrier, interconnect and harness: 176 failure modes, 59 whole-mission single points (36 not
-  seen at this level), findings SMA-B01 to SMA-B19. It uses this document's categories, with 1R for a Category 1 mode that
+  board A3, RF board, Jetson carrier, interconnect and harness: 179 failure modes, 59 whole-mission single points (36 not
+  seen at this level), findings SMA-B01 to SMA-B24. It uses this document's categories, with 1R for a Category 1 mode that
   keeps two further controls. Where a row below and a board-level row disagree, the board-level row is the later analysis.
 
 ## 2. FMEA
 
 | ID | Item / function | Failure mode | Cause | System effect | Mission effect | Detection | Compensating provisions | Cat |
 |----|-----------------|--------------|-------|---------------|----------------|-----------|------------------------|-----|
-| HF-01 | Deployment switches DS1/DS2 | Fail open after separation | Switch damage, contamination, misalignment | Bus never powers | Loss of mission (DOA) | None (silent) | Two rail switches in series give no redundancy for this mode; pre-ship and post-vibe switch test (VI-LV-05) | 2 |
-| HF-02 | DS1/DS2 (and DS3 proposed) | Fail closed / bounce in dispenser | Welded contact, vibration | Bus powered inside dispenser; RF or burn possible if other inhibits fail | Safety | Inhibit monitoring in vibration (VI-LV-04) | Three independent inhibits on each source: DS1, DS2, DS3 on the pack; DS1, DS3 and DS2's second pole (TRK_EN, EPS Rev D) on the array (SQSO-FMEA-003 BF-EPS-01 to -09); timers | 1 |
+| HF-01 | Deployment switches DS1–DS3 | Fail open after separation | Switch damage, contamination, misalignment | Bus never powers | Loss of mission (DOA) | None (silent) | Three rail switches in series give no redundancy for this mode; pre-ship and post-vibe switch test (VI-LV-05) | 2 |
+| HF-02 | DS1, DS2, DS3 | Fail closed / bounce in dispenser | Welded contact, vibration | Bus powered inside dispenser; RF or burn possible if other inhibits fail | Safety | Inhibit monitoring in vibration (VI-LV-04) | Three independent inhibits on each source: DS1, DS2, DS3 on the pack; DS1, DS3 and DS2's second pole (TRK_EN, EPS Rev D) on the array (SQSO-FMEA-003 BF-EPS-01 to -09); timers | 1 |
 | HF-03 | Battery cell (×4 series) | Open circuit | Cell CID trip, weld failure | No battery; bus only in sunlight if the EPS can start from the array (not designed) | Loss of mission | VBAT telemetry | Cell screening; no 2P redundancy (BASELINE §5). The array-only path of the EPS (§5.2) does not survive a pack open: DS2's gate drive comes only from the pack (SQSO-FMEA-003 BF-EPS-10, SMA-B01) | 2 |
 | HF-04 | Battery cell | Internal short / runaway | Latent defect, plating, over-discharge and recharge | Venting, fire | Safety (ground, ISS); loss of mission | Cell voltage, temperature | Screening (VI-SAF-03), temperature charge inhibit, latched recharge lockout K1 (designed, SQSO-EPS-BRD-001 D §5.4; BF-EPS-21 to -24) | 1 |
-| HF-05 | Charger (MPPT, CV) | Regulation fails high | IC failure, feedback open | Overcharge | Safety | Cell voltage telemetry | BMS OV and independent comparator (2-FT) | 1 |
+| HF-05 | Charger (MPPT, CV) | Regulation fails high | IC failure, feedback open | Overcharge | Safety | Cell voltage telemetry | BMS AFE over-voltage (4.25 V) and the dissimilar secondary protector BQ771806 with F3 (4.35 V), behind the CV loop: 2-FT (SQSO-BSA-001 H1) | 1 |
 | HF-06 | Charger | No charge | IC failure, input open | Pack drains | Loss of mission within days | SOC trend | None (single string) | 2 |
-| HF-07 | BMS (BQ76920 class) | Spurious trip / FET stuck open | IC latch-up, SEU in configuration | Bus loss until reset | Loss of mission if not recoverable | Bus resets | BMS power-on defaults safe and auto-recovering; SEL current limit | 2 |
-| HF-08 | Pack fuse F2 | Opens | Over-current (e.g. the wing burn: SMA-05) | Bus loss | Loss of mission | None | Burn current 0.8 A per driver, 2.0 A fault cap (designed, EPS §9); fuse rated 1000 A interrupt (FM12); F0A, F0B, F0N on the sense board add series pack-open elements (BF-EPS-10) | 2 |
+| HF-07 | BMS AFE (BQ76952) | Spurious trip / FET stuck open | IC latch-up, SEU in configuration | Bus loss until reset | Loss of mission if not recoverable | Bus resets | BMS power-on defaults safe and auto-recovering; SEL current limit | 2 |
+| HF-08 | Pack fuse F2 | Opens | Over-current (e.g. the wing burn: SMA-05) | Bus loss | Loss of mission | None | Burn current 0.8 A per driver, 2.0 A fault cap (designed, EPS §9); fuse rated 1000 A interrupt (FM12); F0A, F0B (FM08, the diverse part), F0N on the sense board add series pack-open elements (BF-EPS-10) | 2 |
 | HF-09 | EPS rail regulators / PDU load switches | Output short or latch-up | SEL, part failure | Rail lost or bus collapse | Loss of mission if OBC or radio rail | Rail currents | Latch-up current limiters; OBC-commanded power cycling | 2 |
-| HF-10 | EOL passivation fuse F1 | Opens early | Spurious command, part failure | Battery can no longer charge | Loss of mission | Charge current | Two-key command sequence PASSIVATE_ARM (operational key) then PASSIVATE_EXECUTE (recovery key) within 600 s, refused in year 1 (TELECOMMAND_AUTHENTICATION v0.7 §6.4, designed, not implemented); two independent fire signals (SQSO-BSA-001 H9) | 2 |
+| HF-10 | EOL passivation fuse F1 | Opens early | Spurious command, part failure | Battery can no longer charge | Loss of mission | Charge current | Two-key command sequence PASSIVATE_ARM (operational key) then PASSIVATE_EXECUTE (recovery key) within 600 s, with the two-processor arm (SQSO-ICD-013 §6.4; implemented and host-tested, SRS-F110 to F112, SRS-F157); two independent fire signals (SQSO-BSA-001 H9) | 2 |
 | HF-11 | EOL passivation | Fails to open | Heater open, a fire FET open, arm latch or (Rev D) the EPS controller's EOL_KEY unavailable; command not received (receiver, keys) (BF-EPS-48, -65) | Battery stays charged and cycling | Debris requirement 4.4-2 met by option 2 (controlled energy, ODAR §4); no autonomous backup recommended | Zero charge current in sunlight after the command | Battery protections remain | 3 |
 | HF-12 | Solar string (6–8 strings) | Open or short | Cell crack, interconnect, blocking diode | −1/8 to −1/6 of generation | Degraded | String telemetry | Many strings | 4 |
-| HF-13 | Wing burn driver (one for both wings, S5) | Fails open | Driver, SW6, timer or software | Neither wing deploys | No transponder service (L2, L3 lost); disposal in wings-failed case (ODAR §6) | Deploy-sense switches | Retry; none in hardware (one driver) | 3 (single point for L2) |
+| HF-13 | Wing burn supply shared by the four drivers (SW6, U17 burn buck, DEPLOY_EN); one driver per resistor since EPS B (the first issue had one driver for both wings, S5) | Fails open | Supply, enable or software | Neither wing deploys | No transponder service (L2, L3 lost); disposal in wings-failed case (ODAR §6) | Deploy-sense switches | Ground-commanded retry; the four drivers are independent (§4 item 1) | 3 (single point for L2) |
 | HF-14 | Wing hinge or restraint (each) | Does not release | Line not cut, hinge jam, cold | One wing stowed | L2 possible with sun-pointing; tumbling margin lost | Deploy sense, generation | ADCS sun-pointing | 3 |
 | HF-15 | Wing restraint | Releases in dispenser | Line creep or cut in vibration | Appendage in dispenser | Safety (HR-03) | — | DFMR line design, VI-SAF-05 | 1 |
-| HF-16 | Burn circuit | Stuck on | Driver short, software | ≈ 83 W draw; fuse opens or fire risk at the restraint | Loss of mission; safety | Bus current | 12 s one-shot per line and 0.8 A per driver (designed, EPS §9); a shorted driver FET burns while DEPLOY_EN is high (BF-EPS-58, SMA-B06) | 1 |
+| HF-16 | Burn circuit | Stuck on | Driver short, software | Resistor heated past the burn: 0.8 A per driver until the 12 s one-shot, 2.0 A at the pack with all four (burn-buck limit); fire risk at the restraint | Loss of mission; safety | Bus current | 12 s one-shot per line and 0.8 A per driver (designed, EPS §9); a shorted driver FET burns while DEPLOY_EN is high (BF-EPS-58, SMA-B06) | 1 |
 | HF-17 | AntS VHF element | Fails to deploy | Release fault | TX into a stowed tape, link loss ≫ margin | Loss of mission (downlink) | No ground reception | AntS redundant release, retry | 2R |
 | HF-18 | AntS UHF element | Fails to deploy | Release fault | Uplink and transponder input degraded | L2 at risk; telecommand degraded | Command success rate | AntS redundant release | 2R |
 | HF-19 | OBC (STM32L4R5) | Latch-up, hang, corrupt NVM | SEL, SEU, flash wear, software | Reset loop or silence | Loss of mission if unrecoverable | Beacon absence | Watchdog, latch-up current limit, FRAM state, safe boot | 2 |
@@ -65,10 +65,10 @@ probabilities (`docs/environment/RELIABILITY_ANALYSIS.md` v2.0) and the risk reg
 | HF-24 | TX_EN hardware switch | Stuck open | Part failure | Cannot transmit | Loss of mission | Ground | None | 2 |
 | HF-25 | TX_EN | Stuck closed | Part failure | TX-OFF ineffective | Regulatory (cessation of emissions, 97.207(b)) | Ground test of TX-OFF | Second series element would make it 1-FT (not designed) | 3 |
 | HF-26 | Transponder repeat path (CTCSS decoder, monostable, AND, timer) | No repeat | Part failure | No transponder | L2/L3 lost; beacon continues | No relays heard | None | 3 (single point for L2) |
-| HF-27 | Magnetometer | Fails | Part, SEL | Rate estimate lost for B-dot and spin law | Tumbling: generation 2.14 W (−11 %) | Telemetry | Gyro-based control; tumbling still powers housekeeping | 3 |
-| HF-28 | Gyro M-G370PDT0 | Fails | Part, SEL | Switch to BMI088 (calibrated) | None if BMI088 works | Telemetry | BMI088 backup; then magnetometer rate (mean Sun angle 23°) | 4 |
+| HF-27 | Magnetometer | Fails | Part, SEL | Rate estimate lost for B-dot and spin law | Tumbling: generation 2.48 W (POWER_BUDGET_ANALYSIS §4; 2.14 W isotropic bound) | Telemetry | Gyro-based control; tumbling still powers housekeeping | 3 |
+| HF-28 | Gyro M-G370PDT0 | Fails | Part, SEL | Switch to BMI088 (calibrated) | None if BMI088 works | Telemetry | BMI088 backup; then magnetometer rate (mean Sun angle 20°, ADCS_DESIGN 1.9 §11.4) | 4 |
 | HF-29 | Magnetorquer driver | Stuck on | Driver short | Residual dipole, torque | Pointing degraded | Coil current | Driver power switch | 3 |
-| HF-30 | Battery heater | Fails off | Element open, thermostat | Pack may fall below 0 °C (charge inhibited) | Degraded in cold cases | Pack temperature | 0.05 W/K mount keeps the pack above +1.6 °C in the SIL year run | 3 |
+| HF-30 | Battery heater | Fails off | Element open, thermostat | Pack may fall below 0 °C (charge inhibited) | Degraded in cold cases | Pack temperature | Pack −2.6 °C in the cold case with the heater failed (THERMAL_ANALYSIS C9); charge refused in hardware below +1.1 °C until it warms (fail-safe) | 3 |
 | HF-31 | Battery heater | Fails on | Switch short | Pack heats ≈ 33 K above frame at 1 W, 0.03 W/K | Accelerated ageing | Pack temperature | Hardware cut-out at +40 °C, fuse | 4 |
 | HF-32 | Jetson rail | Stuck on (both series switches fail) | PDU switch and carrier enable both fail | Load > generation; pack flattened | Loss of mission | Rail current | Two independent switches on different lines, latch-up trip on the PDU switch (BUILD_VS_BUY §7.3); the hardware shed gates both since EPS Rev D (BF-EPS-41, -42) | 2R |
 | HF-33 | Jetson module | Short or latch-up | SEL, part | Rail over-current | None if tripped | Rail current | OBC per-rail trip independent of the Jetson | 4 |
@@ -88,7 +88,7 @@ class grounds and must meet the safety package's fault tolerance.
 | CIL | Item (FMEA) | Cat | Retention rationale | Controls and verification |
 |-----|-------------|-----|---------------------|---------------------------|
 | CIL-01 | Inhibits DS1/DS2/DS3 (HF-02); board level: BF-EPS-01, -03, -05, -07, -09, -16, BF-A3-07 | 1 | Required by CDS | DS3 designed (SMA-01); DS2 second pole on the array (EPS Rev D); domain crossings ≥ 100 kΩ and the isolator (V-EPS-4); A3 group separation (V-OBC-18); VI-LV-04, VI-LV-06, V-EPS-3 with two of three failed closed |
-| CIL-02 | Battery cells and protections (HF-04, HF-05); board level: BF-EPS-12, -14, -15, -17, -23 to -26, -28, -39, BF-HAR-02, -03 | 1 | Required energy store | VI-SAF-01–03; lockout K1 designed (V-EPS-9); F0A, F0B, F0N, F2 at 1000 A interrupt; W1 short 1-FT by leg plus DS2 at launch (SQSO-FMEA-003 §4 (b)) |
+| CIL-02 | Battery cells and protections (HF-04, HF-05); board level: BF-EPS-12, -14, -15, -17, -23 to -26, -28, -39, BF-HAR-02, -03 | 1 | Required energy store | VI-SAF-01–03; lockout K1 designed (V-EPS-9); F0A, F0N, F2 (FM12, 1000 A) and F0B (FM08, 300 A, the diverse part) against ≤ 211 A; W1 short 2-FT by design plus DS2 at launch (decision C-16; SQSO-BSA-001 H3b) |
 | CIL-03 | Burn circuit (HF-16) and restraint (HF-15) | 1 | Required to deploy | Current and on-time limit designed (0.8 A, 12 s one-shot, U17 2.0 A cap; V-EPS-6); VI-SAF-04, -05 |
 | CIL-04 | Structure and fasteners (HF-37); board mounts BF-A2-06, BF-A3-08, BF-JET-12 | 1 | Bought frame; locking features | VI-SAF-06, VI-LV-04; prevailing-torque threads and staking on A2, the A3 jackposts, the M.2 card; V-JET-8 |
 | CIL-05 | Deployment switches fail open (HF-01) | 2 | CDS requires series switches; redundancy against "fail open" would defeat the inhibit | Switch selection from flown parts; test before and after vibration |
@@ -100,7 +100,7 @@ class grounds and must meet the safety package's fault tolerance.
 | CIL-11 | Harness (HF-36); BF-HAR-06, -12, -19 | 2 | — | NASA-STD-8739.4A workmanship; inspection; recommended: double the single conductors whose open ends the mission (W3 RADIO_EN, RF_TX_EN, DEPLOY_EN on spare GND contacts; W4B RADIO_3V3 on a second contact) |
 | CIL-12 | Wing burn supply shared by the four drivers (HF-13; BF-EPS-55) | 3 (L2 single point; disposal case) | Four drivers on four lines since EPS B; SW6, U17, V_BURN and DEPLOY_EN stay common (0.2 % of the 0.29 % wings-failed) | V-EPS-6; VI-LV-17; DEPLOY_EN also arms the AntS (CIL-19) |
 | CIL-13 | Repeat path (HF-26; BF-OBC-15, BF-RF-23, BF-HAR-10) | 3 (L2 single point) | Transponder is the primary objective but not needed for the beacon | Flatsat end-to-end repeat test; burn-in |
-| CIL-14 | Pack path series elements and the drives sourced from BAT_F (BF-EPS-10, -11) | 2 | 4S1P kept by D8; the fuses are required by H3 | FM12 lot acceptance (X-ray, resistance); **SMA-B01** (diode-OR into DS2's drive: sunlit operation after a pack open); V-BFM-01 |
+| CIL-14 | Pack path series elements and the drives sourced from BAT_F (BF-EPS-10, -11) | 2 | 4S1P kept by D8; the fuses are required by H3 | FM12 and FM08 lot acceptance (X-ray, resistance); **SMA-B01** (diode-OR into DS2's drive: sunlit operation after a pack open); V-BFM-01 |
 | CIL-15 | Cell taps shared by the AFE and the secondary protector (BF-HAR-01) | 2 | **Not accepted as designed** | **SMA-B03** (open-tap-safe input ladder, open-wire check); V-BFM-03 |
 | CIL-16 | Charge loops, VCTL, hardware charge window, tracker output diodes (BF-EPS-18, -19, -20, -30) | 2 | Loops single string (custom EPS); NTC1 and the diode case **not accepted** | **SMA-B04** (NTC1 plausibility), **SMA-B17** (per-tracker disable); V-EPS-12, V-BFM-04, V-BFM-08 |
 | CIL-17 | 3V3_AO converter and its unswitched branches; capacitors on unfused battery nets (BF-EPS-32, -33, -34) | 2 | Single always-on rail, normal for 1U | **SMA-B15** (fail-safe capacitors), **SMA-B16** (exciter supply off 3V3_AO); flex-crack layout keep-outs |
@@ -114,14 +114,14 @@ class grounds and must meet the safety package's fault tolerance.
 | CIL-25 | Recharge-lockout relay drives; controller LOCK_SET (BF-EPS-21, -22, -49) | 2 | Drive shorts **not accepted**; the controller case retained (MSP430 watchdog, Class C firmware) | **SMA-B12**; V-EPS-9 |
 | CIL-26 | Inhibit wiring that fails held: TRK_EN clamps, DS2 drive pair (BF-EPS-06, -08) | 2 | TRK_EN clamps **not accepted**; DS2 drive pair retained (inherent to the low-side FET) with construction controls | **SMA-B13**; V-HAR-1 extended to W12B |
 | CIL-27 | DEPLOY_SENSE interpretation (BF-OBC-17, -18) | 2 | **Design error, to be corrected before flight** | **SMA-B02**; V-BFM-07 |
-| CIL-28 | EOL fuse F1 opening early or its heater return bridged (HF-10; BF-EPS-61, -62) | 2 | Required by 97.207(g)(1)(iii) | V-EPS-8 (ITV4030 at −30 °C); no copper under F1, ≥ 0.3 mm clearance, coating, inspection |
+| CIL-28 | EOL fuse F1 opening early or its heater return bridged (HF-10; BF-EPS-61, -62) | 2 | Required by 97.207(g)(1)(iii) | V-EPS-8 (ITV4030 flight-lot qualification, SQSO-EPS-BRD-001 G); no copper under F1, ≥ 0.3 mm clearance, coating, inspection |
 
 ## 4. Single Points of Failure and Class D Acceptance
 
 The single points are the bus chain (HF-01, -03, -06 to -09, -19, -21, -22, -24, -36) and, for L2, the wing driver and
-the repeat path. The reliability model (RELIABILITY_ANALYSIS v2.0 §4) gives their share of the L2 loss probability; the
+the repeat path. The reliability model (RELIABILITY_ANALYSIS v2.3 §4) gives their share of the L2 loss probability; the
 EPS, OBC, flight software and the two radios account for about two thirds of it. Accepting them is consistent with Class
-D only together with the test program that removes early failures (RELIABILITY_ANALYSIS v2.0 §6), because early
+D only together with the test program that removes early failures (RELIABILITY_ANALYSIS v2.3 §6), because early
 failures, not wear-out, dominate.
 
 Two single points are **not** accepted, because they are cheap to remove:
@@ -161,7 +161,10 @@ accepted**, because a cheap change removes them or because they are design error
 | SMA-B19 | Flight software, OBC | A failed PA-temperature reading silences the downlink (CIL-23) |
 
 Recommended, retained if not taken: SMA-B01 (sunlit operation after a pack open), SMA-B15, SMA-B16 (lower the rate of
-CIL-17), SMA-B18 (Category 3).
+CIL-17), SMA-B18 (Category 3). SQSO-FMEA-003 B §4.1 added SMA-B20 to SMA-B24 for the secondary protector and F3 on the
+sense board: B20 (F1 fire temperature condition) is answered by the 6 h bound of SQSO-ICD-013 0.13 §6.4; B21 and B22 (F3
+activation heat, F3 in the short loops) are not accepted as designed and carried by V-BSA-2 and V-BSA-9; B23 editorial;
+B24 recommended (SQSO-FMEA-003 §5).
 
 ## 5. Revision History
 
@@ -171,3 +174,4 @@ CIL-17), SMA-B18 (Category 3).
 | B | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: HF-13 removed by the EPS board design (one driver per resistor, SQSO-EPS-BRD-001 §9) |
 | C | 2026-10-27 | CDR S&MA analysis (RID SE-16) | §4 item 1: wings-failed probability re-run with the four-line design, 0.29 % (the consistency pass's ≈ 0.1 % left out the shared SW6/U17 burn supply) |
 | D | 2026-10-27 | CDR S&MA, round 3 (P3P-04) | Basis BASELINE Rev E; companion board-level FMEA SQSO-FMEA-003 (176 modes); HF-02, -03, -04, -08, -11, -16, -21, -32 provisions brought to the build-to designs (lockout, burn limits, DS2 pole 2, shed of both Jetson switches, REL-04); CIL-01 to -04, -07, -09, -11 to -13 extended; CIL-14 to CIL-28 added; §4 board-level single points and the findings not accepted (SMA-B02 to B14, B17, B19) |
+| E | 2026-10-27 | Documentation audit (post-CDR 2026) | Board-level totals 179 modes and SMA-B01 to B24 (SQSO-FMEA-003 D); HF-01/-02 three switches DS1–DS3; HF-05 the three overcharge controls; HF-07 BQ76952; HF-10 passivation implemented (SQSO-ICD-013 §6.4; the year-1 refusal belongs to the proposed autonomous passivation, not the command); HF-13 the shared burn supply; HF-16 the burn-buck limits; HF-27, -28, -30 values from PBA 2.5, ADCS_DESIGN 1.9, THERMAL_ANALYSIS 2.5; CIL-02, -14, -28 the diverse fuse F0B and 2-FT W1 short (C-16); SMA-B20 to B24 in §4; reliability and success-criteria versions |

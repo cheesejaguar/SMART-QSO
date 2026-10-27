@@ -1,7 +1,7 @@
 # System Diagrams: Block, Wiring and Schematic
 
 **Document Number:** SQSO-HW-DIAG-001
-**Revision:** C
+**Revision:** E
 **Date:** 2026-10-27
 **Status:** Draft. Since Revision B the drawings follow the board build-to designs (`hardware/electrical/eps/EPS_BOARD_DESIGN.md`,
 `hardware/electrical/obc/OBC_BOARD_DESIGN.md`, `hardware/electrical/rf/RF_BOARD_DESIGN.md`) and the master pin allocation
@@ -84,7 +84,7 @@ the design answers it, not that hardware has shown it.
 | ID | Finding (Revision A) | Disposition (Revision B) | Where |
 |----|----------------------|--------------------------|-------|
 | F1 | The VBATT divider was a 2S value (1:3; 5.6 V on PC2 at 16.8 V) | **Closed.** 1.00 MΩ / 200 kΩ on the EPS, pack / 6 (2.80 V at 16.8 V); firmware scale `Linear(6.0, 0.0)` (SQSO-ICX-001 §6 row 15) | SQSO-EPS-BRD-001 §11; S9, B2 |
-| F2 | The GNSS receiver had no UART, enable or 1PPS | **Closed.** LPUART1 PG7/PG8, GNSS_EN PE5 on SW7, 1PPS PC6 (TIM3_CH1), GNSS_PG PG15, translators on 3V3_GNSS | SQSO-ICX-001 §3.5; W9, S8, B3 |
+| F2 | The GNSS receiver had no UART, enable or 1PPS | **Closed.** LPUART1 PG7/PG8 (TX moved to PB11 in SQSO-ICX-001 D, PG7 became I2C3_SCL), GNSS_EN PE5 on SW7, 1PPS PC6 (TIM3_CH1), GNSS_PG PG15, translators on 3V3_GNSS | SQSO-ICX-001 §3.5; W9, S8, B3 |
 | F3 | No magnetorquer drive pins and no sun-sensor input | **Closed.** Three DRV8876-Q1 on TIM1 CH1–CH3 (PE9/PE11/PE13), PH PE8/PE10/PE12, MTQ_ARM PF9 (TIM15), hardware off-timer; six transimpedance amplifiers into an ADS7138-Q1 (I2C4, 0x10) | SQSO-OBC-BRD-001 §9.5, §10; W6, S6, B3 |
 | F4 | One burn line and one sense line for two antennas, one of each for two wings | **Closed.** Four independent burn lines, one per wing resistor (BURN_W1A PB10, BURN_W1B PE6, BURN_W2A PB9, BURN_W2B PE7), each with its own 0.8 A driver; the AntS deploys by its own I2C controller; hinge switches of both wings in series on PB12 | SQSO-EPS-BRD-001 §9; SQSO-ICX-001 §3.1; W7, S5 |
 | F5 | The third independent physical inhibit was not defined | **Closed.** DS3, a second high-side FET in VBAT+ that also holds the trackers' enables low; three deployment switches DS1–DS3 on three rails (BASELINE §4) | SQSO-EPS-BRD-001 §6.2; S1, B1, B2 |
@@ -92,14 +92,20 @@ the design answers it, not that hardware has shown it.
 | F7 | A 5 Ω burn resistor on 14.4 V draws about 2.9 A | **Closed.** 7.0 V burn buck and a linear 0.8 A driver per resistor; one resistor at a time, 0.67 A at the pack (0.75 A with the magnetorquers, 1.0 A limit) | SQSO-EPS-BRD-001 §9; S5 |
 | F8 | The OBC design's pin tables disagreed with each other and with the firmware | **Closed.** SQSO-ICX-001 §4 is the master allocation and governs; `hardware/obc/OBC_DESIGN.md` keeps its tables as the record of the earlier plan | SQSO-ICX-001; S3, B3 |
 | F9 | SPI2 and its chip select were vestigial | **Closed.** SPI2 serves the BMI088 backup gyro (CS PD0, PD4) | SQSO-OBC-BRD-001 §9.3; S3, B3 |
-| F10 | EPS controller and TMP117 shared 0x48 on I2C2 | **Closed.** The OBC board has no TMP117 (TMP235-Q1 analog on PB1); I2C2 carries the EPS controller 0x48, the INA228s 0x40 and 0x44, the AntS 0x31 | SQSO-OBC-BRD-001 §2.2; SQSO-EPS-BRD-001 §11 |
+| F10 | EPS controller and TMP117 shared 0x48 on I2C2 | **Closed.** The OBC board has no TMP117 (TMP235-Q1 analog on PB1); I2C2 carries the EPS controller 0x48 and the INA228s 0x40 and 0x44; the AntS (0x31, 0x32) moved to its own I2C3, PG7/PB4 (SQSO-ICX-001 D, SMA-B07) | SQSO-OBC-BRD-001 §2.2; SQSO-EPS-BRD-001 §11 |
 | F11 | The FM transponder path had no control line or TX arbiter | **Closed.** XPDR_EN heartbeat (PE4) into a monostable, CTCSS decode, 120 s key-down timer, TMUX mute and select, hardware TX permit; readbacks TONE_OK PC9, XPDR_KEY PG12, PTT_EXCITER PC7 | SQSO-RF-BRD-001 §8; S4, B4 |
 | F12 | The 4S BMS needed five cell taps; harness H1 carried none | **Closed.** J2 Pico-Clasp 6 (TAP0–TAP4, NTC2) in W1 | SQSO-EPS-BRD-001 §13.1; W1, S1 |
 | F13 | USART1 TX (and the GNSS lines) would back-power an unpowered carrier or receiver | **Closed.** SN74LVC1T45-Q1 translators powered from the far side's rail (Ioff/VCC isolation) | SQSO-ICX-001 §5; S7, S8 |
 | F14 | H5 and H6 used JST-SH, not in SQSO-HAR-001 §3.1 | **Closed.** W5B and W6 use Pico-Clasp | SQSO-ICX-001 §2; W5, W6 |
 | F15 | H2 and H4 did not match the flight software's signals | **Closed.** W3 (40-way) and W4A/W4B replace them | SQSO-ICX-001 §3.1–§3.2; W3, W4 |
 | F16 | No fault output reached the OBC except the INA226 ALERT | **Closed.** Every switch's fault line is read by the EPS controller and reported in its LOAD_SHED/fault register; EPS_ALERT_N (PB7) carries the INA228 alerts and the controller interrupt; Jetson and sensor-rail readbacks go to the OBC directly | SQSO-EPS-BRD-001 §8.3, §11; SQSO-ICX-001 §3.1 |
-| F17 | Several hardware documents described superseded designs (2S pack in PDU_DESIGN and EPS_ELECTRICAL_DESIGN, Si4463 in TRANSMITTER_DESIGN) | **Closed for those three** (PDU_DESIGN 1.3, EPS_ELECTRICAL_DESIGN 1.3, TRANSMITTER_DESIGN 1.4). `hardware/harness/HARNESS_DESIGN.md` 1.2 §4 now notes that SQSO-ICX-001 and W1–W10 supersede its H2–H6 tables | the documents named |
+| F17 | Several hardware documents described superseded designs (2S pack in PDU_DESIGN and EPS_ELECTRICAL_DESIGN, Si4463 in TRANSMITTER_DESIGN) | **Closed for those three** (PDU_DESIGN 1.3, EPS_ELECTRICAL_DESIGN 1.3, TRANSMITTER_DESIGN 1.4). `hardware/harness/HARNESS_DESIGN.md` 1.2 §4 noted that SQSO-ICX-001 and W1–W10 supersede its H2–H6 tables; version 2.0 replaced those tables with the build-to harness design and its wire list | the documents named |
+
+**Drawings behind SQSO-ICX-001 D (closed in Revision E).** The board FMEA changes of the interconnect's Version D
+(2026-10-27) are drawn in W3, W6 and W9 and, since Revision E, in B3 (LPUART1_TX PB11; the AntS on I2C3 PG7/PB4 behind
+the EPS U80; the second FRAM U36 on CS# PD7; the magnetometer on its own switch U35 and repeater U34, MAG_EN PF14 and
+MAG_RB PF15), S3 (the same pins, the 440 nF supervisor CWD and J9 TFM-105 with RST_REQ), S6 (U35, U34 and 3V3_MAG for
+the RM3100) and S8 (LPUART1_TX PB11).
 
 Checked, and not a finding: the 7-pole LPF values in TRANSMITTER_DESIGN 7.3 (L 47/82/82/47 nH, C 33/47/33 pF) are not
 the textbook 0.5 dB Chebyshev prototype. An ideal-part ABCD calculation still gives −0.1 dB at 145.9 MHz, −50 dB at
@@ -148,3 +154,5 @@ installed in this repository, and none has been evaluated:
 | A | 2026-10-25 | Initial set: B1–B4, W1–W10, S1–S9; findings F1–F17 | SMART-QSO Team |
 | B | 2026-10-27 | CDR 2026 consistency pass: B1–B4 redrawn from the board build-to designs and SQSO-ICX-001 (B2: the third inhibit DS3, three deployment switches DS1–DS3 on three rails, the EPS board's converters, switches and limits; B3: master pin allocation; B4: RF board chain); all SVGs rendered; findings F1–F17 dispositioned (§4); W1, W2, W7 labels without angle brackets; sources table | SMART-QSO Team |
 | C | 2026-10-27 | Wiring drawings W1–W10 from the harness design SQSO-HAR-001 2.0: gauges from the terminal ranges, lengths from the routes, gold connectors, Samtec TFM/SFSDT for W3, W4A, W8A; W7 adds W12A–W12D, W8 adds W11 and the access-port board A3, W10 adds W10E; §2 sources and §3 conventions updated (§15 item D-1) | Harness design |
+| D | 2026-10-27 | Documentation audit (post-CDR 2026): F2, F10 and F17 dispositions brought to SQSO-ICX-001 D and SQSO-HAR-001 2.0 (LPUART1_TX PB11, AntS on I2C3, harness tables replaced); §4 lists the drawings not yet redrawn for SQSO-ICX-001 D (B3, S3, S6, S8). No drawing changed | Documentation audit |
+| E | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: B3, S3, S6 and S8 redrawn to SQSO-ICX-001 D (LPUART1_TX PB11, AntS I2C3 PG7/PB4, second FRAM U36 on PD7, magnetometer switch U35 and repeater U34 with MAG_EN PF14 / MAG_RB PF15; S3 also the 440 nF CWD, IWDG 24.1–27.8 s and J9 TFM-105 with RST_REQ); §4 open item closed; W6 source comment: J8 is a 12-way part | Documentation audit |

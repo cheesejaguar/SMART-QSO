@@ -264,7 +264,7 @@ part("J2", "Conn 6p 1.00 mm Pico-Clasp", "EPS-RF power (W4B)", "203556-0607", "M
                              (4, "PA_5V_B", P, "PA_5V_IN"), (5, "GND5", P, "GND"), (6, "GND6", P, "GND")],
      ST.get("connector_PA_contacts", {}).get("stress", "") + " (two contacts)",
      "Gold finish (SQSO-HAR-001 2.0 item R-1; tin prohibited, EEE_PARTS_LIST §2A.3): mates the 501330-0600 housing "
-     "with gold 501334 terminals, W4B 28 AWG in three twisted pairs 3+2, 4+5, 1+6 (item R-2). Placement (C16): top "
+     "with gold 501193-9000 terminals (501334 is the tin terminal), W4B 28 AWG in three twisted pairs 3+2, 4+5, 1+6 (item R-2). Placement (C16): top "
      "side on the -Y edge strip outside the shield at about (-26, -44), next to the PA, so the PA current path "
      "(J2-FB803-L602/L604-Q601) stays >= 60 mm from (+24, +27); PA_5V and its GND contacts adjacent, routed as a pair",
      "6-circuit code inferred from the 203556-0307 and -1407 listings (0.38 um gold, vertical SMT); lock style and "

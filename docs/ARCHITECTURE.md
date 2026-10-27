@@ -1,613 +1,185 @@
-# SMART-QSO Satellite Architecture
-## Detailed Hardware and Software Specification (PDR-level)
+# SMART-QSO System Architecture
 
-### Executive Summary
+**Version**: 2.0
+**Date**: 2026-10-27
+**Status**: Design-phase overview (Phase B, pre-PDR). Nothing has been built or measured; every value below is
+designed or predicted. `docs/BASELINE_PARAMETERS.md` (SQSO-BL-001 Rev E, amended) governs every value; where this page
+disagrees with it, the baseline is right. Current review record: `docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`
+(an engineering assessment by AI reviewers, not an independent board).
 
-SMART-QSO is a 1U CubeSat mission designed to demonstrate advanced AI capabilities in space while providing amateur radio transponder services. The satellite features a novel architecture that integrates a high-performance AI payload (Jetson Orin Nano Super) within the constraints of a 1U form factor, supported by an ultra-low-power onboard computer and intelligent power management system.
+Version 1.x of this page (2026-01) described an architecture that no longer exists: a "Jetson Orin Nano Super", a
+GomSpace/ISIS module EPS on 3.3/5/12 V rails, a secondary OBC, CAN bus, microSD and NAND storage, a 145.825 MHz beacon,
+an onboard QSO-priority CNN and over-the-air model updates, NRCSD as the deployer and a $142.5k budget. Those are
+withdrawn; the previous text is in the Git history of this file.
 
 ---
 
-## 1.0 System Architecture Overview
+## 1. Mission Architecture
 
-### 1.1 Mission Architecture
-SMART-QSO employs a **hybrid architecture** combining traditional CubeSat subsystems with advanced AI capabilities:
+| Element | Architecture | Source |
+|---------|--------------|--------|
+| Primary mission | Single-channel U/V FM transponder for worldwide amateur contacts, duty-gated by available power | BASELINE §2 (D4) |
+| Secondary | AX.25 telemetry beacon, 1200 bps AFSK, plain text and published formats | BASELINE §2; `docs/BEACON_SPEC.md` |
+| Experiment | Onboard AI that schedules the transponder within the power budget and selects plain-language beacon text. Flight baseline: a calibrated selector on the OBC choosing among pre-approved templates; gated experiment: generative text on the power-gated Jetson | BASELINE §2, §6 (D5) |
+| Fail-graceful | AI off or faulted: conventional transponder on fixed rules and template beacons. Hard limits are enforced by the OBC and by hardware, never by a model | BASELINE §2, §6 |
+| Community model updates | Not in the flight baseline; no onboard implementation | BASELINE §2 |
+| Life | 2-year design life, 12 months minimum; passive re-entry with the wings deployed within 5 years of mission end | BASELINE §2, §3 |
 
-- **Primary Mission**: AI-powered amateur radio transponder service
-- **Secondary Mission**: Technology demonstration of AI in constrained space environments
-- **Architecture Philosophy**: AI-first design with graceful degradation to conventional operations
+## 2. Launch and Orbit
 
-### 1.2 System Block Diagram
+Falcon 9 Transporter-class rideshare from Vandenberg, in a 1U slot of an Exolaunch EXOpod Nova; planning date about
+2028-11-01; circular SSO, 475 km target, 485 km cap, LTAN 22:30. Backup: ISS deployment through the Voyager NRCSD.
+Launch requirements on the spacecraft: `docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md` (SQSO-LVR-001); launch chain and
+decision points: `docs/ORBITAL_ACCESS.md` (BASELINE §3).
+
+## 3. System Block Diagram
+
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    SMART-QSO 1U CubeSat                    │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
-│  │   Solar     │  │   Solar     │  │    Deployable       │ │
-│  │   Panel 1   │  │   Panel 2   │  │    Solar Wings      │ │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘ │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────────────────────────────────────────────┐ │
-│  │                    AI Payload                           │ │
-│  │              Jetson Orin Nano Super                     │ │
-│  │              (Power-gated, duty-cycled)                │ │
-│  └─────────────────────────────────────────────────────────┘ │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────┐  ┌─────────────┐  ┌─────────────────────┐ │
-│  │    OBC      │  │     EPS     │  │        ADCS         │ │
-│  │  STM32L4R5  │  │   MPPT +    │  │    Magnetorquers    │ │
-│  │ Rust/Embassy│  │   Battery   │  │   + Sun Sensors     │ │
-│  └─────────────┘  └─────────────┘  └─────────────────────┘ │
-├─────────────────────────────────────────────────────────────┤
-│  ┌─────────────────────────────────────────────────────────┐ │
-│  │                  Communication                          │ │
-│  │              UHF/VHF Transponder                        │ │
-│  │              + Beacon (AX.25)                          │ │
-│  └─────────────────────────────────────────────────────────┘ │
-└─────────────────────────────────────────────────────────────┘
+             16 triple-junction cells (4 body faces + 2 deployable wings)
+                                 |
+                    +------------v-------------+
+                    | EPS board (built)        |  4 MPPT trackers, 4S1P 18650 pack (~50 Wh, 4.10 V/cell),
+                    | MSP430 EPS controller    |  load switches, inhibits DS1-DS3, burn drivers,
+                    +--+------+------+------+--+  EOL charge disconnect, hardware load shed (Jetson rail)
+                       |      |      |      |
+        I2C telemetry  |      |      |      +---------------------------+
+                       v      |      v                                  v
+   +-------------------------+|  +-----------------------------+   +-----------------------------+
+   | OBC: STM32L4R5ZI        ||  | RF board                    |   | Jetson Orin Nano 8 GB        |
+   | Rust on Embassy, no RTOS|+->| 435 MHz receiver (CC1200)   |   | on a custom carrier, 7 W mode|
+   | FRAM (mirrored), RTC,   |   | KISS TNC (STM32L431)        |   | power-gated, burst-only      |
+   | watchdog supervisor     |-->| 2 m exciter + PA (<= 1 W)   |   | UART line protocol to OBC    |
+   | template selector (D5)  |   | CTCSS repeat path, TX-OFF   |   +-----------------------------+
+   +---+------------------+--+   +--------------+--------------+
+       |                  |                     |
+       v                  v                     v
+   ADCS sensors and     GNSS receiver        ISIS AntS: 2 m elements along +-X,
+   CR0002 rods          (duty-cycled)        70 cm elements along +-Y
 ```
 
----
+Board-to-board pins: `hardware/electrical/INTERCONNECT.md` (SQSO-ICX-001). Build-versus-buy decisions:
+`docs/hardware/BUILD_VS_BUY.md`.
 
-## 2.0 Hardware Architecture
+## 4. Hardware Architecture
 
-### 2.1 Mechanical Structure and Form Factor
+### 4.1 Structure and mass properties
 
-#### 2.1.1 CubeSat Standard Compliance
-- **Form Factor**: 1U CubeSat (100mm × 100mm × 113.5mm)
-- **Mass**: ≤ 2.00 kg design limit; CBE 1.49 kg, MEV 1.73 kg, margin +15.9 % (BASELINE §4, `docs/environment/MASS_BUDGET.md` v3.0; CDS Rev 14.1; the 1.33 kg figure is CDS Rev 13)
-- **Material**: Aluminum 6061-T6 with thermal treatment
-- **Deployment Interface**: NanoRacks CubeSat Deployer (NRCSD) compliant
+- 1U, 100 × 100 × 113.5 mm (CDS Rev 14.1); mass CBE 1.52 kg, MEV 1.755 kg against the 2.00 kg design limit
+  (+14.0 %); EXOpod Nova 1U limit 2.5 kg (BASELINE §4; `docs/environment/MASS_BUDGET.md`).
+- Layout B: battery at the −Z end of the stack, RF at +Z; stowed CG within 5 mm of the geometric centre; deployed
+  inertia Iyy ≥ 1.03 × max(Ixx, Izz) with 2 × 10 g ballast on the +Z end frame (decision C-13)
+  (`hardware/mechanical/MECHANICAL_DESIGN.md` §5; `docs/environment/STRUCTURAL_ANALYSIS.md`).
+- Deployables: two solar wings and the ISIS AntS. Wings first, at least 30 minutes after separation, two burn resistors
+  per wing on independent current-limited drivers, 10 s per resistor (C-17); then the AntS, gated on its own
+  temperature (C-18) (BASELINE §4; `docs/environment/MECHANISMS_ANALYSIS.md`).
+- Inhibits: three deployment switches on three rails (DS1–DS3), giving ≥ 3 independent physical inhibits for RF and for
+  each deployable (CDS 2.3.7, 2.3.8) (BASELINE §4).
 
-#### 2.1.2 Structural Design
-- **Primary Structure**: Monocoque design with internal ribbing
-- **Wall Thickness**: 2.0 mm minimum for structural integrity
-- **Corner Rails**: Standard 12.7 mm × 12.7 mm with deployment springs
-- **Thermal Interface**: Black anodized finish for thermal control
+### 4.2 Electrical power
 
-#### 2.1.3 Deployable Solar Wings
-- **Configuration**: 2 deployable wings, hinged on the ±X/+Y edges; deployed, they lie in the plane of the +Y face (layout: `hardware/eps/SOLAR_ARRAY_DESIGN.md` §3.1)
-- **Wing Dimensions**: One 1U face each (panel ≈ 83 × 98 mm, assumed), 2 cells per side
-- **Deployment Mechanism**: Spring-loaded with retention pins
-- **Hinge Design**: Frictionless bearings with deployment stops
-- **Stowed Position**: Over the ±X faces, front cells outward
-- **Deployed Position**: 90° from the stowed position, into the +Y plane, locked in place
+- Array: 16 triple-junction cells, 2 on each of the 4 long body faces and 2 per side on each wing; EOL orbit-average
+  generation 2.48 W tumbling, 3.84 W sun-pointed (mission simulation) (BASELINE §5;
+  `hardware/eps/SOLAR_ARRAY_DESIGN.md`).
+- Battery: 4S1P Li-ion 18650, ≈ 3.5 Ah, 14.4 V nominal, ≈ 50 Wh, charged to 4.10 V/cell; charging only between 0 and
+  +45 °C; battery heater ≈ 207 Ω, on below +5 °C (BASELINE §5, §8; `hardware/eps/BATTERY_DESIGN.md`).
+- The EPS is built, not bought: four MPPT trackers, the unregulated battery bus and regulated rails through load
+  switches, the inhibits, the hardware TX-OFF path, the end-of-life charge disconnect and a hardware load shed of the
+  Jetson rail below 13.6 V; its controller is a Class C firmware item (`docs/hardware/EPS_DESIGN.md`;
+  `hardware/electrical/eps/EPS_BOARD_DESIGN.md`; `docs/software/EPS_CONTROLLER_FIRMWARE_REQUIREMENTS.md`).
+- Power closure: margin ≥ 20 % in every mode at end of life (BASELINE §5; `docs/environment/POWER_BUDGET_ANALYSIS.md`).
 
-### 2.2 Electrical Power Subsystem (EPS)
+### 4.3 Onboard computer
 
-#### 2.2.1 Solar Array Configuration
-- **Total Solar Cells**: 16: 2 on each of the 4 long body faces and 2 per side on each wing (BASELINE §5)
-- **Cell Type**: Triple-junction (AZUR SPACE 3G30A, 29.2 % at BOL, AM0, 28 °C)
-- **Cell Dimensions**: 40 mm × 80 mm (30.18 cm²)
-- **Cell Configuration**: 8 strings of 2 cells in series, one per panel side
-- **Orbit-Average Power (EOL, analysis)**: 2.39 W tumbling and 3.58 W sun-pointed (BASELINE §5); 2.14 W tumbling once self-shadowing is included (`hardware/eps/SOLAR_ARRAY_DESIGN.md` §9.3)
-- **Maximum Instantaneous Power (EOL)**: 5.8 W, with the 6 cells of the +Y plane normal to the sun; the 16 cells never all face the sun at once
+- STM32L4R5ZI (Cortex-M4F, 640 KB RAM, 2 MB flash); flight software in Rust on the Embassy executor, no RTOS: one task
+  running the 20 ms main loop (BASELINE §6; `software/flight/docs/RTOS_ARCHITECTURE.md`).
+- Non-volatile state in FRAM (FM25V20A with a mirror) for configuration, counters and the housekeeping store
+  (`hardware/obc/STORAGE_DESIGN.md` §3); mission clock RV-3028-C7; independent watchdog backed by a TPS3850 supervisor
+  (`hardware/obc/OBC_DESIGN.md`).
+- No secondary OBC; the Apollo4 and STM32L476 options of earlier documents are superseded (BASELINE §6).
 
-#### 2.2.2 Power Management
-- **MPPT Controller**: GomSpace NanoPower MPPT
-- **Input Voltage Range**: Must accept the 2-cell string voltage (≈ 4.2–4.8 V) and boost to the 12.0–16.8 V battery (`hardware/eps/SOLAR_ARRAY_DESIGN.md` §3.2)
-- **MPPT Efficiency**: >95% at maximum power point
-- **Output Voltage**: 3.3V, 5.0V, 12.0V regulated rails
+### 4.4 RF and antennas
 
-#### 2.2.3 Energy Storage
-- **Battery Type**: 4S Li-ion 18650 pack
-- **Total Capacity**: ≈ 50 Wh: 3.45 Ah at 14.4 V nominal, 49.7 Wh (BASELINE §5)
-- **Voltage Range**: 12.0 V (3.0 V/cell, operational floor) to 16.8 V (4.20 V/cell)
-- **Cell Configuration**: 4 cells in series
-- **Battery Management**: ISIS iBMS with overcharge/overdischarge protection
-- **Cycle Life**: Eclipse DoD 1.3–2.0 % against a 10 % limit; 148–408 equivalent full cycles in 2 years against the cell specification's 500 (analysis, `hardware/eps/BATTERY_DESIGN.md` §3.3)
-- **Charging**: Only between 0 °C and +45 °C (BASELINE §5)
+- 435 MHz receiver, always on after the 45-minute RF silence, carrying the transponder uplink and authenticated
+  telecommand; one 2 m FM transmitter time-shared by the AX.25 beacon (through a KISS TNC) and the CTCSS-gated repeat
+  path; 0.5 W nominal, 1 W maximum (`docs/hardware/RF_DESIGN.md`; `hardware/electrical/rf/RF_BOARD_DESIGN.md`).
+- Downlink one IARU-coordinated frequency in 145.800–146.000 MHz, not 145.825 MHz; uplink requested in
+  435.222–435.778 MHz, else 436.222–436.500 MHz (BASELINE §7; `docs/RF_PLAN.md`).
+- TX-OFF removes PA power through a hardware switch, latched in NVM, independent of the AI payload (BASELINE §7).
+- Antennas: ISIS AntS 1U–3U, separate quarter-wave tape elements for 2 m and 70 cm, no diplexer
+  (`hardware/rf/ANTENNA_DESIGN.md`).
 
-#### 2.2.4 Power Distribution
-- **Power Distribution Unit**: GomSpace NanoPower PDU
-- **Switched Rails**: 3.3V, 5.0V, 12.0V with individual switching
-- **Current Monitoring**: Hall-effect sensors on each rail
-- **Fault Protection**: Overcurrent, overvoltage, undervoltage protection
-- **Load Shedding**: Intelligent power management with priority-based shedding
+### 4.5 Attitude determination and control
 
-### 2.3 Attitude Determination and Control System (ADCS)
+Three-axis magnetorquers (CubeSpace CR0002 rods), magnetometer, coarse sun sensors from the panel photodiodes, MEMS
+gyro (Epson M-G370PDT0, BMI088 backup). B-dot detumble from 10°/s within 3 orbits, then spin-stabilized coarse
+sun-pointing of +Y at 8°/s; no onboard three-axis estimator (C-22). Pointing requirement restated for power (C-23):
+≤ 5 % of sunlit generation lost and the Sun within 30° of +Y for ≥ 95 % of sunlit time (BASELINE §8;
+`docs/hardware/ADCS_DESIGN.md`).
 
-#### 2.3.1 Sensors
-- **Magnetometer**: 3-axis fluxgate magnetometer (0.1 μT resolution)
-- **Sun Sensors**: 6 coarse sun sensors (CSS) for attitude determination
-- **Temperature Sensors**: 4 temperature sensors for thermal monitoring
+### 4.6 AI payload
 
-#### 2.3.2 Actuators
-- **Magnetorquers**: 3-axis magnetorquer coils
-- **Coil Configuration**: X, Y, Z axes with 0.1 A⋅m² dipole moment
-- **Current Rating**: 100 mA maximum per axis
-- **Power Consumption**: 0.5W per axis when active
+NVIDIA Jetson Orin Nano 8 GB module (P/N 900-13767-0030-000) on a custom carrier, 7 W mode, ≤ 8 W input, no fan.
+Each power-on ≤ 10 minutes including boot, then ≥ 100 minutes off; sunlit, SOC ≥ 55 %; OBC-enforced per-rail current
+and temperature limits independent of the Jetson. Treated as non-critical and expendable (BASELINE §6;
+`docs/hardware/PAYLOAD_DESIGN.md`; `software/payload/README.md`).
 
-#### 2.3.3 Control Algorithms
-- **Detumble Mode**: B-dot algorithm for initial detumbling
-- **Sun Pointing**: Sun-tracking algorithm for solar panel optimization
-- **Control Frequency**: 1 Hz control loop
-- **Pointing Accuracy**: ±10° in sun-pointing mode
+### 4.7 Navigation
 
-### 2.4 Communication Subsystem
+Duty-cycled GNSS receiver (SkyFox piNAV-NG/FM) on an OBC load switch, for the operator ephemeris that the SpaceX
+rideshare rules require within 24 h of first contact (BASELINE §6, D6).
 
-#### 2.4.1 Transponder System
-- **Frequency Bands**: UHF (435-438 MHz), VHF (144-146 MHz)
-- **Transmitter Power**: 1W maximum (adjustable)
-- **Receiver Sensitivity**: -120 dBm
-- **Modulation**: FM for voice, FSK for data
-- **Bandwidth**: 25 kHz channels
-- **Protocol**: AX.25 packet radio
+## 5. Software Architecture
 
-#### 2.4.2 Beacon System
-- **Frequency**: 145.825 MHz (primary), 437.425 MHz (secondary)
-- **Transmission Interval**: 120 seconds (configurable)
-- **Message Format**: AX.25 packet with telemetry data
-- **Power Consumption**: 0.1W idle, 0.5W during transmission
+- **Flight software** (`software/rust`): `sqso-protocol` (wire formats) and `sqso-fsw` (flight logic) are `no_std`
+  with `unsafe` forbidden; `sqso-ffi` implements the C headers of `software/flight/include`, which the CMocka suites
+  specify; `firmware` is the STM32L4R5 image; `sqso-sim` the host simulation; `sqso-sil` the mission simulation from
+  integration to re-entry (`software/rust/README.md`; `docs/test/SIL_MISSION_SIMULATION.md`). Class C under NPR 7150.2D
+  (`docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1). Design: `docs/software/SOFTWARE_DESIGN.md`.
+- **Modes**: BOOT, DETUMBLE, SAFE, IDLE, ACTIVE, EMERGENCY, with SOC thresholds ACTIVE at ≥ 55 % sunlit, IDLE below
+  40 %, SAFE below 25 %, EMERGENCY below 15 % (BASELINE §5). TX-OFF and the loss-of-contact inhibit override every mode.
+- **Telecommand**: HMAC-SHA-256 with a persisted monotonic counter per key, from designated stations only; TX-OFF
+  accepted without authentication when no key is usable (BASELINE §7; `docs/interfaces/TELECOMMAND_AUTHENTICATION.md`).
+- **AI**: the OBC selector (gradient-boosted trees or a tiny INT8 MLP, abstaining to fixed rules) proposes the power
+  mode and transponder schedule and picks templates; it sets no QSO priority, because the FM repeater has no
+  per-station control. Designed, not yet implemented (`docs/payload/OBC_SELECTOR_DESIGN.md`). The Jetson agent
+  (llama.cpp; SmolLM2-360M-Instruct or Qwen3-0.6B) returns text only; the OBC adds the call sign and every value
+  and applies the shared content filter (`docs/BEACON_SPEC.md` §6).
+- **Payload and ground software**: Python, using the flight wire formats through `sqso-py` (`software/payload`,
+  `software/ground`).
 
-#### 2.4.3 Antenna System
-- **UHF Antenna**: 1/4 wave monopole, deployable
-- **VHF Antenna**: 1/4 wave monopole, deployable
-- **Antenna Deployment**: Spring-loaded with retention mechanism
-- **Gain**: 2 dBi typical
-- **Polarization**: Linear, vertical
+## 6. Interfaces
 
-### 2.5 AI Payload - Jetson Orin Nano Super
+| Interface | Document |
+|-----------|----------|
+| OBC–EPS | `docs/interfaces/ICD_OBC_EPS.md` |
+| OBC–RF | `docs/interfaces/ICD_OBC_RF.md` |
+| OBC–ADCS | `docs/interfaces/ICD_OBC_ADCS.md` |
+| OBC–Jetson | `docs/interfaces/ICD_OBC_JETSON.md` |
+| Space–ground and beacon format | `docs/interfaces/ICD_SPACE_GROUND.md`; `docs/interfaces/ICD_BEACON_FORMAT.md` |
+| Telecommand authentication | `docs/interfaces/TELECOMMAND_AUTHENTICATION.md` |
+| Master list | `docs/interfaces/INTERFACE_CONTROL_MASTER.md` |
 
-#### 2.5.1 Hardware Specifications
-- **Processor**: NVIDIA Jetson Orin Nano Super
-- **CPU**: 8-core ARM Cortex-A78AE (2.0 GHz)
-- **GPU**: 2048 CUDA cores, 64 Tensor cores
-- **AI Performance**: 20 TOPS (Trillion Operations Per Second)
-- **Memory**: 8GB LPDDR5, 32GB eMMC storage
-- **Power Consumption**: 5W typical, 15W peak
-- **Thermal Design**: Passive cooling with thermal interface to structure
+## 7. Ground Segment and Operations
 
-#### 2.5.2 Power Management
-- **Power Gating**: Individual rail control for power management
-- **DVFS**: Dynamic voltage and frequency scaling
-- **Core Parking**: Ability to disable unused CPU cores
-- **GPU Scaling**: Dynamic GPU power management
-- **Sleep Modes**: Multiple low-power states
+At least two designated telecommand stations at least 1,000 km apart, each able to command alone, radiating ≥ 64 dBm
+EIRP and commanding above 10° (C-14); none agreed yet. Users: any licensed amateur with an FM handheld or mobile rig.
+Concept of operations: `mission/CONOPS.md`; minute-by-minute timeline: `docs/operations/MISSION_TIMELINE.md`; ground
+stations: `docs/ground/GROUND_STATION_DESIGN.md`.
 
-#### 2.5.3 Thermal Management
-- **Heat Dissipation**: Conduction through mounting interface
-- **Thermal Interface**: High-conductivity thermal pad
-- **Temperature Monitoring**: Onboard temperature sensors
-- **Thermal Control**: Duty cycling based on temperature
+## 8. Reliability, Verification, Cost and Schedule
 
-### 2.6 Onboard Computer (OBC)
-
-#### 2.6.1 Primary OBC
-- **Processor**: STM32L4R5ZI (ARM Cortex-M4F) (BASELINE §6)
-- **Memory**: 640 KB RAM, 2 MB flash (`docs/software/BUILD_CONFIGURATIONS.md` §8.2)
-- **Operating System**: None. The flight software is Rust on the Embassy executor: one task running the 20 ms main loop, interrupt-driven UARTs, the independent watchdog (BASELINE §6, rebaselined 2026-10-25, CR-2026-002; `software/flight/docs/RTOS_ARCHITECTURE.md`). FreeRTOS was never integrated
-- **Flight software**: `software/rust` (overview and porting table in `software/rust/README.md`); image `software/rust/firmware`
-
-#### 2.6.2 Secondary OBC
-- None. The Ambiq Apollo4 and STM32L476 options in earlier documents are superseded (BASELINE §6).
-
-#### 2.6.3 OBC Functions
-- **System Control**: Overall satellite management
-- **Telemetry Collection**: Sensor data acquisition and formatting
-- **Command Processing**: Ground command interpretation and execution
-- **Fault Management**: System health monitoring and recovery
-- **Data Storage**: Mission data logging and storage
-
-### 2.7 Data Storage and Management
-
-#### 2.7.1 Primary Storage
-- **FRAM**: 256 KB ferroelectric RAM (FM25V20A) for critical data (`hardware/obc/STORAGE_DESIGN.md` §3)
-- **Purpose**: System state, configuration parameters, mission data
-- **Write Endurance**: 10^14 write cycles
-- **Data Retention**: 10 years at 85°C
-
-#### 2.7.2 Secondary Storage
-- **MicroSD Card**: 32GB class 10 for log storage
-- **NAND Flash**: 16GB for mission data and AI models
-- **Data Organization**: Time-stamped logs and mission data
-- **Redundancy**: Critical data stored in multiple locations
+- Reliability estimates L1/L2/L3 0.75 / 0.61 / 0.51 (0.86 / 0.71 / 0.59 with the burn-in and flatsat programme), for
+  the PI to accept or reject (DA-02; `mission/RISK_REGISTER.md` R29).
+- Verification status: `docs/verification/VERIFICATION_MATRIX.md` (the only status record); test levels:
+  `docs/environment/ENVIRONMENTAL_TEST_PLAN.md`.
+- Cost: `docs/funding_audit/LIFECYCLE_COST_ROM.md`; schedule: `mission/SCHEDULE.md`; risks: `mission/RISK_REGISTER.md`.
 
 ---
 
-## 3.0 Software Architecture
-
-### 3.1 System Software Architecture
-
-#### 3.1.1 Operating System Layer
-- **Primary OBC**: No RTOS: the Rust flight software runs on the Embassy executor (BASELINE §6, rebaselined 2026-10-25, CR-2026-002; FreeRTOS v10.4.3 was never integrated)
-- **Secondary OBC**: None (§2.6.2)
-- **AI Payload**: Ubuntu 20.04 LTS with real-time kernel patches
-- **Inter-Process Communication**: Shared memory and message queues
-
-#### 3.1.2 Middleware Layer
-- **Communication Stack**: AX.25 protocol implementation
-- **File System**: FAT32 for microSD, ext4 for NAND flash
-- **Database**: SQLite for structured data storage
-- **Network Stack**: TCP/IP for AI payload communication
-
-#### 3.1.3 Application Layer
-- **Mission Control**: Main mission state machine
-- **Power Manager**: Intelligent power scheduling and management
-- **AI Agent Manager**: AI payload coordination and control
-- **Communication Manager**: Transponder and beacon control
-
-### 3.2 AI Software Architecture
-
-#### 3.2.1 AI Framework
-- **Deep Learning**: PyTorch 1.12 with TensorRT optimization
-- **Computer Vision**: OpenCV 4.6 for image processing
-- **Natural Language**: Hugging Face Transformers for text processing
-- **Optimization**: ONNX Runtime for model optimization
-
-#### 3.2.2 AI Models
-- **QSO Priority Model**: Tiny CNN (~1MB) for call sign prioritization
-- **Adaptive Transponder**: Reinforcement learning for channel optimization
-- **Smart Beacon**: TinyLM (~1MB) for intelligent beacon messages
-- **Model Updates**: Over-the-air updates via ground station
-
-#### 3.2.3 AI Workflow
-- **Data Ingestion**: Real-time communication data processing
-- **Inference**: Onboard AI model execution
-- **Learning**: Incremental model updates based on usage patterns
-- **Optimization**: Model compression and quantization
-
-### 3.3 Power Management Software
-
-#### 3.3.1 Power Forecasting
-- **Solar Prediction**: Orbit-based solar illumination modeling
-- **Load Prediction**: Mission phase and AI payload usage modeling
-- **Battery Modeling**: Coulomb counting with temperature compensation
-- **Power Budgeting**: Real-time power allocation and optimization
-
-#### 3.3.2 Intelligent Scheduling
-- **AI Payload Scheduling**: Duty cycling based on power availability
-- **Communication Scheduling**: Beacon and transponder timing optimization
-- **Thermal Management**: Temperature-based power scheduling
-- **Priority Management**: Critical vs. non-critical load management
-
-#### 3.3.3 Fault Management
-- **Overcurrent Protection**: Automatic load shedding
-- **Undervoltage Protection**: Battery protection and system shutdown
-- **Thermal Protection**: Temperature-based power reduction
-- **Recovery Procedures**: Automatic system recovery and restart
-
-### 3.4 Communication Software
-
-#### 3.4.1 Protocol Implementation
-- **AX.25**: Full AX.25 protocol stack implementation
-- **Packet Radio**: APRS and packet data support
-- **Voice Support**: FM voice transmission and reception
-- **Data Support**: Binary data transmission and reception
-
-#### 3.4.2 Beacon System
-- **Telemetry Format**: Standardized telemetry packet structure
-- **Data Content**: System health, mission status, AI payload status
-- **Transmission Timing**: Configurable intervals and conditions
-- **Message Prioritization**: Critical vs. routine message handling
-
-#### 3.4.3 Transponder Control
-- **Channel Management**: Automatic channel selection and optimization
-- **Power Control**: Dynamic power adjustment based on conditions
-- **Interference Avoidance**: AI-powered channel optimization
-- **Quality Monitoring**: Signal quality and performance metrics
-
-### 3.5 Data Management Software
-
-#### 3.5.1 Data Collection
-- **Sensor Data**: Continuous monitoring of all subsystem sensors
-- **Mission Data**: Communication logs and AI payload data
-- **System Data**: Performance metrics and health indicators
-- **Timestamping**: Precise time synchronization for all data
-
-#### 3.5.2 Data Storage
-- **Data Organization**: Hierarchical file system organization
-- **Compression**: Lossless compression for log data
-- **Encryption**: Secure storage for sensitive mission data
-- **Backup**: Redundant storage and data protection
-
-#### 3.5.3 Data Transmission
-- **Downlink Prioritization**: Critical data transmission priority
-- **Compression**: Onboard data compression for efficient transmission
-- **Error Correction**: Forward error correction for reliable transmission
-- **Acknowledgment**: Ground station acknowledgment and retransmission
-
----
-
-## 4.0 System Integration and Interfaces
-
-### 4.1 Electrical Interfaces
-
-#### 4.1.1 Power Distribution
-- **Main Power Bus**: 12V primary bus with 3.3V and 5V regulated rails
-- **Power Switching**: Individual rail control with current monitoring
-- **Grounding**: Single-point ground system with isolation
-- **EMI Protection**: Filtering and shielding for sensitive electronics
-
-#### 4.1.2 Communication Interfaces
-- **UART**: Serial communication between subsystems
-- **SPI**: High-speed data transfer for sensors and storage
-- **I2C**: Low-speed control and configuration
-- **CAN Bus**: Redundant communication for critical systems
-
-#### 4.1.3 Data Interfaces
-- **USB**: AI payload interface and data transfer
-- **Ethernet**: High-speed data transfer for AI payload
-- **GPIO**: Digital I/O for control and monitoring
-- **ADC**: Analog sensor interfaces
-
-### 4.2 Mechanical Interfaces
-
-#### 4.2.1 Structural Integration
-- **Mounting Points**: Standardized mounting for all subsystems
-- **Thermal Interface**: Conductive thermal paths to structure
-- **Vibration Isolation**: Shock mounts for sensitive electronics
-- **Accessibility**: Service access for testing and maintenance
-
-#### 4.2.2 Deployment Mechanisms
-- **Solar Panel Deployment**: Spring-loaded with retention pins
-- **Antenna Deployment**: Spring-loaded with retention mechanism
-- **Deployment Sensors**: Position and status monitoring
-- **Deployment Control**: Automatic and manual deployment options
-
-### 4.3 Software Interfaces
-
-#### 4.3.1 Application Programming Interfaces (APIs)
-- **Power Management API**: Power control and monitoring interface
-- **Communication API**: Transponder and beacon control interface
-- **AI Payload API**: AI model execution and data interface
-- **System Control API**: Overall system management interface
-
-#### 4.3.2 Data Interfaces
-- **Telemetry Interface**: Standardized telemetry data format
-- **Command Interface**: Ground command processing interface
-- **Configuration Interface**: System parameter configuration interface
-- **Diagnostic Interface**: System health and diagnostic interface
-
----
-
-## 5.0 Reliability and Fault Tolerance
-
-### 5.1 System Reliability
-
-#### 5.1.1 Design Reliability
-- **Component Selection**: Space-grade or high-reliability commercial components
-- **Redundancy**: Critical system redundancy where feasible
-- **Derating**: Conservative component derating for reliability
-- **Testing**: Comprehensive component and system testing
-
-#### 5.1.2 Mission Reliability
-- **Mission Duration**: 2-year design life with 5-year goal
-- **Reliability Target**: 90% probability of mission success
-- **Failure Modes**: Comprehensive failure mode analysis
-- **Recovery Procedures**: Automatic and manual recovery procedures
-
-### 5.2 Fault Tolerance
-
-#### 5.2.1 Graceful Degradation
-- **AI Payload Failure**: Fallback to conventional transponder operation
-- **Power System Failure**: Load shedding and minimal operation mode
-- **Communication Failure**: Beacon-only operation mode
-- **OBC Failure**: Secondary OBC takeover
-
-#### 5.2.2 Fault Detection and Recovery
-- **Health Monitoring**: Continuous system health monitoring
-- **Fault Detection**: Automatic fault detection and isolation
-- **Recovery Procedures**: Automatic recovery and restart procedures
-- **Ground Intervention**: Manual recovery procedures via ground commands
-
----
-
-## 6.0 Testing and Verification
-
-### 6.1 Component Testing
-
-#### 6.1.1 Environmental Testing
-- **Thermal Testing**: -40°C to +85°C operational range
-- **Vibration Testing**: Launch vehicle vibration environment
-- **Thermal Vacuum**: Space environment simulation
-- **Radiation Testing**: Total ionizing dose and single event effects
-
-#### 6.1.2 Functional Testing
-- **Performance Testing**: All performance specifications verification
-- **Interface Testing**: Subsystem interface compatibility
-- **Power Testing**: Power consumption and efficiency verification
-- **Communication Testing**: Communication system performance
-
-### 6.2 System Testing
-
-#### 6.2.1 Integration Testing
-- **Subsystem Integration**: Individual subsystem integration testing
-- **System Integration**: Complete system integration testing
-- **Interface Verification**: All interface compatibility verification
-- **Performance Verification**: System-level performance verification
-
-#### 6.2.2 Mission Simulation
-- **Orbit Simulation**: Mission orbit and environment simulation
-- **Mission Phases**: All mission phase simulation and testing
-- **Failure Scenarios**: Failure mode and recovery testing
-- **End-to-End Testing**: Complete mission simulation
-
----
-
-## 7.0 Mission Operations
-
-### 7.1 Launch and Early Operations
-
-#### 7.1.1 Launch Phase
-- **Deployment**: NRCSD deployment and initial separation
-- **Initialization**: System power-up and initialization sequence
-- **Deployment Verification**: Solar panel and antenna deployment verification
-- **Initial Communication**: First beacon transmission and ground contact
-
-#### 7.1.2 Commissioning Phase
-- **System Checkout**: Comprehensive system health verification
-- **AI Payload Activation**: Gradual AI payload activation and testing
-- **Performance Verification**: All system performance verification
-- **Mission Readiness**: Mission readiness declaration
-
-### 7.2 Normal Operations
-
-#### 7.2.1 Daily Operations
-- **Health Monitoring**: Continuous system health monitoring
-- **AI Payload Operations**: AI model execution and learning
-- **Communication Services**: Transponder and beacon services
-- **Data Management**: Mission data collection and transmission
-
-#### 7.2.2 Mission Phases
-- **Commissioning**: System checkout and AI activation
-- **Normal Operations**: Full mission operations
-- **Extended Operations**: Extended mission operations
-- **End of Mission**: Mission termination and disposal
-
-### 7.3 Anomaly Response
-
-#### 7.3.1 Anomaly Detection
-- **Automatic Detection**: Onboard anomaly detection and classification
-- **Ground Analysis**: Ground station anomaly analysis and response
-- **Escalation Procedures**: Automatic and manual escalation procedures
-- **Recovery Actions**: Automatic and manual recovery actions
-
----
-
-## 8.0 Ground Segment
-
-### 8.1 Ground Station Network
-
-#### 8.1.1 Primary Ground Station
-- **Location**: Mission control center
-- **Equipment**: UHF/VHF transceivers and tracking equipment
-- **Capabilities**: Full duplex communication and tracking
-- **Availability**: 24/7 operation with redundancy
-
-#### 8.1.2 Secondary Ground Stations
-- **Amateur Radio Network**: Global amateur radio operator network
-- **Educational Institutions**: University and educational institution stations
-- **Individual Operators**: Individual amateur radio operators
-- **Data Collection**: Distributed data collection and reporting
-
-### 8.2 Mission Control Software
-
-#### 8.2.1 Command and Control
-- **Command Generation**: Mission command generation and validation
-- **Command Uplink**: Secure command transmission to satellite
-- **Command Verification**: Command execution verification
-- **Command History**: Complete command history and audit trail
-
-#### 8.2.2 Telemetry Processing
-- **Data Reception**: Telemetry data reception and processing
-- **Data Analysis**: Real-time data analysis and visualization
-- **Data Storage**: Long-term data storage and archiving
-- **Data Distribution**: Data distribution to stakeholders
-
----
-
-## 9.0 Cost and Schedule
-
-### 9.1 Cost Breakdown
-
-#### 9.1.1 Hardware Costs
-- **AI Payload**: $2,500 (Jetson Orin Nano Super)
-- **OBC and Subsystems**: $3,000 (EPS, ADCS, Communication)
-- **Structure and Mechanisms**: $1,500 (Mechanical components)
-- **Testing and Integration**: $2,000 (Environmental testing)
-
-#### 9.1.2 Software and Development
-- **Software Development**: $5,000 (System and AI software)
-- **Testing and Verification**: $2,500 (Software testing)
-- **Documentation**: $1,000 (Technical documentation)
-
-#### 9.1.3 Operations and Launch
-- **Launch Services**: $100,000 (NanoRacks launch)
-- **Ground Operations**: $10,000 (Ground station operations)
-- **Insurance**: $15,000 (Launch and mission insurance)
-
-**Total Mission Cost**: $142,500
-
-### 9.2 Schedule
-
-#### 9.2.1 Development Phase
-- **Phase 1**: Requirements and design (3 months)
-- **Phase 2**: Hardware development (6 months)
-- **Phase 3**: Software development (6 months)
-- **Phase 4**: Integration and testing (3 months)
-
-#### 9.2.2 Launch and Operations
-- **Launch**: Month 18
-- **Commissioning**: Months 18-19
-- **Normal Operations**: Months 19-42
-- **Extended Operations**: Months 42-66
-
-**Total Development Time**: 18 months
-
----
-
-## 10.0 Risk Assessment and Mitigation
-
-### 10.1 Technical Risks
-
-#### 10.1.1 AI Payload Risks
-- **Power Consumption**: Risk of exceeding power budget
-- **Mitigation**: Advanced power management and duty cycling
-- **Thermal Management**: Risk of thermal overload
-- **Mitigation**: Integrated thermal management and monitoring
-
-#### 10.1.2 Integration Risks
-- **System Complexity**: Risk of integration challenges
-- **Mitigation**: Modular design and comprehensive testing
-- **Interface Compatibility**: Risk of interface incompatibilities
-- **Mitigation**: Standardized interfaces and thorough testing
-
-### 10.2 Mission Risks
-
-#### 10.2.1 Launch Risks
-- **Launch Failure**: Risk of launch vehicle failure
-- **Mitigation**: Launch insurance and backup launch opportunities
-- **Deployment Failure**: Risk of deployment mechanism failure
-- **Mitigation**: Redundant deployment mechanisms and testing
-
-#### 10.2.2 Operations Risks
-- **Communication Loss**: Risk of communication system failure
-- **Mitigation**: Redundant communication systems and ground stations
-- **Power System Failure**: Risk of power system malfunction
-- **Mitigation**: Redundant power systems and load shedding
-
----
-
-## 11.0 Conclusion
-
-SMART-QSO represents a significant advancement in CubeSat technology, demonstrating that sophisticated AI capabilities can be successfully integrated into the constrained 1U form factor. The mission's innovative architecture combines advanced AI processing with traditional CubeSat subsystems, creating a new paradigm for small satellite missions.
-
-The detailed hardware and software architecture provides a solid foundation for mission success, with comprehensive consideration of power management, thermal control, reliability, and fault tolerance. The mission's focus on amateur radio outreach and community engagement adds a unique dimension that distinguishes it from previous AI CubeSat missions.
-
-SMART-QSO's success will establish new benchmarks for AI integration in small satellites and demonstrate the potential for sophisticated AI capabilities in constrained space environments, while providing valuable services to the amateur radio community.
-
----
-
-## 12.0 Appendices
-
-### Appendix A: Detailed Component Specifications
-- Complete component datasheets and specifications
-- Interface definitions and pin assignments
-- Performance characteristics and operating parameters
-
-### Appendix B: Software Architecture Details
-- Detailed software module specifications
-- API definitions and interface specifications
-- Data flow diagrams and state machines
-
-### Appendix C: Test Plans and Procedures
-- Comprehensive test plans for all subsystems
-- Test procedures and acceptance criteria
-- Environmental testing requirements and procedures
-
-### Appendix D: Operations Manual
-- Detailed operations procedures and protocols
-- Anomaly response procedures
-- Ground station operations and maintenance
-
----
-
-*Document Version: 1.1*  
-*Updated 2026-10-24: the OBC software is Rust on the Embassy executor, not FreeRTOS (§2.6.1, §3.1.1, §1.1 figure)*  
-*Updated 2026-10-25: the baseline is the Embassy executor with no RTOS (BASELINE §6, CR-2026-002; §2.6.1, §3.1.1)*  
-*Updated 2026-10-27 (version 1.1, CDR 2026 consistency pass): §2.1.1 mass from BASELINE Rev E §4*  
-*Date: [Current Date]*  
-*Prepared by: [Name]*  
-*Technical Review: [Name]*  
-*Management Approval: [Name]*  
-*PDR approval: [Name] — no independent review held (funding audit 2026-10-14)*
+## Revision History
+
+| Version | Date | Description |
+|---------|------|-------------|
+| 1.0 | 2026-01 | Initial PDR-level architecture (superseded) |
+| 1.1 | 2026-10-24 to 2026-10-27 | Notes: OBC software Rust on the Embassy executor (CR-2026-002); mass from BASELINE Rev E |
+| 2.0 | 2026-10-27 | Documentation audit (post-CDR 2026): rewritten as a current overview from BASELINE Rev E (amended) and the design documents; the obsolete hardware, software, cost and schedule content of 1.x withdrawn |

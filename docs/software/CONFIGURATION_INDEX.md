@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-SW-006
-**Revision:** B
-**Date:** 2026-10-24
+**Revision:** C
+**Date:** 2026-10-27
 **Reference:** NPR 7150.2, NASA Ames SmallSat Heritage
 
 ---
@@ -27,6 +27,10 @@ Rust constant. `software/flight/tests/test_rust_contract.c` checks that the two 
 is. The preprocessor defines in §3.2, the stack and heap sizes in §3.3, the storage map in §10.1 and the configuration
 commands in §10.2 are not in the code. The storage map as built is `software/flight/docs/MEMORY_POLICY.md` §8.1, and the
 telecommands are the ones in `software/flight/command_dictionary.json`.
+
+**Revision C (2026-10-27).** The values of §4 to §9 that Revision A took from an earlier spacecraft (a 2S battery, a
+2 W transmitter, 145.825 MHz, 20/30/60 s beacons, preemptive tasks) are replaced by the baseline and the code, each row
+with its source. A row marked "not in the code" names a Revision A parameter that the flight software does not have.
 
 ---
 
@@ -74,7 +78,7 @@ file), `SMART_QSO_FAULT_LOG`, `SMART_QSO_EPS_CONFIG` and `SMART_QSO_MISSION_DATA
 | STACK_SIZE_BEACON | 2048 | 1024-4096 | bytes |
 | HEAP_SIZE | 32768 | 16384-65536 | bytes |
 | TLM_BUFFER_COUNT | 8 | 4-16 | count |
-| FAULT_LOG_SIZE | 64 | 32-128 | entries |
+| FAULT_LOG_SIZE | 100 (fixed; `sqso-fsw/src/fault_log.rs` `MAX_ENTRIES`) | — | entries |
 
 ---
 
@@ -84,27 +88,30 @@ file), `SMART_QSO_FAULT_LOG`, `SMART_QSO_EPS_CONFIG` and `SMART_QSO_MISSION_DATA
 
 | Parameter | Default | Valid Range | Unit |
 |-----------|---------|-------------|------|
-| SAFE_MODE_VOLTAGE | 7.0 | 6.5-7.2 | V |
-| IDLE_MODE_VOLTAGE | 7.4 | 7.0-7.6 | V |
-| ACTIVE_MODE_VOLTAGE | 7.6 | 7.4-7.8 | V |
-| BURST_MODE_VOLTAGE | 7.8 | 7.6-8.0 | V |
-| CRITICAL_VOLTAGE | 6.5 | 6.0-6.8 | V |
+| ACTIVE allowed (sunlit) | SOC ≥ 55 | fixed | % |
+| ACTIVE → IDLE | SOC < 40 | fixed | % |
+| → SAFE | SOC < 25 | fixed | % |
+| SAFE → EMERGENCY (beacon shed) | SOC < 15 | fixed | % |
+
+Modes are set by state of charge, not by voltage (BASELINE §5; `eps_control.h`, `sm_power_event()`); back to SAFE at
+25 %, to IDLE above 40 %. Revision A's voltage thresholds (6.5 to 7.8 V) were for a 2S pack and do not apply to the 4S
+pack (14.4 V nominal, charged to 16.4 V).
 
 ### 4.2 Power Limits
 
 | Parameter | Default | Valid Range | Unit |
 |-----------|---------|-------------|------|
-| MAX_SYSTEM_POWER | 10.0 | 5.0-15.0 | W |
-| JETSON_POWER_LIMIT | 8.0 | 5.0-10.0 | W |
-| RF_POWER_HIGH | 2.0 | 0.5-2.0 | W |
-| RF_POWER_LOW | 0.5 | 0.1-1.0 | W |
+| MAX_SYSTEM_POWER | Not in the code (load allocations: BASELINE §5) | — | W |
+| JETSON_POWER_LIMIT | 8.0 input (latch-up trip 12 W; `payload_guard.rs`) | fixed | W |
+| RF_POWER_HIGH | 1.0 (maximum; `SET_POWER` 1) | fixed | W |
+| RF_POWER_LOW | 0.5 (nominal; `SET_POWER` 0) | fixed | W |
 
 ### 4.3 Battery Parameters
 
 | Parameter | Default | Valid Range | Unit |
 |-----------|---------|-------------|------|
-| BATTERY_CAPACITY | 5200 | 2600-10400 | mAh |
-| MAX_DOD | 30 | 20-50 | % |
+| BATTERY_CAPACITY | ≈ 3500 (4S1P 18650, ≈ 50 Wh; BASELINE §5) | — | mAh |
+| MAX_DOD | 10 nominal per eclipse, 30 contingency (SYS-112) | — | % |
 | CHARGE_TEMP_MIN | 0 | -10 to +10 | C |
 | CHARGE_TEMP_MAX | 45 | 40-50 | C |
 | DISCHARGE_TEMP_MIN | -20 | -30 to -10 | C |
@@ -118,29 +125,33 @@ file), `SMART_QSO_FAULT_LOG`, `SMART_QSO_EPS_CONFIG` and `SMART_QSO_MISSION_DATA
 
 | Parameter | Default | Valid Range | Unit |
 |-----------|---------|-------------|------|
-| BEACON_INTERVAL_SAFE | 60 | 30-120 | seconds |
-| BEACON_INTERVAL_IDLE | 30 | 15-60 | seconds |
-| BEACON_INTERVAL_ACTIVE | 20 | 10-30 | seconds |
-| BEACON_MAX_LENGTH | 256 | 128-512 | bytes |
-| BEACON_CALLSIGN | "NOCALL" | 4-7 chars | string |
+| BEACON_INTERVAL_SAFE | 180 | — | seconds |
+| BEACON_INTERVAL_IDLE | 120 | — | seconds |
+| BEACON_INTERVAL_ACTIVE | 60 (± 5 s jitter) | `SET_BEACON` 10-120 | seconds |
+| BEACON_MAX_LENGTH | 256 (information field; text ≤ 176) | fixed | bytes |
+| BEACON_CALLSIGN | "KK6GDB-11" (`station_id.h`) | fixed | string |
+
+Intervals: `BEACON_INTERVAL_*_MS` in `beacon.h`, BASELINE §8, `docs/BEACON_SPEC.md` §7.
 
 ### 5.2 RF Parameters
 
 | Parameter | Default | Valid Range | Unit |
 |-----------|---------|-------------|------|
-| TX_FREQUENCY | 145825000 | 145800000-145850000 | Hz |
-| TX_DEVIATION | 3500 | 3000-4000 | Hz |
-| TX_POWER_LEVEL | 1 | 0-3 | enum |
-| BAUD_RATE | 1200 | 1200/9600 | bps |
-| PREAMBLE_FLAGS | 50 | 20-100 | flags |
+| TX_FREQUENCY | One IARU-coordinated frequency in 145.800-146.000 MHz, not 145.825 MHz (BASELINE §7); set in the RF board, not by the flight software | — | Hz |
+| TX_DEVIATION | Not in the code (RF board, `hardware/electrical/rf/RF_BOARD_DESIGN.md`) | — | Hz |
+| TX_POWER_LEVEL | 0 (0.5 W) or 1 (1 W), `SET_POWER` | 0-1 | enum |
+| BAUD_RATE | 1200 (AFSK, in the TNC) | fixed | bps |
+| PREAMBLE_FLAGS | TXDELAY 300 ms, a TNC parameter (`downlink.h`, TBR-SRS-003) | — | ms |
 
 ### 5.3 UART Configuration
 
 | Interface | Baud | Data | Parity | Stop |
 |-----------|------|------|--------|------|
-| DEBUG | 115200 | 8 | None | 1 |
-| JETSON | 115200 | 8 | None | 1 |
-| EPS | 9600 | 8 | None | 1 |
+| DEBUG (USART3) | 115200 | 8 | None | 1 |
+| JETSON (USART1) | 115200 | 8 | None | 2 on the target (1 on the host) |
+| TNC (USART2, KISS) | 9600 | 8 | None | 1 |
+
+The EPS controller is on I2C2 (address 0x48), not a UART (`software/rust/README.md`, The firmware).
 
 ---
 
@@ -161,7 +172,7 @@ file), `SMART_QSO_FAULT_LOG`, `SMART_QSO_EPS_CONFIG` and `SMART_QSO_MISSION_DATA
 |-----------|---------|-------------|------|
 | BDOT_GAIN | 1.0e4 | 3e3-3e4 | A·m²·s/T |
 | DETUMBLE_THRESHOLD | 0.5 (rate across +Y) | 0.2-2.0 | deg/s |
-| SPIN_RATE | 6.0 (about +Y) | 2.0-8.0 | deg/s |
+| SPIN_RATE | 8.0 (about +Y; `adcs.rs` `SPIN_RATE`, BASELINE §8 [D9]) | fixed (the spin axis and inertia presets for a one-wing deployment: `ADCS_SET_GEOMETRY`) | deg/s |
 | MTQ_MAX_DIPOLE | 0.2 | 0.1-0.5 | Am^2 |
 | CONTROL_PERIOD | 1000 | 100-5000 | ms |
 
@@ -185,30 +196,31 @@ file), `SMART_QSO_FAULT_LOG`, `SMART_QSO_EPS_CONFIG` and `SMART_QSO_MISSION_DATA
 
 | Task | Period | Priority | Stack |
 |------|--------|----------|-------|
-| Main loop | 100 ms | Normal | 4 KB |
-| Sensor sampling | 100 ms | High | 1 KB |
-| Beacon generation | 1000 ms | Normal | 2 KB |
-| ADCS control | 1000 ms | High | 2 KB |
-| Telemetry | 5000 ms | Low | 1 KB |
-| Housekeeping | 10000 ms | Low | 512 B |
+| Main loop (one Embassy task, every stage) | 20 ms wait after each pass | — | one 8 KB stack |
+
+There are no separate tasks (`software/flight/docs/RTOS_ARCHITECTURE.md` §4); slower activities are timed inside the
+pass (health check 10 s, Jetson telemetry 60 s, beacon by mode).
 
 ### 7.2 Watchdog Timeouts
 
 | Watchdog | Timeout | Action |
 |----------|---------|--------|
-| Hardware WDT | 30000 ms | Reset |
-| Task WDT | 10000 ms | Log + escalate |
-| Jetson WDT | 60000 ms | Power cycle |
-| Comm WDT | 86400000 ms | Safe mode |
+| Hardware WDT (IWDG) | 25600 ms (`WDT_HW_TIMEOUT_MS`; refreshed at the supervisor's WDI edges every 10 s) | Reset; TPS3850 supervisor backstop (minimum 29.3 s) |
+| Stage supervision | 1 s (health 20 s); 3 misses stop the hardware refresh | Reset by the IWDG |
+| Jetson telemetry | 5 s without telemetry (`payload_guard.rs`) | Jetson powered off |
+| Loss of contact | 30 days at launch, 14 days after commissioning (`SET_CONTACT_TIMEOUT`, 1-90) | Transmit inhibit, receiver on (BASELINE §7) |
 
 ### 7.3 Deployment Timers
 
 | Timer | Value | Valid Range | Unit |
 |-------|-------|-------------|------|
-| ANTENNA_DEPLOY_DELAY | 1800 | 1800-3600 | seconds |
-| ANTENNA_BURN_TIME | 5 | 3-10 | seconds |
-| ANTENNA_RETRY_DELAY | 300 | 60-600 | seconds |
-| MAX_DEPLOY_ATTEMPTS | 3 | 1-5 | count |
+| DEPLOY_DELAY (after separation) | 1800 (`deployment.rs` `WAIT_TIME_MS`; CDS 2.4.4) | fixed | seconds |
+| SOLAR_BURN_TIME (per resistor, one at a time) | 10 (decision C-17) | fixed | seconds |
+| ANTENNA_BURN_TIME (AntS sequence) | 45 | fixed | seconds |
+| DEPLOY_RETRY_DELAY | 3000 (50 min) | fixed | seconds |
+| MAX_DEPLOY_ATTEMPTS | 3, then `DEPLOY_RETRY` by ground | fixed | count |
+
+No RF before 45 min (CDS 2.4.5; `rf_silence.rs`). Wings first, then the antennas (BASELINE §4).
 
 ---
 
@@ -218,10 +230,11 @@ file), `SMART_QSO_FAULT_LOG`, `SMART_QSO_EPS_CONFIG` and `SMART_QSO_MISSION_DATA
 
 | Fault | Threshold | Count | Window | Action |
 |-------|-----------|-------|--------|--------|
-| Undervoltage | <6.5V | 3 | 60s | Safe mode |
-| Overvoltage | >8.6V | 1 | - | Disable charge |
-| Overtemp | >60C | 3 | 60s | Thermal safe |
-| Comm timeout | 24 hr | 1 | - | Safe mode |
+| Low SOC | < 25 % / < 15 % | — | — | SAFE / EMERGENCY (BASELINE §5) |
+| Cell over-voltage | > 4.25 V/cell | — | - | EPS hardware protection (BASELINE §5) |
+| Jetson over-temperature | spreader > 70 °C, junction > 95 °C | — | — | Jetson off, 10 min cool-down (`payload_guard.rs`) |
+| Transmitter over-temperature | > 70 °C | — | — | Downlink held until < 60 °C (`downlink.rs`) |
+| Loss of contact | 30 d / 14 d | 1 | - | Transmit inhibit (BASELINE §7) |
 | Watchdog | - | 3 | 1 hr | Reset + log |
 
 ### 8.2 Recovery Parameters
@@ -243,17 +256,17 @@ file), `SMART_QSO_FAULT_LOG`, `SMART_QSO_EPS_CONFIG` and `SMART_QSO_MISSION_DATA
 | JETSON_BOOT_TIMEOUT | 30 | 20-60 | seconds |
 | JETSON_INFERENCE_TIMEOUT | 10 | 5-30 | seconds |
 | JETSON_HEALTH_INTERVAL | 5 | 1-30 | seconds |
-| JETSON_POWER_MODE | 7W | 7W/15W | - |
-| MAX_BURST_DURATION | 60 | 30-300 | seconds |
+| JETSON_POWER_MODE | 7 W (nvpmodel 1, original flash configuration; `software/payload/platform_config.py`) | fixed | - |
+| MAX_BURST_DURATION | 600 including boot, then ≥ 100 min off (BASELINE §6; `payload_schedule.rs`) | fixed | seconds |
 
 ### 9.2 Model Parameters
 
 | Parameter | Default | Description |
 |-----------|---------|-------------|
-| MODEL_PATH | /models/tinyLM | Model location |
-| MAX_TOKENS | 50 | Max output tokens |
-| TEMPERATURE | 0.7 | Generation temperature |
-| TOP_P | 0.9 | Nucleus sampling |
+| MODEL_PATH | `/models/SmolLM2-360M-Instruct-Q4_K_M.gguf` (`LLAMA_MODEL`; gated experiment, D5) | Model location |
+| MAX_TOKENS | 32 | Max output tokens (`software/payload/llama_runner.py`) |
+| TEMPERATURE | 0.3 | Generation temperature |
+| TOP_K | 3 | Sampling (no nucleus sampling) |
 
 ---
 
@@ -301,3 +314,4 @@ file), `SMART_QSO_FAULT_LOG`, `SMART_QSO_EPS_CONFIG` and `SMART_QSO_MISSION_DATA
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-24 | The flight software is Rust: parameters are C header constants mirrored in Rust and checked by the contract test; §3 build-time settings as built (CMake options, cargo feature, host environment variables); items not in the code identified. No parameter value changed | SMART-QSO Team |
+| C | 2026-10-27 | Documentation audit (post-CDR 2026): §4 to §9 values replaced from the baseline and the code (SOC mode thresholds, 1 W maximum, beacon intervals, call sign, UARTs, spin rate, watchdog (25.6 s) and contact timeouts, deployment timers, Jetson and model settings); FAULT_LOG_SIZE 100 | SMART-QSO Team |

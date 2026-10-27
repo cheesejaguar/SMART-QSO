@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REG-004
-**Revision:** D
+**Revision:** D.1
 **Date:** 2026-10-27
 **Status:** Plan. **No regulatory filing has been made as of this date.**
 **Governing determination:** [LICENSING_PATHWAY_DETERMINATION.md](LICENSING_PATHWAY_DETERMINATION.md) (Part 97)
@@ -54,13 +54,13 @@ Dates assume the `mission/SCHEDULE.md` baseline. "I" is dispenser integration (a
 | 2026-11-30 | Ask AMSAT-NA and ARRL for endorsement (form 4.8–4.9) | F1 prep | Licensee | — |
 | 2026-11-30 | Send the NOAA CRSRA informal consultation (§2 of the determination) | F8 | PI | — |
 | 2026-12-15 | Engage export counsel; include export terms in the launch RFQs (Exolaunch, ISISPACE and D-Orbit are foreign) | F9 | PI | D7 RFQs by 2026-12-31 |
-| **2027-01-05** | **Telecommand stations agreed in writing (≥ 2, §3 of SQSO-GND-001), operators named, key-custody plan signed** | F13 | Licensee | Partners (D1) |
+| **2027-01-05** | **Telecommand stations agreed in writing (≥ 2, at least 1,000 km apart, each able to command alone; §3 of SQSO-GND-001; `mission/SCHEDULE.md` DA-10), operators named, key-custody plan signed** | F13 | Licensee | Partners (D1) |
 | 2027-01-05 | FCC consultation held on the §6 agenda; outcome recorded in the pathway determination by 2027-01-08 | — | Licensee | 2026-11-15 request |
 | **2027-01-08** | **NASA DAS run** with the controlled mass properties; pass criterion §7; ODAR Draft E with the DAS results by 2027-01-12 | F4 | S&MA (run); licensee (agreement) | DAS agreement |
 | 2027-01-12 | Independent PDR (IARU's recommended point for the request) | — | PI | |
 | 2027-01-19 | **File F2 early** with the Appendix 4 data (SpaceCap) and the ODAR with its DAS results (97.207(g)(1)(ii) and (iv)(A)(1) ask for them), asking the FCC to forward the API | F2, F3 | Licensee | Stations, consultation, DAS |
 | 2027-01-26 | **Submit F1** with "API data sent to the FCC on 2027-01-19" | F1 | Licensee | F2 |
-| 2027-03-25 (median) to 2027-05-18 (90th percentile) | **IARU coordination letter**; frequencies frozen in BASELINE §7 | F1 | Licensee | Panel |
+| 2027-03-25 (median) to 2027-05-18 (90th percentile) | **IARU coordination letter**; frequencies frozen in BASELINE §7 by CR; with no letter by 2027-05-18 the licensee asks the IARU Satellite Advisor for status and the contract proceeds on the requested windows (`mission/SCHEDULE.md` DA-09) | F1 | Licensee | Panel |
 | 2027-03 to 2027-05 | ITU API/A special section published (FCC forwarding time unknown: ask in the consultation) | F3 | FCC | F2 |
 | 2027-03-31 | NOAA reply filed | F8 | PI | |
 | 2027-05-31 (contract) | Launch-vehicle determination (signed contract, D7 deadline 2027-06-30) | — | PI | Funding |
@@ -150,3 +150,4 @@ holding the early filing for DAS (the 30-day and 90-day deadlines leave room) an
 | B | 2026-10-27 | CDR review (communications panel): rules re-checked against the eCFR of 2026-10-01 and the Federal Register (no change to 97.207/97.211 since the 2024-09-09 five-year rule); 47 CFR 2.106 US270 and 97.313(f) added; measured IARU lead time (median 57 days); ITU API timing and Res. 32; F13 (telecommand-station designation); dated plan from 2026-10 to the post-space notification |
 | C | 2026-10-27 | CDR 2026 consistency pass: §3 launch-dependent dates for the planning launch 2028-11-01 and integration 2028-09-15 (BASELINE Rev E §3, `mission/SCHEDULE.md` Rev B): I − 90 days 2028-06-17, provider deliverables, in-space 2028-11-08, end of life 2030-11-01, post-space 2031-02-01, re-entry at 475 km |
 | D | 2026-10-27 | CDR round 3 (RIDs REG-10, REG-11, ODA-02, ODA-05, SE-14): §6 the FCC consultation agenda (Q1–Q10: D3 N and M, REG-05, REG-09, REG-11, ODA-05, the US270 reading, AI-generated text, Part 5, the debris tool, the filing channel), owner the licensee, request 2026-11-15, meeting by 2027-01-05; §7 NASA DAS before the early filing (agreement requested 2026-11-06, run 2027-01-08, ODAR Draft E 2027-01-12) with its pass criterion; §3 dates (DAS moved from 2027-02-09; ODAR final with the contract orbit), passivation implemented and fired before TX-OFF, re-entry from ODAR Draft D |
+| D.1 | 2026-10-27 | Documentation audit (post-CDR 2026): §3 the station criterion of DA-10 (≥ 1,000 km apart, each able to command alone, BASELINE Rev E §1) and the DA-09 fallback for a late IARU letter. No date changed |

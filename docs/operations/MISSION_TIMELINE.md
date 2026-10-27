@@ -1,7 +1,7 @@
 # SMART-QSO Mission Timeline and Event Sequence
 
 **Document ID**: SQSO-MTL-001
-**Version**: 2.6
+**Version**: 2.7
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Draft for CDR. Times after separation are from the mission simulation and the pass analysis named in §1;
@@ -35,7 +35,7 @@ separation cases.
 | LEOP | Separation (S) | First authenticated command executed and TX-OFF proven | S to ≈ S+1 d |
 | Commissioning | LEOP end | Commissioning review, `SET_CONTACT_TIMEOUT` 14 days | Days 1–14 |
 | Primary operations | Day 14 | 2 years (design life); minimum 12 months | |
-| End of life | Day 730 | Passivation (TX-OFF, charge path cut; `docs/operations/END_OF_LIFE_PLAN.md` §3); re-entry within 5 years of mission end (ODAR Draft D: 2.8–3.7 years after it from 475 km; the simulation's own decay model: 2.0 years) | |
+| End of life | Day 730 | Passivation (TX-OFF, charge path cut; `docs/operations/END_OF_LIFE_PLAN.md` §3); re-entry within 5 years of mission end (ODAR Draft D §6.2: 2.8–3.7 years after it from 475 km, 4.8–5.7 years after deployment, which governs; the mission simulation's decay model, SIL G: 2.55 years after it, 4.55 years after deployment, `docs/test/SIL_MISSION_SIMULATION.md` §7) | |
 
 ## 3. Delivery, integration and storage
 
@@ -43,14 +43,15 @@ separation cases.
 |------|-------|------------------|--------|----------------------|
 | ≈ L-50 d | Flight model received at the integrator's site; receiving inspection, rail measurement against the Exolaunch guide | Off; RBF in | Pack as shipped: ≤ 30 % SoC by air (UN3481 contained in equipment, PI 967: recommended by the IATA DGR 2026 guidance, mandatory under many operator variations), 60 % by road (SQSO-BSA-001 §6); final charge to 60 ± 5 % at the integrator | Exolaunch and the team; record SOC by OCV |
 | L-48 d | Functional test on the umbilical (OBC up from the umbilical, no RF: conducted checks into a load only, UG §9.5.2) | OBC on the umbilical | GSE power | Record boot log, EPS telemetry |
-| L-47 d, step 1 | **Final charge to 60 % ± 5 %** through the umbilical, RBF in (the charge path must not energize the loads, VI-LV-15) | Charger only | 3.4 Ah pack to ≈ 2.0 Ah | Charge log; stop by OCV/coulomb count |
+| L-47 d, step 1 | **Final charge to 60 % ± 5 %** through the umbilical, RBF in (the charge path must not energize the loads, VI-LV-15) | Charger only | ≈ 3.5 Ah pack (BASELINE §5) to ≈ 2.1 Ah | Charge log; stop by OCV/coulomb count |
 | L-47 d, step 2 | Key load and GSE provisioning (7 operations), `ARM_FLIGHT` as the **last** umbilical action: deployment sequence and RF silence set to ARMED | OBC on the umbilical | GSE | The SIL does this: "GSE: 7 of 7 operations done; OBC off, umbilical removed" |
 | L-47 d, step 3 | Umbilical removed; RBF removed; CubeSat slid into the 3U slot with its adapter; door closed (switches actuated); set screws | **Off**: separation switches open the battery path; only the battery-side BMS is powered (CDS §2.3.1.2) | Self-discharge plus BMS drain | Close-out photos; the integrator's encapsulation readiness letter (UG Appendix D, scenario A) |
 | L-47 d to L | In the dispenser: integrator, PPF (≤ 45 d, 15–25 °C, 30–65 % RH), hangar (≤ 40 d), pad (≤ 5 d, 15–30 °C) | Off | SIL: 59.9 % → **58.3 %** after 47 days at 20 °C (self-discharge only). Model with a 50 µA BMS drain: 56.7 % after 47 days; 47.3 % after 6 months; 40 % after 9.4 months | None possible: no umbilical, no charging (NOVA §5.4; UG §7.6) |
 
 A launch slip with the CubeSat integrated is tolerated without recharge for as long as the separation SOC stays
 above 40 % (§8.4): 18.9 months with no drain, 15.7 months at 10 µA, 9.4 months at 50 µA, 6.3 months at 100 µA (20 °C;
-`leop_feasibility.py` §1). The drain is not yet designed or measured; LVR-071 sets it at ≤ 20 µA (VI-LV-14).
+`leop_feasibility.py` §1). LVR-071 sets the drain at ≤ 20 µA (VI-LV-14); the EPS board design gives 7.8 µA typical and
+13.8 µA worst (SQSO-EPS-BRD-001 G §6.6; CDR report §3.2), not yet measured.
 
 ## 4. Launch and ascent
 
@@ -79,7 +80,7 @@ lines, flight software round 2); pass statistics from `leop_passes.py` at the sa
 | S+0.15 s | Switches release: power-on reset; the OBC boots; RF-silence and deployment counts start at 0 (both were ARMED); BOOT → DETUMBLE; the commissioning hold is set | OBC, EPS, sensors | 0.42 W | 58.3 %, 15.1 V, 20 °C | — |
 | S+121 s | **B-dot detumble starts** (no magnetorquer output before 120 s, SpaceX UG v11 §3.3.4; RID LV-02 closed) | + magnetorquers | 0.42–0.46 W in the simulation (its torquer model); the board design draws 1.16–1.3 W while detumbling (POWER_BUDGET_ANALYSIS §8.6) | 58.3 % | — |
 | S+0 to S+28.8 min worst | Darkness if separated in eclipse: 33.3 % of the separation cases; 5.2–28.8 min (median 16.9) until first sunlight. Reference case: first sun at S+21 min | — | 0.43 W | Reference 0.15 Wh before first sun; worst 0.20 Wh (0.4 %) at the simulated load, 1.46 Wh (2.9 points) with the board's torquer power and a cold pack (POWER_BUDGET_ANALYSIS §8.6) | — |
-| S+14.8 min | Detumbled: rate across +Y below 0.5°/s (simulation; Monte Carlo slowest 1.2 h, 2.1 h from a 50°/s tip-off, BASELINE §8) | | | | — |
+| S+14.8 min | Detumbled: rate across +Y below 0.5°/s (simulation; Monte Carlo slowest in-specification capture 1.8 h, tip-off σ 10°/s up to 30°/s, 1.7 h with the BMI088; BASELINE Rev E §8, ADCS_DESIGN 1.9 §11.4) | | | | — |
 | S+19.2 min | DETUMBLE → **IDLE**; the commissioning hold keeps it there: no ACTIVE, no Jetson, no transponder until `COMMISSIONING_RELEASE` (RID LV-01 closed) | | 0.42 W | 58.0 % | — |
 | S+21 min onward | Body cells charging (≈ 2.5–2.8 W from the body before the wings) | | | rising | — |
 | S+30:00 | Deployment wait served (CDS §2.4.4); 33.3 % of the cases are in eclipse at this moment (§8.1) | | | 58.5 % | — |
@@ -91,7 +92,7 @@ lines, flight software round 2); pass statistics from `leop_passes.py` at the sa
 | S+0.7 to S+12.1 h (median S+5.3 h) | **First pass over Santa Clara above 5°** after the silence (the first beacon the licensee's station can hear). Reference case: S+11.6 h (5.9°, 2 frames) | | | ≈ 92 % by S+12 h (end of charge at 4.10 V/cell) | Decode, check call sign, mode, SOC, BV, SUN; start the 24 h ephemeris clock (UG §9.5.7.2 counts from first contact) |
 | S+0.7 to S+13.7 h (median S+6.4 h) | **First commanding pass** (≥ 15°) over Santa Clara or Ames. Reference case: S+13.1 h (61.9°): authenticated `GET_HOUSEKEEPING` executed and acknowledged | | | 92.5 % | First command; then `TX_DISABLE` / `TX_ENABLE` to prove TX-OFF (COMMISSIONING_PLAN C-3) |
 | S+23.7 h | TX-OFF test: `TX_DISABLE`, then `TX_ENABLE` 150 s later (reference case) | | | 92 % | TX-OFF proven |
-| By first contact + 24 h (S+24.7 h to S+36.1 h, median S+29.3 h) | **First operator ephemeris** with covariance to Space-Track and SpaceX Space Traffic Coordination | | | | GNSS fixes downlinked and the ground orbit determination (RID LV-04); a third party is the contingency |
+| By first contact + 24 h (S+24.7 h to S+36.1 h, median S+29.3 h) | **First operator ephemeris** with covariance to Space-Track and SpaceX Space Traffic Coordination | | | | GNSS fixes downlinked and the ground orbit determination (`ephemeris_tool.py`, SQSO-GND-002 Rev A; RID LV-04 closed); a third party is the contingency |
 | S+24 h | End of LEOP if the first command is executed and TX-OFF proven | Battery heater cycling (battery +4.9 to +20 °C on day 1) | 1.06 W average on day 1 | 91.9 % | Daily: ephemeris, health report, AMSAT-BB note |
 | S+36.7 h | `COMMISSIONING_RELEASE` by telecommand: IDLE → ACTIVE; the Jetson batches and the transponder start | + Jetson batches, transponder | | 92 % | Public announcement only after commissioning step C-7 |
 | S+48.8 h | First daily `DUMP_TLM` (the newest 48 five-minute records) | | | 92 % | Stored housekeeping received |
@@ -115,10 +116,10 @@ executed 28 of 28 (27 acknowledgements heard), with 144 dump frames (576 records
 |-----|---------------------------------------------------|-------------|------------------|--------|
 | 0–1 | C-1 acquisition, C-2 first command, C-3 TX-OFF proof | First 2–4 commanding passes | SOC ≈ 92 % from the end of day 0 | Ephemeris every pass and ≥ every 24 h until cataloged; identification by Doppler (SQSO-REG-015 §2) |
 | 1–3 | C-4 health and power characterization (orbit energy balance from the telemetry tail, HK1 and the daily `DUMP_TLM`) | 2 a day | Generation ≈ 2.5 Wh/orbit drawn against 2.25 Wh used (the regulator curtails the rest at full charge); depth of discharge ≤ 2.1 % per eclipse (35.4 min eclipse, β 19.6°) | Compare with the simulation's orbits.csv |
-| 2–4 | C-5 attitude: `ADCS_GET_ATTITUDE`, spin 8°/s, +Y within ≈ 4° of the Sun (mean 4.0°, BASELINE §8) | 2 a day | | |
+| 2–4 | C-5 attitude: HK1 `W` and `AM` (`GET_HOUSEKEEPING`), spin 8°/s; pointing loss ≤ 5 % of sunlit generation and the Sun within 30° of +Y for ≥ 95 % of sunlit time (ADCS-P002 as restated by decision C-23; predicted 2.0 % and 100 %, BASELINE Rev E §8); one wing: preset 0 until C-5.1 names the wing (decision C-21) | 2 a day | | |
 | 3–5 | C-6 beacon conformance (deviation, bandwidth, cadence, `SET_BEACON`, `SET_POWER`) | 2 a day | | Spectrum recorded at two stations |
 | 3–8 | C-7 commissioning release (`COMMISSIONING_RELEASE`) and transponder: first windows in commanded passes, then autonomous | 2 a day | Transponder keyed ≈ 38 min a day in the simulation (on 799 min a day; 96.9 % of demand served); duty 9.9 % | Public announcement only after C-7 passes |
-| 8–11 | C-8 payload (Jetson) batches and fallback | 2 a day | ≈ 0.036 Wh per accepted beacon | Filter sweep on the ground |
+| 8–11 | C-8 payload (Jetson) batches and fallback | 2 a day | ≈ 0.065 Wh per accepted beacon line (SIL G mean under assumed inputs; 0.090 Wh at a 30 % filter reject rate; SIL_MISSION_SIMULATION G §7) against ≤ 0.1 Wh (decision C-20) | Filter sweep on the ground |
 | From first contact | C-9 GNSS sessions (`GNSS_REQUEST`) and the operator ephemeris | Every pass | | Ephemeris after every pass until cataloged |
 | 11–13 | C-10 operations validation, contingency drill (`SAFE` and recovery) | 2 a day | | |
 | 14 | C-11 review; `SET_CONTACT_TIMEOUT` 14 days | 1 | SOC ≈ 92 % | Commissioning report |
@@ -133,7 +134,7 @@ when sunlit and SOC ≥ 55 %; beacon every 60 s (ACTIVE), 120 s (IDLE), 180 s (S
 once in each 14-day loss-of-contact period; ephemeris after every pass until cataloged, then by the plan of
 SQSO-REG-015. End of life at day 730 (minimum 12 months): final beacon, TX-OFF, permanent charge-path disconnect;
 re-entry no later than 5 years after the end of the mission (FCC; the 25-year figure of version 1.0 is withdrawn).
-The simulation's full two-year mission (Rev E defaults) passivates at day 730 at 444.9 km and re-enters 2.0 years later, 4.0 years after deployment; its decay model is faster than the ODAR estimator's (2.8–3.7 years after the mission from 475 km, ODAR Draft D §6.2), which governs.
+The simulation's full two-year mission (SIL G) passivates at day 730.1 and re-enters 2.55 years after the design life, 4.55 years after deployment (`docs/test/SIL_MISSION_SIMULATION.md` §7); its decay model is faster than the ODAR estimator's (2.8–3.7 years after the mission, 4.8–5.7 years after deployment from 475 km, ODAR Draft D §6.2), which governs.
 
 ## 8. Contingencies, checked
 
@@ -157,10 +158,10 @@ marks it FAILED and moves on; the ground can retry by `DEPLOY_RETRY` (0x50: 0 an
 
 | Case | Result |
 |------|--------|
-| AntS deferred by its temperature gate (eclipse separation after the 2 h dispenser cold soak, `--scenario ants_cold`; flight software round 3, fourth part) | The first antenna attempt at S+30 min finds the AntS below −17 °C (decision C-18) and waits one 50-minute slot; it deploys at S+80.7 min. The transmitters stay silent until then (decision C-19): first beacon S+81.2 min, no keying into the stowed elements (no VSWR stop), longest beacon gap afterwards 126 s. At worst (the AntS never warm enough, its 30 deferrals) the hold lasts until the attempt at the cap, about S+27 h; the receiver is on throughout, so `DEPLOY_RETRY` with the force flag deploys it at once |
+| AntS deferred by its temperature gate (eclipse separation after the 2 h dispenser cold soak, `--scenario ants_cold`; flight software round 3, fourth part) | The first antenna attempt at S+30 min finds the AntS below −17 °C (decision C-18) and waits one 50-minute slot; it deploys at S+80.7 min. The transmitters stay silent until then (decision C-19): first beacon S+81.2 min, no keying into the stowed elements (no VSWR stop), longest beacon gap afterwards 126 s. At worst (the AntS never warm enough, its 30 deferrals) it releases after 20 min of continuous sun at the cap, about S+25.8 h (SIL `ants_cap`: release S+1,548.7 min, first RF S+1,549.5 min); after 3 unreadable temperatures it follows the thermal analysis's schedule (SIL `ants_notemp`: release S+135.3 min; SRS-F165, RID P3F-G-02); the receiver is on throughout, so `DEPLOY_RETRY` with the force flag deploys it at once |
 | Wings not deployed | Commissioning completes; the AntS deploys after the wing attempts (S+3.0 h), and the first beacon waits for it (decision C-19: first RF S+3.0 h); lowest SOC 83.4 %; depth of discharge 2.8 % per eclipse; generation 445 Wh against 378 Wh used; no transponder service and one 729 s beacon gap (the simulation's checks: 2 anomalies, both expected for this case); lifetime on the wings-failed row of ODAR Draft D §6.2 (475 km: 5.7–6.1 yr nominal, inside the FCC rule; probability of this case 0.29 %) |
 | Wings not deployed and ADCS failed (tumbling), separation SOC 38 % | Power-positive (406 Wh against 333 Wh); lowest SOC 62.3 %; depth of discharge 3.0 %; never detumbles (expected) |
-| Antennas not deployed | Not simulated. The 2 m monopole stowed against the body radiates poorly; the link margin of ≈ +8 dB at 5° (SQSO-LBA-001 v3.2) would be lost on most passes, and the 70 cm uplink with it. `DEPLOY_RETRY` in sunlight is the recovery, if a command gets through |
+| Antennas not deployed | Not simulated. The 2 m monopole stowed against the body radiates poorly; the link margin of +7.9 dB at 5° (SQSO-LBA-001 v3.5, BASELINE Rev E §7) would be lost on most passes, and the 70 cm uplink with it. `DEPLOY_RETRY` in sunlight is the recovery, if a command gets through |
 
 ### 8.3 The first passes are missed
 
@@ -198,7 +199,7 @@ limits the reset to the first 30 min).
 |----|--------|
 | S+2 h | Nothing expected yet from the Bay Area in most cases; check SatNOGS and the AMSAT network |
 | First Bay Area pass ≥ 15° | Search ± 10 kHz around the downlink (Doppler ± 3.5 kHz at 145.9 MHz); update the elements from the SpaceX state vector and the 18th SDS candidates |
-| S+24 h | Assume low SOC (§8.4), a stowed antenna or an AntS still deferred by its temperature gate (decision C-19: silent until about S+27 h at worst); keep listening every pass; send `GET_HOUSEKEEPING` blind on each pass (the receiver is on in every mode once the 45-minute silence is over, the AntS hold included); `DEPLOY_RETRY` 0 with the force flag ends a deferral at once |
+| S+24 h | Assume low SOC (§8.4), a stowed antenna or an AntS still deferred by its temperature gate (decision C-19: silent until about S+25.8 h at worst); keep listening every pass; send `GET_HOUSEKEEPING` blind on each pass (the receiver is on in every mode once the 45-minute silence is over, the AntS hold included); `DEPLOY_RETRY` 0 with the force flag ends a deferral at once |
 | S+30 d | The loss-of-contact inhibit would stop the transmitter if no command was authenticated; it has no effect on a spacecraft that was never heard |
 
 ### 8.7 Unpowered clock
@@ -219,9 +220,9 @@ commissioning hold (LV-01), the I²C AntS sequence and `DEPLOY_RETRY` (LV-07), t
 
 | Step | Missing | RID |
 |------|---------|-----|
-| First contact + 24 h | The ground orbit determination from the GNSS fixes and the CCSDS OEM upload (the receiver session is commanded by `GNSS_REQUEST`, 0x60) | LV-04 |
-| LEOP passes | A second, geographically separated telecommand station (Santa Clara and Ames are 12 km apart) | LV-08 |
-| Storage | A measured battery-side drain and a defined integration SOC | LV-06 |
+| First contact + 24 h | The end-to-end ephemeris demonstration with the SpaceX and Space-Track test interfaces (VI-LV-13, by L-2 M); the ground orbit determination and the CCSDS OEM are implemented (`software/ground/tools/ephemeris_tool.py`, SQSO-GND-002 Rev A; RID LV-04 closed) | VI-LV-13 |
+| LEOP passes | A second, geographically separated telecommand station (Santa Clara and Ames are 13 km apart and count as one site; written agreements with ≥ 2 stations ≥ 1,000 km apart due 2027-01-05, BASELINE Rev E §1, `mission/SCHEDULE.md` DA-10) | LV-08 |
+| Storage | A measured battery-side drain (designed 7.8 µA typical, 13.8 µA worst; the integration SOC is defined: 60 % ± 5 %, BASELINE Rev E §4) | LV-06 |
 
 ## 10. Contact schedule
 
@@ -250,3 +251,4 @@ the simulation's 15° contact mask are conservative.
 | 2.4 | 2026-10-27 | CDR design (EPS board) | §3 shipped SoC aligned with SQSO-BSA-001 D §6 (≤ 30 % by air per the IATA 2026 guidance for PI 967; 60 % by road) |
 | 2.5 | 2026-10-27 | CDR round 3, launch and operations (finding P3A-07) | §8.1 deployment retries 50 min apart as coded (`RETRY_DELAY_MS`; was "60 s apart", all in one eclipse); §8.5 the RF silence latched after completion (LV-15; was "restarts after completion"); §8.6 `GET_HOUSEKEEPING` for the blind command; §8.7 the RV-3028 mission clock is fitted but unpowered in storage (the conclusion holds); §6 step numbers aligned with SQSO-COMM-001 2.1 (C-7 commissioning release, C-9 GNSS, C-10 validation, C-11 review); §5 S+45:00 row: the GNSS receiver unpowered before 45 min, the first GNSS session moving to ≥ 45 min (P3A-01, SYS-224 Rev G) |
 | 2.6 | 2026-10-27 | CDR flight software, round 3, fourth part (decision C-19) | §5 S+45:00 and §8.2: the first beacon waits for the AntS sequence's end (SRS-F167); the AntS-deferred case (`ants_cold`, first beacon S+81.2 min) and the wings-failed case (first beacon S+3.0 h); §8.3 the AntS hold at S+24 h |
+| 2.7 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): §8.2, §8.6 the C-18 cap case at S+25.8 h with the release after 20 min of sun and the unreadable-temperature path (P3F-G-02; was about S+27 h); §6 C-5 pointing criterion of decision C-23 and preset 0 (C-21) (was +Y within 4°); C-8 energy per accepted beacon 0.065 Wh (SIL G; was 0.036 Wh); §5 Monte Carlo capture 1.8 h from BASELINE §8 (was 1.2 h, 2.1 h from 50°/s); §2, §7 re-entry from SIL G (4.55 years after deployment; was 4.0) beside ODAR Draft D (4.8–5.7 years); §3 and §9 the designed storage drain and the defined integration SOC; §9 the stations 13 km apart and DA-10, the ground ephemeris chain implemented (LV-04 closed; only the VI-LV-13 demonstration open); §8.2 LBA v3.5 |

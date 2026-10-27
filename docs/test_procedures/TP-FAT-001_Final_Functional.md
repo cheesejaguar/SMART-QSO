@@ -2,11 +2,16 @@
 ## TP-FAT-001
 
 **Document Number:** SQSO-TP-FAT-001
-**Version:** 1.3
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.4
+**Date:** 2026-10-27
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** SYS-002, SYS-003, SYS-021, SYS-102, SYS-110, SYS-120, SYS-121, SYS-122, SYS-124, SYS-200, SYS-201, SYS-202, SYS-203, SYS-206, SYS-210, SYS-212, SYS-215, SYS-221, SYS-223, SYS-300, SYS-304, SYS-322, SYS-323, SYS-324, SYS-400, SYS-402, SYS-410, SYS-503, SYS-512
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -40,12 +45,12 @@ This procedure defines the final acceptance functional test performed on the fli
 
 | Equipment | Specification |
 |-----------|---------------|
-| Power supply | 0-12V, 5A |
+| Power supply | 4S pack simulator, 11.2–16.4 V, 5 A |
 | Power analyzer | DC, 0-30V, 0-5A |
 | Spectrum analyzer | 100 kHz - 3 GHz |
 | Signal generator | 100 kHz - 3 GHz |
 | RF power meter | 0.1 W - 10 W |
-| Battery cycler | 0-5V, 0-5A per channel |
+| Battery cycler | 0-20 V pack, 0-5 A |
 | Mass scale | 0-5 kg, 0.1 g resolution |
 | CG measurement fixture | 3-axis |
 | Development PC | Ground station software |
@@ -72,7 +77,7 @@ This procedure defines the final acceptance functional test performed on the fli
 | 1 | Visual inspection | No damage | |
 | 2 | Verify flight configuration | Per as-built list | |
 | 3 | Record ambient conditions | T, RH, P logged | |
-| 4 | Connect GSE power | 4.0V battery sim | |
+| 4 | Connect GSE power | Pack simulator at 14.4 V (4S, BASELINE §5) | |
 | 5 | Connect ground station | Serial link active | |
 | 6 | Connect RF to spectrum analyzer | Via 30dB attenuator | |
 
@@ -92,7 +97,7 @@ This procedure defines the final acceptance functional test performed on the fli
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
-| 1 | Verify all power rails | 3.3V, 5V within ±5% | |
+| 1 | Verify all power rails | 3V3_AO and 5V_PA within ±2 % (`docs/hardware/EPS_DESIGN.md` §4) | |
 | 2 | Verify battery telemetry | V, I, T correct | |
 | 3 | Command load switch toggle | Correct response | |
 | 4 | Verify solar array input | MPPT tracking | |
@@ -143,8 +148,8 @@ This procedure defines the final acceptance functional test performed on the fli
 | 3 | Verify Jetson boot complete | Status received | |
 | 4 | Request health status | Valid JSON | |
 | 5 | Request inference | Text generated | |
-| 6 | Verify beacon integration | AI text in beacon | |
-| 7 | Verify thermal status | < 70°C | |
+| 6 | Verify beacon integration | Template text from the OBC selector (flight baseline, D5); Jetson lines only if the gated experiment is enabled, and only after the OBC's content filter (`docs/BEACON_SPEC.md` §6) | |
+| 7 | Verify thermal status | Junction ≤ 95 °C (SYS-603) | |
 | 8 | Command Jetson shutdown | Clean shutdown | |
 | 9 | Command power off | < 1 mA standby | |
 
@@ -152,35 +157,36 @@ This procedure defines the final acceptance functional test performed on the fli
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
-| 1 | Measure TX power at 0.5W | 0.5W ±0.1W | |
+| 1 | Measure TX power at 0.5W | 27.0 ± 0.5 dBm (VI-RF-02) | |
 | 2 | Measure TX power at the maximum setting | ≤ 1.0 W (SYS-201) | |
-| 3 | Measure harmonics | 2nd < -40 dBc (SYS-203) and ≤ 25 µW (47 CFR 97.307(e): < -46 dBc at 1 W, `docs/BASELINE_PARAMETERS.md` §7) | |
-| 4 | Measure harmonics | 3rd as step 3; target < -60 dBc (`docs/BASELINE_PARAMETERS.md` §7) | |
-| 5 | Measure spurious | < -50 dBc | |
-| 6 | Measure antenna VSWR | < 2:1 | |
+| 3 | Measure harmonics | 2nd and 4th ≤ −46 dBc and ≤ 25 µW at 1 W (SYS-203; 47 CFR 97.307(e)) | |
+| 4 | Measure harmonics | 3rd ≤ −70 dBc at the antenna port (SYS-203 Rev G; `docs/BASELINE_PARAMETERS.md` §7) | |
+| 5 | Measure spurious | ≤ −46 dBc and ≤ 25 µW | |
+| 6 | Antennas stay stowed after the environmental tests (CDS §3.5.2): burn-resistor continuity, AntS stowed-state status and the antenna-port return loss into the stowed elements, compared with the pre-environmental record; the deployed VSWR (< 2:1, SYS-223) comes from the pre-vibration deployment test (TP-ENV-005, TP-RF-005) | Continuity within ± 10 % of the pre-test value; stowed; return loss unchanged within 1 dB | |
 | 7 | Compare to pre-env baseline | Within 10% | |
 
 ### 6.5 Battery Capacity Verification [SYS-110]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
-| 1 | Charge battery to 100% | 4.2V | |
+| 1 | Charge battery to the flight set point | 4.10 V/cell, 16.4 V (decision D8) | |
 | 2 | Discharge at C/5 | Monitor capacity | |
 | 3 | Measure capacity | > 3.0 Ah (or spec) | |
 | 4 | Compare to BOL | > 95% of original | |
-| 5 | Recharge for flight | 100% SOC | |
+| 5 | Recharge for storage | To the storage band; the final charge, 60 % ± 5 % SOC, is made at the integrator about 47 days before launch (`docs/BASELINE_PARAMETERS.md` §4) | |
 
 ### 6.6 Mass Properties Measurement [SYS-002, SYS-003]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
 | 1 | Measure total mass | Record value | |
-| 2 | Verify mass budget | ≤ 2.00 kg (SYS-002; CDS Rev 14.1) or the integrator's lower limit; compare with `docs/environment/MASS_BUDGET.md` | |
+| 2 | Verify mass budget | ≤ 2.00 kg (SYS-002; CDS Rev 14.1) and within the dispenser limit (EXOpod Nova 1U 2.5 kg); compare with `docs/environment/MASS_BUDGET.md` (CBE 1,520 g, MEV 1,755 g) | |
 | 3 | Measure CG (X axis) | Record value | |
 | 4 | Measure CG (Y axis) | Record value | |
 | 5 | Measure CG (Z axis) | Record value | |
 | 6 | Verify CG within 2 cm | Per CDS Rev 14.1 | |
 | 7 | Compare to pre-env | Within tolerance | |
+| 8 | Measure the moments and products of inertia (spin-balance) | Deployed ratio − 0.010 ≥ 1.03, measured tilt ≤ 2.4° (ETP §3.7; VI-MCAD-03); ballast trimmed from the measured tensor | |
 
 ### 6.7 Configuration Verification [SYS-212, SYS-221]
 
@@ -192,7 +198,7 @@ This procedure defines the final acceptance functional test performed on the fli
 | 4 | Verify beacon text | Correct format | |
 | 5 | Verify ADCS parameters | Per mission config | |
 | 6 | Verify power thresholds | Per mission config | |
-| 7 | Verify deployment timer | T+30 min | |
+| 7 | Verify deployment timer and RF silence | 30 min to deployment, 45 min RF silence, armed (`arm-flight`, TP-FAT-002 §6.7) | |
 | 8 | Generate config hash | Record for reference | |
 
 ---
@@ -202,15 +208,15 @@ This procedure defines the final acceptance functional test performed on the fli
 | Criterion | Requirement |
 |-----------|-------------|
 | Boot | < 30 seconds, no faults |
-| Power rails | ±5% of nominal |
+| Power rails | ±2 % of nominal (EPS_DESIGN §4) |
 | TX frequency | The IARU-coordinated downlink frequency ±2 kHz (TBD until coordination, TBD-SYS-001; SYS-200, SYS-206) |
 | TX power | 0.5 W ±0.1 W nominal; ≤ 1.0 W at the maximum setting (SYS-201) |
-| Harmonics | < -40 dBc (SYS-203) and ≤ 25 µW (47 CFR 97.307(e)) |
+| Harmonics | ≤ −46 dBc and ≤ 25 µW at 1 W; third ≤ −70 dBc (SYS-203) |
 | All sensors | Valid readings |
 | All actuators | Correct response |
-| Jetson inference | Valid text output |
-| Battery capacity | > 95% of BOL |
-| Mass | ≤ 2.00 kg (SYS-002), or the integrator's lower limit |
+| Jetson inference | Valid text output that passes the BEACON_SPEC §6 filter (SYS-513) |
+| Battery capacity | > 95% of BOL, measured at the 4.10 V/cell set point |
+| Mass | ≤ 2.00 kg (SYS-002) and the dispenser limit |
 | CG offset | < 2 cm from center |
 | Configuration | Matches flight baseline |
 
@@ -247,3 +253,4 @@ This procedure defines the final acceptance functional test performed on the fli
 | 1.1 | 2026-10-16 | Mass limit 2.00 kg (SYS-002, CDS Rev 14.1) replaces 1.33 kg, the CDS Rev 13 value (TB-06) |
 | 1.2 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
 | 1.3 | 2026-10-16 | Conflicting steps corrected and cited: TX frequency the IARU-coordinated downlink frequency (SYS-200, TBD-SYS-001), not 145.825 MHz; TX power 0.5 W nominal and ≤ 1 W maximum (SYS-201), replacing the 2.0 W high mode; harmonics < -40 dBc (SYS-203) and ≤ 25 µW (47 CFR 97.307(e)), replacing -30 dBc; callsign KK6GDB-11 (BASELINE §1), replacing N0CALL. The note on §6.6 was stale (2.00 kg since 1.1) (finding VV-06) |
+| 1.4 | 2026-10-27 | Documentation audit (post-CDR 2026): 4S GSE, charge 4.10 V/cell, storage SOC (final 60 % ± 5 % at the integrator), no post-environment antenna deployment, harmonics per SYS-203, inertia measurement, template beacon baseline; status and banner |

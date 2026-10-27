@@ -6,17 +6,17 @@
 // Blue = bus, dashed green = discrete out, orange = discrete in, brown = analog in.
 digraph B3 {
   graph [rankdir=LR, fontname="Helvetica", fontsize=12, nodesep=0.12, ranksep=0.9,
-         label="B3  OBC data and control interfaces   (SQSO-HW-DIAG-001 Rev B; pins per SQSO-ICX-001 §4)\nblue bus · green discrete out · orange discrete in · brown analog in",
+         label="B3  OBC data and control interfaces   (SQSO-HW-DIAG-001 Rev E; pins per SQSO-ICX-001 D §4)\nblue bus · green discrete out · orange discrete in · brown analog in",
          labelloc=t, labeljust=l];
   node  [shape=box, style="rounded,filled", fillcolor="#f5f5f5", fontname="Helvetica", fontsize=10];
   edge  [arrowsize=0.7, penwidth=1.3];
 
   MCU [shape=plain, label=<
 <table border="2" cellborder="1" cellspacing="0" cellpadding="3" bgcolor="#e3f2fd" color="#1565c0">
- <tr><td colspan="2" bgcolor="#bbdefb"><b>OBC  STM32L4R5ZIT6</b> (LQFP144) · 80 MHz from an 8 MHz XO · 2 MB flash · 640 KB SRAM<br/>IWDG 30 s · LSE 32.768 kHz · TPS3850 window watchdog on NRST · Rust / Embassy</td></tr>
- <tr><td port="swd_i">SWD PA13 · PA14 · NRST</td><td port="spi1">SPI1 20 MHz  PG2 SCK · PG3 MISO · PG4 MOSI · CS# PG5 · WP# PE0 · HOLD# PE1</td></tr>
+ <tr><td colspan="2" bgcolor="#bbdefb"><b>OBC  STM32L4R5ZIT6</b> (LQFP144) · 80 MHz from an 8 MHz XO · 2 MB flash · 640 KB SRAM<br/>IWDG 24.1–27.8 s · LSE 32.768 kHz · TPS3850 window watchdog on NRST · Rust / Embassy</td></tr>
+ <tr><td port="swd_i">SWD PA13 · PA14 · NRST</td><td port="spi1">SPI1 20 MHz  PG2 SCK · PG3 MISO · PG4 MOSI · CS# PG5 (U3) · PD7 (U36) · WP# PE0 · HOLD# PE1</td></tr>
  <tr><td port="gse_i">UMBILICAL_SENSE PB8</td><td port="usart3">USART3 115200  PD8 TX · PD9 RX (console, key load)</td></tr>
- <tr><td port="afe_i">ADC1  VBATT PC2 · IBATT PC3 · VSOLAR PC4 · ISOLAR PC5<br/>VBUS PB0 · VJET_RB PA7 · VSW1_RB PA1 · TEMP_BOARD PB1</td><td port="i2c2">I2C2  PF1 SCL · PF0 SDA</td></tr>
+ <tr><td port="afe_i">ADC1  VBATT PC2 · IBATT PC3 · VSOLAR PC4 · ISOLAR PC5<br/>VBUS PB0 · VJET_RB PA7 · VSW1_RB PA1 · TEMP_BOARD PB1</td><td port="i2c2">I2C2 100 kHz  PF1 SCL · PF0 SDA</td></tr>
  <tr><td port="alert_i">EPS_ALERT_N PB7</td><td port="en">PAYLOAD_EN PB2 · RADIO_EN PB5 · ADCS_EN PB6 · HEATER_EN PD2<br/>DEPLOY_EN PF3 · GNSS_EN PE5 · JETSON_PWR PA2 · LOCK_CLR PF5</td></tr>
  <tr><td port="dep_i">DEPLOY_SENSE PE2</td><td port="usart2">USART2 9600  PD5 TX · PD6 RX (KISS)</td></tr>
  <tr><td port="txm_i">ADC1  TX_TEMP PA0 · TX_FWD PC0 · TX_REV PC1</td><td port="txctl">RF_TX_EN PA3 · TX_PWR_SEL PE3 · XPDR_EN PE4 (TIM7 heartbeat)</td></tr>
@@ -25,9 +25,10 @@ digraph B3 {
  <tr><td port="jpg_i">JET_PG PG6 · GNSS_PG PG15</td><td port="usart1">USART1 115200  PA9 TX · PA10 RX</td></tr>
  <tr><td port="mtqi_i">ADC1  MTQ_X/Y/Z_I PA4 · PA5 · PA6</td><td port="i2c4">I2C4  PD12 SCL · PD13 SDA · MAG_DRDY PD11</td></tr>
  <tr><td port="mtqf_i">MTQ_FAULT_N PE14 · MTQ_EXPIRED PE15</td><td port="pwm">TIM1 PWM PE9 · PE11 · PE13 · PH PE8 · PE10 · PE12 · MTQ_ARM PF9 (TIM15)</td></tr>
- <tr><td port="snsrb_i">GYRO_RB PF10 · IMU2_RB PF11 · SNS_RB PF12</td><td port="sns">GYRO_EN PF6 · IMU2_EN PF7 · SNS_EN PF8</td></tr>
- <tr><td port="pps_i">GNSS 1PPS PC6 (TIM3) · RTC 1 Hz PC8</td><td port="lpuart">LPUART1 9600  PG7 TX · PG8 RX</td></tr>
+ <tr><td port="snsrb_i">GYRO_RB PF10 · IMU2_RB PF11 · SNS_RB PF12 · MAG_RB PF15</td><td port="sns">GYRO_EN PF6 · IMU2_EN PF7 · SNS_EN PF8 · MAG_EN PF14</td></tr>
+ <tr><td port="pps_i">GNSS 1PPS PC6 (TIM3) · RTC 1 Hz PC8</td><td port="lpuart">LPUART1 9600  PB11 TX · PG8 RX</td></tr>
  <tr><td> </td><td port="i2c1">I2C1  PG14 SCL · PG13 SDA</td></tr>
+ <tr><td> </td><td port="i2c3">I2C3 100 kHz  PG7 SCL · PB4 SDA (AntS only)</td></tr>
  <tr><td> </td><td port="burn">BURN_W1A PB10 · BURN_W1B PE6 · BURN_W2A PB9 · BURN_W2B PE7 · EOL_ARM PF4 · EOL_FIRE PG1</td></tr>
  <tr><td> </td><td port="wdi">WDI PG11 · LED_STATUS PD3</td></tr>
 </table>>];
@@ -61,19 +62,20 @@ digraph B3 {
   PPS   -> MCU:pps_i   [color="#ef6c00"];
 
   // ---- outputs and buses (right)
-  FRAM  [label="OBC  FM25V20A FRAM, 2 Mbit", fillcolor="#e3f2fd"];
+  FRAM  [label="OBC  two FM25V20A FRAMs, 2 Mbit\nU3 and its mirror U36 (every record mirrored)", fillcolor="#e3f2fd"];
   GSE2  [label="GSE umbilical (console)", shape=note, fillcolor="#eeeeee"];
   EPSC  [label="EPS  controller MSP430FR2355  0x48", fillcolor="#ffebee"];
-  INA   [label="EPS  INA228 pack gauge 0x44 · array 0x40\nAntS 0x31 (behind TCA9517); no OBC device on I2C2", fillcolor="#ffebee"];
+  INA   [label="EPS  INA228 pack gauge 0x44 · array 0x40\nno OBC device and no AntS on I2C2", fillcolor="#ffebee"];
+  ANTS  [label="ISIS AntS  side A 0x31 · side B 0x32\nbehind EPS U80 TCA9517 (own bus, SMA-B07)", fillcolor="#f3e5f5"];
   LSW   [label="EPS  load switches SW1-SW8, SW11, eFuse U19\n(100 kΩ pull-downs: off at OBC reset)", fillcolor="#ffebee"];
   TNC   [label="RF board  KISS TNC STM32L431, full duplex", fillcolor="#f3e5f5"];
   TXC   [label="RF board  PA rail (EPS SW3), power select,\nrepeat-path heartbeat", fillcolor="#f3e5f5"];
   IMU2  [label="OBC  BMI088 backup gyro (cold spare)", fillcolor="#e0f7fa"];
   GYR   [label="OBC  Epson M-G370PDT0 gyro (socket X1)", fillcolor="#e0f7fa"];
   JET   [label="Payload  Jetson carrier\nSN74LVC1T45 translators (no back-power)", fillcolor="#e8f5e9"];
-  MAG   [label="OBC  RM3100 magnetometer 0x20\nADS7138 sun-sensor ADC 0x10", fillcolor="#e0f7fa"];
+  MAG   [label="I2C4 segments: U14 TCA9517 to ADS7138 sun-sensor ADC 0x10 (3V3_SNS)\nU34 TCA9517 to RM3100 magnetometer 0x20 on board A2 (3V3_MAG)", fillcolor="#e0f7fa"];
   MTQ   [label="OBC  3 × DRV8876-Q1, CR0002 rods\n900 ms burst, hardware off-timer", fillcolor="#e0f7fa"];
-  SNS   [label="OBC  sensor-rail switches U5-U7\n50-100 mA latch-up trips", fillcolor="#e0f7fa"];
+  SNS   [label="OBC  sensor-rail switches U5-U7, magnetometer U35\n50-100 mA latch-up trips", fillcolor="#e0f7fa"];
   GNSS  [label="GNSS  piNAV-NG/FM (D6)\nthrough translators on 3V3_GNSS", fillcolor="#fffde7"];
   RTC   [label="OBC  RV-3028-C7 mission clock 0x52\non 3V3_RTC (always on)", fillcolor="#e3f2fd"];
   BURN  [label="EPS  four burn drivers (one per resistor)\nEOL fuse F1 arm and fire", fillcolor="#efebe9"];
@@ -94,6 +96,7 @@ digraph B3 {
   MCU:sns    -> SNS  [color="#2e7d32", style=dashed];
   MCU:lpuart -> GNSS [color="#1565c0", dir=both];
   MCU:i2c1   -> RTC  [color="#1565c0", dir=both];
+  MCU:i2c3   -> ANTS [color="#1565c0", dir=both];
   MCU:burn   -> BURN [color="#2e7d32", style=dashed];
   MCU:wdi    -> WDI  [color="#2e7d32", style=dashed];
 }

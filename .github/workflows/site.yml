@@ -1,0 +1,92 @@
+###############################################################################
+# SMART-QSO public website (https://cheesejaguar.github.io/SMART-QSO/)
+#
+# site/build.py (Python standard library only) reads the repository documents
+# and writes the static site to site/_build. On a push to main, or on a manual
+# run, the build replaces the contents of the gh-pages branch, which GitHub
+# Pages serves. On a pull request it only builds, so a document change that
+# breaks the site (a table the build reads, a phrase a page cites) is caught in
+# review; nothing is published from a pull request.
+###############################################################################
+
+name: Website
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'site/**'
+      - 'docs/**'
+      - 'mission/**'
+      - 'hardware/mechanical/**'
+      - '.github/workflows/site.yml'
+  pull_request:
+    paths:
+      - 'site/**'
+      - 'docs/**'
+      - 'mission/**'
+      - 'hardware/mechanical/**'
+      - '.github/workflows/site.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build the site
+    runs-on: ubuntu-24.04   # pinned
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+        with:
+          persist-credentials: false
+
+      - name: Build
+        run: python3 site/build.py --out site/_build
+
+  publish:
+    name: Publish to gh-pages
+    needs: build
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
+    runs-on: ubuntu-24.04   # pinned
+    permissions:
+      contents: write
+    concurrency:
+      group: site-publish
+      cancel-in-progress: false
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683  # v4.2.2
+
+      - name: Build
+        run: python3 site/build.py --out "$RUNNER_TEMP/site"
+
+      - name: Replace the gh-pages contents and push
+        env:
+          SITE: ${{ runner.temp }}/site
+          PAGES_DIR: ${{ runner.temp }}/gh-pages
+        run: |
+          set -euo pipefail
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git ls-remote --exit-code --heads origin gh-pages >/dev/null; then
+            git fetch --no-tags --depth=1 origin gh-pages
+            git worktree add --detach "$PAGES_DIR" FETCH_HEAD
+          else
+            git worktree add --detach "$PAGES_DIR"
+            git -C "$PAGES_DIR" checkout --orphan gh-pages
+          fi
+          cd "$PAGES_DIR"
+          # Replace everything except the worktree's .git file
+          git rm -rqf --ignore-unmatch .
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp -a "$SITE/." .
+          touch .nojekyll
+          git add -A
+          if git diff --cached --quiet; then
+            echo "The site is unchanged; nothing to publish."
+            exit 0
+          fi
+          git commit -q -m "Publish the website from ${GITHUB_SHA}"
+          git push origin HEAD:refs/heads/gh-pages

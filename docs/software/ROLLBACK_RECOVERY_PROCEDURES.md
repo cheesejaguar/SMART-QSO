@@ -1,10 +1,10 @@
 # SMART-QSO Rollback and Recovery Procedures
 
 **Document ID**: SQSO-RRP-001
-**Version**: 1.2
-**Date**: 2026-10-24
+**Version**: 1.4
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Draft (plan; no independent CDR has been held, `docs/BASELINE_PARAMETERS.md` §1)
 
 ## 1. Purpose
 
@@ -16,13 +16,16 @@ boot pointer, and the `CMD_SW_UPLOAD_*` commands of §5.3 are not in the command
 (`software/flight/command_dictionary.json`). The partition scheme, update flow and image rollback in §2 and §5 are
 therefore plans. The recovery that the software provides today:
 
-- the hardware watchdog (IWDG, 30 s), refreshed only while every main-loop stage checks in
-  (`software/flight/docs/RTOS_ARCHITECTURE.md` §8), with state saved before a stall reset;
+- the hardware watchdog (IWDG, 25.6 s: `WDT_HW_TIMEOUT_MS`, reload 3200, 24.1–27.8 s), started at reset and refreshed
+  only at the TPS3850 supervisor's WDI falling edges, every 10 s while every main-loop stage checks in (SRS-F050,
+  SRS-F146; `software/flight/docs/RTOS_ARCHITECTURE.md` §8), with state saved before a stall reset; the supervisor
+  (minimum 29.3 s, `hardware/obc/OBC_DESIGN.md`) resets the OBC if the IWDG fails;
 - safe mode and the mode manager's recovery events (`software/rust/sqso-fsw/src/mode.rs`);
 - records that survive resets and power loss: two-slot NVM records with CRC-32 for the TX-OFF latch, keys and replay
   counters, contact, RF-silence and deployment state, and CRC-checked blobs for the fault log, mission data, EPS state
   and system state (`software/flight/docs/MEMORY_POLICY.md` §8);
-- the RESET telecommand.
+- the RESET telecommand, which is only logged until a hardware reset path exists (command dictionary);
+- `PLD_DISABLE` (Jetson off; the OBC sends its template beacons) and `PLD_ENABLE`, the only payload commands.
 
 ## 2. Rollback Architecture
 
@@ -115,6 +118,8 @@ Power On
 
 ### 3.1 Watchdog Recovery
 
+Revision 1.0 values (plan). As built, the only watchdog is the 25.6 s IWDG with the 10 s supervisor kick (§1).
+
 | Condition | Timeout | Action |
 |-----------|---------|--------|
 | Task hang | 5 seconds | System reset |
@@ -201,9 +206,9 @@ If both primary and golden images are corrupt:
 
 | Check | Criterion | Verification |
 |-------|-----------|--------------|
-| Battery SOC | ≥60% | Telemetry |
+| Battery SOC | ≥60% (above the 55 % ACTIVE threshold, BASELINE §5) | Telemetry |
 | Thermal | Within limits | Telemetry |
-| Link margin | ≥3 dB predicted for the pass, uplink and downlink | `docs/environment/LINK_BUDGET_ANALYSIS.md` v2.0: telecommand +4.7 dB at 5° in 92 % of orientations (§4.5); beacon +7.7 dB at 5° (§3.5); analysis |
+| Link margin | ≥3 dB predicted for the pass, uplink and downlink | `docs/environment/LINK_BUDGET_ANALYSIS.md` v3.5 (BASELINE §7): telecommand at ≥ 64 dBm EIRP ≥ +8.4 dB at 10° and ≥ +6.6 dB at 5° (both station variants' minimums); beacon +7.9 dB at 5° (median spacecraft gain), +0.9 dB at the 10th percentile; analysis |
 | Pass duration | ≥10 min | Orbit prediction |
 | Backup verified | CRC match | Ground command |
 
@@ -298,6 +303,8 @@ Update fails at any stage
 
 ### 6.2 Payload Rollback
 
+Plan. Of the commands below only `PLD_DISABLE` (and `PLD_ENABLE`) exist (`software/flight/command_dictionary.json`).
+
 | Command | Action |
 |---------|--------|
 | CMD_PL_RESET | Restart Jetson |
@@ -306,6 +313,10 @@ Update fails at any stage
 | CMD_PL_UPDATE | Stage new payload SW |
 
 ### 6.3 Model Update/Rollback
+
+Not in the flight baseline: community model updates are ground-side research only, no upload path exists on board,
+and any future upload would be data only, adopted solely by authenticated telecommand from a designated station
+(`docs/BASELINE_PARAMETERS.md` §2; 47 CFR 97.211). The table is the Revision 1.0 idea, kept for that decision.
 
 | Command | Action |
 |---------|--------|
@@ -451,3 +462,5 @@ RECOVERY OPERATIONS CHECKLIST
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
 | 1.1 | 2026-10-16 | SMART-QSO Team | §5.1 link-margin check cites LINK_BUDGET_ANALYSIS v2.0 for the predicted margins (finding TB-05) |
 | 1.2 | 2026-10-24 | SMART-QSO Team | §1 note: what recovery the Rust flight software provides; no bootloader, golden image or upload commands exist, so §2 and §5 are plans |
+| 1.3 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): status Draft (no CDR held); §1 watchdog 25.6 s with the supervisor kick, RESET only logged, the payload commands; §3.1 and §6.2 marked as plans; §6.3 model updates not in the baseline; §5.1 link margins from LBA v3.5 |
+| 1.4 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026), follow-up: link-margin row telecommand ≥ +8.4 / ≥ +6.6 dB at 10° / 5° at both station variants' minimums (BASELINE §7; were +8.0 / +6.2 dB) |

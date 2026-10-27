@@ -2,7 +2,7 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-SVD-001
-**Revision:** D
+**Revision:** E
 **Date:** 2026-10-27
 **Reference:** NPR 7150.2 §3.6
 **Supersedes:** `docs/reviews/SOFTWARE_VERSION_DESCRIPTION.md`, which also carried SQSO-SVD-001 and is merged here (finding PI-17)
@@ -74,10 +74,10 @@ the current source, and `software/rust/README.md` maps every former C file to it
 | test_eps | test_eps.c | 12 | EPS control |
 | test_crc32 | test_crc32.c | 5 | CRC validation |
 
-The table above is the 0.2.0 skeleton (history; `test_main.c` was removed on 2026-10-16). On 2026-10-25 there are 45
-CMocka suites with 695 cases, and 49 ctest entries with `no_dynamic_memory`, `Simulation_Run`, the two `Executive_Jetson`
-runs and the two `Downlink_TNC` runs, in `software/flight/tests`. They run
-against the Rust. There are also 358 Rust unit tests (`sqso-protocol` 79, `sqso-fsw` 263, `sqso-ffi` 16) and 12 fuzz targets.
+The table above is the 0.2.0 skeleton (history; `test_main.c` was removed on 2026-10-16). On 2026-10-27 there are 52
+CMocka suites with 758 cases, and 56 ctest entries with `no_dynamic_memory`, `Simulation_Run`, the two `Executive_Jetson`
+runs and the two `Downlink_TNC` runs, in `software/flight/tests` (`software/flight/tests/README.md`). They run
+against the Rust. There are also 624 Rust `#[test]` functions in the workspace (358 on 2026-10-24) and 12 fuzz targets.
 
 ### 3.3 Configuration Files
 
@@ -87,6 +87,7 @@ against the Rust. There are also 358 Rust unit tests (`sqso-protocol` 79, `sqso-
 | .clang-tidy | Static analysis rules |
 | .clang-format | Code formatting |
 | .cppcheck | Cppcheck configuration |
+| `software/rust/Cargo.toml`, `Cargo.lock`, `rust-toolchain.toml`, `clippy.toml`, `rustfmt.toml` (and the firmware's own) | Rust workspace, pinned toolchain and lints |
 
 ### 3.5 Flight Software Source (Rust, 2026-10-24)
 
@@ -117,7 +118,7 @@ against the Rust. There are also 358 Rust unit tests (`sqso-protocol` 79, `sqso-
 |------|---------|---------|
 | Rust toolchain | 1.97.0 (`software/rust/rust-toolchain.toml`); minimum 1.88 | Flight software compiler (host and `thumbv7em-none-eabihf`), clippy, rustfmt, llvm-tools |
 | GCC | 12.x | C compiler (host only: the C test suites and the flight-log shim) |
-| CMake | 3.20+ | Build system (drives cargo through `software/flight/cmake/rust.cmake`) |
+| CMake | 3.16+ (`cmake_minimum_required` in `software/flight/CMakeLists.txt`) | Build system (drives cargo through `software/flight/cmake/rust.cmake`) |
 | clang-tidy | 18.x (CI: 18.1.3) | Static analysis (remaining C) |
 | cppcheck | 2.13 (CI: 2.13.0) | Static analysis and MISRA addon (remaining C) |
 
@@ -184,7 +185,7 @@ Versions are those of `software/rust/Cargo.lock` and `software/rust/firmware/Car
 
 As built (2026-10-24): the STM32L4R5ZI peripherals are driven through embassy-stm32 0.6. The non-volatile memory is an
 FM25V20A FRAM on SPI1 (`software/rust/firmware/src/fram.rs`), and the telecommand receiver is a TNC on USART2 (KISS).
-The ADCS sensors and actuators have no drivers yet (`docs/reviews/KNOWN_ISSUES.md` KI-001).
+The magnetorquers are driven through `hal_mtq.h`, and drivers for the gyros, magnetometer, sun-sensor ADC, clock and current monitors exist (register-level mocks only); the ADCS still reads a simulated field and sun vector (`docs/reviews/KNOWN_ISSUES.md` KI-001; `software/rust/README.md`, Next steps). Nothing has run on hardware.
 
 ## 6. Verification Status
 
@@ -240,11 +241,11 @@ coverage of the Rust crates is 81.1 % (gate 80 %), and each safety-critical file
 | Limitation | Impact | Mitigation |
 |------------|--------|------------|
 | Simulation only | Not flight-ready | Hardware integration TBD |
-| No RTOS (FreeRTOS was never integrated and is not planned) | One Embassy task; interrupts only for the UARTs and the time driver | By design; the baseline since 2026-10-25 (BASELINE §6, CR-2026-002; `software/flight/docs/RTOS_ARCHITECTURE.md`) |
-| Firmware not run on hardware | Pin map provisional; timing and power not measured; stack bounded by analysis only (5,444 B of 8 KB) | Hardware bring-up (`software/rust/README.md`, Next steps) |
+| No RTOS (FreeRTOS was never integrated and is not planned) | One Embassy task; interrupts only for the UARTs, the time driver, the `XPDR_EN` heartbeat timer and the NMI (`software/flight/docs/RTOS_ARCHITECTURE.md` §5) | By design; the baseline since 2026-10-25 (BASELINE §6, CR-2026-002; `software/flight/docs/RTOS_ARCHITECTURE.md`) |
+| Firmware not run on hardware | Pin map provisional; timing and power not measured; stack bounded by analysis only (5,812 B of 8 KB, 2026-10-27; `software/flight/docs/MEMORY_POLICY.md` §6.2) | Hardware bring-up (`software/rust/README.md`, Next steps) |
 | Beacon interval | 60 s ACTIVE, 120 s IDLE, 180 s SAFE (BASELINE §8) | Operating constraint |
 | Beacon text | At most 176 characters (`docs/BEACON_SPEC.md`) | Operating constraint |
-| Hardware watchdog | 30 s timeout (`WDT_HW_TIMEOUT_MS`) | Operating constraint |
+| Hardware watchdog | 25.6 s timeout (`WDT_HW_TIMEOUT_MS`; 24.1–27.8 s), refreshed at the supervisor's WDI edges every 10 s | Operating constraint |
 | Jetson duty | ≤ 5 % tumbling, ≤ 10 % sun-pointed; sunlit and SOC ≥ 55 % only (BASELINE §5, §6) | Power constraint |
 
 ### 7.3 Content Not Carried from the Superseded SVD
@@ -253,7 +254,7 @@ coverage of the Rust crates is 81.1 % (gate 80 %), and each safety-critical file
 |---------------------------------------------------------|--------|
 | Version 1.0.0 and Git tag `v1.0.0-cdr` | No such tag exists; the code says 0.2.0-dev |
 | Flash and RAM memory map (1 MB / 256 KB) | Does not match the baseline OBC, STM32L4R5ZI (BASELINE §6); see SQSO-FSW-006 (`software/flight/docs/MEMORY_POLICY.md`) |
-| "5-second hardware watchdog", "200-byte beacon limit", "fixed 60-second beacon" | Conflict with the 30 s watchdog, the 176-character text limit and the per-mode beacon intervals above |
+| "5-second hardware watchdog", "200-byte beacon limit", "fixed 60-second beacon" | Conflict with the 25.6 s watchdog, the 176-character text limit and the per-mode beacon intervals above |
 | CDR memory and CPU estimates; 78 of 90 requirements verified; unit-test totals | No analysis or test report in the repository supports them |
 | FreeRTOS 10.5.1 in the build environment | No RTOS is integrated (§7.2) |
 | "No deviations" | MISRA deviations are logged in SQSO-FSW-010 (`software/flight/docs/MISRA_DEVIATIONS.md`) |
@@ -281,6 +282,10 @@ deliberate changes numbered in `software/rust/README.md`. The STM32L4R5ZI image 
 | SRS-003 | Complete | test_sensors |
 | SRS-004 | Complete | test_beacon |
 | SRS-005 | Complete | test_adcs |
+
+History (0.2.0): the IDs SRS-001 to SRS-005 do not exist in `docs/software/SOFTWARE_REQUIREMENTS.md`. Requirement
+status and the tests that verify each requirement are in the RTM (`docs/verification/RTM.csv`, generated by
+`scripts/gen_rtm.py`).
 
 ## 9. Installation
 
@@ -375,4 +380,5 @@ software/flight/
 | B | 2026-10-16 | Merged with `docs/reviews/SOFTWARE_VERSION_DESCRIPTION.md`, which carried the same number (finding PI-17): payload and ground identification, build environment and limitations added; Git tag corrected to none; unsupported test counts and open-issue claim removed; §7.3 lists what was not carried and why | SMART-QSO Team |
 | C | 2026-10-24 | The flight software is Rust: §3.5 current source by crate; tests, tools, Rust release profile, runtime dependencies with versions, hardware drivers, static-analysis baselines, measured line coverage, limitations, change summary and deployment updated. Skeleton tables kept as history | SMART-QSO Team |
 | D | 2026-10-27 | Stack worst case 5,444 B (was 5,004 B) after the CDR flight-software changes | SMART-QSO Team (CDR avionics review) |
+| E | 2026-10-27 | Documentation audit (post-CDR 2026): §3.2 test counts (52 suites, 758 cases, 56 ctest entries, 624 Rust tests); §3.3 Rust configuration files; §4.1 CMake 3.16+; §5.2 ADCS drivers; §7.2 interrupts, stack 5,812 B and the 25.6 s watchdog; §8.2 marked as history | SMART-QSO Team |
 | C, note | 2026-10-25 | §7.2: no RTOS (Embassy executor) is the baseline (BASELINE §6, CR-2026-002) | SMART-QSO Team |

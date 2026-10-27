@@ -1,7 +1,7 @@
 # SMART-QSO Hardware Readiness Tracker
 
 **Document ID**: SQSO-HRT-001
-**Version**: 2.1
+**Version**: 2.2
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Live tracker. **No hardware has been ordered, received, built or tested.** Version 1.0 was labelled "CDR
@@ -19,7 +19,7 @@ and at least every 30 days.
 |-------|--------|-----------------------|----------------|
 | Design documentation | Build-to designs of every custom board: schematic captured as code with selected parts, KiCad netlist, BOM with stresses and ERC (SQSO-EPS-BRD-001, SQSO-OBC-BRD-001, SQSO-RF-BRD-001, SQSO-JET-BRD-001, SQSO-ICX-001); mechanical CAD and FE model (SQSO-MECH-CAD-001, `docs/environment/STRUCTURAL_ANALYSIS.md`); harness design (SQSO-HAR-001) | Complete 2026-10-27 | No PCB layout |
 | EM schematic capture | **Complete** (schematic as code, ERC clean; master pin allocation SQSO-ICX-001) | — | — |
-| PDR | Not held; board to be named by 2026-12-01 (DA-03) | 2027-01-12 | This review's RIDs; the PDR board |
+| PDR | Not held; board to be named by 2026-12-01 (DA-03) | 2027-01-12 | The PDR board (the CDR 2026 design review's RIDs are all dispositioned, SQSO-REV-CDR-002 §7.1) |
 | EM procurement | Not started; no RFQ sent | 2027-01-15 to 2027-04-09 | **EM funding** (assumed 2027-01-15; 2027-03-15 costs 0.2 weeks of the GOLD margin); PDR; procurement data reviews by 2027-01-15 (DA-18) |
 | EM layout and boards | Not started; no layout designer engaged | Layout 2027-01-12 to 2027-04-27 (two designers, DA-04); boards 2027-04-27 to 2027-06-01 | Layout designers; VI-RFB-12 (2026-11-13); NVIDIA guides before the carrier layout (DA-19) |
 | EM integration and tests | Not started | 2027-06-01 to 2027-09-21 (≥ 500 h on the EM boards, VI-11) | EM hardware; facilities |
@@ -82,12 +82,12 @@ Status of the documents a build needs, as they are, not as version 1.0 claimed (
 
 | Document | Status |
 |----------|--------|
-| Requirements (MRD, system) | MRD Rev F, SYS Rev G (proposed: CR-2026-009, CR-2026-010; PI decision by 2027-01-12); seven wordings await the PI (DA-20) |
-| Software requirements, design, test plan | Exist; Appendix C mapping of NPR 7150.2D missing |
+| Requirements (MRD, system) | MRD Rev G, SYS Rev H (proposed: CR-2026-009, CR-2026-010, CR-2026-018, CR-2026-019; PI decision by 2027-01-12); seven wordings await the PI (DA-20) |
+| Software requirements, design, test plan | Exist; NPR 7150.2D Appendix C mapping drafted (SQSO-FSW-012, `docs/software/NPR7150_COMPLIANCE_MATRIX.md`) |
 | ICDs | Internal ICDs exist; the integrator ICD awaits the contract |
 | Test procedures | 42 procedures; environmental levels corrected (TP-ENV-002 Rev E, TP-ENV-003 Rev D, TP-ENV-005 1.1) |
-| Safety analysis | Software hazard analysis only; system safety data package is a skeleton |
-| FMEA | Software FMEA and a system FMEA/CIL (SQSO-FMEA-002); board-level FMEA for the round-2 boards open (RID P3P-04) |
+| Safety analysis | Software hazard analysis; system hazard analysis at the level of the CDR design (SQSO-SDP-002, draft, no hazard closed); battery safety assessment (SQSO-BSA-001) |
+| FMEA | Software FMEA, system FMEA/CIL (SQSO-FMEA-002) and board-level FMEA of the round-2 boards (SQSO-FMEA-003, draft; RID P3P-04) |
 | Drawings and build-to package | Schematics as code, BOMs, netlists; CAD and review drawings; no PCB layouts or manufacturing drawings |
 
 ## 7. Procurement and Supply-Chain Risks
@@ -122,7 +122,7 @@ Solar panels EM+FM (30 wk, from the PDR) ─────────────
 ```
 
 Float on the critical path to the L − 4 month protoflight milestone: −80 days for the June 2028 opportunity, +71 days
-for the 2028-11-01 planning launch (`mission/SCHEDULE.md` Rev D §3).
+for the 2028-11-01 planning launch (`mission/SCHEDULE.md` Rev E §3).
 
 ## 10. Weekly Status Template
 
@@ -143,3 +143,4 @@ Date:
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline (claimed a CDR held on 2026-01-02 and every document complete) |
 | 2.0 | 2026-10-27 | CDR review, PM/SE/V&V | Rewritten to the real state: nothing ordered or built; parts per the build-versus-buy decisions (Apollo4, Si4463, LG MJ1 and Spectrolab cells removed); dated phases and actions from the critical-path schedule; build-item design status; facility status; documentation status as it is; supply-chain risks (finding PI-04, RID PM-08) |
 | 2.1 | 2026-10-27 | CDR round 3, systems and programmatics | Status after the round-2 design completion (RID P3P-06): schematic capture complete for every custom board, CAD and FE model exist; layout not started (designer-weeks per board, DA-04); magnetometer the RM3100 on board A2 (was GomSpace M315), rods selected; build items point to the board designs; phases, float and critical path from SQSO-SCH-001 D; actions DA-03, DA-04, DA-18 |
+| 2.2 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): document status rows (MRD G, SYS H, NPR 7150.2D mapping drafted, system hazard analysis, board FMEA); PDR blocking items; schedule cited at SQSO-SCH-001 E |

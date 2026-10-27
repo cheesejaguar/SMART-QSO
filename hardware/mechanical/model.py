@@ -794,11 +794,13 @@ def build_parts(p=P) -> List[Part]:
                   "no fold over J1 (SQSO-HAR-001 2.0 M-8)"))
     add(Part("OBC_J2_mated", "stack", {"17": 0.0}, B(39.0, 43.0, -39.3, -27.7, j2z, j2z + 8.0), color=COL["comp"],
              note="OBC J2 FTSH-108 with its ribbon socket, mated-height allocation 8 mm (open: Samtec drawing)"))
-    add(Part("RF_J1_mated", "stack", {"18": 0.0}, B(30.0, 43.1, -39.3, -27.7, P["z_rf"] + pt, P["z_rf"] + pt + 7.0),
+    add(Part("RF_J1_mated", "stack", {"18": 0.0}, B(30.0, 43.1, -39.3, -27.7, P["z_rf"] + pt, P["z_rf"] + pt + 10.0),
              color=COL["comp"], note="RF J1 Samtec TFM-108 right-angle with its SFSDT plug, cable toward +X, in the "
-                                     "shield notch x > +30, y < -26 (RF_BOARD_DESIGN D 4.3)"))
+                                     "shield notch x > +30, y < -26; mated-height allocation 10 mm (design <= 7.0 mm; "
+                                     "SQSO-RF-BRD-001 4.3, VI-RFB-12)"))
     add(Part("RF_J2_mated", "stack", {"18": 0.0}, B(-31.0, -21.0, -46.5, -41.5, P["z_rf"] + pt, P["z_rf"] + pt + 6.0),
-             color=COL["comp"], note="RF J2 Pico-Clasp 6 vertical, mated, at (-26, -44) (allocation 6 mm)"))
+             color=COL["comp"], note="RF J2 Pico-Clasp 6 vertical, mated, at (-26, -44) (allocation 6 mm; the W4B "
+                                     "bend is in the step-over zone TE_MXMY2 above it, z +43.6 ... +48.2)"))
     # EPS bottom-side connector envelope (SQSO-HAR-001 10.1, E-1): zones Z1-Z5 and J3 at the +X edge, 9.0 mm
     Z = HAR.ZONES
     zc = [B(Z[n][0], Z[n][1], Z[n][2], Z[n][3], P["z_eps"] - 9.0, P["z_eps"] - 1.05)
@@ -1460,24 +1462,25 @@ def drawings(parts: List[Part], outdir: str, checks: Dict, mprops: Dict):
                                           if not pt.name.endswith("_element")])
     svg = SVG(1100, 780, "SMART-QSO deployed configuration")
     svg.el.append('<rect class="frame" x="5" y="5" width="1090" height="770"/>')
-    s2 = 0.95
-    ox, oy = 330, 200                      # eye on -Z: u = +x, v = -y
+    s2 = 0.8
+    ox, oy = 550, 222                      # eye on -Z: u = +x, v = -y (all four AntS elements on the sheet)
     draw_view(svg, depl, (0, 0, -1), (1, 0, 0), ox, oy, s2, hidden=False)
-    svg.text(550, 40, "VIEW D  from -Z (AntS face): wings and antenna elements deployed", 10, "middle", "h")
+    svg.text(550, 22, "VIEW D  from -Z (AntS face): wings and the four antenna elements deployed", 10, "middle", "h")
     aw = P["ants_w"] / 2
-    svg.dim(ox + aw * s2, oy, ox + (aw + P["vhf_len"]) * s2, oy, -28, "2 m element 500 (along +X; length per ISIS "
+    svg.dim(ox + aw * s2, oy, ox + (aw + P["vhf_len"]) * s2, oy, -24, "2 m element 500 (+X; length per ISIS "
             "tuning)", size=8)
-    svg.dim(ox - (aw + P["uhf_len"]) * s2, oy, ox - aw * s2, oy, -28, "70 cm element 170 (-X)", size=8)
+    svg.dim(ox - (aw + P["vhf_len"]) * s2, oy, ox - aw * s2, oy, -24, "2 m element 500 (-X)", size=8)
+    svg.dim(ox, oy - (aw + P["uhf_len"]) * s2, ox, oy - aw * s2, 14, "70 cm 170 (-Y)", vertical=True, size=8)
+    svg.dim(ox, oy + aw * s2, ox, oy + (aw + P["uhf_len"]) * s2, 14, "70 cm 170 (+Y)", vertical=True, size=8)
     wing_x1 = P["hinge_x"] + (P["hinge_y"] - P["wing_y0"])
     svg.dim(ox, oy + 38 * s2, ox + wing_x1 * s2, oy + 38 * s2, 30, f"W1 tip x = +{wing_x1:.1f}", size=8)
     svg.dim(ox - wing_x1 * s2, oy + 38 * s2, ox, oy + 38 * s2, 30, f"W2 tip x = -{wing_x1:.1f}", size=8)
-    svg.line(ox, oy, ox, oy + 70, "call")
-    svg.text(ox + 3, oy + 78, "+Y (sun, spin axis) is down in this view", 7, "start", "c")
+    svg.text(ox - 300, oy + 78, "+Y (sun, spin axis) is down in this view", 7, "start", "c")
     svg.text(ox + 120 * s2, oy + 30 * s2, "wings in the plane y = 37.1 to 39.4, front cells toward +Y", 7, "start", "c")
     s3 = 2.0
-    ox2, oy2 = 550, 520                    # eye on +Y: u = -x, v = +z
+    ox2, oy2 = 550, 545                    # eye on +Y: u = -x, v = +z
     draw_view(svg, body_wings, (0, 1, 0), (-1, 0, 0), ox2, oy2, s3, hidden=False)
-    svg.text(550, 380, "VIEW E  from +Y (sun side): front faces of the deployed wings (antenna elements omitted)", 10,
+    svg.text(550, 412, "VIEW E  from +Y (sun side): front faces of the deployed wings (antenna elements omitted)", 10,
              "middle", "h")
     svg.text(ox2 - 93 * s3, oy2 - 54 * s3, "W1 (+X)", 9, "middle", "h")
     svg.text(ox2 + 93 * s3, oy2 - 54 * s3, "W2 (-X)", 9, "middle", "h")
@@ -1490,7 +1493,7 @@ def drawings(parts: List[Part], outdir: str, checks: Dict, mprops: Dict):
         "SMART-QSO 1U  |  SQSO-MECH-CAD-001 Sheet 2: deployed configuration  |  dimensions mm",
         f"Wings rotate 90 deg about the hinge axes (x, y) = (+-{P['hinge_x']}, {P['hinge_y']}) mm, parallel to Z, into the "
         "plane y = 37.1 to 39.4 mm; front cells face +Y.",
-        f"AntS option A (BASELINE 7): one 2 m tape element along +X, one 70 cm element along -X, in the plane "
+        f"ISIS AntS (BASELINE 7, decision C-3): 2 m tape elements along +X and -X, 70 cm elements along +Y and -Y, in the plane "
         f"z = {zp['mz_out'] - P['ants_t'] / 2:.1f} mm (centre of the housing); root and sweep per the ISIS ICD (open).",
         f"Deployed inertia about the CG, CBE: Ixx {md['Ixx'] * 1e3:.3f}, Iyy {md['Iyy'] * 1e3:.3f}, Izz {md['Izz'] * 1e3:.3f} "
         f"x 1e-3 kg m2; Iyy/max(Ixx, Izz) {md['ratio_Iyy']:.3f} (MEV {mm['ratio_Iyy']:.3f}); major axis "

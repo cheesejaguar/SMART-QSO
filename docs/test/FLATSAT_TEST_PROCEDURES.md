@@ -1,10 +1,15 @@
 # SMART-QSO Flatsat Test Procedures
 
 **Document ID**: SQSO-TP-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Draft; not yet run (no CDR has been held; no flatsat exists)
+
+> **Procedures for tests not yet run.** No flatsat or engineering model has been built (`docs/BASELINE_PARAMETERS.md`
+> §1). Every result, signature and date field is blank. These TP-001 to TP-007 checks overlap
+> `docs/test_procedures/TP-FLATSAT-001_Software_Development.md`, which is the controlled flatsat procedure; values follow
+> `docs/BASELINE_PARAMETERS.md` Rev E (amended), and where a step here differs, the baseline governs.
 
 ## 1. Purpose
 
@@ -16,8 +21,8 @@ This document defines the test procedures for flatsat (engineering development u
 |-------------|-------|
 | NPR 7150.2 | NASA Software Engineering Requirements |
 | NPR 7123.1 | NASA Systems Engineering Processes and Requirements |
-| SQSO-VVM-001 | Verification and Validation Matrix |
-| SQSO-SRS-001 | Software Requirements Specification |
+| SQSO-VCRM-001 | Verification Cross-Reference Matrix |
+| SMART-QSO-SRS-001 | Software Requirements Specification |
 
 ## 3. Test Environment
 
@@ -25,11 +30,11 @@ This document defines the test procedures for flatsat (engineering development u
 
 | Component | Description | P/N |
 |-----------|-------------|-----|
-| OBC EDU | Ambiq Apollo4 Blue Plus EVB | AMA4B2KK-KBR |
-| Jetson EDU | Jetson Orin Nano Super Dev Kit | 945-13767-0005-000 |
+| OBC | STM32L4R5ZI: the EM OBC board (SQSO-OBC-BRD-001) when built, a development board until then (the Apollo4 is superseded, BASELINE §6) | — |
+| Jetson | Jetson Orin Nano 8 GB module (900-13767-0030-000) on the EM carrier, or a developer kit run in the 7 W power mode (BASELINE §6) | — |
 | EPS Simulator | Custom EPS emulator board | SQSO-EPS-SIM-001 |
 | RF Interface | SMA breakout with attenuators | SQSO-RF-SIM-001 |
-| Debug Interface | Segger J-Link Plus | 8.08.28 |
+| Debug Interface | SWD probe (ST-Link or J-Link) | - |
 | Power Supply | Keysight E36312A | - |
 
 ### 3.2 Software Configuration
@@ -39,7 +44,7 @@ This document defines the test procedures for flatsat (engineering development u
 | Flight Software | 1.0.0 | TBD |
 | Payload Software | 1.0.0 | TBD |
 | Ground Software | 1.0.0 | TBD |
-| Test Framework | Unity 2.5.2 | - |
+| Test Framework | CMocka (C suites) and cargo test (Rust) | - |
 
 ### 3.3 Test Equipment
 
@@ -48,7 +53,7 @@ This document defines the test procedures for flatsat (engineering development u
 - Serial terminal (115200 baud capable)
 - RF spectrum analyzer (145-438 MHz range)
 - Thermal chamber (-20°C to +60°C)
-- DC power supply (0-12V, 0-5A)
+- DC power supply: 4S pack simulator, 11.2–16.4 V, 0-5 A (BASELINE §5)
 
 ## 4. Test Procedures
 
@@ -59,7 +64,7 @@ This document defines the test procedures for flatsat (engineering development u
 **Objective**: Verify flight software initializes correctly from power-on reset
 
 **Prerequisites**:
-- [ ] Flatsat assembled per SQSO-FLATSAT-ASSY-001
+- [ ] Flatsat assembled per `docs/integration/FLATSAT_CONFIGURATION.md` (SQSO-INT-004)
 - [ ] Debug interface connected
 - [ ] Power supply set to 3.3V
 - [ ] Serial terminal connected at 115200 baud
@@ -73,15 +78,15 @@ This document defines the test procedures for flatsat (engineering development u
 | 3 | Verify clock initialization | "CLK: HSE locked" message | |
 | 4 | Verify memory test | "MEM: SRAM OK, Flash OK" message | |
 | 5 | Verify peripheral init | All peripherals report OK | |
-| 6 | Verify scheduler start | "SCHED: Started" message | |
-| 7 | Verify initial state | STATE: INIT -> SAFE transition | |
-| 8 | Measure boot time | Total boot < 5 seconds | |
-| 9 | Verify watchdog | WDT kick within 1 second | |
+| 6 | Verify main loop start | Embassy executor running the main loop (no RTOS) | |
+| 7 | Verify initial state | STATE: BOOT -> DETUMBLE transition (`software/rust/sqso-fsw/src/mode.rs`) | |
+| 8 | Measure boot time | Total boot < 30 seconds (SYS-300) | |
+| 9 | Verify watchdog | IWDG refreshed by the main loop | |
 | 10 | Power cycle 5 times | Consistent boot each time | |
 
 **Success Criteria**:
 - All steps pass
-- Boot time < 5 seconds
+- Boot time < 30 seconds (SYS-300)
 - No error messages during initialization
 - Consistent behavior across power cycles
 
@@ -106,15 +111,15 @@ This document defines the test procedures for flatsat (engineering development u
 
 | Step | Action | Expected Result | Pass/Fail |
 |------|--------|-----------------|-----------|
-| 1 | Power on, verify SAFE mode | STATE: SAFE | |
-| 2 | Set EPS SOC = 50%, Sun = 1 | No immediate transition | |
-| 3 | Wait 60 seconds | Transition to IDLE | |
-| 4 | Set EPS SOC = 80%, Sun = 1 | Transition to ACTIVE within 30s | |
-| 5 | Set Sun = 0 (eclipse) | Remain in ACTIVE | |
-| 6 | Set SOC = 25% | Transition to IDLE | |
-| 7 | Set SOC = 15% | Transition to SAFE | |
-| 8 | Set SOC = 10% | Remain in SAFE | |
-| 9 | Set SOC = 30%, Sun = 1 | Transition to IDLE | |
+| 1 | Power on, detumble complete | STATE: IDLE (SAFE if SOC < 25 %) | |
+| 2 | Set EPS SOC = 50%, Sun = 1 | Remain in IDLE (ACTIVE needs ≥ 55 %) | |
+| 3 | Set EPS SOC = 60%, Sun = 1 | Transition to ACTIVE | |
+| 4 | Set Sun = 0 (eclipse) | Transponder and Jetson off (sunlit only, BASELINE §5, §6) | |
+| 5 | Set SOC = 35% | Transition to IDLE (below 40 %) | |
+| 6 | Set SOC = 20% | Transition to SAFE (below 25 %) | |
+| 7 | Set SOC = 12% | Transition to EMERGENCY (below 15 %; beacon shed) | |
+| 8 | Set SOC = 30% | Return to SAFE (at 25 %) | |
+| 9 | Set SOC = 45%, Sun = 1 | Transition to IDLE (above 40 %) | |
 | 10 | Send SAFE command | Immediate transition to SAFE | |
 | 11 | Release SAFE command | Return to IDLE/ACTIVE per SOC | |
 
@@ -122,11 +127,12 @@ This document defines the test procedures for flatsat (engineering development u
 
 | From State | To State | Trigger | Verified |
 |------------|----------|---------|----------|
-| INIT | SAFE | Boot complete | [ ] |
-| SAFE | IDLE | SOC > 20% AND stable 60s | [ ] |
-| IDLE | ACTIVE | SOC > 70% AND power budget positive | [ ] |
-| ACTIVE | IDLE | SOC < 30% OR power budget negative | [ ] |
+| BOOT | DETUMBLE | Boot complete | [ ] |
+| SAFE | IDLE | SOC > 40% | [ ] |
+| IDLE | ACTIVE | SOC ≥ 55% AND sunlit | [ ] |
+| ACTIVE | IDLE | SOC < 40% | [ ] |
 | IDLE | SAFE | SOC < 25% OR ground command | [ ] |
+| SAFE | EMERGENCY | SOC < 15% (back to SAFE at 25 %) | [ ] |
 | ANY | SAFE | Critical fault OR ground command | [ ] |
 
 **Success Criteria**:
@@ -169,7 +175,7 @@ This document defines the test procedures for flatsat (engineering development u
 
 | Channel | Description | Range | Verified |
 |---------|-------------|-------|----------|
-| BATT_V | Battery voltage | 3.0-4.2V | [ ] |
+| BATT_V | Battery voltage | 11.2–16.4 V (4S) | [ ] |
 | BATT_I | Battery current | -2.0 to +2.0A | [ ] |
 | BATT_SOC | State of charge | 0-100% | [ ] |
 | OBC_TEMP | OBC temperature | -40 to +85°C | [ ] |
@@ -259,7 +265,7 @@ This document defines the test procedures for flatsat (engineering development u
 
 | Step | Action | Expected Result | Pass/Fail |
 |------|--------|-----------------|-----------|
-| 1 | Inject watchdog timeout | System resets within 5s | |
+| 1 | Inject watchdog timeout | System resets within 24.1–27.8 s (IWDG, TP-OBC-004) | |
 | 2 | Verify boot reason | Boot reason = WDT_RESET | |
 | 3 | Inject memory error | Error logged, operation continues | |
 | 4 | Inject sensor timeout | Sensor marked stale, fallback used | |
@@ -274,7 +280,7 @@ This document defines the test procedures for flatsat (engineering development u
 
 | Fault Type | Detection Time | Response | Recovery | Verified |
 |------------|----------------|----------|----------|----------|
-| Watchdog timeout | 5s | Reset | Auto | [ ] |
+| Watchdog timeout | 24.1–27.8 s | Reset | Auto | [ ] |
 | Stack overflow | Immediate | Reset | Auto | [ ] |
 | Memory corruption | Next access | Log + continue | N/A | [ ] |
 | Sensor timeout | 3x poll interval | Use last good | Auto | [ ] |
@@ -310,27 +316,27 @@ This document defines the test procedures for flatsat (engineering development u
 
 | Step | Action | Expected Result | Pass/Fail |
 |------|--------|-----------------|-----------|
-| 1 | Measure SAFE mode power | < 100 mW average | |
-| 2 | Measure IDLE mode power | < 200 mW average | |
-| 3 | Measure ACTIVE mode (no AI) | < 500 mW average | |
-| 4 | Measure ACTIVE mode (AI burst) | < 15 W peak | |
-| 5 | Verify AI duty cycle | < 10% duty cycle | |
+| 1 | Measure SAFE mode power | 0.79 W orbit average (BASELINE §5) | |
+| 2 | Measure IDLE mode power | 1.18 W | |
+| 3 | Measure ACTIVE mode (no Jetson) | Record against the BASELINE §5 loads | |
+| 4 | Measure ACTIVE mode (Jetson burst) | ≤ 8 W at the carrier input (SYS-501) | |
+| 5 | Verify AI duty cycle | ≤ 5 % tumbling, ≤ 10 % sun-pointed; bursts ≤ 10 min, ≥ 100 min off | |
 | 6 | Measure sleep current | < 10 µA | |
 | 7 | Measure beacon transmit power | 0.5 W at low power | |
-| 8 | Measure beacon transmit power | 2.0 W at high power | |
-| 9 | Log power over 1 orbit (90 min) | Average within budget | |
+| 8 | Measure beacon transmit power | ≤ 1 W at the maximum setting (SYS-201) | |
+| 9 | Log power over 1 orbit (94.1 min) | Average within budget | |
 | 10 | Verify power transitions | Smooth, no glitches | |
 
 **Power Budget Verification**:
 
 | Mode | Specification | Measured | Margin | Pass/Fail |
 |------|---------------|----------|--------|-----------|
-| SAFE | < 100 mW | | | |
-| IDLE | < 200 mW | | | |
-| ACTIVE (no AI) | < 500 mW | | | |
-| AI Inference | < 15 W | | | |
-| TX Low | 0.5 W | | | |
-| TX High | 2.0 W | | | |
+| SAFE | 0.79 W | | | |
+| IDLE | 1.18 W | | | |
+| ACTIVE (duty limits) | 2.50 W sun-pointed, 1.82 W tumbling | | | |
+| Jetson burst | ≤ 8 W | | | |
+| TX nominal | 0.5 W | | | |
+| TX maximum | ≤ 1 W | | | |
 | Sleep | < 10 µA | | | |
 
 **Success Criteria**:
@@ -359,8 +365,8 @@ This document defines the test procedures for flatsat (engineering development u
 | Step | Action | Expected Result | Pass/Fail |
 |------|--------|-----------------|-----------|
 | 1 | Configure 7-day test | Logging enabled | |
-| 2 | Simulate orbit cycles | 112 orbits (7 days) | |
-| 3 | Include eclipse periods | 35 min eclipse per orbit | |
+| 2 | Simulate orbit cycles | 107 orbits (7 days at 15.3 a day, SYS-012) | |
+| 3 | Include eclipse periods | 36 min eclipse per orbit (β = 0) | |
 | 4 | Exercise all modes | Per ConOps timeline | |
 | 5 | Log all telemetry | Complete record | |
 | 6 | Monitor for anomalies | No unexpected resets | |
@@ -373,13 +379,13 @@ This document defines the test procedures for flatsat (engineering development u
 
 | Day | Orbits | Resets | Errors | Memory | Notes |
 |-----|--------|--------|--------|--------|-------|
-| 1 | 16 | | | | |
-| 2 | 16 | | | | |
-| 3 | 16 | | | | |
-| 4 | 16 | | | | |
-| 5 | 16 | | | | |
-| 6 | 16 | | | | |
-| 7 | 16 | | | | |
+| 1 | 15 | | | | |
+| 2 | 15 | | | | |
+| 3 | 15 | | | | |
+| 4 | 15 | | | | |
+| 5 | 15 | | | | |
+| 6 | 15 | | | | |
+| 7 | 15 | | | | |
 
 **Success Criteria**:
 - No unexpected resets during 7-day test
@@ -436,3 +442,4 @@ Approved by: _______________ Date: ___________
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): status "CDR Baseline" replaced, not-yet-run banner pointing to TP-FLATSAT-001; STM32L4R5ZI (was the superseded Apollo4), 7 W Jetson mode, CMocka and cargo test (was Unity), 4S supply; modes and SOC thresholds from BASELINE §5 (were INIT, 20/70/30 %); battery 11.2–16.4 V (was 3.0–4.2 V); watchdog 24.1–27.8 s (was 5 s); boot < 30 s; mode powers from BASELINE §5 (were 0.1/0.2/0.5/15 W); TX ≤ 1 W (was 2 W); 94.1-min orbit, 36-min eclipse, 15.3 orbits a day; document numbers corrected |

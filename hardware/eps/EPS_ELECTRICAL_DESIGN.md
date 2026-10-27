@@ -2,11 +2,11 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-003
-**Version:** 1.4
+**Version:** 1.5
 **Date:** 2026-10-27
 **Status:** CDR Baseline — parts selected: the build-to schematic, BOM and layout constraints are
-`hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001 D), which governs where this document differs;
-`docs/hardware/EPS_DESIGN.md` v2.4 governs the architecture
+`hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001 G), which governs where this document differs;
+`docs/hardware/EPS_DESIGN.md` v2.5 governs the architecture. §2 gives the functions; the parts are those of §3.2
 
 > **CDR review (2026-10-27).** The funding-audit notice of 2026-10-16 (2S battery, 2-cell charger, six solar channels
 > superseded) is acted on here: §2.1, §2.2 and §3.2 now carry the 4S configuration of `docs/hardware/EPS_DESIGN.md`
@@ -29,7 +29,7 @@ This document specifies the electrical design requirements for the SMART-QSO EPS
 | Block | Components | Notes |
 |-------|------------|-------|
 | Solar array input | Blocking diode (or ideal diode) per string, TVS per tracker with standoff ≥ 7 V | 8 strings, 3.5–6.4 V, ≤ 0.55 A each; string Voc reaches 6.31 V at −45 °C |
-| MPPT / charge regulator | 4S buck-boost charger with MPPT, TS input and power path (BQ25798 class) or boost stages into one 4S CC/CV regulator | Four trackers (EPS_DESIGN §3.2); CC ≤ 0.40 A, CV 16.40 V ± 0.5 %; charge only 0 … +45 °C in hardware |
+| MPPT / charge regulator | Four TPS55340-Q1 boost trackers with hardware CV/CC/MPPT loops into one 4S CC/CV path (§3.2; the BQ25798 class of 1.1 is withdrawn) | Four trackers (EPS_DESIGN §3.2); CC ≤ 0.40 A, CV 16.40 V ± 0.5 %; charge only 0 … +45 °C in hardware |
 | Battery interface | Micro-Fit power, Pico-Clasp cell taps, pack fuse F2 5 A, PTC | 4S1P Li-ion |
 | BMS | 4S AFE BQ76952 (OTP thresholds) + secondary OVP BQ771806 with a three-terminal fuse | SQSO-BSA-001 §3 |
 | EOL disconnect | One-shot thermal cut-off with heater, two series fire switches | EPS_DESIGN §7 |
@@ -40,18 +40,18 @@ This document specifies the electrical design requirements for the SMART-QSO EPS
 |-------|------------|-------|
 | 3V3_AO regulator | Synchronous buck, input ≥ 25 V | Always on |
 | 5V_PA regulator | Synchronous buck, input ≥ 25 V | PA only |
-| Jetson supply | eFuse (TPS25947 class) from VBAT; converter on the carrier | EMC rule E3 |
-| Load switches | TPS22918 on 3.3/5 V; ≥ 25 V high-side switches on VBAT (TPS1H100 class) | EPS_DESIGN §5 |
-| Low-voltage load shed | Comparator with hysteresis, 13.6/14.4 V, 5 s filter, gating SW1 and SW3 | EPS_DESIGN §6 |
-| Current sensing | INA226 or equivalent | Battery, array per tracker, Jetson, PA |
+| Jetson supply | eFuse TPS16630 (U19) from VBAT behind SW1; 5 V converter on the carrier | EMC rule E3 |
+| Load switches | TPS2553-Q1 on 3.3/5 V; TPS1H100B-Q1 and TPS1H000-Q1 high-side switches on VBAT | EPS_DESIGN §5 |
+| Low-voltage load shed | Comparator with hysteresis, 13.6/14.4 V, RC filter, gating the Jetson's two switches (SW1 and U19); the PA (SW3) is not shed (CR-2026-016, BASELINE §5) | EPS_DESIGN §6 |
+| Current sensing | INA228-Q1, INA3221-Q1, INA186-Q1 (§3.2) | Battery, array per tracker, Jetson, PA |
 
 ### 2.3 Control and Telemetry Section
 
 | Block | Components | Notes |
 |-------|------------|-------|
-| I2C interface | Level shifter | 3.3V logic |
-| GPIO expander | PCA9555 | Load switch control |
-| Temperature sensors | TMP117 | Battery, board |
+| I2C interface | ISO1540-Q1 isolator; TCA9517-Q1 AntS buffer | 3.3V logic |
+| EPS controller | MSP430FR2355 (register block 0x48) | Replaces the PCA9555 expander |
+| Temperature sensors | 10 kΩ NTCs into an ADS7138-Q1 | Battery, panels, AFE FETs (TMP117 withdrawn) |
 | Voltage dividers | Precision resistors | Analog monitoring |
 
 ### 2.4 Protection Section
@@ -119,7 +119,7 @@ This document specifies the electrical design requirements for the SMART-QSO EPS
 |-----------|-------|
 | Dimensions | PC/104, 90.17 mm × 95.89 mm (SQSO-EPS-BRD-001 §17) |
 | Layers | 6 (BRD-001 §17; the 4-layer stack of 1.1 is superseded) |
-| Thickness | 1.6mm |
+| Thickness | 2.0 mm (SQSO-EPS-BRD-001 §1, decision D-14) |
 | Material | FR4, Tg > 170°C |
 | Copper weight | 1 oz (35µm) outer, 1 oz inner |
 | Surface finish | ENIG |
@@ -137,6 +137,8 @@ This document specifies the electrical design requirements for the SMART-QSO EPS
 | Component clearance | 0.3mm | 0.5mm |
 
 ### 4.3 Power Plane Design
+
+*Superseded by the 6-layer stack of SQSO-EPS-BRD-001 §17; the 4-layer assignment below is the record of Version 1.1.*
 
 | Layer | Usage | Notes |
 |-------|-------|-------|
@@ -184,6 +186,8 @@ This document specifies the electrical design requirements for the SMART-QSO EPS
 | Board outline | EPS_outline | .gko |
 
 ### 5.2 Stack-up Definition
+
+*Superseded by SQSO-EPS-BRD-001 §17 (6 layers, 2.0 mm); kept as the record of Version 1.1.*
 
 ```
 Layer 1 (Top):     35µm Cu
@@ -324,3 +328,4 @@ Total:             ~1.6mm
 | 1.2 | 2026-10-27 | CDR design (EPS board) | §3.2 parts selected (SQSO-EPS-BRD-001 A); board outline and layer count point to BRD-001 §17 |
 | 1.3 | 2026-10-27 | CDR design (EPS board) | §3.2 VBAT load switches: SW11 magnetorquer supply added (SQSO-EPS-BRD-001 B, SQSO-ICX-001 E3) |
 | 1.4 | 2026-10-27 | CDR design (EPS board) | §2 BMS row: BQ76952 and BQ771806 as selected (was "BQ76920 class") |
+| 1.5 | 2026-10-27 | Documentation audit (post-CDR 2026) | Status cites SQSO-EPS-BRD-001 G and EPS_DESIGN 2.5; §2.1–§2.3 rows to the selected parts of §3.2 (trackers, eFuse, switches, monitors, EPS controller, NTCs); load shed on the Jetson's switches only, the PA not shed (CR-2026-016); thickness 2.0 mm; the 4-layer stack of §4.3 and §5.2 marked superseded |

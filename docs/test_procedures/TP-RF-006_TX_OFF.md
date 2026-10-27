@@ -3,9 +3,16 @@
 
 **Document Number:** TP-RF-006
 **Revision:** Draft
-**Date:** 2026-10-15
+**Date:** 2026-10-27
 **Classification:** Development/Qualification Test (hardware-in-the-loop)
 **Status:** Written; not yet run. Needs EM or FM hardware, the target receiver driver and the FRAM driver (SQSO-ICD-013 §10).
+**Verification items:** VI-RF-12 (TX-OFF at the antenna port), VI-RF-13 and VI-LV-07 (RF silence, §8.8) (`docs/verification/VI_REGISTER.md`)
+
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -88,7 +95,7 @@ Each command below is built with `telecommand_builder.py <COMMAND> --key-file <k
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
-| 3 | Send TX_DISABLE (operational key); start a timer at the end of the uplink frame | `RF_TX_EN` low and PA supply off within **1 s (TBR)**; silent for 120 s | |
+| 3 | Send TX_DISABLE (operational key); start a timer at the end of the uplink frame | `RF_TX_EN` low, PA supply < 0.1 V and RF at the port < −60 dBm within **1 s** (VI-RF-12); silent for 120 s | |
 | 4 | Force SAFE (SET_MODE 0) | Accepted; still silent for 120 s | |
 | 5 | Remove and restore OBC power | After boot, `RF_TX_EN` stays low from power-on (oscilloscope); silent for 120 s | |
 | 6 | Re-send the TX_ENABLE frame saved at step 2, unchanged (replay) | Rejected; silent for 60 s | |
@@ -148,11 +155,13 @@ Monitor the downlink frequency and its harmonics, and the receiver's local-oscil
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
 | 23g | Send `arm-flight` through the umbilical; power off; disconnect the umbilical | Reply `SQGR 00` before power-off | |
-| 23h | Apply power with the deployment switches released (simulated deployment); start a timer | Boot log `state=COUNTING elapsed=0s`; radio and transmitter unpowered; no signal | |
-| 23i | At 30 min, force a watchdog reset (debug command or by withholding the watchdog kick) | Silent; boot log shows the count resumed (about 1,800 s) | |
+| 23h | Apply power with the deployment switches released (simulated deployment); start a timer | Boot log `state=COUNTING elapsed=0s`; radio and transmitter unpowered; GNSS receiver unpowered (GNSS_EN low); no signal | |
+| 23h1 | At 20 min, force a power-on reset (VI-RF-13) | Count restarts at 0 (SYS-224); silent | |
+| 23i | At 30 min, force a watchdog reset (debug command or by withholding the watchdog kick) | Silent; boot log shows the count resumed, not shortened | |
 | 23j | At 40 min, remove and restore power (switch toggle) | Silent; count restarts at 0 | |
 | 23k | Send TX_ENABLE (operational key) during the silence | No effect while the radio is off; still silent | |
-| 23l | Continue to 45 min after step 23j | First beacon no earlier than 45:00 after 23j | |
+| 23l | Continue to 45 min after step 23j | First beacon no earlier than 45:00 after 23j; no emission > −60 dBm and GNSS_EN low before 45:00 (VI-RF-13, VI-LV-07); with the AntS simulator reporting not deployed, the transmitters stay silent after 45:00 until it reports deployed or its sequence ends (decision C-19, SRS-F167) | |
+| 23l1 | After the first beacon, remove and restore power with a switch toggle | Silence completed is latched: no new 45-min silence (SYS-224 Rev G; BASELINE §4) | |
 | 23m | Re-arm (step 23g) before any further integration activity | `SQGR 00` | |
 
 ### 8.9 Completion
@@ -166,7 +175,7 @@ Monitor the downlink frequency and its harmonics, and the receiver's local-oscil
 
 **Pass:** every step meets its expected result. In particular:
 
-- Every TX-OFF step is silent within 1 s (TBR) and for the whole observation period.
+- Every TX-OFF step is silent within 1 s (VI-RF-12) and for the whole observation period.
 - No unauthenticated, replayed or wrong-key command restarts transmission.
 - TX-OFF survives a power cycle.
 
@@ -206,3 +215,5 @@ Monitor the downlink frequency and its harmonics, and the receiver's local-oscil
 | Draft | 2026-10-15 | Initial procedure for SYS-204 / SYS-325 hardware verification | Funding audit |
 | Draft | 2026-10-16 | OBC-to-RF ICD cited by its own number, SQSO-ICD-003 (was SQSO-ICD-005, the Space-to-Ground ICD) (finding PI-17) | SMART-QSO Team |
 | Draft | 2026-10-24 | Flight-software item names `rf_control.rs`, the Rust file that replaced `rf_control.c` | SMART-QSO Team |
+| Draft | 2026-10-27 | Documentation audit (post-CDR 2026): VI-RF-12 criteria at step 3 (RF < −60 dBm, PA supply < 0.1 V); §8.8 the VI-RF-13 power-on reset at 20 min, GNSS_EN low before 45:00, the C-19 AntS hold and the latched silence (SYS-224 Rev G); not-yet-run banner | Documentation audit |
+| Draft | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: the 1 s TX-OFF criterion is VI-RF-12's (the open-value marker removed) | Documentation audit |

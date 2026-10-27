@@ -1,8 +1,8 @@
 # JPL Power of Ten Rules Compliance Audit
 
 **Document ID**: SMART-QSO-JPL-POT-001
-**Version**: 1.2
-**Date**: 2026-10-25
+**Version**: 1.3
+**Date**: 2026-10-27
 **Classification**: Engineering
 
 ## 1. Introduction
@@ -76,6 +76,13 @@ The C sources this table measured were replaced by the Rust (2026-10-24). It is 
 ---
 
 ## 3. Rule-by-Rule Analysis
+
+> **Historical (revision 1.0, 2026-01-02).** Sections 3 to 5 describe the former C flight code, most of which no longer
+> exists (`main.c`, `eps_control.c`, `telemetry.c` and the other `.c` modules were replaced by Rust on 2026-10-24).
+> Their "COMPLIANT" and "PASS" statuses, the metrics of §4 and the "no deviations" of §5 are not current. The current
+> status is §2. Current exceptions: rule 4 (`too_many_lines`, denied at 60 lines) has two documented exceptions, the
+> exhaustive `match` of `dispatch` (`sqso-ffi/src/cmd_handler.rs`) and of `transition` (`sqso-fsw/src/mode.rs`)
+> (`software/rust/README.md`, Rules).
 
 ### 3.1 Rule 1: Simple Control Flow
 
@@ -484,6 +491,7 @@ No deviations from JPL Power of Ten rules are present in the codebase.
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial audit |
 | 1.1 | 2026-10-24 | SMART-QSO Team | The flight software is Rust. §1.1 and §2.1 map each rule to the Rust and the remaining C (the flight-log shim), with the enforcement of each (compiler, lint, CI or review). The 2026-10-15 measured C status is kept as §2.2 (history); §3 onward unchanged |
 | 1.2 | 2026-10-25 | SMART-QSO Team | §2.1 rule 1: recursion now checked by a tool, the call-graph cycle check of the stack analysis on the flight image; the one bounded nesting (the panic handler) |
+| 1.3 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): banner on §3 to §5 (revision 1.0 text of the former C code; statuses not current; the two rule 4 exceptions) |
 
 ---
 

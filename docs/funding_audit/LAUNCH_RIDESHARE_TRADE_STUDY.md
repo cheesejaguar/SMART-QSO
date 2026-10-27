@@ -1,6 +1,9 @@
 # Launch and Rideshare Trade Study
 ## SMART-QSO 1U CubeSat — launch window 2027–2028
 
+> **Historical record (2026-10-15).** Superseded for current values by `docs/BASELINE_PARAMETERS.md` and
+> `docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`. The current launch plan is `docs/ORBITAL_ACCESS.md` (SQSO-OAP-001): Exolaunch EXOpod Nova, 475 km target, 485 km cap, about 2028-11, all-in cost $142k–345k (BASELINE §3). Still good for: the comparison of rideshare routes and its sourced 2026 facts.
+
 **Document Number:** SQSO-AUD-004
 **Revision:** B
 **Date:** 2026-10-15

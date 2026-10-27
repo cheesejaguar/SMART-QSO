@@ -1,9 +1,9 @@
 # Interface Control Document: Telecommand Authentication and TX-OFF
 
 **Document ID**: SQSO-ICD-013
-**Version**: 0.14 (Draft)
+**Version**: 0.16 (Draft)
 **Date**: 2026-10-27
-**Status**: Draft. Implemented and tested in the host simulation. Not yet run on target hardware (Section 10).
+**Status**: Draft. Implemented and tested in the host simulation; the Embassy firmware for the STM32L4R5ZI builds in CI. Not yet run on target hardware (Section 10).
 
 ## 1. Purpose
 
@@ -24,7 +24,7 @@ Where this document conflicts with SQSO-ICD-005 (`ICD_SPACE_GROUND.md`) or `docs
 | ITU RR 22.1 | Space stations must be able to cease emissions immediately by telecommand | Same as above |
 | 47 CFR 97.211(b) | Telecommand to a space station may use codes that obscure meaning | The uplink is authenticated with a message authentication code. Nothing is encrypted, no key material is ever sent over RF, and the downlink stays in the clear (97.113(a)(4)) |
 | 47 CFR 97.211(a) | Only designated telecommand stations may send telecommand | Only holders of a key can produce an accepted command. The stations themselves are still to be designated (finding RG-03): at least two, by 2027-01-05 (`docs/ground/GROUND_STATION_DESIGN.md` §3; REGULATORY_ROADMAP F13) |
-| 47 CFR 97.313(f); 2.106 US270 | 70 cm power near listed military radars | Telecommand stations radiate ≥ 64 dBm EIRP (2.5 kW) toward the spacecraft and command only above 10° (decision C-14): outside the US270 areas by ≥ 100 W PEP at the feed into ≥ 15.5 dBic; inside them (the Bay Area site, within 240 km of Beale AFB; Fairbanks, within 160 km of Clear SFS) by **≤ 50 W PEP** into ≥ 17.5 dBic (a stacked pair of cross-Yagis). Ground-station matter (SQSO-GND-001 Rev F §3.1) |
+| 47 CFR 97.313(f); 2.106 US270 | 70 cm power near listed military radars | Telecommand stations radiate ≥ 64 dBm EIRP (2.5 kW) toward the spacecraft and command only above 10° (decision C-14): outside the US270 areas by ≥ 100 W PEP at the feed into ≥ 15.5 dBic; inside them (the Bay Area site, within 240 km of Beale AFB; Fairbanks, within 160 km of Clear SFS) by **≤ 50 W PEP** into ≥ 17.8 dBic (a stacked pair of cross-Yagis; BASELINE Rev E §7). Ground-station matter (SQSO-GND-001 Rev H §3.1) |
 
 ## 3. Uplink Framing
 
@@ -111,7 +111,7 @@ MAC input = "SQSO-TC-v1" | cmd_id (1 B) | N (1 B) | counter (4 B, BE) | args (N 
 4. **Lost frames.** If a frame is lost, send the next command with a new counter. Never re-send a frame with the same counter.
 5. **Doppler.** Telecommand stations pre-correct the uplink to within ±1 kHz of the spacecraft receiver frequency.
    Uncorrected, the 435 MHz Doppler (up to ±10.4 kHz) takes the signal outside the receiver's ±7.5 kHz filter and
-   nothing decodes (SQSO-LBA-001 v3.0 §3.2, §4.4). Before the first command of each pass, also correct the uplink
+   nothing decodes (SQSO-LBA-001 v3.5 §3.2, §4.4). Before the first command of each pass, also correct the uplink
    for the spacecraft receiver's frequency offset, estimated from the measured downlink: the downlink and the
    receiver share one TCXO (up to 2.1 ppm after 2 years, 0.9 kHz at 435.5 MHz; RID RFB-05), so the downlink's
    measured offset from nominal, with the predicted Doppler removed, scaled by f_up / f_down, is applied to the
@@ -231,21 +231,20 @@ No RF signal may be generated or transmitted until 45 minutes after deployment, 
 
 | Property | Behavior |
 |----------|----------|
-| During the silence | The whole radio is unpowered (`GPIO_PIN_RADIO_EN` low) as well as the transmitter (`RF_TX_EN` low). **This is the one exception to "the receiver is always on"**: no telecommand can be received in this window. That is acceptable because nothing can transmit either. The reading of "generate any signal" as including the receiver is conservative and TBR with the launch provider |
+| During the silence | The whole radio is unpowered (`GPIO_PIN_RADIO_EN` low) as well as the transmitter (`RF_TX_EN` low). **This is the one exception to "the receiver is always on"**: no telecommand can be received in this window. That is acceptable because nothing can transmit either. Reading "generate any signal" as including the receiver is conservative; it is the reading SYS-224 adopts (no RF signal from any transmitter or other RF emitter, the GNSS receiver included), so it is the design rule. The integrator's ICD may relax it later |
 | No command shortens it | No telecommand clears or shortens the silence. An authenticated `TX_ENABLE` clears the TX-OFF latch, but the radio stays off (`test_tx_enable_cannot_shorten_silence`) |
 | Power-on, brownout, pin or unknown reset | Restart the count from 0. The deployment switches are power inhibits, so deployment and any switch toggle arrive as a power-on reset |
 | Watchdog or software reset | Resume from the persisted count. The count is saved every 60 s and lags real time, so the silence only gets longer |
-| Switch reads stowed while powered | Restart from 0, even after completion (re-integration while powered) |
+| Switch reads stowed while powered | Restart from 0 until the silence has completed; once completed it is latched, and a stowed reading no longer restarts it (SRS-F087, RID LV-15; BASELINE Rev E §4). After a reset, separation established from the deployment record or the served silence is not undone by a stowed reading (SRS-F159, RID SMA-B02) |
 | Blank or corrupt record | Count from 0 |
 | Completion | Persists across later resets of any kind |
 | `hal_reset_cause()` | Read once after boot; the MCU's sticky reset flags are cleared and the result cached (`hal_reset.h`) |
 | Bench testing | Completes the silence, and completion persists. So **GSE `ARM_FLIGHT` (0x04, umbilical only; `key_provision.py arm-flight`) must be the last powered action before integration**. It re-arms the silence and the deployment sequence together (TP-FAT-002 §6.7, PRE_SHIP_CHECKLIST). ARMED does not count while powered; the count starts at the next boot. Any power-up after ARM that lasts 25 minutes or more requires re-arming (the deployment wait is 30 minutes). The state is printed at every boot |
-| Switch polarity | Defined once in `software/rust/sqso-ffi/src/separation_switch.rs` (pull-up, high = stowed), shared with the deployment sequence, and **TBR** against the separation-switch schematic. Inverted polarity on orbit would restart the count forever: fail safe, but mission-ending. The pre-ship check confirms that released switches read as released |
-| Target | Same time-base dependency as Section 6.2 (SW-01) |
+| Switch polarity | Defined once in `software/rust/sqso-ffi/src/separation_switch.rs`, shared with the deployment sequence: DEPLOY_SENSE (PE2) **high = DS2 released**, no internal pull, released for 10 s latches separation until the next reset (SRS-F159; SQSO-ICX-001 §3.1 pin 16, §3.7; RID SMA-B02, closed by design change). The pre-ship check confirms that released switches read as released; VI-FSW-03 on the flatsat |
+| Target | Time base `hal_timer_get_ms()` and reset cause `hal_reset_cause()` in the firmware (`firmware/src/timer.rs`, `wdt.rs`); not run on hardware |
 | Deployables | The 30-minute deployable timer (`software/rust/sqso-fsw/src/deployment.rs`, SYS-221) follows the same reset rules and is persisted; burns are bounded across resets (finding SW-10) |
 
-`rf_control` combines independent inhibits: the TX-OFF latch, loss of contact, the RF silence, the receiver's recovery cycle, passivation, and (decision C-19, SRS-F167) the AntS hold, which keeps the transmitters silent while the AntS deployment is pending: after the 45-minute silence the downlink starts only when the AntS reads deployed or its sequence ends (at worst about S+27 h, the temperature gate's cap). The transmitter is enabled only when all are clear. Only the silence and the recovery cycle remove radio power: during the AntS hold the receiver is on and authenticated commands are executed (their acknowledgements wait for the downlink); `DEPLOY_RETRY` 0 with the force flag ends a deferral at once. The OBC also latches TX-OFF itself when the exciter stays keyed for more than 6 s with no frame outstanding and the repeat path idle (SRS-F168; recovered by `TX_ENABLE`).
-| Target | `contact_monitor_tick()` needs a monotonic time source. `smart_qso_now_ms()` is not implemented on target yet (SW-01) |
+`rf_control` combines independent inhibits: the TX-OFF latch, loss of contact, the RF silence, the receiver's recovery cycle, passivation, and (decision C-19, SRS-F167) the AntS hold, which keeps the transmitters silent while the AntS deployment is pending: after the 45-minute silence the downlink starts only when the AntS reads deployed or its sequence ends (at worst about S+25.8 h, the temperature gate's 30-deferral cap and 20 min of sun; SQSO-MTL-001 §8.2). The transmitter is enabled only when all are clear. Only the silence and the recovery cycle remove radio power: during the AntS hold the receiver is on and authenticated commands are executed (their acknowledgements wait for the downlink); `DEPLOY_RETRY` 0 with the force flag ends a deferral at once. The OBC also latches TX-OFF itself when the exciter stays keyed for more than 6 s with no frame outstanding and the repeat path idle (SRS-F168; recovered by `TX_ENABLE`).
 
 ### 6.4 End-of-Life Passivation by Telecommand
 
@@ -313,14 +312,14 @@ CI runs the generator with `--check` and fails if any output is stale. `test_eve
 | 0x30 | SET_BEACON | 2 | operational | Interval in seconds, big-endian; 10 to 120 s (SYS-211) |
 | 0x31 | TX_ENABLE | 0 | operational | Clears the TX-OFF latch |
 | 0x32 | TX_DISABLE | 0 | **any**; none if no key is usable | Latches TX-OFF; allowed in every state |
-| 0x33 | SET_POWER | 1 | operational | 0 = 0.5 W, 1 = 1 W (BASELINE §7). Persisted and reported; applying it to the PA is the transmitter driver's job (interface TBD) |
+| 0x33 | SET_POWER | 1 | operational | 0 = 0.5 W, 1 = 1 W (BASELINE §7). Persisted and reported; applied on TX_PWR_SEL (PE3) before each frame (`sqso-ffi/src/downlink.rs`; SQSO-ICD-003 §4.2) |
 | 0x40 | PLD_ENABLE | 0 | operational | |
 | 0x34 | XPDR_ENABLE | 0 | operational | Allows the FM transponder (persisted); its gates still apply |
 | 0x35 | XPDR_DISABLE | 0 | operational | Stops the FM transponder (persisted) |
 | 0x41 | PLD_DISABLE | 0 | operational | |
 | 0x50 | DEPLOY_RETRY | 1–2 | operational | Retries a deployment element with fresh attempts: 0 antenna, 1 solar wings; a second byte 1 forces the antenna past its temperature gate (decision C-18) |
 | 0x60 | GNSS_REQUEST | 0 | operational | Starts a GNSS receiver session (its power gates still apply) |
-| 0x70 | PASSIVATE_ARM | 4 | operational | Argument `EOL!`; arms passivation for 600 s, drives nothing (§6.4) |
+| 0x70 | PASSIVATE_ARM | 4 | operational | Argument `EOL!`; arms passivation for 600 s and arms the EPS controller's latch by the two-processor sequence (§6.4) |
 | 0x71 | PASSIVATE_EXECUTE | 0 | **recovery** | Within 600 s of the arm: the passivation record, the EPS charge disconnect while still transmitting, the final report (three HK1/HK2 pairs over 3 min), then TX-OFF and the passivation inhibit (§6.4). Irreversible |
 
 **Not in the dictionary.** These IDs are defined in `cmd_handler.h` but have no handler, so they are refused with `INVALID_CMD` before a counter is consumed:
@@ -436,19 +435,18 @@ Procedure:
 | AX.25 and receive path (`software/rust/sqso-protocol/src/ax25.rs`, `software/rust/sqso-ffi/src/uplink.rs`) | Implemented; end to end from receiver frame to TX-OFF (7 tests; the callsign filter was mutation-checked, on the C and again on the Rust) |
 | Ground tools (`telecommand_builder.py`, `key_provision.py`) | Implemented; byte-identical to the flight vectors |
 | Rust implementation | Since 2026-10-24 every item above is Rust (`software/rust/README.md`). The C test suites counted here run unchanged against them, the parsers are fuzzed, and a differential fuzz against the former C agreed on 8.3 million inputs. The mutation checks in this table were first run on the C; on 2026-10-24 they were repeated on the Rust: every mutant is killed by a named test (`software/rust/mutants/RESULTS-targeted.md`; rerun with `software/rust/mutants/targeted.py`). Whole-crate mutation testing: `software/rust/mutants/` |
-| **Target receiver driver behind `hal_radio.h`** | **Not implemented.** Waits on transceiver selection (SQSO-ICD-003's SPI command set is a placeholder) |
+| Target receiver driver behind `hal_radio.h` | Implemented in the firmware: the KISS TNC on USART2 (`firmware/src/radio.rs`; SQSO-ICD-003 2.x, CR-2026-005); not run on hardware |
 | **`RF_TX_EN` removes PA power at the antenna port** | **Not verified.** TP-RF-006 is written; it needs EM hardware |
-| **SET_POWER applied to the PA** | **Not implemented.** The level is persisted and reported; the actuator interface is TBD in the RF design |
+| SET_POWER applied to the PA | Implemented: TX_PWR_SEL (PE3) set from the persisted level before each frame (`downlink.rs`); not run on hardware |
 | FRAM driver for `FLASH_REGION_AUTH` and `FLASH_REGION_RF_CONTROL` | Allocated in SQSO-OBC-002 §3.3; simulation HAL only |
 | Station call sign | `KK6GDB-11` (licensee KK6GDB, decision D1) |
 | Designated telecommand stations | **None agreed** (D1); at least two by 2027-01-05 |
 | Passivation telecommand (§6.4) | Implemented 2026-10-27 (`test_passivation`, Rust unit tests, SIL end-of-life plan), in the order of Version 0.10: the fire while still transmitting, the final report, then TX-OFF. Pins allocated: `EOL_ARM` on **PF4** and `EOL_FIRE` on **PG1** (logical pins 19 and 20 of `hal_gpio.h`; EPS J3-32/33, SQSO-ICX-001 B §6; SQSO-EPS-BRD-001 §13), two independent lines, low at reset and pulled down on the EPS board; firing needs both. Not run on hardware (V-EPS-8 on the EM) |
 | Command acknowledgement (`ack KK6GDB-11: C= R= N=`, SQSO-ICD-005 §5.5) | Implemented 2026-10-27 (`test_cmd_handler`); sent after each command counted as contact (Section 6.2), through the downlink's inhibits |
-| Counters from UTC for several stations (§5.2.1) | Proposed; ground tool only |
 | Loss-of-contact N and M | N: mechanism implemented; value a placeholder (D3). M (autonomous passivation): **not implemented** |
-| Monotonic time source on target | **Not implemented** (SW-01); the loss-of-contact and RF-silence timers depend on it |
-| Reset-cause register read on target (`hal_reset.h`) | **Not implemented**; simulation only |
-| Deployment-switch polarity | TBR against the schematic (SW-10) |
+| Monotonic time source on target | Implemented in the firmware (`hal_timer_get_ms()`, `firmware/src/timer.rs`); not run on hardware |
+| Reset-cause register read on target (`hal_reset.h`) | Implemented in the firmware (`hal_reset_cause()`, `firmware/src/wdt.rs`); not run on hardware |
+| Deployment-switch polarity | Closed by design change (RID SMA-B02, SRS-F159): high = released, no internal pull, per SQSO-ICX-001 §3.7 |
 
 ## 11. Test Vectors
 
@@ -525,3 +523,5 @@ python3 software/ground/tools/telecommand_builder.py TX_DISABLE --key-file test.
 | 0.12 | 2026-10-27 | CDR flight software, round 3 (second part): §6.4 the two-processor arm (RID P3E-11: EOL_STATE checked, the key 0x3C/0xC3 to EOL_KEY 0x7E, EOL_ARM within the key's 10 s, the latch confirmed before PASSIVATE_EXECUTE is accepted), the fire on EOL_FIRE alone, ended by EOL_STATE bit 1 set and bit 2 clear, the 24 h deadline; §7 FRAM_BYPASS (0x0B, SMA-B10) and EPS_DISABLE_TRACKERS (0x15, SMA-B17) |
 | 0.13 | 2026-10-27 | CDR flight software, round 3 (third part): §6.4 the fire's EPS-board condition (≥ 0 °C, waited for at most 6 h of each attempt, not held by an unreadable temperature; RID SMA-B20) and its reasons in HK1 `PS`; §7 DEPLOY_RETRY's force flag (decision C-18) |
 | 0.14 | 2026-10-27 | CDR flight software, round 3 (fourth part): §6.3 the AntS hold of decision C-19 (SRS-F167: transmitters silent, receiver on, until the AntS sequence ends) and the OBC's exciter keying watch (SRS-F168, SW-HAZ-014 C-014-9) among `rf_control`'s inhibits |
+| 0.15 | 2026-10-27 | Documentation audit (post-CDR 2026): §2 variant B ≥ 17.8 dBic (BASELINE Rev E §7; was 17.5); §5.2 LBA v3.5; §6.3 the latched RF silence (SRS-F087) and the separation-sense polarity of SMA-B02 (SRS-F159) replace "restart even after completion" and "pull-up, high = stowed"; the AntS hold at worst about S+25.8 h (was S+27 h); §7 SET_POWER applied on TX_PWR_SEL; §10 the firmware's radio driver, time base and reset cause, SET_POWER and switch polarity rows brought to the code; the duplicate "proposed" UTC-counter row removed; §7 PASSIVATE_ARM arms the EPS latch (was "drives nothing", contrary to §6.4) |
+| 0.16 | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: §6.3 the receiver-off reading of the RF silence is the SYS-224 rule (the open "with the launch provider" marker removed) |

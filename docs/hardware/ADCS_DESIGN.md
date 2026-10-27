@@ -1,7 +1,7 @@
 # Attitude Determination and Control Subsystem (ADCS) Design Document
 
 **Document Number**: SMART-QSO-ADCS-001
-**Version**: 1.9
+**Version**: 1.10
 **Date**: 2026-10-27
 **Status**: Preliminary Design
 
@@ -10,7 +10,9 @@
 - GSFC-STD-7000 (GEVS) - General Environmental Verification Standard
 - ECSS-E-ST-10-03C - Testing
 
-**Heritage**: NASA Ames Research Center Small Satellite Division (GeneSat, PharmaSat, O/OREOS, EcAMSat)
+**Reference missions** (design patterns consulted, not project heritage): NASA Ames Research Center small satellites (GeneSat, PharmaSat, O/OREOS, EcAMSat)
+
+**Hardware of record**: the sensors, the magnetorquer drive and their interfaces are designed in the OBC build-to design `hardware/electrical/obc/OBC_BOARD_DESIGN.md` (SQSO-OBC-BRD-001) §9–§10 and `docs/interfaces/ICD_OBC_ADCS.md` (SQSO-ICD-004); where §3 or §6 of this document differs, those govern. Not built.
 
 ---
 
@@ -102,12 +104,15 @@ SMART-QSO employs a passive/semi-active ADCS approach:
 +-------+-------+     +---------+---------+    +---------+---------+
 | 3-AXIS        |     |    ON-BOARD       |    |   3-AXIS         |
 | MAGNETOMETER  |     |    COMPUTER       |    |  MAGNETORQUERS   |
-| (HMC5883L)    |     |                   |    |  (Air-core coils)|
-|               |     | +---------------+ |    |                  |
-| - ±8 Gauss    |     | |  B-dot        | |    | - 0.2 A·m²/axis  |
-| - 0.5° acc    |---->| |  Detumble     |-+--->| - 100mA max      |
-| - 12-bit ADC  |     | +---------------+ |    | - PWM driven     |
+| (PNI RM3100,  |     |  (STM32L4R5ZI)    |    | (CubeSpace CR0002|
+|  board A2)    |     | +---------------+ |    |  rods)           |
+| - I2C4 0x20   |     | |  B-dot        | |    | - >0.2 A·m²/axis |
+| - single shot |---->| |  Detumble     |-+--->| - DRV8876-Q1     |
+| - 15 nT noise |     | +---------------+ |    |   from VBAT_MTQ  |
 +---------------+     | +---------------+ |    +------------------+
+  GYROS: Epson        |                   |
+  M-G370PDT0 (SPI3),  |                   |
+  BMI088 cold spare   |                   |
                       | |  Sun-Pointing | |
                       | |  Control      | |
                       | +---------------+ |
@@ -122,42 +127,41 @@ SMART-QSO employs a passive/semi-active ADCS approach:
 
 #### 3.2.1 Magnetometer
 
-**CDR status (1.5): not selected.** The HMC5883L below is a placeholder: a commercial compass part with no radiation
-data, and `docs/interfaces/ICD_OBC_ADCS.md` names a different one (LIS3MDL). The candidates are the flight units of
-`docs/hardware/BUILD_VS_BUY.md` §3 (GomSpace M315, AAC MM200, Spacemanic Lodestone). No driver exists yet; the flight
-software takes the field through `adcs_control` from the simulated HAL. Selection, mounting away from the coils and the
-Jetson, and the driver are open (RID GNC-04, closure at the EM). The timing in §11.1 applies to any of them.
+**Selected (OBC board design, Version B): PNI RM3100** on a 24 × 24 mm board A2 at the +Z end frame, slot (+24, +27)
+mm, harness W6E to OBC J10, on I2C4 at 0x20 with a data-ready line, behind its own latch-up switch
+(SQSO-OBC-BRD-001 §9.4; `docs/interfaces/ICD_OBC_ADCS.md`). It replaces "buy a module" (BUILD_VS_BUY §2.7: GomSpace
+M315, AAC MM200, Spacemanic Lodestone; any of them with I2C at 3.3 V fits the same slot and harness if AV-V4 fails).
+Reasons: single-shot conversions on command in the coils-off window of §11.1 with DRDY at the end; 13 nT resolution and
+15 nT noise at 200 cycle counts, against the 50 nT the Monte Carlo assumes; ≈ 3 g with board and harness. It has no
+published radiation data (own latch-up switch and the RAD-V3 lot test). The HMC5883L and LIS3MDL of earlier versions
+are withdrawn. Rod remanence at the +Z slot and the magnetometer verification are AV-V4 (RID GNC-04).
 
-**Placeholder Component**: HMC5883L 3-Axis Magnetometer
-
-| Parameter | Specification |
+| Parameter | Specification (PNI data, SQSO-OBC-BRD-001 §9.4) |
 |-----------|---------------|
-| Measurement Range | ±8 Gauss |
-| Resolution | 0.73 mGauss/LSB |
-| Accuracy | ±0.5° heading |
-| Update Rate | Up to 75 Hz |
-| Interface | I2C (0x1E) |
-| Power | 2.5V-3.3V, 100μA |
-| Temperature Range | -40°C to +85°C |
+| Range | ± 800 µT, linear ± 200 µT |
+| Resolution / noise | 13 nT / 15 nT at 200 cycle counts |
+| Interface | I2C4 at 0x20, single-shot on command, DRDY (MAG_DRDY) |
+| Power | 260 µA at 8 Hz three-axis |
 
 **Calibration**:
 - Hard-iron offset: Determined during ground test
 - Soft-iron correction: 3x3 calibration matrix
-- Temperature compensation: Coefficients stored in EEPROM
+- Temperature compensation: coefficients stored in FRAM
 
 #### 3.2.2 Sun Sensors
 
-**Selected Component**: SLCD-61N8 Photodiode Array (6 sensors)
+**Selected**: the six panel photodiodes, bought with the body panels and wings (BUILD_VS_BUY §2.3; the part is named by
+the panel vendor, short-circuit current ≤ 4.0 mA at AM0 normal incidence). Each feeds a zero-bias transimpedance
+amplifier on the OBC board into an ADS7138-Q1 12-bit ADC (SQSO-OBC-BRD-001 §9.5). The SLCD-61N8 of earlier versions
+is withdrawn. Sun-vector knowledge is not a requirement (decision C-23); the Monte Carlo of §11.6 models these
+photodiodes with Earth albedo.
 
-| Parameter | Specification |
+| Parameter | Specification (SQSO-OBC-BRD-001 §9.5) |
 |-----------|---------------|
-| Type | Silicon photodiode |
-| Active Area | 7.5 mm² |
-| Spectral Range | 350-1100 nm |
-| FOV | ±60° (cosine response) |
-| Interface | ADC via OBC |
-| Power | <1 mW per sensor |
-| Accuracy | ±3° (sun vector) |
+| Type | Silicon photodiode, one per face (+X, −X, +Y, −Y, +Z, −Z) |
+| FOV | Cosine response |
+| Interface | Transimpedance amplifier (619 Ω) into the ADS7138-Q1 (I2C4 0x10) |
+| Resolution | 1.30 µA per LSB; 1.46° angle step at normal incidence |
 
 **Sun Vector Calculation**:
 ```c
@@ -172,11 +176,13 @@ normalize(&sun_x, &sun_y, &sun_z);
 
 #### 3.3.1 Magnetorquer Coils
 
-**CDR status (1.5):** the structures review chose CubeSpace CR0002 rods in layout B (STR-01; `docs/environment/MASS_BUDGET.md`
-v3.0 §6). The air-core coil data below remain as the alternative. The rods' remanence and hysteresis are not in the
-Monte Carlo (§11.5).
+**Selected: CubeSpace CR0002 rods** (> 0.2 A·m², gain 2.3 A·m²/A, ≈ 51 Ω, 87 mA for 0.2 A·m²; decision C-3, BASELINE §8;
+SQSO-OBC-BRD-001 §10.1), driven from VBAT_MTQ (EPS switch SW11). The air-core coil data below remain as the alternate
+only (BASELINE §8: the 250-turn coil delivering ≥ 0.15 A·m²). The rods' remanence and hysteresis are not in the
+Monte Carlo (§11.5); ask CubeSpace for the remanence (≤ 0.18 mA·m² per rod needs no flight-software calibration at
+the +Z magnetometer slot).
 
-**Configuration**: 3-axis air-core coils (PCB trace or wire-wound)
+**Alternate configuration**: 3-axis air-core coils (PCB trace or wire-wound)
 
 | Parameter | X-Axis | Y-Axis | Z-Axis |
 |-----------|--------|--------|--------|
@@ -410,71 +416,38 @@ and no requirement rests on it.
 
 ### 6.1 Magnetorquer Driver
 
-**CDR finding (1.5):** the L293D drawn below needs a logic supply of at least 4.5 V and drops about 1.4 V per bridge;
-it cannot run from the 3.3 V rail shown. The electrical design (`hardware/adcs/ADCS_ELECTRICAL_DESIGN.md`) names the
-DRV8833 (2.7–10.8 V, low-R_DS(on) MOSFET bridges), which is the part to carry. The driver must also switch the coils
-off by its own timer at the end of each 900 ms burst (§11.1); no firmware driver for the coil PWM exists yet (RID
-AV-03).
+**Design of record** (SQSO-OBC-BRD-001 §10; decision C2 of its §24): three **DRV8876-Q1** H-bridges in PH/EN mode on the
+OBC board, supplied from **VBAT_MTQ** (11.2–16.4 V, EPS switch SW11 on ADCS_EN), not from 3.3 V: a 51 Ω rod on 3.3 V
+reaches only 0.15 A·m². The L293D and DRV8833 of earlier versions are withdrawn.
 
-```
-                 +3.3V
-                   |
-              +----+----+
-              |  L293D  |
-              | H-Bridge|
-        PWM_X-|1A    1Y |--+
-              |         |  |
-              |2A    2Y |--+---> Coil_X (15Ω)
-              |         |  |
-        DIR_X-|1,2EN    |--+
-              +---------+
-                   |
-                  GND
-```
-
-**Control Interface**:
-- PWM frequency: 20 kHz (inaudible)
-- PWM resolution: 8-bit (256 levels)
-- Direction: GPIO for polarity control
-- Enable: GPIO for on/off control
-
-**Current Limiting**:
-- Software: PWM duty cycle limit
-- Hardware: Series resistor backup
+| Item | Design |
+|------|--------|
+| Drive | EN = TIM1 PWM (PE9, PE11, PE13), PH = direction (PE8, PE10, PE12); slow decay, coil current linear in duty |
+| PWM | 40 kHz recommended |
+| Hardware current limit | 104–126 mA per rod (fixed off-time chopping) |
+| Current telemetry | IPROPI to the MCU ADC (PA4–PA6), 10 mV/mA |
+| Faults | wired-OR nFAULT to PE14 |
+| Burst timing | TIM15 one-pulse ends each 900 ms burst in hardware; a CD74HC4060 off-timer forces the bridges to sleep at 0.92–0.98 s if the OBC hangs; current zero within 1.9 ms of the 900 ms point (§11.1) |
+| Reset | MTQ_ARM pulled down: no bridge enabled with the OBC in reset or unpowered |
 
 ### 6.2 Magnetometer Interface
 
 ```
-      +3.3V          OBC
-        |        +---------+
-    +---+---+    |         |
-    |HMC5883|    | I2C     |
-    |   L   |====| Master  |
-    |       |    |         |
-    +---+---+    | GPIO    |====> DRDY (optional)
-        |        +---------+
-       GND
+   Board A2 (+Z end frame)            OBC board
+   +-----------+   harness W6E   +--------------------------+
+   |  RM3100   |=================| TCA9517-Q1 -> I2C4 (PD12,|
+   |  0x20     |                 |   PD13); MAG_DRDY PD11   |
+   +-----------+                 | own latch-up switch      |
+                                 +--------------------------+
 ```
+
+Pins and isolation: SQSO-OBC-BRD-001 §9.1, §9.4; `docs/interfaces/ICD_OBC_ADCS.md`.
 
 ### 6.3 Sun Sensor Interface
 
-```
-                +3.3V
-                  |
-    Photodiode   +-+
-        |        | | 10kΩ
-        +--------|<|---+---> To ADC
-        |        | |   |
-       ===       +-+  ===
-        |              |
-       GND            GND
-```
-
-**ADC Requirements**:
-- 6 channels (one per face)
-- 12-bit resolution
-- 1 kHz sample rate per channel
-- Simultaneous sampling preferred
+Each photodiode drives a zero-bias transimpedance amplifier (TLV9002-Q1, Rf 619 Ω, Cf 10 nF), anode to ground,
+into one channel of the ADS7138-Q1 (12 bits, I2C4 at 0x10) through 1 kΩ / 100 nF (SQSO-OBC-BRD-001 §9.5). The
+resistive-load circuit of earlier versions is withdrawn.
 
 ---
 
@@ -578,7 +551,10 @@ this table had numbered them TP-ADCS-001 to -006 in a different order).
 
 ### 10.1 GomSpace NanoMind A3200
 
-If schedule or risk warrants, a COTS integrated solution is available:
+**Not a current option (documentation audit, 2026-10-27).** The build-versus-buy survey found no 1U integrated ADCS on
+sale and GomSpace's 1U–3U lines withdrawn (BUILD_VS_BUY §2.1); the decision is to buy the rods, gyro and sun-sensing
+panels and build the drive on the OBC board (BUILD_VS_BUY §1). The figures below are the earlier vendor summary,
+unsourced, kept as a record:
 
 | Parameter | GomSpace NanoMind A3200 |
 |-----------|------------------------|
@@ -1051,3 +1027,4 @@ void mag_field_eci(double jd, Vec3 *r_eci, Vec3 *B_eci) {
 | 1.7 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, second part) | §11.2 the final CAD tensors (deployed mean (3.0645, 4.479, 4.2615) × 10⁻³ with Ixy +11.8, Ixz −15.3, Iyz −1.05 × 10⁻⁶; the CBE and MEV rows; the one-wing and no-wing tensors of STR-27; stowed); §11.3 the presets' axes from the CAD tensors (8.3°, 9.1°, 3.3° from +Y); §11.4 the plant rows and the one-wing table re-run against the CAD plant |
 | 1.8 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fourth part) | §11.2 the tensors of MASS_BUDGET 3.2 §6.5 (deployed (3.064, 4.481, 4.262) × 10⁻³, the presets' major axes 8.4°, 9.1°, 3.6°); §11.4 the M-G370, CAD-plant and preset rows re-run with them (RID GNC-07) |
 | 1.9 | 2026-10-27 | SMART-QSO Team (CDR round 3 closure, GN&C) | Findings P3F-G-04 to -07 and decisions C-21, C-22, C-23: §2.1, §2.2 ADCS-F002 and ADCS-P002 restated for power (≤ 5 % of the sunlit generation lost to the pointing and the Sun within 30° of +Y ≥ 95 % of sunlit time, every trial, photodiodes and albedo), ADCS-F003 the sun vector and rate the law needs, ADCS-P003 withdrawn, ADCS-P007 rate knowledge (≤ 0.2°/s); ADCS-I003, §3.1, §7 no quaternion; §4.3 the EKF/TRIAD removed from the flight baseline (TRIAD kept as a ground tool); §8.1 F003 method and status; §11.2 stowed products and the AntS-stowed tensor; §11.3 preset axes regenerated from the code (8.4°, 9.1°, 3.6°) and the C-21 rule; §11.4 the gain sweep and the robustness table re-run with the current tensors (C-4 rationale revised: no gain holds Iyy = Izz; 8°/s and 3·10⁻⁴ stand on the 1.005–1.05 range), the proposed BASELINE §8 text; §11.6 new: gating, wings stowed with the AntS held 25 h, the AntS 3 h after the wings, one wing at CBE/MEV with the wrong preset, the face-photodiode sun sensors with albedo, the sun-vector knowledge (reported) and ADCS-P002 per trial (met at 3–7 mA·m², not at the 10 mA·m² limit: 6 of 40 trials); §11.7 new: the wing-identification signatures and pass criteria |
+| 1.10 | 2026-10-27 | SMART-QSO Team (documentation audit) | Documentation audit (post-CDR 2026): hardware brought into line with SQSO-OBC-BRD-001 §9–§10 (its chair items C1, C2): §3.1 block diagram, §3.2.1 RM3100 on board A2 (HMC5883L placeholder withdrawn), §3.2.2 panel photodiodes into the ADS7138 (SLCD-61N8 withdrawn), §3.3.1 CR0002 rods selected and air-core coils the alternate, §6.1 DRV8876-Q1 from VBAT_MTQ with the hardware off-timer (L293D/DRV8833 withdrawn), §6.2–§6.3 interfaces; §10 A3200 marked not a current option; heritage line reworded (reference missions, not project heritage) |

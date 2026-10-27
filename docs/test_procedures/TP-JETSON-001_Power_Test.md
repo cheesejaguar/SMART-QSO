@@ -2,11 +2,16 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** TP-JETSON-001
-**Revision:** D
-**Date:** 2026-01-02
+**Revision:** E
+**Date:** 2026-10-27
 **Reference:** NVIDIA Jetson Orin Nano Datasheet, NASA Ames SmallSat Heritage
 
 **Requirements verified:** SYS-501, SYS-502, SYS-503, SYS-514
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -27,10 +32,10 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 
 | Document | Title |
 |----------|-------|
-| SQSO-HW-004 | Payload Design Document |
+| SMART-QSO-PAYLOAD-001 | Payload Design Document (`docs/hardware/PAYLOAD_DESIGN.md`); `hardware/electrical/jetson/CARRIER_BOARD_DESIGN.md`, the custom carrier |
 | SMART-QSO-ICD-002 | ICD OBC-Jetson |
-| NVIDIA | Jetson Orin Nano Datasheet |
-| SQSO-REQ-001 | System Requirements |
+| NVIDIA | Jetson Orin Nano 8 GB module (P/N 900-13767-0030-000) Datasheet |
+| SQSO-REQ-002 | System Requirements Specification |
 
 ## 4. Test Article
 
@@ -46,7 +51,7 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 
 | Equipment | Model | Cal Due |
 |-----------|-------|---------|
-| DC Power Supply | 5V/5A capable | |
+| DC Power Supply | 11.2–16.4 V, 2 A (the carrier input is VBAT_JET; `docs/hardware/EPS_DESIGN.md` §4) | |
 | Current Shunt | 100mOhm, 0.1% | |
 | DAQ/Oscilloscope | High-speed sampling | |
 | Temperature Probe | Thermocouple or IR | |
@@ -58,7 +63,7 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 - [ ] Jetson module installed on carrier
 - [ ] Flight software image installed
 - [ ] OBC interface connected and verified
-- [ ] Power supply configured for 5V output
+- [ ] Power supply configured for 14.4 V (and 11.2 / 16.4 V for V-JET-1)
 - [ ] Temperature monitoring in place
 - [ ] Test scripts ready
 
@@ -79,7 +84,7 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
-| 8.1.1 | Configure power supply for 5.0V | Stable output | |
+| 8.1.1 | Configure power supply for 14.4 V at the carrier input | Stable output | |
 | 8.1.2 | Insert current shunt in power path | Shunt resistance verified | |
 | 8.1.3 | Connect temperature monitoring | Reading ambient temp | |
 | 8.1.4 | Connect OBC interface | Serial link established | |
@@ -93,8 +98,8 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 | 8.2.1 | Enable Jetson power (OBC command) | Power applied | |
 | 8.2.2 | Monitor inrush current | Peak < 3A | |
 | 8.2.3 | Record boot current profile | Capture waveform | |
-| 8.2.4 | Measure time to boot complete | < 30 seconds | |
-| 8.2.5 | Verify UART response | "READY" message | |
+| 8.2.4 | Measure time to boot complete | First STATUS line within 45 s (V-JET-3) | |
+| 8.2.5 | Verify UART response | STATUS line (`docs/interfaces/ICD_OBC_JETSON.md`) | |
 | 8.2.6 | Record steady-state boot current | I_boot = ____mA | |
 
 **Power-Up Record:**
@@ -102,8 +107,8 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 | Parameter | Requirement | Measured | P/F |
 |-----------|-------------|----------|-----|
 | Inrush peak | < 3A | A | |
-| Boot time | < 30s | s | |
-| Boot current average | < 1.5A | A | |
+| Boot time | ≤ 45 s (V-JET-3) | s | |
+| Boot current average | Record | A | |
 
 ### 8.3 Idle Power Measurement [SYS-502]
 
@@ -121,7 +126,7 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 | Parameter | Requirement | Measured | P/F |
 |-----------|-------------|----------|-----|
 | Idle power | < 5W | W | |
-| Idle current | < 1A at 5V | A | |
+| Idle current | Record at 14.4 V | A | |
 | Junction temp | < 50C (idle) | C | |
 
 ### 8.4 DVFS Profile Verification [SYS-501]
@@ -134,7 +139,7 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 | 8.4.4 | Verify GPU frequency reduced | < 400 MHz | |
 | 8.4.5 | Measure power in low-power mode | < 7W | |
 | 8.4.6 | Command a power mode above 7W (for example 15W) | Rejected; the 7W mode is retained, the only flight mode (`docs/BASELINE_PARAMETERS.md` §6) | |
-| 8.4.7 | Measure input power at the carrier in 7W mode under load | ≤ 8W including the carrier (`docs/BASELINE_PARAMETERS.md` §6); peak < 10W (SYS-501) | |
+| 8.4.7 | Measure input power at the carrier in 7W mode under load | ≤ 8.0 W including the carrier, 2 s average, every sample at the 6.5 W cap (V-JET-4; SYS-501; `docs/BASELINE_PARAMETERS.md` §6) | |
 
 **DVFS Record:**
 
@@ -162,16 +167,16 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 
 | Parameter | Requirement | Measured | P/F |
 |-----------|-------------|----------|-----|
-| Average inference power | < 8W | W | |
-| Peak power | < 10W | W | |
-| Temperature during inference | < 85C | C | |
+| Average inference power | ≤ 8 W at the carrier input (SYS-501) | W | |
+| Peak power | ≤ 8.0 W, 2 s average (V-JET-4) | W | |
+| Temperature during inference | Junction ≤ 95 °C (SYS-603) | C | |
 
 ### 8.6 Sustained Load Test
 
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
-| 8.6.1 | Start continuous inference | Running | |
-| 8.6.2 | Run for 30 minutes | No throttling | |
+| 8.6.1 | Start continuous inference (the stuck-on case; a flight burst ends within 10 min, BASELINE §6) | Running | |
+| 8.6.2 | Run for 30 minutes | No throttling; spreader recorded for the SYS-603 stuck-on limit (+70 °C) | |
 | 8.6.3 | Record temperature every 5 min | Document trend | |
 | 8.6.4 | Record power every 5 min | Document trend | |
 | 8.6.5 | Verify no thermal throttling | Frequency stable | |
@@ -194,7 +199,7 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 | Step | Action | Expected Result | P/F |
 |------|--------|-----------------|-----|
 | 8.7.1 | Command graceful shutdown | Shutdown complete | |
-| 8.7.2 | Command power disable (OBC) | 5V rail off | |
+| 8.7.2 | Command power disable (OBC) | VBAT_JET off | |
 | 8.7.3 | Measure residual current | < 1mA | |
 | 8.7.4 | Wait 60 seconds | Power off confirmed | |
 | 8.7.5 | Command power enable | Power applied | |
@@ -227,11 +232,11 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 | Criterion | Requirement | Result |
 |-----------|-------------|--------|
 | Inrush current | < 3A peak | |
-| Boot time | < 30 seconds | |
-| Idle power | < 5W | |
-| Inference power | < 8W average | |
-| Peak power | < 10W | |
-| Thermal margin | T_junction < 85C | |
+| Boot time | ≤ 45 seconds (V-JET-3) | |
+| Idle power | < 5W (SYS-502) | |
+| Inference power | ≤ 8 W at the carrier input (SYS-501) | |
+| Peak power | ≤ 8.0 W, 2 s average (V-JET-4) | |
+| Thermal margin | T_junction ≤ 95 °C (SYS-603) | |
 | Power gating | Residual < 1mA | |
 | Power cycling | 3/3 successful | |
 
@@ -284,3 +289,4 @@ This procedure verifies the power characteristics of the Jetson Orin Nano payloa
 | B | 2026-10-16 | OBC-Jetson ICD cited by its own number, SMART-QSO-ICD-002 (finding PI-17) | SMART-QSO Team |
 | C | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; it had cited only standards (finding VV-06) | SMART-QSO Team |
 | D | 2026-10-16 | §8.4 no longer characterizes a 15 W mode (8–15 W, above the 10 W peak of SYS-501): steps 8.4.6–8.4.7 and the record check that no mode above 7 W can be selected and that the carrier input stays ≤ 8 W in the 7 W mode (BASELINE §6); §8.4 cites SYS-501 (finding VV-06) | SMART-QSO Team |
+| E | 2026-10-27 | Documentation audit (post-CDR 2026): carrier input from VBAT (was 5 V), ≤ 8 W (SYS-501, V-JET-4; was 10 W peak), boot ≤ 45 s (V-JET-3), junction ≤ 95 °C; document numbers corrected; banner | Documentation audit |

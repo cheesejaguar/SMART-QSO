@@ -2,11 +2,16 @@
 ## TP-FLATSAT-001
 
 **Document Number:** SQSO-TP-FLATSAT-001
-**Version:** 1.1
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.2
+**Date:** 2026-10-27
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** SRS-F001, SRS-F011, SRS-F012, SRS-F013, SRS-F020, SRS-F023, SRS-F030, SRS-F031, SRS-F040, SRS-F042, SRS-F052, SRS-F062, SRS-I010, SRS-I021, SRS-Q011, SYS-304, SYS-323, SYS-324, SYS-523
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -28,10 +33,10 @@ This procedure defines the software development and verification testing on the 
 
 ## 3. APPLICABLE DOCUMENTS
 
-1. docs/integration/FLATSAT_CONFIGURATION.md
-2. software/flight/README.md
-3. docs/design/FDIR_DESIGN.md
-4. ICD_OBC_EPS.md, ICD_OBC_JETSON.md
+1. `docs/integration/FLATSAT_CONFIGURATION.md`
+2. `software/rust/README.md` (the flight software) and `CLAUDE.md` (build commands)
+3. `software/flight/docs/FDIR_DESIGN.md`
+4. `docs/interfaces/ICD_OBC_EPS.md`, `docs/interfaces/ICD_OBC_JETSON.md`
 
 ---
 
@@ -39,12 +44,12 @@ This procedure defines the software development and verification testing on the 
 
 | Equipment | Specification |
 |-----------|---------------|
-| Flatsat boards | EPS dev, OBC dev, RF dev, ADCS breakout, Jetson dev kit |
-| Power supply | 0-12V, 5A (battery simulation) |
-| Solar simulator | 0-6V, 3A programmable |
+| Flatsat boards | EM boards when built (EPS, OBC with the STM32L4R5ZI, RF, magnetometer board A2, Jetson carrier); development boards until then (`docs/integration/FLATSAT_CONFIGURATION.md`) |
+| Power supply | 4S pack simulator, 11.2–16.4 V (14.4 V nominal, charged to 16.4 V; `docs/BASELINE_PARAMETERS.md` §5), 5 A |
+| Solar array simulator | Per string 3.5–6.3 V, up to 1.1 A, programmable (the trackers' range, V-EPS-1) |
 | Serial interface | USB-UART adapters (multiple) |
 | Logic analyzer | 8+ channels |
-| Development PC | STM32CubeIDE, serial terminal |
+| Development PC | Rust toolchain (`software/rust/rust-toolchain.toml`), probe-rs or ST-Link, serial terminal |
 
 ---
 
@@ -52,7 +57,7 @@ This procedure defines the software development and verification testing on the 
 
 - [ ] Flatsat assembled per FLATSAT_CONFIGURATION.md
 - [ ] All subsystem boards functional (standalone tests complete)
-- [ ] Flight software compiled for flatsat target
+- [ ] Flight software built for the STM32L4R5ZI (`cd software/rust/firmware && cargo build --release`; Embassy executor, no RTOS; `software/rust/README.md`)
 - [ ] Debug UART enabled in software configuration
 - [ ] Regression test suite ready
 
@@ -66,7 +71,7 @@ This procedure defines the software development and verification testing on the 
 |------|--------|----------|-----|
 | 1 | Power on flatsat | All boards powered | |
 | 2 | Connect debug UART to PC | Serial terminal ready | |
-| 3 | Load flight software to OBC | Flash successful | |
+| 3 | Load the firmware image to the OBC over SWD (TP-OBC-002) | Flash successful | |
 | 4 | Reset OBC | Boot banner appears | |
 | 5 | Verify boot sequence | All init messages OK | |
 | 6 | Verify nominal telemetry | Valid values | |
@@ -82,20 +87,20 @@ This procedure defines the software development and verification testing on the 
 | 4 | Command magnetorquer | Correct actuation | |
 | 5 | Enable Jetson | Boot complete | |
 | 6 | Request Jetson status | Status received | |
-| 7 | Trigger Jetson inference | Text generated | |
-| 8 | Verify RF beacon content | Contains Jetson text | |
+| 7 | Trigger a Jetson burst (gated experiment, D5) | Text generated; filtered on the OBC (`docs/BEACON_SPEC.md` §6) | |
+| 8 | Verify RF beacon content | Template text from the OBC selector (flight baseline, D5); accepted Jetson lines only when the experiment is enabled | |
 
 ### 6.3 Mode Transition Test [SRS-F012, SRS-F013, SYS-304]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
-| 1 | Start in INIT mode | Mode = INIT | |
-| 2 | Complete init sequence | Transition to SAFE | |
+| 1 | Start in BOOT | Mode = BOOT | |
+| 2 | Complete boot | Transition to DETUMBLE (`software/rust/sqso-fsw/src/mode.rs`) | |
 | 3 | Command transition to IDLE | Mode = IDLE | |
-| 4 | Command transition to ACTIVE | Mode = ACTIVE | |
-| 5 | Command transition to AI_BURST | Mode = AI_BURST | |
-| 6 | Simulate low power | Auto-transition to SAFE | |
-| 7 | Recover power | Return to previous mode | |
+| 4 | Command transition to ACTIVE (SOC ≥ 55 %, sunlit) | Mode = ACTIVE | |
+| 5 | In ACTIVE, start a Jetson burst | Burst runs within ACTIVE (there is no burst mode); ends within 10 min (BASELINE §6) | |
+| 6 | Simulate falling SOC | IDLE below 40 %, SAFE below 25 %, EMERGENCY below 15 % (BASELINE §5) | |
+| 7 | Recover power | SAFE at 25 %, IDLE above 40 % (BASELINE §5) | |
 
 ### 6.4 Fault Injection Testing [SRS-F040, SRS-F042, SRS-F052, SRS-F062, SYS-523]
 
@@ -108,14 +113,14 @@ This procedure defines the software development and verification testing on the 
 | 5 | Corrupt configuration CRC | Fallback to defaults | |
 | 6 | Simulate watchdog timeout | OBC resets safely | |
 | 7 | Power cycle during write | Data integrity maintained | |
-| 8 | Simulate Jetson hang | Jetson power-cycled | |
+| 8 | Simulate Jetson hang | Jetson powered off within its 10 min burst limit or at the per-rail current limit; OBC, beacon and telecommand unaffected (SYS-522, SYS-523) | |
 
 ### 6.5 Regression Testing [SRS-Q011]
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
-| 1 | Run unit test suite | All tests pass | |
-| 2 | Run integration test suite | All tests pass | |
+| 1 | Run the Rust tests and the C test suites (`cargo test --workspace` in `software/rust`; `ctest --test-dir build`) | All tests pass | |
+| 2 | Run the mission simulation (`docs/test/SIL_MISSION_SIMULATION.md`) | All checks pass | |
 | 3 | Verify code coverage | >= 80% achieved | |
 | 4 | Run static analysis | No new issues | |
 | 5 | Compare to baseline | No regressions | |
@@ -167,3 +172,4 @@ This procedure defines the software development and verification testing on the 
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
 | 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
+| 1.2 | 2026-10-27 | Documentation audit (post-CDR 2026): EM flatsat on the STM32L4R5 with the Rust/Embassy toolchain (was STM32CubeIDE and development boards); 4S pack simulator 11.2–16.4 V (was 0–12 V); flight modes BOOT/DETUMBLE/IDLE/ACTIVE/EMERGENCY (no AI_BURST mode); template beacon baseline (D5); broken references fixed; status and banner |

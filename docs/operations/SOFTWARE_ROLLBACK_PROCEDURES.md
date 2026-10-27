@@ -1,10 +1,18 @@
 # SMART-QSO Software Rollback and Recovery Procedures
 
 **Document ID**: SQSO-SRP-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Not applicable to the flight design as built; kept as a plan for a capability that does not exist.
+
+> **Documentation audit notice (2026-10-27).** These procedures assume a dual-bank image, a bootloader, a
+> `BANK_SWITCH` command and an upload protocol. None exists: the Rust firmware starts directly from reset at
+> 0x08000000, with no bootloader, golden image or boot pointer, and the command dictionary has no upload or bank
+> commands (`software/flight/docs/BOOTLOADER_REQUIREMENTS.md` Rev B §1.1; `software/flight/command_dictionary.json`).
+> In-flight recovery is the watchdogs (IWDG 25.6 s and the TPS3850), safe mode and the CRC-protected records that
+> survive resets, as `docs/software/ROLLBACK_RECOVERY_PROCEDURES.md` (SQSO-RRP-001) Version 1.2 states; that document
+> covers the same subject and governs. Nothing below may be used in operations.
 
 ## 1. Purpose
 
@@ -370,3 +378,4 @@ Ground configuration backed up automatically:
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
+| 1.1 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): notice that the dual-bank rollback and upload described here do not exist in the design; SQSO-RRP-001 governs |

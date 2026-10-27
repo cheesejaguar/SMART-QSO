@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-REG-012
-**Revision:** B
+**Revision:** B.2
 **Date:** 2026-10-27
 **Status:** Self-classification draft. **Must be confirmed by export counsel or a BIS commodity classification (SNAP-R) before any export, foreign launch, or foreign-integrator engagement.**
 **Supersedes:** the system-level and Jetson classifications in `docs/compliance/EXPORT_CONTROL.md` (SQSO-COMP-004 Rev A)
@@ -25,7 +25,7 @@ conclusions conflict with the current regulations:
 |------|---------------------|---------------------|------------------|
 | Integrated spacecraft | EAR, **9A515.a.5** | NS1, RS1, AT1 | License required for export to every destination except Canada. License Exception STA paragraph (c)(1) is available for 9A515.a.5 to Country Group A:5 (the 9A515 STA special conditions exclude only a.1–a.4). LVS ($1,500) does not apply at spacecraft value. |
 | Jetson Orin Nano module | EAR, 5A992.c | AT | No license required for most destinations; prohibited for embargoed/sanctioned end users. |
-| Other COTS parts (MCU, EPS, radios, solar cells, structure) | Classify per part; most are EAR99 or 5A992/3A991 | — | Collect manufacturer ECCNs in the parts list (`docs/hardware/PARTS_LIST.md`) before CDR re-baseline. The GNSS receiver (D6) is imported from the Czech Republic: its EU export licence is the vendor's (BASELINE §6) |
+| Other COTS parts (MCU, EPS, radios, solar cells, structure) | Classify per part; most are EAR99 or 5A992/3A991 | — | Record manufacturer ECCNs, by board BOM line (`hardware/electrical/*/*_bom.csv`), in the EEE parts list (`docs/manufacturing/EEE_PARTS_LIST.md` §2A.10) before the launch contract (E4); `docs/hardware/PARTS_LIST.md` is superseded. The GNSS receiver (D6) is imported from the Czech Republic: its EU export licence is the vendor's (BASELINE §6) |
 | Telecommand authentication (HMAC-SHA-256, `software/rust/sqso-ffi/src/sha256.rs`) | Not an encryption item | — | The spacecraft has **no cryptography for data confidentiality**: the uplink is authenticated, not encrypted, and the downlink is in the clear (97.113(a)(4)). Category 5 Part 2 (5A002) controls items with "cryptography for data confidentiality"; authentication-only functions are outside it. The source code is published (§2 next row). Counsel to confirm with the rest of this memo |
 | Spacecraft "technology" and "software" (9E515 / 9D515) | EAR, *unless published* | NS1, RS1 | Information that is **published** (15 CFR 734.3(b)(3), 734.7), as in this open repository, is not subject to the EAR. **Unpublished** integration or operations data shared with foreign persons is a (deemed) export. |
 | **Launch-integration services and launch-failure assistance** | **ITAR** | — | 15 CFR 774 Supp. 1, 9A515 "Related Controls": "all services (including training) directly related to the integration of any satellite or spacecraft to a launch vehicle, including both planning and onsite support, or furnishing any assistance … in the launch failure analysis or investigation for items in ECCN 9A515.a, are 'subject to the ITAR.'" |
@@ -35,7 +35,8 @@ conclusions conflict with the current regulations:
 The D7 request-for-quote list (BASELINE §3) leads with **Exolaunch (Germany)** and includes **ISISPACE (Netherlands)** and
 **D-Orbit (Italy)**; only SEOPS is U.S.-owned. Integration at Vandenberg by a foreign integrator's staff is case 2
 below; integration at the integrator's European facility is case 3. The RFQs (due 2026-12-31) should ask where
-integration happens and by whom, so that counsel can size the licence or TAA before the contract (REGULATORY_ROADMAP Rev B §3).
+integration happens and by whom, so that counsel can size the licence or TAA before the contract (REGULATORY_ROADMAP Rev D §3). Export counsel is to be engaged by
+2026-12-15 and the TAA need decided before the contract negotiation of 2027-02-23 (`mission/SCHEDULE.md` DA-13); counsel is not yet engaged.
 
 
 1. **U.S. launch site with a U.S. integrator/dispenser**: no export of the spacecraft. Integration services stay among
@@ -56,7 +57,7 @@ These consequences feed the [launch trade](../../funding_audit/LAUNCH_RIDESHARE_
 | E2 | Screen every foreign-person team member and contractor against non-public technical data (deemed exports). | PI |
 | E3 | Screen all parties against the BIS Entity List, OFAC SDN and the Consolidated Screening List before any transfer. | PI |
 | E4 | Obtain a formal classification (counsel opinion or BIS CCATS) before signing a launch agreement. | PI |
-| E5 | Record ECCNs for every procured part in the parts list. | Hardware lead |
+| E5 | Record ECCNs for every procured part in the EEE parts list (SQSO-MFG-002 §2A.10). | Hardware lead |
 
 ## 5. Sources (retrieved 2026-10-14)
 
@@ -72,3 +73,5 @@ These consequences feed the [launch trade](../../funding_audit/LAUNCH_RIDESHARE_
 |-----|------|-------------|
 | A | 2026-10-14 | Initial memo (funding audit); supersedes SQSO-COMP-004 classifications |
 | B | 2026-10-27 | CDR review (communications panel): telecommand authentication is not an encryption item (no confidentiality); GNSS import note; the foreign integrators on the D7 RFQ list mapped to the cases of §3 |
+| B.1 | 2026-10-27 | Documentation audit (post-CDR 2026): §3 the counsel date and TAA decision of DA-13, REGULATORY_ROADMAP Rev D; §2 parts ECCNs before the launch contract (was "before CDR re-baseline"), and in the board BOMs and EEE_PARTS_LIST (was the superseded PARTS_LIST) |
+| B.2 | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: §2 and E5: the ECCN record is EEE_PARTS_LIST §2A.10, by board BOM line (the generated BOMs have no ECCN column) |

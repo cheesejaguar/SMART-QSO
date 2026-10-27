@@ -1,7 +1,7 @@
 # SMART-QSO Thermal Analysis
 
 **Document ID**: SQSO-THA-001
-**Version**: 2.5
+**Version**: 2.6
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR analysis (uncorrelated model). Replaces version 1.0, which analysed a 400 km ISS orbit and an Apollo4
@@ -26,7 +26,7 @@ uncorrelated lumped model and carries the 10 °C uncertainty margin until the en
 | Jetson 8 W bursts (120 s, and 600 s batches) | Node ≤ 39 °C at 0.44 W/K, ≤ 35 °C at 1.0 W/K | The ≥ 1 W/K path is not driving at these duties; stuck-on 8 W gives 61 °C (0.44 W/K) |
 | Dispenser cold soak (SpaceX bounding −20 °C) | Battery −9 °C after 2 h, −15 °C after 3 h; first charge ≈ 33 min after deployment with the 1 W heater | Below the cell's −10 °C discharge limit if deployment is later than 2 h (RID THM-06, EPS-08) |
 | Dispenser hot soak (SpaceX bounding +69 °C) | Battery +55.5 °C after 2 h, +64 °C after 3 h; boards +66 °C | **Exceeds** the battery's +60 °C limit after about 2.4 h and SYS-601 (+60 °C) for the boards (RID THM-07) |
-| ISIS AntS on the −Z face (Version 2.4, §4.4; SQSO-MFG-003 §12 V-1) | At the release, separation + 31 min after the 2 h cold soak: **−44.0 °C** separating at eclipse entry (β = 0), −35.1 °C on the 2028-11-01 orbit, −7.7 / +27.9 °C separating at eclipse exit; first-orbit minimum −47.0 °C. Orbit: −30.5 … −5.9 °C sun-pointed at β = 0, up to +34.8 °C | Release in the first eclipse is 24 °C below the −20 °C qualified operating minimum (34 °C with the margin) and the unpowered minimum is 7 °C below the −50 °C storage limit with the margin: temperature gate at −10 °C predicted (−20 °C with the margin), open within 69 min (tumbling) to 177 min (sun-pointed) after separation, then ≥ 6 min every orbit (≥ 22 min with the black finish), never in the stowed-wing sun-pointed contingency (timeout); hot side +44.8 °C with the margin, inside +60 °C |
+| ISIS AntS on the −Z face (Version 2.4, §4.4; SQSO-MFG-003 §12 V-1) | At the release, separation + 31 min after the 2 h cold soak: **−44.0 °C** separating at eclipse entry (β = 0), −35.1 °C on the 2028-11-01 orbit, −7.7 / +27.9 °C separating at eclipse exit; first-orbit minimum −47.0 °C. Orbit: −30.5 … −5.9 °C sun-pointed at β = 0, up to +34.8 °C | Release in the first eclipse is 24 °C below the −20 °C qualified operating minimum (34 °C with the margin) and the unpowered minimum is 7 °C below the −50 °C storage limit with the margin: temperature gate at −10 °C predicted (−20 °C with the margin), open within 69 min (tumbling) to 177 min (sun-pointed) after separation, then ≥ 6 min every orbit (≥ 22 min with the black finish), never in the stowed-wing sun-pointed contingency (timeout); hot side +44.8 °C with the margin, inside +60 °C. Adopted as decision C-18 on the AntS's own reported temperature ≥ −17 °C (§4.4) |
 
 ## 2. Model
 
@@ -66,7 +66,10 @@ bound, not a predicted condition; both are run.
 ### 2.3 Dissipation by case (W)
 
 From the simulation's device values: OBC 0.165 W, ADCS sensors 0.12 W, magnetorquers ≤ 0.30 W, receiver 0.15 W, PA
-2.7 W DC at 1 W RF and 1.5 W DC at 0.5 W RF, GNSS 0.125 W, EPS quiescent 0.08 W, bucks 85 %/90 %.
+2.7 W DC at 1 W RF and 1.5 W DC at 0.5 W RF, GNSS 0.125 W, EPS quiescent 0.08 W, bucks 85 %/90 %. The RF board as
+designed draws 2.42 W DC at 1 W RF and 1.84 W at 0.5 W RF (POWER_BUDGET_ANALYSIS §5; BASELINE §5): the hot cases
+(1 W keyed) are conservative by about 0.3 W while keyed, and so are the cold cases (beacon at 0.5 W), where the design
+dissipates about 0.3 W more while keyed, a few mW orbit-averaged at the SAFE beacon duty.
 
 | Case | OBC/EPS stack | RF board | Jetson | Battery |
 |------|---------------|----------|--------|---------|
@@ -81,7 +84,8 @@ difference: a low tip-off rate ends the detumble early (§6.6 gives its effect).
 
 Heater: ≈ 207 Ω (1.00 W at 14.4 V): **0.70 W** (0.696 W) at the 12.0 V floor, 0.95 W at 14.0 V (the EMERGENCY
 threshold, 15 % SOC), 1.30 W at 16.4 V. The cases of §4 and §4.1 ran 0.72 W at the floor (the value of Version 2.0,
-also in BASELINE §8 as "0.72–1.30 W"); §4.2 re-runs them at 0.70 W and its values govern. GEVS (GSFC-STD-7000B
+then in BASELINE §8 as "0.72–1.30 W"; BASELINE Rev E carries 0.70–1.30 W); §4.2 re-runs them at 0.70 W and its values
+govern. GEVS (GSFC-STD-7000B
 §2.6.4.1) asks for < 70 % duty in the worst cold case at the minimum voltage.
 
 ## 3. Allowable temperatures and margin rule
@@ -94,7 +98,7 @@ also in BASELINE §8 as "0.72–1.30 W"); §4.2 re-runs them at 0.70 W and its v
 | Jetson module and spreader | −15 (power-on gate) … +50 at the spreader; −25 … +105 junction | −30 … +60; −40 in the first orbit (TSTG −40 … +80, V-THM-8) | THERMAL_DESIGN §1.1; NVIDIA DS-11105-001 v1.7 (Tj −25 … +105 °C since v1.3) | The flight software's guard stops at 70 °C on the spreader and 95 °C junction (`payload_guard.rs`) |
 | Body panels, frame | −40 … +80 | −60 … +100 | THERMAL_DESIGN §1.1 | |
 | Wings (cell assemblies) | −40 … +85 | −100 … +100 | SOLAR_ARRAY_DESIGN §1.1 | To be replaced by the panel vendor's qualification range |
-| EPS fuses F1, F3 (ITV4030L1412NR) | −10 … +65 (data sheet) | No mounted rating published | THERMAL_DESIGN §1.1; SQSO-MFG-003 §4 | Below the stack AFT at both ends: V-EPS-8 extended to −40 °C and +70 °C, or a design change |
+| Fuses F1 (EPS board) and F3 (battery sense board from SQSO-EPS-BRD-001 F) (ITV4030L1412NR) | −10 … +65 (data sheet) | No mounted rating published | THERMAL_DESIGN §1.1; SQSO-MFG-003 §4 | Below the stack AFT at both ends: V-EPS-8 extended to −40 °C and +70 °C, or a design change. F3 now sits on the heated pack and has to blow only while charging, which the hardware refuses below +1.1 °C (SQSO-FMEA-003 §4.1) |
 | RF PA Q601 (RD01MUS3) | Tj ≤ +150; no published minimum | Tstg −40 … +125 | THERMAL_DESIGN §1.1; SQSO-MFG-003 §5 | Vendor statement and EM characterisation at −40 °C |
 | ISIS AntS (−Z face) | −20 … +60 (vendor qualified) | −50 … +85 | THERMAL_DESIGN §1.1; SQSO-MFG-003 §12 | Node added in Version 2.4 (§4.4): at the release (separation + 31 min) −44.0 °C after an eclipse separation at β = 0 (−54.0 °C with the margin), −7.7 °C after a sunlit separation; first-orbit minimum −47.0 °C (−57.0 °C, below the −50 °C storage limit); in orbit −30.5 … +34.8 °C. Release gated at −10 °C predicted, −20 °C with the margin (§4.4) |
 | Magnetorquer rods (CR0002) | −20 … +80 thermal vacuum, cold start −35 (family data) | Not published | THERMAL_DESIGN §1.1; SQSO-MFG-003 §12 | Not a node; inside the structure near the stack (−27.6 °C first orbit). Vendor rating or qualification at −40 °C |
@@ -301,7 +305,7 @@ in the eclipse after deployment (−45.3 °C here after a burn at + 30 min), not
 −50.6 °C after 2 h), the wing side of the hinge −50.0 °C, the frame side (pin, springs) −41.6 °C (−42.5 °C with the
 poor ear joint, about −44 °C with it and the 3 h soak together), the snubber −46.4 °C
 and the burn resistor −40.8 °C: all inside the −55 °C design and test point of SQSO-MECH-001 Version E (torque margin
-+0.08, burn ratio 1.52 at −55 °C; VI-STR-04/-05/-06, VI-MECH-01/-02/-03) by 3.3 °C or more. The release energy depends
++0.08, burn ratio 1.90 at −55 °C with the 10 s burn, 1.52 with the former 8 s; VI-STR-04/-05/-06, VI-MECH-01/-02/-03) by 3.3 °C or more. The release energy depends
 on the resistor's temperature, −39.4 °C (−40.8 °C after 3 h) with the margin, so the flight's 10 s burn (decision C-17;
 8 s when this section was written, then between the −40 °C ratio 1.67 and the −55 °C ratio 1.52) has a ratio of about
 2.07 at −41 °C and 1.90 at the −55 °C bound (SQSO-MECH-001 §4). The only node below −55 °C is the free span of the line, −81 °C with the margin
@@ -379,6 +383,12 @@ shut indefinitely, so the gate needs a timeout: deploy at the end of a sunlit pe
 an opening, or on a ground command, which can also ask for the tumble that suns the −Z face. The deployment would then
 be near the orbit maximum, about −13 °C (−23 °C with the margin), instead of −44 °C.
 
+**Adopted (decision C-18; `sqso_fsw::deployment`).** The flight software gates the AntS deployment on the AntS's own
+reported temperature ≥ −17 °C (the −20 °C qualified minimum plus 3 °C sensor tolerance), deferring to the next 50-min
+slot without spending an attempt; after 30 deferrals (about 25 h) it releases after 20 min of continuous sun, after 3
+unreadable temperatures it follows this section's schedule (the first 20 min of sun from separation + 69 min), and on
+ground command it deploys at once. The transmitters stay silent while the deployment is pending (decision C-19).
+
 ## 5. Margins
 
 | Item | Worst prediction | Limit | Margin | After 10 °C | Verdict |
@@ -414,7 +424,7 @@ commissioning with the battery radiation added reaches +0.07 °C; the cold case 
 (BUILD_VS_BUY §4.5 allows for it) reaches −1.0 °C even with the heater at 51 % duty; the 1 W heater cycles with an
 overshoot that can leave the pack lower than a weaker heater would.
 
-**Recommendation (RID THM-02, flight software, for the chair):** `heater::ON_BELOW_C` 2.0 → **5.0**,
+**Recommendation (RID THM-02; adopted: decision C-11, SRS-F130):** `heater::ON_BELOW_C` 2.0 → **5.0**,
 `OFF_ABOVE_C` 6.0 → **9.0**. With 0.95 W (14.0 V) the minimum is then +4.4 °C nominal, +4.9 °C at the design mount
 and +1.2 °C at 0.10 W/K, at 40–59 % duty. The energy cost is ≈ 0.1 W orbit average (POWER_BUDGET_ANALYSIS §6). The
 hardware cutout stays at +40 °C.
@@ -440,8 +450,8 @@ junction-to-spreader resistance, which nobody has measured: the guard's 95 °C j
 the junction-to-spreader measurement to the EM test (§9, item V-THM-3).
 
 The flight software has no lower temperature limit for powering the Jetson. The node reaches −12 °C in the cold
-case and −18 °C in LEOP after a cold soak; the module's junction minimum is −25 °C. Recommendation (THM-08, for the
-chair): no Jetson power-on below −15 °C on the spreader sensor.
+case and −18 °C in LEOP after a cold soak; the module's junction minimum is −25 °C. Recommendation (THM-08; adopted:
+BASELINE §6, SRS-F131): no Jetson power-on below −15 °C on the spreader sensor.
 
 ### 6.4 PA
 
@@ -469,7 +479,7 @@ them; the round-3 panel reopened THM-04 on the LEOP cases (L3: OBC −24.0 °C, 
 | Unit | Parts at the lowest rating | Unit minimum from the parts | Exceptions |
 |---|---|---|---|
 | OBC board | STM32L4R5ZIT6, FM25V20A, RV-3028-C7, M-G370PDT0, BMI088, 32.768 kHz crystal: −40 … +85 °C; the rest AEC-Q100/Q200 grade 1 or −55 °C; connectors −40 … +105 °C | −40 °C | — |
-| EPS board | BQ76952, BQ771806, TQ2SA relay, 2920L PTC: −40 … +85 °C; MSP430FR2355 −40 … +105 °C; the rest AEC-Q100/Q101/Q200 | −40 °C | ITV4030 fuses F1, F3: −10 … +65 °C (`EPS_BOARD_DESIGN.md` §14, V-EPS-8, EPSB-05) |
+| EPS board | BQ76952, BQ771806 (on the battery sense board from EPS F), TQ2SA relay, 2920L PTC: −40 … +85 °C; MSP430FR2355 −40 … +105 °C; the rest AEC-Q100/Q101/Q200 | −40 °C | ITV4030 fuses F1 (EPS) and F3 (sense board): −10 … +65 °C (`EPS_BOARD_DESIGN.md` §14, V-EPS-8, EPSB-05) |
 | Magnetometer, A3 boards | RM3100 and its coils −40 … +85 °C | −40 °C | — |
 | RF board | CC1200, CMX138A, STM32L431, LMX2571, PCM1808, AD8361, TA2209A SAW, TG2016SMN TCXO: −40 … +85 °C; logic and regulators −40 … +125 °C | −40 °C | Y451 (ABLS 3.6864 MHz crystal): the BOM leaves the grade unconfirmed; the −40 … +85 °C variant must be the one ordered |
 | Jetson carrier | N2600 NVMe −40 … +85 °C; the rest −40 … +105/125 °C | −40 °C | — |
@@ -606,14 +616,14 @@ The full RID table is in the CDR reviewer report; the thermal RIDs closed or ope
 | RID | Title | Status |
 |-----|-------|--------|
 | THM-01 | Thermal analysis v1.0 was for the wrong orbit and computer, with no model | Closed by analysis (this document) |
-| THM-02 | Heater thermostat +2/+6 °C leaves too little margin to the 0 °C charge limit | For the chair: flight-software constants (§6.1) |
+| THM-02 | Heater thermostat +2/+6 °C leaves too little margin to the 0 °C charge limit | Closed by design change: +5/+9 °C (decision C-11; SRS-F130) |
 | THM-03 | Wings-stowed cold case saturates the heater | Version 2.2: contingency accepted by analysis (§6.8: at the stowed generation the bus settles near 14.0 V and the pack at +2.6 °C, no energy margin; below +1.1 °C charging is refused in hardware); flight-software rule (SAFE, not IDLE, while the stowed pack's orbit minimum is below +3 °C) for the chair; V-THM-1 stowed points |
-| THM-04 | SYS-600/601 cannot be met by the boards with the 10 °C margin | Version 2.2: per-unit AFTs derived from the parts (§6.6): −30 °C cold for the boards; first-orbit extension to −40 °C with a GEVS test-margin deviation for the chair; SYS-600/601 text for the change request (§6.6); V-THM-8, V-EPS-8 at −40 °C, Y451 grade |
+| THM-04 | SYS-600/601 cannot be met by the boards with the 10 °C margin | Version 2.2: per-unit AFTs derived from the parts (§6.6): −30 °C cold for the boards; first-orbit extension to −40 °C with a GEVS test-margin deviation (CR-2026-017, ETP §9 deviation 8; PI decision by 2027-01-12); SYS-600/601 text for the change request (§6.6); V-THM-8, V-EPS-8 at −40 °C, Y451 grade |
 | P3S-01 | Mechanism cold design and test point (−40 °C) warmer than the predicted stowed-wing temperature | Version 2.2: closed by analysis (§4.3): at every burn the margined wing, hinge, snubber and burn-resistor temperatures are inside the −55 °C point of SQSO-MECH-001 Version E by ≥ 3.3 °C; the line's free span (−81 °C with the margin) is for the preload check |
 | THM-05 | Wing cells' qualified range not known; predictions −45 … +83 °C | Verification item V-THM-4 |
 | THM-06 | Cold soak in the dispenser puts the pack at its discharge limit at deployment | Verification item V-THM-5 with EPS-08 |
 | THM-07 | Hot soak in the dispenser exceeds +60 °C (bounding) | Verification item V-THM-5 |
-| THM-08 | No minimum temperature for Jetson power-on | For the chair (§6.3) |
+| THM-08 | No minimum temperature for Jetson power-on | Closed by design change: no power-on below −15 °C (BASELINE §6; SRS-F131) |
 | THM-09 | Battery node had no radiative coupling | Closed by model change (§2.1) |
 
 ## 9. Verification items
@@ -625,7 +635,7 @@ The full RID table is in the CDR reviewer report; the thermal RIDs closed or ope
 | V-THM-3 | Jetson path and junction-to-spreader resistance at 8 W | Module-to-frame ≥ 1 W/K; junction rise ≤ 5.7 K/W | SYS-603, BASELINE §6 | EM |
 | V-THM-4 | Wing and body panel qualification record from the vendor | Qualified range covers −56 … +93 °C (predictions with 10 °C) for ≥ 11,000 cycles | THM-05 | Panel procurement |
 | V-THM-5 | Integrator's dispenser thermal analysis for the assigned flight, with the deployment time | Pack ≤ +50 °C and ≥ −15 °C at deployment; boards within non-operating limits | THM-06, THM-07 | Integrator ICD (by L-6 months) |
-| V-THM-6 | Protoflight thermal vacuum and cycling | ETP Rev D §3.4: 8 thermal-vacuum cycles at AFT ± 10 °C capped at +60 °C, plus 4 board-level cycles and, if the integrator requires 20, 8 ambient cycles (VI-08); the SpaceX ± 5 °C range is enveloped except at the battery cap (deviation 4) | SYS-600/601 or their replacement | FM |
+| V-THM-6 | Protoflight thermal vacuum and cycling | ETP §3.4: 8 thermal-vacuum cycles at AFT ± 10 °C capped at +60 °C, plus 4 board-level cycles and, if the integrator requires 20, 8 ambient cycles (VI-08); the SpaceX ± 5 °C range is enveloped except at the battery cap (deviation 4) | SYS-600/601 or their replacement | FM |
 | V-THM-7 | Heater circuit: thermostat, cutout at +40 °C, fuse | Cutout opens at 40 ± 3 °C with the heater forced on; heater current at 12.0 and 16.4 V | §6.2 | EM, FM |
 | V-THM-8 | EM cold start and Jetson non-operating soak (THM-04, §6.6) | After ≥ 2 h unpowered at −40 °C, the OBC/EPS stack, RF board and Jetson carrier power up at −40 °C and pass their functional tests (RF: receiver sensitivity, TCXO within ±1 ppm; EPS: the ITV4030 per V-EPS-8 at −40 °C); the Jetson module, soaked unpowered at −40 °C for 3 cycles, boots at the −15 °C gate and passes its functional test | THM-04, SYS-600/601 first-orbit extension | EM, before FM build |
 
@@ -640,3 +650,4 @@ The full RID table is in the CDR reviewer report; the thermal RIDs closed or ope
 | 2.3 | 2026-10-27 | EEE parts engineer (chair action, RID P3T-01) | §3 allowables aligned with THERMAL_DESIGN 1.6 §1.1 (−30 °C AFT, −40 °C first orbit; Jetson −15 °C gate) and the parts audit SQSO-MFG-003 A; rows for the EPS fuses F1/F3, the RF PA Q601, the ISIS AntS (not modelled) and the CR0002 rods; BQ76920 corrected to BQ76952 |
 | 2.4 | 2026-10-27 | CDR thermal analyst, round 3 (chair action, SQSO-MFG-003 §12 V-1) | §4.4 new: ISIS AntS node on the −Z face (85 g, black anodize, isolated mount 0.02 W/K, sensitivities); release at separation + 31 min −44.0 °C after an eclipse separation (−54.0 °C with the margin), −7.7 °C after a sunlit one; first-orbit minimum −47.0 °C (below the −50 °C storage limit with the margin); orbit −30.5 … +34.8 °C; temperature gate −10 °C predicted: open ≤ 177 min after separation, then ≥ 6 min per orbit, never in the stowed-wing sun-pointed contingency (timeout recommended); §1, §2.1, §3 AntS rows |
 | 2.5 | 2026-10-27 | CDR flight software, round 3 (fourth part) | §4.3 the burn ratio at the flight's 10 s burn (decision C-17; the text quoted 8 s) |
+| 2.6 | 2026-10-27 | Documentation audit (post-CDR 2026) | Dispositions recorded: the AntS gate adopted as decision C-18 (§1, §4.4), THM-02 (C-11, SRS-F130) and THM-08 (SRS-F131) closed, THM-04 under CR-2026-017; §2.3 the RF board's designed PA draw against the simulation's; §2.3 the BASELINE heater range now 0.70–1.30 W; §3 and §6.6 F3 on the battery sense board (SQSO-EPS-BRD-001 F); §4.3 the −55 °C burn ratio 1.90 at the 10 s burn; V-THM-6 cites ETP §3.4 without the superseded revision. No result changed |

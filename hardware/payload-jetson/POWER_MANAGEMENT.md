@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-JET-002
-**Version:** 1.1
+**Version:** 1.2
 **Date:** 2026-10-27
 **Status:** CDR Baseline
 
@@ -15,24 +15,28 @@
 > carrier design (SQSO-JET-BRD-001 §13) adds a 6.5 W cap on the module input (`curr1_max` = 1300 mA on INA3221
 > channel 1, VDD_IN) so that the carrier input stays ≤ 8 W with margin. The input is VBAT through the carrier's own 5 V
 > converter, not a 5 V rail (§2.1), and the power-off is `SHUTDOWN` → `poweroff` (§4.2 timeouts follow ICD-002 1.3 §10).
+>
+> **Documentation audit (2026-10-27, version 1.2).** §2.1, §2.3, §3.2, §4.1, §4.3, §4.4 and §5.1 corrected to
+> BASELINE §5–§6, `docs/hardware/PAYLOAD_DESIGN.md` §11 and SQSO-JET-BRD-001. The OBC-side trips and gates of
+> PAYLOAD_DESIGN §11 govern this document's §4–§5.
 
 ## 1. Overview
 
-This document defines the power management strategy for the Jetson Orin Nano Super AI payload, including DVFS configuration, power limiting, thermal management, and integration with the OBC power control system.
+This document defines the power management strategy for the Jetson Orin Nano 8 GB AI payload (original flash configuration, gated beacon-text experiment), including DVFS configuration, power limiting, thermal management, and integration with the OBC power control system.
 
 ---
 
 ## 2. Power Requirements
 
-### 2.1 Jetson Orin Nano Super Specifications
+### 2.1 Jetson Orin Nano 8 GB in the Flight Configuration
 
-| Parameter | Typical | Maximum | Notes |
-|-----------|---------|---------|-------|
-| Input voltage | 5.0V | 5.25V | Regulated supply |
-| Idle power | 5W | 7W | No inference |
-| Inference power | 10W | 15W | Peak during AI burst |
-| Burst power | 15W | 25W | GPU max load |
-| Standby (off) | 0 | 1 mA | Power gated |
+| Parameter | Value | Notes |
+|-----------|-------|-------|
+| Module input (VDD_IN) | 4.75–5.25 V (5.5 V absolute) | Made on the carrier from VBAT 11.2–16.4 V (SQSO-JET-BRD-001 §0) |
+| Power mode | 7 W (nvpmodel ID 1) | Original configuration; the only flight mode |
+| Module cap | 6.5 W at VDD_IN | INA3221 `curr1_max` = 1300 mA |
+| Burst input | 7.19–7.48 W modelled with the cap, ≤ 8 W at the carrier input | BASELINE §6; SQSO-JET-BRD-001 §13 |
+| Off | Both series switches open | PAYLOAD_EN and JETSON_PWR low |
 
 ### 2.2 Mission Power Budget Allocation
 
@@ -47,10 +51,10 @@ This document defines the power management strategy for the Jetson Orin Nano Sup
 
 | Parameter | Value | Rationale |
 |-----------|-------|-----------|
-| Maximum ON time | 10 minutes | Thermal limit |
-| Minimum OFF time | 5 minutes | Cool-down |
-| Maximum duty cycle | 50% | Power budget |
-| Typical duty cycle | 10-20% | Normal operations |
+| Maximum ON time | 10 minutes per power-on, boot included, ≤ 3.6 kJ at the carrier input | BASELINE §6; decision C-20 |
+| Minimum OFF time | 100 minutes | BASELINE §6 (`sqso_fsw::payload_schedule`) |
+| Maximum duty cycle | ≤ 5 % tumbling, ≤ 10 % sun-pointed | Power budget (BASELINE §5) |
+| Gates | Sunlit, SOC ≥ 55 %, Jetson temperature ≥ −15 °C at power-on | BASELINE §6 |
 
 ---
 
@@ -68,23 +72,24 @@ The Jetson Orin Nano supports multiple power modes through DVFS, controlling:
 
 | Mode | Power Cap | CPU Max | GPU Max | Use Case |
 |------|-----------|---------|---------|----------|
-| 7W Mode | 7W | 1.2 GHz | 306 MHz | Standby/idle |
-| 10W Mode | 10W | 1.5 GHz | 510 MHz | **Selected for flight** |
-| 15W Mode | 15W | 1.7 GHz | 625 MHz | Development only |
-| MAXN | 25W | 2.0 GHz | 1.0 GHz | Disabled for flight |
+| 7W Mode (ID 1) | 7W | 960 MHz, 4 cores | 408 MHz, 2 TPC | **Selected for flight** (BASELINE §6) |
+| 15W Mode (ID 0) | 15W | — | — | Factory default; not used in flight |
 
-**Flight Selection: 10W Mode**
+The Orin Nano 8 GB has no 10 W mode; the Super configuration's modes (15 W, 25 W, MAXN_SUPER) do not exist on the
+flight flash.
+
+**Flight Selection: 7W Mode (nvpmodel ID 1), VDD_IN capped at 6.5 W**
 
 ### 3.3 DVFS Configuration Commands
 
 ```bash
-# Set power mode to 10W (mode 1)
+# Set power mode to 7W (ID 1 on the original configuration)
 sudo nvpmodel -m 1
 
 # Verify power mode
 nvpmodel -q
 
-# Set maximum frequencies within 10W mode
+# Show the frequencies of the 7W mode
 sudo jetson_clocks --show
 ```
 
@@ -106,10 +111,14 @@ cat /sys/bus/i2c/drivers/ina3221x/*/iio:device*/in_power*_input
 
 | Signal | Type | Function |
 |--------|------|----------|
-| JETSON_PWR_EN | GPIO Out | Power enable (active high) |
-| JETSON_STATUS | GPIO In | Jetson running status |
-| UART_TX | UART | OBC to Jetson |
-| UART_RX | UART | Jetson to OBC |
+Pins per `hardware/electrical/INTERCONNECT.md` (SQSO-ICX-001) and PAYLOAD_DESIGN §11.1.
+
+| Signal | Type | Function |
+|--------|------|----------|
+| PAYLOAD_EN (PB2) | GPIO Out | EPS high-side switch SW1, VBAT to the carrier |
+| JETSON_PWR (PA8) | GPIO Out | EPS eFuse U19 on the carrier's input |
+| JET_3V3 / power-good | Input (W5B pin 4) | Carrier I/O rail, high only after the module's power sequence |
+| USART1 TX / RX | UART (8N2 from the OBC) | OBC to and from the Jetson, translated from 1.8 V on the carrier |
 
 ### 4.2 Power Control State Machine
 
@@ -146,28 +155,33 @@ cat /sys/bus/i2c/drivers/ina3221x/*/iio:device*/in_power*_input
 ### 4.3 Power Gating Procedure
 
 **Power ON Sequence:**
-1. OBC checks power budget (SOC > 50%)
-2. OBC checks thermal budget (< 60°C ambient)
-3. OBC sets JETSON_PWR_EN = 1
-4. Wait for JETSON_STATUS = 1 (timeout: 60s)
+1. OBC checks the gates of BASELINE §6: sunlit, SOC ≥ 55 %, spreader below its limit, Jetson temperature ≥ −15 °C
+2. OBC checks the burst schedule (≥ 100 min since the last power-off)
+3. OBC sets PAYLOAD_EN = 1, then JETSON_PWR = 1
+4. Wait for the carrier power-good (timeout: 60s)
 5. Verify UART communication
 6. Jetson ready for inference
 
 **Power OFF Sequence:**
 1. OBC sends shutdown command via UART
 2. Wait for graceful shutdown (timeout: 10s)
-3. Verify JETSON_STATUS = 0
-4. OBC sets JETSON_PWR_EN = 0
+3. Verify the power-good falls (≤ 5 s, then cut anyway; SQSO-JET-BRD-001 §19 F2)
+4. OBC sets JETSON_PWR = 0, then PAYLOAD_EN = 0 10 ms later
 5. Verify current < 1 mA
 
 ### 4.4 Emergency Power Off
 
 | Condition | Action |
 |-----------|--------|
-| Overtemperature (>85°C) | Immediate PWR_EN=0 |
-| Battery critical (<10% SOC) | Immediate PWR_EN=0 |
-| Communication timeout (>30s) | Power cycle |
-| Excessive current (>3A) | Immediate PWR_EN=0 |
+Governed by PAYLOAD_DESIGN §11.2–§11.3; summary:
+
+| Condition | Action |
+|-----------|--------|
+| Spreader ≥ 70 °C or reported junction ≥ 95 °C | Both lines low; restart only 10 °C below the limit and after 10 min |
+| One power sample ≥ 12 W (latch-up) or > 8 W on two samples | Both lines low, 10 min off |
+| No power or spreader sample for 5 s | Both lines low |
+| Bus below 13.6 V | Hardware load shed of the Jetson rail (EPS) |
+| Current ≥ 1.2 A at the EPS eFuse | Hardware trip, latched until JETSON_PWR is cycled |
 
 ---
 
@@ -177,9 +191,9 @@ cat /sys/bus/i2c/drivers/ina3221x/*/iio:device*/in_power*_input
 
 | Point | Warning | Shutdown |
 |-------|---------|----------|
-| Jetson junction | 85°C | 95°C |
-| Heatspreader | 60°C | 70°C |
-| Ambient (structure) | 50°C | 60°C |
+| Jetson junction | — | 95°C (SYS-603 Rev G) |
+| Heatspreader | +40 °C in a 600 s batch (design limit) | 70 °C (stuck-on limit; OBC trip) |
+| Power-on gate | — | Jetson ≥ −15 °C to start |
 
 ### 5.2 Passive Cooling Design
 
@@ -375,3 +389,4 @@ class JetsonPowerManager:
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
 | 1.1 | 2026-10-27 | CDR note: 7 W mode (ID 1) instead of 10 W, 6.5 W input cap, VBAT input through the carrier, commanded power-off (SQSO-JET-BRD-001 A) |
+| 1.2 | 2026-10-27 | Documentation audit (post-CDR 2026): §2.1 flight-configuration figures (Super figures removed), §2.3 burst rules of BASELINE §6 (≥ 100 min off, ≤ 5/10 % duty, was 5 min and 50 %), §3.2 7 W selected, §4.1 signals PAYLOAD_EN/JETSON_PWR per SQSO-ICX-001, §4.3 gates (SOC ≥ 55 %), §4.4 and §5.1 trips and limits per PAYLOAD_DESIGN §11 and SYS-603 Rev G |

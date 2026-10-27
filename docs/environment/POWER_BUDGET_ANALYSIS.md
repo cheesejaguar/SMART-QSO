@@ -1,7 +1,7 @@
 # SMART-QSO Power Budget Analysis
 
 **Document ID**: SQSO-PBA-001
-**Version**: 2.5
+**Version**: 2.6
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR power closure (analysis by simulation; nothing measured). Replaces version 1.x, whose array
@@ -52,7 +52,7 @@ eclipse (7.1 % with the stuck-on Jetson failure; limit 10 % nominal, 30 % contin
    simulation's EPS chain (`hw/eps.rs`). The design chain (SOLAR_ARRAY_DESIGN §9.1: MPPT 0.95, no second diode term)
    would give 3.4 % more; it is not credited.
 3. **Loads.** Bottom-up by mode from the simulation's device values (§5) at the BASELINE §5 duty limits, at the pack
-   (converter losses included), plus the heater energy from the thermal analysis (SQSO-THA-001 v2.0, cold case at
+   (converter losses included), plus the heater energy from the thermal analysis (SQSO-THA-001, cold case at
    16.4 V: 0.51 W sun-pointed, 0.27 W tumbling, with the recommended +5/+9 °C set points) and a 5 % battery
    round-trip loss on the eclipse share (38 %).
 4. **Margin** = generation delivered / (load × round-trip factor) − 1. The BASELINE method (generation / load − 1)
@@ -225,7 +225,8 @@ magnetorquers at full dipole, the burns, and the heater after a cold dispenser s
 **1.16 W** with all three rods saturated (0.39 W per rod at 0.2 A·m²) and **1.3 W** with the three bridges awake
 (+0.12 W; `hardware/electrical/obc/OBC_BOARD_DESIGN.md` §10.1, §17); 1.3 W is used throughout. They run from 120 s
 after separation (BASELINE §4) until detumbled: 0.8 h in the mission simulation, 1.4 h in the slowest Monte Carlo
-case, 3 orbits as the requirement and the bound. The Jetson and the transponder are off in LEOP.
+case at the nominal tip-off (1.8 h with tip-offs of σ 10°/s up to 30°/s, ADCS_DESIGN 1.9 §11.4: the first orbit then
+costs about 0.2 Wh more, −1.4 Wh), 3 orbits as the requirement and the bound. The Jetson and the transponder are off in LEOP.
 
 | Load at the pack, LEOP | Power | Note |
 |------------------------|-------|------|
@@ -266,7 +267,9 @@ method), +27 % against the bottom-up tumbling ACTIVE load with the heater, and 1
 residual risk is the attitude: the simulated tumble is the free spin left by the tip-off; an isotropic tumble at the
 model's temperatures and albedo would give about 2.14 × 1.10 × 1.05 ≈ 2.47 W, consistent with it.
 
-**Recommended BASELINE §5 text (for the chair):**
+**Recommended BASELINE §5 text (for the chair).** *BASELINE Rev E (amended) adopted the generation row and the
+bottom-up loads (2.60 / 1.91 W, +45 % / +27 %) in its closure paragraph, which still opens with the Version 2.2 figures
+(2.50 W, +54 %; 1.82 W, +34 %); the text below is the current proposal for that sentence.*
 
 > | Generation, EOL orbit average delivered to the bus | **2.48 W tumbling; 3.84 W sun-pointed** (3.79 W in the worst ADCS Monte Carlo trial; 3.92 W with +Y held on the Sun; mission simulation at 475 km, worst 30 days of the second year at LTAN 23:30, pointing loss per ADCS_DESIGN 1.9 §11.6; SQSO-PBA-001 v2.5 §4). The isotropic-tumble analysis (2.14 W, SOLAR_ARRAY_DESIGN §9.3, cells at 60 °C, no albedo) is kept as a bound |
 >
@@ -301,7 +304,7 @@ and delete the "Under review" paragraph below the table.
 |-----|----------|-------|--------|
 | EPS-01 | 1 | Power closure not done at CDR; version 1.x used an impossible array | Closed by analysis (this document) |
 | EPS-02 | 2 | BASELINE §5 tumbling margin "+19 % against 20 %" open | Closed by analysis (§9); BASELINE text for the chair |
-| EPS-09 | 2 | A stuck-on Jetson drains the pack in < 2 days; no hardware load shed | For the chair / EPS design (EPS_DESIGN §6) |
+| EPS-09 | 2 | A stuck-on Jetson drains the pack in < 2 days; no hardware load shed | Closed by design: hardware load shed at 13.6 V gating both Jetson series switches (EPS_DESIGN §6; SQSO-EPS-BRD-001 §8.4; §8.4 here); residual both power stages failed closed; the shed is not yet in the simulation |
 | EPS-10 | 3 | Wings-stowed ACTIVE relies on the SOC gate limit cycle | Flight software holds IDLE with the wings stowed (simulated, §8.1) |
 
 ## 13. Revision History
@@ -316,3 +319,4 @@ and delete the "Under review" paragraph below the table.
 | 2.3 | 2026-10-27 | CDR design (EPS board) | §8.4 stuck-Jetson row: the hardware load shed gates both series switches (SQSO-EPS-BRD-001 D); covered failure modes and the residual (both power stages failed closed) stated |
 | 2.4 | 2026-10-27 | CDR design (EPS board) | Transponder 1.84 W DC at 0.5 W RF (RF board E; BASELINE §5 allocation 1.85 W DC, 0.46 W orbit average): §5 bottom-up ACTIVE loads 2.60 / 1.91 W, margins +48 % / +27 % (+51 % / +30 % by the BASELINE method), allocation 2.26 / 1.86 W (+31 % tumbling), SYS-100 Rev G 2.23 W (+11.2 %); peak currents (1.36 A largest, transponder 0.20 A at the pack, burn + keyed 0.94 A, not concurrent); the as-flown runs of §7 are not re-run with the new transponder (it runs far below its 25 % duty limit) |
 | 2.5 | 2026-10-27 | CDR design (EPS board) | Decision C-23 carried through: sun-pointed EOL generation with the photodiode-and-albedo pointing loss of ADCS_DESIGN 1.9 §11.6 (× 0.980 mean, × 0.968 worst trial): 3.84 / 3.79 W; ACTIVE sun-pointed +45 % (+43 %), IDLE +220 %; both margin methods stated (§4); tumbling unchanged |
+| 2.6 | 2026-10-27 | Documentation audit (post-CDR 2026) | §8.6 the slowest detumble with the wide tip-off (1.8 h, ADCS_DESIGN 1.9 §11.4) noted inside the 3-orbit bound; §9 records what BASELINE Rev E adopted and that its closure paragraph still opens with the Version 2.2 figures; RID EPS-09 closed by design (hardware load shed on both Jetson switches); heater source cited without the superseded thermal version. Figures unchanged |

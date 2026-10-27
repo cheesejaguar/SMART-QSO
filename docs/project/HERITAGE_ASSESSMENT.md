@@ -1,8 +1,8 @@
 # SMART-QSO Design-Precedent Survey (formerly Heritage Assessment)
 
 **Document ID**: SQSO-HA-001
-**Version**: 2.0
-**Date**: 2026-10-16
+**Version**: 2.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: Draft survey from public sources (web search, 2026-10-16). No SMART-QSO hardware exists
 
@@ -52,7 +52,8 @@ Supporting references:
 ## 3. Subsystem Precedent Matrix
 
 No SMART-QSO subsystem has been built or tested, so no subsystem has a TRL supported by evidence. Version 1.0's TRLs
-(4 to 9) had no basis and are removed; TRLs will be assessed when engineering-model hardware exists.
+(4 to 9) had no basis and are removed. The CDR 2026 design review assessed TRLs from analysis, simulation and vendor
+records in `docs/project/TECHNOLOGY_READINESS_ASSESSMENT.md` (SQSO-TRA-001), to be re-assessed with the EM results.
 
 | Subsystem | SMART-QSO baseline (BASELINE §) | Closest flown precedents | How close | Not covered by any precedent cited |
 |-----------|---------------------------------|--------------------------|-----------|------------------------------------|
@@ -76,8 +77,9 @@ No SMART-QSO subsystem has been built or tested, so no subsystem has a TRL suppo
   amateur transponder whose battery could no longer carry it through eclipse after about three years.
 - **Differences.** 4S1P pack at about 50 Wh, a power-gated Jetson rail (≤ 8 W input), GNSS duty cycling, and a
   transponder gated by state of charge (BASELINE §5).
-- **Not covered.** The power budget closes only on audit estimates (+33 % tumbling, +63 % sun-pointed; BASELINE §5)
-  and needs a multi-orbit state-of-charge simulation and engineering-model test.
+- **Not covered.** The power budget closes by analysis and simulation only (+33 % tumbling, +70 % sun-pointed on the
+  allocation; depth of discharge ≤ 2.3 % as flown in the mission simulation; BASELINE §5); the engineering-model test
+  is still needed.
 
 ### 4.2 Command and Data Handling
 
@@ -99,8 +101,11 @@ No SMART-QSO subsystem has been built or tested, so no subsystem has a TRL suppo
 ### 4.4 Attitude Determination and Control
 
 - **Precedents.** M5 flew a B-dot controller with magnetorquers on a 1U and reported results after four years.
-- **Differences.** Our coil design (≥ 0.15 A·m² per axis) and spin-stabilized coarse sun-pointing (BASELINE §8).
-- **Not covered.** Detumble time from 10°/s on our mass properties (simulation pending).
+- **Differences.** CubeSpace CR0002 rods (> 0.2 A·m²; air-core coils the alternate) and spin-stabilized coarse
+  sun-pointing of +Y at 8°/s (BASELINE §8).
+- **Not covered.** Detumble and capture on the real spacecraft: the Monte Carlo of the flight code gives a slowest
+  in-specification capture of 1.8 h (tip-off σ 10°/s, up to 30°/s;
+  `docs/hardware/ADCS_DESIGN.md` 1.9 §11.4); hardware-in-the-loop and flight are still to come.
 
 ### 4.5 Software
 
@@ -119,7 +124,8 @@ No SMART-QSO subsystem has been built or tested, so no subsystem has a TRL suppo
   - *Large language models in orbit* have run only on much larger platforms: M9 (H100 GPU, about 60 kg, 2025) and M10
     (ISS, 2025). Both results are company or press claims.
 - **Not covered.** A Jetson Orin **Nano** in the 7 W mode on a 1U (NVIDIA lists that mode only for the original
-  configuration, finding TB-13); its thermal path (≥ 1 W/K required, ≈ 0.44 W/K estimated; BASELINE §6); and **any
+  configuration, finding TB-13); its thermal path (now a temperature requirement, spreader ≤ +40 °C in a 600 s batch, with a 1.10 W/K design path to be
+measured on the EM; SYS-603 Rev G, BASELINE §6); and **any
   language model on a CubeSat-class bus**. The flight baseline therefore keeps generation as a gated experiment behind a
   measured energy limit, with a fixed-template fallback (BASELINE §6, decision D5).
 
@@ -184,3 +190,4 @@ found running on a CubeSat-class bus. That is why the flight baseline does not d
 | 2.0 | 2026-10-16 | SMART-QSO Team | Funding audit PI-15: rewritten as a design-precedent survey with public citations, including the AI payload; unsourced NASA Ames heritage, TRLs and the 68 % heritage score removed; precedent counts shown with their method |
 | 2.0, note | 2026-10-24 | SMART-QSO Team | OBC row: the implementation is Rust on the Embassy executor, so M4's FreeRTOS precedent covers the MCU family only |
 | 2.0, note | 2026-10-25 | SMART-QSO Team | Embassy executor, no RTOS, is now the baseline (BASELINE §6, CR-2026-002): OBC row, §4.2, §4.5 and §8 |
+| 2.1 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): §3 points to the TRA (SQSO-TRA-001); §4.1 power closure by simulation; §4.4 CR0002 rods, 8°/s, detumble Monte Carlo; §4.6 Jetson heat path as the SYS-603 Rev G temperature requirement |

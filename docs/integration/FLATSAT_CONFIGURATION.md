@@ -2,9 +2,13 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-INT-004
-**Revision:** A
-**Date:** 2026-01-02
-**Reference:** NASA Ames SmallSat Development Heritage
+**Revision:** B
+**Date:** 2026-10-27
+**Reference:** NASA Ames SmallSat Development Heritage; `hardware/electrical/obc/OBC_BOARD_DESIGN.md` (SQSO-OBC-BRD-001); `hardware/electrical/INTERCONNECT.md` (SQSO-ICX-001)
+
+> **Configuration planned, not built.** No flatsat exists yet (`docs/BASELINE_PARAMETERS.md` §1). The development-board
+> stage below is replaced by the EM boards as they are built (EM integration and flatsat 2027-06-01 to 2027-07-27,
+> `docs/verification/VI_REGISTER.md`). Interfaces and parts follow the OBC board design and the interconnect, which govern.
 
 ---
 
@@ -87,18 +91,19 @@ Following NASA Ames Small Satellite Division heritage (GeneSat, PharmaSat, O/ORE
 |-----------|---------------|
 | Board | STM32L4 Nucleo-144 |
 | MCU | STM32L4R5ZI |
-| Clock | Same as flight (80 MHz) |
+| Clock | Same as flight (SQSO-OBC-BRD-001) |
 | Memory | Same as flight |
 | Debug | ST-Link integrated |
 | Interfaces | All flight interfaces broken out |
 
 **Connections:**
-- UART1: Debug console (USB)
-- UART2: Jetson interface
-- UART3: EPS interface
-- I2C1: Sensors (mag, temp)
-- SPI1: Flash memory
-- GPIO: Deployment switches, LEDs
+- USART3: console and key loading (access port)
+- USART1: Jetson carrier (115200 baud, OBC transmits 8N2)
+- USART2: RF board (TNC), with its readbacks
+- LPUART1: GNSS receiver
+- I2C1: RTC RV-3028 (0x52); I2C2: EPS controller (0x48); I2C3: AntS (0x31, 0x32); I2C4: ADS7138 and the RM3100 (0x20)
+- SPI1: FRAM FM25V20A ×2 (no external flash); SPI2: BMI088; SPI3: M-G370PDT0
+- GPIO: DEPLOY_SENSE, UMBILICAL_SENSE, rail enables, burn lines
 
 ### 4.2 EPS Development Board
 
@@ -107,7 +112,7 @@ Following NASA Ames Small Satellite Division heritage (GeneSat, PharmaSat, O/ORE
 | Board | Custom EPS dev board |
 | Battery | Flight-equivalent cells |
 | MPPT | Flight-equivalent IC |
-| Power rails | 3.3V, 5V, Battery |
+| Power rails | 3V3_AO, 5V_PA, VBAT_JET, V_BURN, VBAT (11.2–16.4 V, 4S) (`docs/hardware/EPS_DESIGN.md` §4) |
 | Telemetry | All EPS channels |
 | Load switches | All flight switches |
 
@@ -120,9 +125,9 @@ Following NASA Ames Small Satellite Division heritage (GeneSat, PharmaSat, O/ORE
 
 | Sensor | Board | Interface |
 |--------|-------|-----------|
-| Magnetometer | LIS3MDL breakout | I2C |
-| Sun sensors | Photodiode array | ADC |
-| Gyroscope | LSM6DSO breakout | I2C |
+| Magnetometer | PNI RM3100 (board A2, or its breakout) | I2C4 |
+| Sun sensors | Six face photodiodes through the ADS7138 | I2C4 |
+| Gyroscope | Epson M-G370PDT0 (BMI088 backup) | SPI3 (SPI2) |
 
 **Magnetorquer Simulation:**
 - H-bridge driver boards
@@ -134,7 +139,7 @@ Following NASA Ames Small Satellite Division heritage (GeneSat, PharmaSat, O/ORE
 | Parameter | Specification |
 |-----------|---------------|
 | SDR | RTL-SDR or USRP |
-| Frequency | 145.825 MHz |
+| Frequency | The IARU-coordinated downlink in 145.800–146.000 MHz, not 145.825 MHz (SYS-200; BASELINE §7) |
 | TX simulation | Low-power, attenuated |
 | RX | Direct SDR input |
 | Antenna | Dummy load + coupler |
@@ -148,10 +153,10 @@ Following NASA Ames Small Satellite Division heritage (GeneSat, PharmaSat, O/ORE
 
 | Parameter | Specification |
 |-----------|---------------|
-| Board | Jetson Orin Nano Dev Kit |
-| Interface | USB-UART adapter |
-| Power | Separate 5V supply |
-| Storage | Same SD card image |
+| Board | Jetson Orin Nano Dev Kit in the 7 W power mode, then the EM carrier with the 8 GB module (BASELINE §6) |
+| Interface | USB-UART adapter, then USART1 through the carrier's level shifters |
+| Power | Dev kit supply, then VBAT_JET from the EPS (the carrier makes the module's 5 V) |
+| Storage | Flight image (NVMe on the carrier, V-JET-3) |
 | Network | Ethernet for dev |
 
 ## 5. Test Equipment
@@ -171,7 +176,7 @@ Following NASA Ames Small Satellite Division heritage (GeneSat, PharmaSat, O/ORE
 
 | Tool | Purpose |
 |------|---------|
-| STM32CubeIDE | OBC development |
+| Rust toolchain (`software/rust/rust-toolchain.toml`), probe-rs or ST-Link | OBC firmware build and load (`software/rust/firmware`) |
 | Serial terminal | UART monitoring |
 | GNURadio | RF signal processing |
 | Python scripts | Automated testing |
@@ -180,17 +185,17 @@ Following NASA Ames Small Satellite Division heritage (GeneSat, PharmaSat, O/ORE
 
 ## 6. Interface Definitions
 
-### 6.1 Debug Console (UART1)
+### 6.1 Debug Console (USART3)
 
 | Parameter | Value |
 |-----------|-------|
 | Baud rate | 115200 |
 | Data bits | 8 |
 | Parity | None |
-| Stop bits | 1 |
+| Stop bits | 1 (per SQSO-ICX-001) |
 | Flow control | None |
 
-### 6.2 Jetson Interface (UART2)
+### 6.2 Jetson Interface (USART1)
 
 | Parameter | Value |
 |-----------|-------|
@@ -198,12 +203,12 @@ Following NASA Ames Small Satellite Division heritage (GeneSat, PharmaSat, O/ORE
 | Protocol | Custom framed |
 | Connector | USB-UART adapter |
 
-### 6.3 EPS Interface (UART3)
+### 6.3 EPS Interface (I2C2)
 
 | Parameter | Value |
 |-----------|-------|
-| Baud rate | 9600 |
-| Protocol | Command/response |
+| Bus | I2C2, EPS controller at 0x48, 100 kHz |
+| Protocol | Register commands (`docs/interfaces/ICD_OBC_EPS.md`, SMART-QSO-ICD-001), OBC heartbeat at least every 60 s |
 
 ## 7. Test Procedures
 
@@ -305,3 +310,4 @@ Following NASA Ames Small Satellite Division heritage (GeneSat, PharmaSat, O/ORE
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-27 | Documentation audit (post-CDR 2026): planned-configuration banner; OBC interfaces from SQSO-OBC-BRD-001 (EPS on I2C2 at 0x48, was UART3 at 9600; Jetson USART1; console USART3; FRAM, no flash); sensors RM3100, M-G370PDT0, ADS7138 (were LIS3MDL and LSM6DSO breakouts); EPS rails from EPS_DESIGN; downlink the coordinated frequency (was 145.825 MHz, which BASELINE excludes); Rust toolchain (was STM32CubeIDE); Jetson 7 W mode and VBAT_JET | Documentation audit |

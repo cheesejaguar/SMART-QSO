@@ -10,7 +10,7 @@
 > This record was generated on 2026-01-02 without named independent reviewers, signatures, or a
 > RID/RFA log. Its PASS/APPROVED/COMPLETE statements are **not substantiated** and must not be cited
 > to funders or regulators as review outcomes. See `docs/funding_audit/FUNDING_AUDIT_REPORT.md` and
-> finding F-PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
+> finding PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
 
 **Document ID**: SQSO-CDR-TB-001
 **Version**: 1.3

@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-REG-018 (supersedes SQSO-ODAR-001, `docs/compliance/ORBITAL_DEBRIS_ASSESSMENT.md`)
-**Revision:** Draft D.2
+**Revision:** Draft D.3
 **Date:** 2026-10-27
 **Format:** NASA-STD-8719.14C (approved 2021-11-05) Appendix A.1, in the section order of the NASA Small Spacecraft Technology Program *ODAR & End of Mission Plan Instructional Guide* (spacecraft Sections 1–8; launch-vehicle Sections 9–14 are the launch provider's)
 **Regulatory use:** basis for the orbital-debris disclosures in the FCC pre-space notification, 47 CFR 97.207(g)(1)(i)–(vii) ([draft](FCC_97-207_PRE_SPACE_NOTIFICATION.md))
@@ -37,9 +37,9 @@
 | Responsible organization / licensee | Space station licensee **KK6GDB** (individual amateur licensee), station KK6GDB-11 (decision D1, [BASELINE_PARAMETERS.md](../../BASELINE_PARAMETERS.md) §1, §9); host organization: none yet |
 | Program manager / PI | `[name, affiliation]` |
 | Mission | SMART-QSO: 1U amateur-radio CubeSat with a duty-gated U/V FM transponder, AX.25 telemetry beacon and a power-gated onboard AI experiment |
-| Milestones | No independent PDR or CDR yet; this is the CDR draft · launch NET 2028 |
+| Milestones | No independent PDR or CDR yet (independent PDR planned 2027-01-12, CDR 2027-09-28, `mission/SCHEDULE.md`); this is the draft from the 2026 design review · planning launch 2028-11-01 (BASELINE Rev E §3) |
 | Launch vehicle and site | SpaceX Falcon 9 Transporter rideshare via a 1U integrator, Vandenberg SFB (baseline, D7); backup ISS deployment via the Voyager NRCSD |
-| Deployment | Ejected from a CubeSat dispenser at 0.3–1.0 m/s into a circular SSO |
+| Deployment | Ejected from the EXOpod Nova at 1.10–1.48 m/s (1.51–2.00 kg in a 1U slot with its adapter; SQSO-LVR-001 LVR-031) into a circular SSO |
 | Orbit | Circular, inclination ≈ 97.4°; **target 475 km, 465–485 km, not above 485 km** (BASELINE Rev E §3, which adopted the band this report recommends in §6.5; it was ≤ 500 km target, 525 km cap) |
 | Mission duration | 2 years design life (12 months minimum) |
 | Interaction with other spacecraft | Shared SSO altitude band; no proximity operations; no manoeuvring capability; conjunction data via 18 SDS / Space-Track (`SPACE_SAFETY_REGISTRATION_AND_CONJUNCTION_PLAN.md`) |
@@ -55,7 +55,7 @@ heat-spreader pedestal and the 20 g inertia ballast of decision C-13) gives CBE 
 Rev E amended §4; v3.0, used for the runs of Draft D, gave 1.49 / 1.73 kg). This report uses **1.6 kg (nominal) and 1.85 kg (bound)** as
 BASELINE §4 directs for lifetime analyses (the MEV lies between them; a heavier spacecraft lives longer, so the bound is
 the conservative case for disposal), adds **2.0 kg (the CDS Rev 14.1 design limit)** so that no mass the spacecraft can
-have is outside the analysis, and uses the v3.0 CBE, 1.49 kg, for the shortest-life case (§6.2; the v3.1 CBE, 1.51 kg, lives slightly longer, so
+have is outside the analysis, and uses the v3.0 CBE, 1.49 kg, for the shortest-life case (§6.2; the current CBE, 1.52 kg (MASS_BUDGET v3.4), lives slightly longer, so
 1.49 kg remains the bounding short case).
 
 | Item | Propulsion | Fluids | Pressure vessels | Pyrotechnics | Radioactive | Other stored energy |
@@ -428,3 +428,4 @@ N/A.
 | Draft D | 2026-10-27 | CDR S&MA re-run at the Rev E baseline (RID SE-16): deployment 2028-11-01 (was 2028-06-01), masses 1.6 / 1.85 / 2.0 kg (was 1.8 kg bound) and CBE 1.49 kg for the shortest life, 465 and 485 km rows (§6.2, §5); §6.4 with the four-line deployment: wings-failed 0.29 % (was 1.6 %), reading B P = 0.997 at 475–485 km (was 0.98), reading A cap 460 km (was 470 km); §2 mass from MASS_BUDGET v3.0; 4.6-1a, 4.6-4, 4.6-5 and open item 6; §4 4.4-2 and open item 3 brought to SQSO-ICD-013 v0.8 (passivation implemented as 0x70/0x71, no first-year lockout) |
 | Draft D.1 | 2026-10-27 | CDR round 3 (RIDs ODA-02, SE-14, REG-12; chair note C-2); analysis values unchanged: DAS agreement requested by 2026-11-06 and DAS run by 2027-01-08, before the early filing, with its pass criterion (status, open item 1); §2 mass from MASS_BUDGET v3.1 (CBE 1.51 kg, MEV 1.75 kg) and the W-Ni-Cu inertia ballast ("no tungsten" withdrawn; open item 7); §4 4.4-2 passivation in the implemented order (SQSO-ICD-013 v0.10: the fire while transmitting, the final report, then TX-OFF); §6.5 item 4: the F10.7 = 70 bound fails at 475 km, 1.85 kg even with the wings deployed (5.3 years after the mission) |
 | Draft D.2 | 2026-10-27 | CDR round 3 S&MA (coordinator items): §7 W-Ni-Cu ballast discs added to the demise run (survive at 6.9 J, below 15 J; edge-on bound 15.8 J gives 1:32,000 worst; no demisable replacement needed), §2 tungsten note, open item 7; §4 4.4-1 re-run with the designed recharge lockout (over-discharge term 9.0 × 10⁻⁵ → 3.6 × 10⁻⁶, total 1.4 × 10⁻⁴ → 5.8 × 10⁻⁵, ×17) and the two-processor EOL arm (EOL_ARM and EOL_KEY, SQSO-EPS-BRD-001 D); open items 3 and 6 |
+| Draft D.3 | 2026-10-27 | Documentation audit (post-CDR 2026): §1 ejection velocity from SQSO-LVR-001 LVR-031 (was 0.3–1.0 m/s) and the review and launch dates; §2 the current CBE 1.52 kg (was "v3.1 CBE, 1.51 kg"). Analysis values unchanged; DAS not run |

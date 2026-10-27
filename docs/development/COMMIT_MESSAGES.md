@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-DEV-004
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B
+**Date:** 2026-10-27
 **Reference:** NPR 7150.2 Section 4.5.3, NASA Ames SmallSat Heritage
 
 ---
@@ -11,6 +11,10 @@
 ## 1. Purpose
 
 This document establishes commit message standards for SMART-QSO software development to ensure traceability, consistency, and compliance with NASA configuration management requirements.
+
+**Status (Revision B, 2026-10-27).** This is the intended standard. It is not enforced: no commitlint configuration, commit
+hook or CI check exists in the repository (§9.1 and §10 are plans), and the history does not follow it (for example,
+no `Signed-off-by` lines and free-form subjects). Adopting or tailoring it is a decision for the software lead.
 
 ## 2. Scope
 
@@ -288,6 +292,8 @@ Signed-off-by: Developer Name <dev@example.com>
 
 ### 9.1 Automated Checks
 
+Planned; none of these is configured (status note above).
+
 | Check | Tool | Action |
 |-------|------|--------|
 | Format validation | commitlint | Reject non-conforming |
@@ -371,3 +377,4 @@ Commits are automatically linked to:
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): status note: the standard is not enforced (no commitlint, hook or CI check) and the history does not follow it; §9.1 marked as planned |

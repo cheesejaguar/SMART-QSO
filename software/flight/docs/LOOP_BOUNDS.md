@@ -3,8 +3,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-SW-007
-**Revision:** B
-**Date:** 2026-10-24
+**Revision:** C
+**Date:** 2026-10-27
 **Reference:** JPL Power of Ten Rule 2, NPR 7150.2
 
 ---
@@ -18,6 +18,21 @@ This document records the loop bounds of the SMART-QSO flight software per JPL P
 Since 2026-10-24 the flight software is Rust (`software/rust/README.md`). Revision A listed loops in C files that have
 since been replaced. Many of the functions it named never existed in the code. This revision inventories the loops of
 the Rust as it is. The one remaining C file, `software/flight/src/flight_log_fmt.c`, has no loops.
+
+**Revision C (2026-10-27).** The inventory of §3 and the matrix of §8 are those of 2026-10-24. The code added since
+(the CDR 2026 flight-software rounds: stored housekeeping, GNSS, transponder, acknowledgements, passivation, the second
+FRAM, the stack paint) raises the non-test counts to about 139 `for`, 26 `while`, 11 `while let` and 9 `loop`
+(2026-10-27, by pattern search outside `#[cfg(test)]` modules). The new non-`for` loops and their bounds:
+
+| Where | Bound |
+|-------|-------|
+| `sqso-fsw/src/hk_store.rs` (`dump_frame`) | `DUMP_PER_FRAME` records and the records left in the dump |
+| `sqso-fsw/src/transponder.rs` (`record`) | Elapsed time since the last pass divided by `BUCKET_MS`: bounded by the clock, not by a constant (a long gap between passes runs one iteration per bucket); for review |
+| `sqso-fsw/src/ack.rs` (`front`, `while let`) | The queue length; each iteration pops one entry |
+| `firmware/src/fram.rs` (two `const` checks) | The region table length (compile time) |
+| `firmware/src/stack.rs` (`paint`) | The 8 KB stack budget below the current SP |
+
+The per-crate counts of §8 are to be recounted at the next review of this document.
 
 **How rule 2 is checked:** by review. No tool proves loop bounds for the Rust. Fuzzing (`software/rust/fuzz`, 30 s per
 target in CI) runs the parser loops on arbitrary input, and the watchdog (§4.2) bounds the main loop in time.
@@ -99,7 +114,8 @@ The firmware's main task loops on `Executive::step()` and `Timer::after_millis(2
 
 1. **Stage supervision**: each stage of a pass checks in with the watchdog manager. A stage that misses its period 3
    times in a row stops the hardware refresh (SW-15).
-2. **Hardware watchdog**: the IWDG resets the OBC 30 s after the last refresh, so a pass that never returns ends in a
+2. **Hardware watchdog**: the IWDG resets the OBC 25.6 s after the last refresh (`WDT_HW_TIMEOUT_MS`; refreshed at the
+   supervisor's WDI edges every 10 s), so a pass that never returns ends in a
    reset.
 3. **Ground command**: safe-mode transition capability.
 
@@ -201,6 +217,7 @@ loop {
 |---------|------|--------|---------|
 | A | 2026-01-02 | SMART-QSO Team | Initial release |
 | B | 2026-10-24 | SMART-QSO Team | The flight software is Rust: inventory of the Rust loops by form and bound (§2, §3, §8); flight and simulation loops of the Rust executive and firmware (§4); Rust patterns (§6, §7). Revision A's C inventory removed (its files are gone, and several functions it named did not exist). Rule 2 is checked by review |
+| C | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): §1 status of the inventory, current counts and the loops added since Revision B; §4.2 watchdog 25.6 s (was 30 s) |
 
 ---
 

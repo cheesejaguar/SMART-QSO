@@ -12,7 +12,7 @@
 - Run flight tests: `ctest --test-dir build`.
 - Rust: `cd software/rust && cargo test --workspace && cargo clippy --workspace --all-targets -- -D warnings`.
 - Run payload tests: `pip install software/rust/sqso-py` (once), then `pytest software/payload -q`.
-- Llama.cpp (payload integration): see `README.md` for CUDA/Metal examples; typical server: `./build/bin/llama-server -m /models/Llama-3.2-3B-Instruct-Q4_K_M.gguf --gpu-layers 999`. Decision D5 (`docs/payload/AI_MODEL_SELECTION.md`) puts a selector on the OBC as the flight baseline; Jetson text generation (SmolLM2-360M-Instruct or Qwen3-0.6B) is a gated experiment, and the agent defaults to SmolLM2-360M. The 3B model is a development example only.
+- Llama.cpp (payload integration): see `software/payload/README.md` for CUDA/Metal examples; typical server: `./build/bin/llama-server -m /models/Llama-3.2-3B-Instruct-Q4_K_M.gguf --gpu-layers 999`. Decision D5 (`docs/payload/AI_MODEL_SELECTION.md`) puts a selector on the OBC as the flight baseline; Jetson text generation (SmolLM2-360M-Instruct or Qwen3-0.6B) is a gated experiment, and the agent defaults to SmolLM2-360M. The 3B model is a development example only.
 
 ## Coding Style & Naming Conventions
 - Rust (flight): `cargo fmt` (software/rust/rustfmt.toml) and clippy with warnings as errors; no unsafe outside `sqso-ffi` and the firmware; see `docs/development/CODING_STANDARDS.md` §11.

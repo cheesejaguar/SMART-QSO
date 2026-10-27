@@ -1,16 +1,35 @@
 # AI Payload (Jetson Orin Nano) Design Document
 
 **Document Number**: SMART-QSO-PAYLOAD-001
-**Version**: 1.2
+**Version**: 1.3
 **Date**: 2026-10-27
 **Status**: Preliminary Design
 
 **Governing Standards**:
 - NPR 7120.5 Rev F - NASA Space Flight Program and Project Management Requirements
-- NPR 7150.2 Rev B - NASA Software Engineering Requirements
+- NPR 7150.2D - NASA Software Engineering Requirements (Class C, BASELINE §1)
 - NVIDIA Jetson Orin Nano Developer Kit Documentation
 
-**Heritage**: NASA Ames Research Center Small Satellite Division - AI/ML technology demonstration
+**Reference missions**: NASA Ames Research Center small-satellite AI/ML technology demonstrations (design patterns consulted, not project heritage)
+
+> **Documentation audit notice (2026-10-27, version 1.3).** Sections 1–10 and the appendices were written before the
+> baseline. `docs/BASELINE_PARAMETERS.md` §6 (decision D5), §11 (power gating, trips, thermal, fallback) and §12
+> (carrier design SQSO-JET-BRD-001) govern wherever they differ. In particular:
+> - **Role.** The Jetson runs only a **gated experiment**: generative beacon text, enabled only if the measured energy
+>   per accepted beacon line at the carrier input is ≤ 0.1 Wh (360 J) over ≥ 30 EM bursts (VI-02; decision C-20). The
+>   flight baseline is a calibrated template selector on the OBC (`docs/payload/OBC_SELECTOR_DESIGN.md`); the Jetson
+>   does not manage power or the mission, and nothing on board learns or adapts (community model updates are not in
+>   the flight baseline). §1.3 items 3–4 and "first orbital deployment" are withdrawn.
+> - **Model.** SmolLM2-360M-Instruct or Qwen3-0.6B (non-thinking), INT4, Apache 2.0, in batches of ≥ 10 lines
+>   (`docs/payload/AI_MODEL_SELECTION.md`); the ~1M-parameter TinyLM of §4.1 and Appendix B is withdrawn.
+> - **Content.** **No numbers in generated text**: the OBC writes every value from measurements, and the same
+>   deterministic filter runs on the payload and the OBC (`docs/BEACON_SPEC.md` §6; 97.113). The example outputs of
+>   §4.1–§4.2 that contain numbers would be rejected.
+> - **Bursts.** Each power-on ≤ 10 min including boot and ≤ 3.6 kJ, then ≥ 100 min off; sunlit, SOC ≥ 55 %, Jetson
+>   ≥ −15 °C; duty ≤ 5 % tumbling, ≤ 10 % sun-pointed (BASELINE §5–§6). The 30 s per-beacon cycle of §3.4 and §6.3, the
+>   20–30 % duty of PAY-P005 and the 15 W peak are withdrawn.
+> - **Module.** Orin Nano 8 GB in the original flash configuration, 7 W mode (nvpmodel ID 1), ≤ 8 W input including the
+>   carrier, no fan; 5 V input made on the carrier (§12).
 
 ---
 
@@ -18,12 +37,12 @@
 
 ### 1.1 Purpose
 
-This document defines the detailed design of the AI Payload subsystem for the SMART-QSO 1U CubeSat. The payload uses an NVIDIA Jetson Orin Nano Super to perform onboard AI inference for autonomous spacecraft operations.
+This document defines the detailed design of the AI Payload subsystem for the SMART-QSO 1U CubeSat. The payload uses an NVIDIA Jetson Orin Nano 8 GB module to generate beacon text as a gated experiment (BASELINE §6).
 
 ### 1.2 Scope
 
 The AI Payload encompasses:
-- Jetson Orin Nano Super compute module
+- Jetson Orin Nano 8 GB compute module (original flash configuration, 7 W mode)
 - Power management and duty cycling
 - Thermal management
 - OBC interface
@@ -133,7 +152,7 @@ The AI Payload encompasses:
 +------------------------------------------------------------------+
 ```
 
-### 3.2 Jetson Orin Nano Super Specifications
+### 3.2 Jetson Orin Nano Specifications (pre-baseline; §12 governs)
 
 | Parameter | Specification |
 |-----------|---------------|
@@ -160,8 +179,8 @@ The AI Payload encompasses:
 
 **DVFS Configuration** (Dynamic Voltage and Frequency Scaling):
 ```bash
-# Set power mode to 7W mode
-sudo nvpmodel -m 0
+# Set power mode to 7W mode (ID 1 on the original configuration; ID 0 is 15 W, §12)
+sudo nvpmodel -m 1
 
 # Limit GPU clock
 sudo jetson_clocks --store
@@ -778,3 +797,4 @@ Raw Text Data → Tokenization → Model Training → Quantization → TensorRT 
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-27 | SMART-QSO Team (CDR avionics review) | §11 new: two series switches and their independence (RID AV-06), latch-up and over-power trips, thermal limits, fallback; §6, §7 and §10 marked as preliminary where §11 governs |
 | 1.2 | 2026-10-27 | Payload carrier design (CDR design completion) | §12 new: carrier board SQSO-JET-BRD-001 summary and the corrections it makes (5 V-only module input, storage, 1.8 V UART and 8N2, 7 W mode and the 6.5 W cap for TB-13, power-good, commanded switch-off, thermal interface, spreader thermistor) (amended: §11.1 pins PB2 and PA8 per SQSO-ICX-001, panel item P3E-05) |
+| 1.3 | 2026-10-27 | SMART-QSO Team (documentation audit) | Documentation audit (post-CDR 2026): notice at the top listing where §1–§10 and the appendices conflict with BASELINE §5–§6 (gated experiment only, SmolLM2/Qwen3 INT4 model, no numbers in generated text, burst rules, module); §1.1, §1.2, §3.2 "Super" removed; §3.3 nvpmodel ID 1 (was 0); NPR 7150.2D; heritage line reworded |

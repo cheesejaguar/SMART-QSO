@@ -1,14 +1,14 @@
 # Systems Engineering Management Plan (SEMP)
 
 **Document Number**: SMART-QSO-SEMP-001
-**Version**: 2.2
+**Version**: 2.3
 **Date**: 2026-10-27
 **Status**: Draft
 
 **Reference framework**: NPR 7123.1D, NASA Systems Engineering Processes and Requirements (effective 2023-07-05),
 tailored. It is not mandatory for this privately funded amateur mission (`docs/project/CDR_CRITERIA_MATRIX.md` §1).
-Version 1.x cited "NPR 7123.1 Rev E", which does not exist (finding VV-11). `docs/BASELINE_PARAMETERS.md` Rev D
-governs every value.
+Version 1.x cited "NPR 7123.1 Rev E", which does not exist (finding VV-11). `docs/BASELINE_PARAMETERS.md` Rev E
+(amended) governs every value.
 
 ---
 
@@ -33,14 +33,14 @@ design precedents only, surveyed with sources in `docs/project/HERITAGE_ASSESSME
 
 ## 2. Technical Approach
 
-### 2.1 System architecture (BASELINE Rev D)
+### 2.1 System architecture (BASELINE Rev E, amended)
 
 | Element | Baseline |
 |---------|----------|
 | Form factor | 1U, CDS Rev 14.1; COTS frame (buy, `docs/hardware/BUILD_VS_BUY.md`) |
 | OBC | STM32L4R5ZI, Rust flight software on the Embassy executor, no RTOS (BASELINE §6; CR-2026-002) |
-| AI payload | Jetson Orin Nano 8 GB module on a custom carrier, 7 W mode, ≤ 8 W input, bursts ≤ 120 s; flight baseline AI is the OBC-resident template selector (D5) |
-| RF | Single-channel FM transponder, uplink 435-438 MHz (70 cm), downlink 145.800-146.000 MHz (2 m); 1200 bps AFSK AX.25 beacon; 0.5 W nominal, 1 W maximum; HMAC-authenticated telecommand with hardware TX-OFF (BASELINE §7). Version 1.0 said "UHF downlink, VHF optional": wrong |
+| AI payload | Jetson Orin Nano 8 GB module on a custom carrier, 7 W mode, ≤ 8 W input, each power-on ≤ 10 min then ≥ 100 min off (BASELINE §6); flight baseline AI is the OBC-resident template selector (D5) |
+| RF | Single-channel FM transponder, uplink requested in 435.222-435.778 MHz, else 436.222-436.500 MHz (70 cm), downlink 145.800-146.000 MHz (2 m); 1200 bps AFSK AX.25 beacon; 0.5 W nominal, 1 W maximum; HMAC-authenticated telecommand with hardware TX-OFF (BASELINE §7). Version 1.0 said "UHF downlink, VHF optional": wrong |
 | ADCS | Active: 3-axis magnetorquers, magnetometer, sun sensors, MEMS gyro (Epson M-G370PDT0); B-dot detumble; spin-stabilised coarse sun-pointing of +Y at 8°/s (BASELINE §8, D9). Version 1.0 said "passive magnetic": wrong |
 | EPS | 16 triple-junction cells (body plus two deployable wings), 4S1P INR18650-35E ≈ 50 Wh charged to 4.10 V/cell (D8), custom EPS (ISIS ICEPS2 alternate) |
 | GNSS | SkyFox piNAV-NG/FM, duty-cycled (D6) |
@@ -59,12 +59,12 @@ decisions in `docs/hardware/BUILD_VS_BUY.md`. A decision changes the baseline on
 | Process | Application | Tailoring and products |
 |---------|-------------|------------------------|
 | Stakeholder expectations | Full | Amateur community, licensee, FCC/IARU, integrator; `mission/CONOPS.md`, mission success criteria |
-| Technical requirements definition | Full | MRD (SQSO-REQ-001), SRS system (SQSO-REQ-002), software SRS; flow-down from CDS Rev 14.1, Part 97, NASA-STD-8719.14C and the provider (MRD Rev D, SYS Rev E) |
+| Technical requirements definition | Full | MRD (SQSO-REQ-001), SRS system (SQSO-REQ-002), software SRS; flow-down from CDS Rev 14.1, Part 97, NASA-STD-8719.14C and the provider (MRD Rev G, SYS Rev H) |
 | Logical decomposition | Tailored | Functional allocation in `docs/ARCHITECTURE.md`; no separate functional-analysis document |
 | Design solution definition | Full | Subsystem designs under `hardware/` and `docs/hardware/`; trades in BUILD_VS_BUY and the D-series research |
 | Product implementation | Full | Buy (frame, panels, AntS, sensors) and build (OBC, EPS, transponder, carrier, battery mount) |
-| Product integration | Full | Flatsat → EM → FM (`docs/integration/INTEGRATION_PLAN.md` Rev B) |
-| Product verification | Full | Protoflight (`docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C); VCRM generated for every requirement |
+| Product integration | Full | Flatsat → EM → FM (`docs/integration/INTEGRATION_PLAN.md` Rev C) |
+| Product verification | Full | Protoflight (`docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev E); VCRM generated for every requirement |
 | Product validation | Full | Day-in-the-life, end-to-end, SIL mission simulation, commissioning |
 | Product transition | Tailored | Delivery to the integrator; data package (SYS-906) |
 | Technical planning | Full | This plan; `mission/SCHEDULE.md` |
@@ -89,16 +89,16 @@ Updated 2026-10-27. Each value cites its controlled analysis; "not measured" unt
 
 | TPM | Requirement | Current value | Margin | Status |
 |-----|-------------|---------------|--------|--------|
-| Total mass (predicted) | ≤ 2.00 kg (SYS-002) | CBE 1.52 kg, MEV 1.75 kg with the CAD (`docs/environment/MASS_BUDGET.md` v3.1; BASELINE Rev E (amended) §4) | +14.0 % | Met by analysis (≥ 9 % wanted at PDR) |
-| Orbit-average generation, EOL, tumbling | ≥ 2.21 W (SYS-100 Rev G: 1.84 W × 1.2, CR-2026-009) | 2.48 W delivered (mission simulation, `docs/environment/POWER_BUDGET_ANALYSIS.md` v2.2 §4); 2.14 W isotropic bound | +12 % over the requirement (+35 % over the load) | Met by analysis; V-PWR-1 |
-| Orbit-average generation, sun-pointed | — | 3.92 W (same source) | +75 % on the 2.24 W load (BASELINE §5) | Met by analysis |
-| Beacon link margin at 5° elevation, 0.5 W | > 6 dB | +7.7 dB with a 12 dBic station (`docs/environment/LINK_BUDGET_ANALYSIS.md` v2.0) | +1.7 dB over the requirement | Met by analysis |
+| Total mass (predicted) | ≤ 2.00 kg (SYS-002) | CBE 1.52 kg, MEV 1.755 kg with the CAD (`docs/environment/MASS_BUDGET.md` v3.3; BASELINE Rev E (amended) §4) | +14.0 % | Met by analysis (≥ 9 % wanted at PDR) |
+| Orbit-average generation, EOL, tumbling | ≥ 2.23 W (SYS-100 Rev H: 1.86 W × 1.2, CR-2026-009) | 2.48 W delivered (mission simulation, `docs/environment/POWER_BUDGET_ANALYSIS.md` v2.5 §4); 2.14 W isotropic bound | +11 % over the requirement (+33 % over the 1.86 W load) | Met by analysis; V-PWR-1 |
+| Orbit-average generation, sun-pointed | — | 3.84 W with the face photodiodes and albedo (same source; 3.79 W worst trial, C-23) | +70 % on the 2.26 W load (BASELINE §5) | Met by analysis |
+| Beacon link margin at 5° elevation, 0.5 W | > 6 dB | +7.9 dB with a 12 dBic station at the median spacecraft gain (`docs/environment/LINK_BUDGET_ANALYSIS.md` v3.5) | +1.9 dB over the requirement | Met by analysis |
 | Beacon interval, ACTIVE | ≤ 60 s (MRD-020) | 60 s (`software/flight/include/beacon.h`, CI parameter check) | 0 | Met by design |
 | Energy per accepted AI beacon (gated experiment) | ≤ 0.1 Wh p95 (D5) | Not measured | — | Verification item VI-02 (EM) |
 | Jetson spreader temperature, 600 s batch, hot case | ≤ +40 °C (SYS-603 Rev G, CR-2026-010) | 39.0 °C at the audit's 0.44 W/K; 35.3 °C at 1.0 W/K; design path 1.10 W/K (`docs/environment/THERMAL_ANALYSIS.md` §6.3) | 1.0 °C at 0.44 W/K; about 5 °C at the design | Predicted to comply; VI-01, V-THM-3 |
-| Sun-pointing (+Y within 15° of the Sun) | ≥ 90 % of sunlit time (SYS-422) | 100 % in the Monte Carlo of the flight code (BASELINE §8) | +10 points | Met by analysis |
-| Detumble from 10°/s | ≤ 3 orbits (SYS-420) | Monte Carlo of the flight code (BUILD_VS_BUY §6) | — | Met by analysis; HIL pending |
-| Schedule float to the integrator's L − 4 month milestone | ≥ GOLD Rule 1.06 margin (9.6 weeks for November 2028) | −11.4 weeks for June 2028; +10.1 weeks for November 2028 (`mission/SCHEDULE.md` Rev D §3) | +0.5 weeks for November 2028 | Met for the planning launch with two layout designers (DA-04) |
+| Sun-pointing | SYS-422: +Y within 15° of the Sun ≥ 90 % of sunlit time; restated for power by decision C-23 (≤ 5 % of sunlit generation lost, Sun within 30° ≥ 95 %; ADCS-P002) | Generic sun-sensor model 99.6 % within 15°; with the face photodiodes and albedo 74 % within 15°, 2.0 % lost and 100 % within 30° (`docs/hardware/ADCS_DESIGN.md` 1.9 §11.6; BASELINE §8) | C-23 measure met in every trial; SYS-422 as worded not met with the albedo model | Met by analysis against C-23 (PI ratification DA-01); SYS-422 wording to align (CR-2026-019) |
+| Detumble from 10°/s | ≤ 3 orbits (SYS-420) | Slowest in-specification capture 1.8 h in the Monte Carlo of the flight code (tip-off σ 10°/s, up to 30°/s; 1.7 h with the BMI088 at 0.2°/s; `docs/hardware/ADCS_DESIGN.md` 1.9 §11.4) | × 2.5 | Met by analysis; HIL pending |
+| Schedule float to the integrator's L − 4 month milestone | ≥ GOLD Rule 1.06 margin (9.6 weeks for November 2028) | −11.4 weeks for June 2028; +10.1 weeks for November 2028 (`mission/SCHEDULE.md` Rev E §3) | +0.5 weeks for November 2028 | Met for the planning launch with two layout designers (DA-04) |
 
 Version 1.x listed a "current" beacon interval of 30 s and an AI latency TPM of 10 s; both were superseded by the
 baseline.
@@ -116,7 +116,7 @@ wings; antennas stowed; final assembly; mass properties.
 ### 5.1 Verification approach
 
 Every requirement has a method (A, D, I, T) and a planned event in the VCRM (`docs/verification/VERIFICATION_MATRIX.md`
-Rev C, generated). Verification status changes only with committed evidence.
+Rev E, generated). Verification status changes only with committed evidence.
 
 ### 5.2 Protoflight testing
 
@@ -130,7 +130,7 @@ Protoflight means qualification levels for acceptance durations (GSFC-STD-7000B 
 | Thermal vacuum (FM) | AFT ± 10 °C, capped by the battery at +60 °C; bake-out +60 °C for 6 h | 8 cycles (+ 4 board cycles) |
 | Functional | Comprehensive performance test at the first and last hot and cold plateaus | Per procedure |
 
-Full plan: `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C.
+Full plan: `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev E.
 
 ### 5.3 Validation approach
 
@@ -142,12 +142,13 @@ Full plan: `docs/environment/ENVIRONMENTAL_TEST_PLAN.md` Rev C.
 ## 6. Risk Management
 
 `mission/RISK_REGISTER.md` is the only risk list. Technical risks to watch at this phase: Jetson power and heat in 1U
-(R1, R7, R16), EPS margin (R3), deployment (R5), EMC between the Jetson, PA, GNSS and magnetometer (R6); programmatic:
-funding timing, key person, launch capacity, regulatory timing (R11-R19).
+(R7, R16; R1 merged into R16), inhibits and burn line (R26, R27), no layout or EM (R24), deployment altitude (R25),
+reliability (R29), deployment (R5, R36), EMC between the Jetson, PA, GNSS and magnetometer (R6); programmatic: funding
+timing, key person, launch capacity, schedule, regulatory timing (R11-R23).
 
 ## 7. Configuration Management
 
-`docs/project/CONFIGURATION_MANAGEMENT_PLAN.md` v1.1.
+`docs/project/CONFIGURATION_MANAGEMENT_PLAN.md` v1.2.
 
 | Baseline | Established at | Contents |
 |----------|----------------|----------|
@@ -187,9 +188,9 @@ Interface changes go through the change request log; interface verification is p
 | Requirements with a planned verification event | 100 % | Each change (generated) | 100 % |
 | Requirements volatility | < 10 % per quarter after the PDR | Monthly | Rebaseline in this review (CR-2026-007) |
 | TBD/TBR closure | Each item with a dated closure; none open at the CDR that blocks fabrication | Monthly | Counted by `scripts/tbd_register.py` |
-| RID closure | All severity 1 and 2 before the next gate | Per review | See `docs/project/CDR_CRITERIA_MATRIX.md` §6 |
-| TPM status | All meet requirement at the CDR | Monthly | Three not met (§3.3) |
-| Schedule float | ≥ GOLD Rule 1.06 margin | Monthly | −11.4 weeks (June 2028); +10.1 against 9.6 weeks (November 2028; SQSO-SCH-001 D) |
+| RID closure | All severity 1 and 2 before the next gate | Per review | CDR 2026 design review: all 412 RIDs dispositioned (SQSO-REV-CDR-002 §7.1) |
+| TPM status | All meet requirement at the CDR | Monthly | All met by analysis except SYS-422 as worded (§3.3); the AI energy TPM not measured |
+| Schedule float | ≥ GOLD Rule 1.06 margin | Monthly | −11.4 weeks (June 2028); +10.1 against 9.6 weeks (November 2028; SQSO-SCH-001 E) |
 
 ---
 
@@ -202,3 +203,4 @@ Interface changes go through the change request log; interface verification is p
 | 2.0 | 2026-10-27 | CDR review, PM/SE/V&V | Reference framework NPR 7123.1D (not "Rev E"), not mandatory; NASA Ames "heritage approach" claim removed; architecture to BASELINE Rev D (STM32L4R5ZI and Embassy, not Apollo4; active ADCS, not passive; VHF downlink and UHF uplink, not "UHF downlink"); NPR 7123.1D process tailoring; reviews per the CDR criteria matrix; TPMs re-stated against requirements with margins (three not met); protoflight definition corrected; baselines aligned with the CM plan; interface list with document IDs; dated metrics |
 | 2.1 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: ADCS spin 8°/s (BASELINE Rev E §8); disposal altitude 465–485 km (BASELINE Rev E §3) |
 | 2.2 | 2026-10-27 | CDR round 3, systems and programmatics | §3.3 TPMs at the round-2 values: mass +14.4 %, SYS-100 2.21 W against 2.48 W (+12 %), sun-pointed +75 %, the Jetson heat path as the SYS-603 Rev G spreader temperature (RIDs SE-03, SE-07, P3P-06) |
+| 2.3 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): BASELINE Rev E (amended); Jetson burst limits, uplink windows; TPMs at the final values (mass v3.3, SYS-100 2.23 W and PBA 2.5, sun-pointed 3.84 W, link +7.9 dB v3.5, pointing against C-23 with SYS-422 noted, detumble 1.8 h, ADCS_DESIGN 1.9 §11.4); document revisions cited (MRD G, SYS H, INTEGRATION_PLAN C, ETP E, VCRM E, SCH E, CMP 1.2); risks and RID closure from the current register and review record |

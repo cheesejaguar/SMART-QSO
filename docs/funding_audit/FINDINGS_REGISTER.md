@@ -1,6 +1,9 @@
 # Funding Audit — Findings Register
 ## SMART-QSO 1U CubeSat
 
+> **Historical record (2026-10-14, status cells updated to 2026-10-27).** Superseded for current values by `docs/BASELINE_PARAMETERS.md` and
+> `docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`. Still good for: the 103 findings with their evidence at commit `0578833`, and the closure criteria a funder can check.
+
 **Document Number:** SQSO-AUD-002
 **Revision:** B
 **Date:** 2026-10-14

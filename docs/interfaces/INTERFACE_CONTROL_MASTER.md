@@ -2,8 +2,8 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-ICD-000
-**Revision:** C
-**Date:** 2026-01-02
+**Revision:** D
+**Date:** 2026-10-27
 **Reference:** NPR 7123.1, NASA Ames SmallSat Heritage
 
 ---
@@ -38,7 +38,7 @@ PI-17). Some ICDs carry the prefix SMART-QSO- and others SQSO-; both are listed 
 | SMART-QSO-ICD-002 | OBC to Jetson Interface | Draft | C&DH |
 | SQSO-ICD-003 | OBC to RF Interface | Draft | RF |
 | SQSO-ICD-004 | OBC to ADCS Interface | Draft | ADCS |
-| SMART-QSO-ICD-006 | Beacon Format Interface | Draft | RF |
+| SMART-QSO-ICD-006 | Beacon Format Interface | Superseded by `docs/BEACON_SPEC.md` (its notice) | RF |
 | — | EPS Power Bus Interface | Not written; no number assigned | EPS |
 
 ### 3.2 External ICDs
@@ -129,14 +129,14 @@ PI-17). Some ICDs carry the prefix SMART-QSO- and others SQSO-; both are listed 
 │  └──────┬──────┘                                                       │
 │         │                                                               │
 └─────────┼───────────────────────────────────────────────────────────────┘
-          │ 145.825 MHz
-          │
+          │ down 145.800–146.000 MHz, up 435.222–435.778 MHz
+          │ (or 436.222–436.500 MHz; BASELINE §7)
           ▼
     ┌─────────────┐
     │   GROUND    │
     │   STATION   │
     │ (SQSO-ICD   │
-    │   -012)     │
+    │   -005)     │
     └─────────────┘
 ```
 
@@ -148,21 +148,22 @@ PI-17). Some ICDs carry the prefix SMART-QSO- and others SQSO-; both are listed 
 
 | Interface | Type | Voltage | Protocol | Connector |
 |-----------|------|---------|----------|-----------|
-| OBC-Jetson | UART | 3.3V | Custom | 4-pin header |
-| OBC-EPS | UART | 3.3V | Command/Response | 4-pin header |
-| OBC-ADCS | I2C | 3.3V | Standard I2C | 6-pin header |
-| OBC-RF | GPIO+SPI | 3.3V | Control + Data | 10-pin header |
-| Power Bus | DC | 3.3V/5V/VBAT | N/A | Harness |
+| OBC-Jetson | USART1 + power-good + spreader NTC | 3.3 V (the carrier translates to the module's 1.8 V) | Line protocol with CRC-16 (SMART-QSO-ICD-002 §4) | W5B, Pico-Clasp 6 (OBC J3 to carrier J2); power on W5A |
+| OBC-EPS | I2C2 + 15 enables, burn, passivation and sense lines, analog monitors | 3.3 V | I2C registers (EPS controller 0x48, INA228 0x40/0x44) | W3, 40-way Samtec TFM-120 (OBC J1 to EPS J3) |
+| OBC-ADCS | SPI3, SPI2 (gyros), I2C4 (magnetometer, sun-sensor ADC), TIM1 PWM (rods) | 3.3 V; rods on VBAT_MTQ | Device registers; PH/EN bridges | On the OBC board; W6B–W6E to the EPS, rods, photodiodes and magnetometer board |
+| OBC-RF | USART2 KISS TNC + discretes + analog monitors | 3.3 V | KISS (SQSO-ICD-003 §5) | W4A, 16-way Samtec TFM-108 (OBC J2 to RF J1); power on W4B |
+| Power Bus | DC | VBAT 11.2–16.4 V; 3.3 V rails; 5V_PA | N/A | Harness (SQSO-ICX-001, SQSO-HAR-001) |
 
 ### 6.2 Data Interfaces
 
 | Interface | Data Rate | Format | Direction |
 |-----------|-----------|--------|-----------|
-| OBC-Jetson | 115200 bps | JSON/Text | Bidirectional |
-| OBC-EPS | 9600 bps | Binary | Bidirectional |
-| OBC-ADCS | 400 kHz | I2C Registers | Bidirectional |
-| Beacon | 1200 bps | AX.25/AFSK | TX only |
-| Telemetry | 1200 bps | AX.25/AFSK | TX only |
+| OBC-Jetson | 115200 bps (OBC transmits 8N2) | ASCII lines with CRC-16 | Bidirectional |
+| OBC-EPS | 100 kHz I2C | Registers | Bidirectional |
+| OBC-RF | 9600 bps UART | KISS frames | Bidirectional |
+| OBC-ADCS | SPI ≤ 1 MHz (M-G370), ≤ 10 MHz (BMI088); 100 kHz I2C | Registers | Bidirectional |
+| Beacon and telemetry | 1200 bps | AX.25 UI / AFSK | Downlink |
+| Telecommand | 1200 bps | AX.25 UI / AFSK, HMAC-SHA-256 (SQSO-ICD-013) | Uplink |
 
 ### 6.3 Mechanical Interfaces
 
@@ -255,3 +256,4 @@ PI-17). Some ICDs carry the prefix SMART-QSO- and others SQSO-; both are listed 
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-16 | §3 index renumbered to the IDs the ICDs carry; Space-to-Ground and Launch Provider ICDs added; statuses set to Draft or Not written; diagram and §8.2 numbers corrected (finding PI-17) | SMART-QSO Team |
 | C | 2026-10-16 | §10 TBD IDs made unique to this document: TBD-001 to TBD-003 became TBD-ICM-001 to TBD-ICM-003 (finding VV-17) | SMART-QSO Team |
+| D | 2026-10-27 | Documentation audit (post-CDR 2026): §5 diagram frequencies from BASELINE Rev E §7 (was 145.825 MHz) and the ground link SQSO-ICD-005; §6.1, §6.2 the interfaces as designed (USART1 to the Jetson, I2C2 and discretes to the EPS, USART2 KISS to the RF board, the ADCS devices on the OBC board; harnesses W3, W4A, W5, W6 of SQSO-ICX-001 D), replacing the 2026-01 UART/SPI headers; §3.1 ICD-006 superseded by BEACON_SPEC | Documentation audit |

@@ -1,7 +1,7 @@
 # SMART-QSO Spacecraft Electrical Interconnect
 
 **Document ID**: SQSO-ICX-001
-**Version**: D
+**Version**: F
 **Date**: 2026-10-27
 **Status**: CDR build-to interconnect: master pin allocation of the OBC's STM32L4R5ZIT6 and the board-to-board signal
 list. Generated in part from the OBC schematic source (`hardware/electrical/obc/design.py` → `obc_pinmap.csv`); where
@@ -15,9 +15,9 @@ EPS board [EPS_BOARD_DESIGN.md](eps/EPS_BOARD_DESIGN.md) (SQSO-EPS-BRD-001); RF 
 `hardware/harness/wire_list.csv` (SQSO-HAR-001 2.0, governs gauges, lengths and routes).
 
 **Governing documents**: `docs/BASELINE_PARAMETERS.md` Rev E (governs every value); `docs/interfaces/ICD_OBC_EPS.md`
-(SMART-QSO-ICD-001), `ICD_OBC_JETSON.md` (SMART-QSO-ICD-002), `ICD_OBC_RF.md` (SQSO-ICD-003 2.2), `ICD_OBC_ADCS.md`
+(SMART-QSO-ICD-001), `ICD_OBC_JETSON.md` (SMART-QSO-ICD-002), `ICD_OBC_RF.md` (SQSO-ICD-003), `ICD_OBC_ADCS.md`
 (SQSO-ICD-004); `hardware/harness/HARNESS_DESIGN.md` (SQSO-HAR-001 2.0: connector families §3.1, access-port board A3 §3.2, wire
-derating §5.2).
+derating §5.2). Revisions of the cited documents: `docs/DOCUMENT_REGISTER.md`.
 
 ---
 
@@ -106,7 +106,7 @@ solids (no interference).
 
 Largest fill 51 % ((−X, −Y), bands B–D). **Band B is no longer over-full**: the EPS-only harnesses do not use the
 bundles. Every EPS harness connector is on the EPS bottom side (the 5 mm top side under the OBC cannot take a mated
-connector and its wire bend), in five zones between the EPS and the deck (12.5 mm high, outside the GNSS receiver, the
+connector and its wire bend), in five zones between the EPS and the deck (12.1 mm high with the 2.0 mm EPS, SQSO-HAR-001 2.0 §10.1; outside the GNSS receiver, the
 X rod, the Z rod, the columns and the centre supports), and the EPS-only harnesses reach them through the open volume
 under the EPS, the skeleton deck's openings, inboard strips beside the battery end caps, hinge-side strips at
 y +34.5 … +39.5 in the ±X wall gaps, shear-panel slots at z −10 for the body panels and a −Y wall strip; only W7A's
@@ -166,8 +166,9 @@ Direction is seen from the OBC (out = OBC drives). "Reset" is the line's state w
 | 37 | **VSW1_RB** | analog in | VBAT_SW1 / 6 | — | **PA1** ADC1_IN6 (1 kΩ, 10 nF) | **new**: 1.00 MΩ / 200 kΩ + 100 nF after SW1 (RID AV-06) |
 | 38 | **3V3_RTC** | power in | 3V3_AO through 1.0 kΩ, ≤ 2 µA | **stays on** | RV-3028-C7 VDD (1 µF) | **new**: always-on supply of the mission clock (RID AV-10) |
 
-Wire currents: 3V3_OBC 0.088 A per wire at the SW10 trip (35 % of 0.25 A); VBAT_MTQ 0.115 A per wire at the bridges'
-limit (46 %); all others < 5 mA.
+Wire currents (30 AWG SFSDT, 0.65 A derated in the 40-conductor section, SQSO-HAR-001 2.0 §9.1): 3V3_OBC 0.088 A per wire
+at the SW10 trip (14 %); VBAT_MTQ 0.115 A per wire at the bridges' limit, 0.20 A at the SW11 limit (31 %); all others
+< 5 mA.
 
 ### 3.2 W4A: OBC J2 ↔ RF J1 (16 positions, Samtec SFSDT 30 AWG on TFM-108 right-angle, 0.075 m); W4B power EPS J19 ↔ RF J2 (28 AWG)
 
@@ -225,7 +226,7 @@ carrier board).
 | W6C J7-3/4 | MTQ_Y_P / N | as X | U23 | rod Y |
 | W6C J7-5/6 | MTQ_Z_P / N | as X | U24 | rod Z |
 | W6D OBC J8-1/2 … 11/12 | CSS_PX_K/A, MX, PY, MY, PZ, MZ | photocurrent ≤ 4.0 mA (at AM0 normal incidence: requirement on the panel vendor) | U17–U19 TLV9002-Q1 transimpedance (619 Ω) → U16 ADS7138-Q1 AIN0–5 | panel photodiodes, cathode to K |
-| W6D J8-13/14 | not used (Version C: W6D unshielded, no drains) | — | unconnected; J8 may become a Pico-Clasp 12 | — |
+| W6D | no drain wires (Version C: W6D unshielded) | — | J8 is a 12-way Pico-Clasp (2035561207) | — |
 | W6E OBC J10-1/2/6 | 3V3_MAG, GND | 3.3 V, < 1 mA (RM3100) | **U35** latch-up switch of its own (50–100 mA; MAG_EN PF14, MAG_RB PF15; Version D, SMA-B18) | magnetometer board A2 J1 |
 | W6E J10-3/4 | SDA_M, SCL_M | I2C, 4.7 kΩ on the OBC side, 100 kHz recommended | **U34** TCA9517-Q1: its own buffered segment of I2C4 (the sun-sensor ADC stays behind U14) | RM3100 at 0x20 |
 | W6E J10-5 | MG_DRDY | 3.3 V, high = conversion done | U33 → PD11 (EXTI11) | RM3100 DRDY |
@@ -424,7 +425,7 @@ Generated from `hardware/electrical/obc/obc_pinmap.csv`. Dir: O out, I in, A ana
 | 23 | PH0 | HSE_IN | OSC_IN (HSE bypass) | I | 8 MHz CMOS | HSE off | Y1 XO |
 | 24 | PH1 | - | spare (OSC_OUT unused in bypass) | - |  | analog (high-Z) |  |
 | 138 | PH3 | BOOT0 | BOOT0 | I | low = boot from flash | BOOT0 | 10 k pull-down |
-| 25 | NRST | NRST | NRST | B | open drain wired-OR | low until released | U2 RESET/WDO, J9-6, U4 EVI |
+| 25 | NRST | NRST | NRST | B | open drain wired-OR | low until released | U2 RESET/WDO, Q1 drain (RST_REQ from J9-6, SMA-B14: the access port cannot hold NRST), U4 EVI |
 
 ### 4.2 Supply pins
 
@@ -514,7 +515,7 @@ design.
 | 9 | EOL_ARM, EOL_FIRE, LOCK_CLR | none | **PF4, PG1, PF5** (new outputs) | passivation (RID EPS-06, REG-01) and the recharge-lockout clear (EPS-12) |
 | 10 | SPI2 (`hal_spi` bus 0, CS PD0) | "RF transceiver" | **BMI088** (gyro CS PD0) + accelerometer CS **PD4** (new) | the RF board no longer needs SPI2 (RF board §15 item 3) |
 | 11 | SPI3 (`hal_spi` bus 1, CS PD1) | generic | **M-G370PDT0**, mode 3; /RST **PD14**, DRDY **PD10** (new) | RID AV-03 |
-| 12 | I2C4 (`hal_i2c` bus 1) | generic | RM3100 0x20 and ADS7138 0x10 behind U14; MAG_DRDY **PD11** (new) | RID AV-03 |
+| 12 | I2C4 (`hal_i2c` bus 1) | generic | ADS7138 0x10 behind U14, RM3100 0x20 behind U34 (row 33); MAG_DRDY **PD11** (new) | RID AV-03 |
 | 13 | I2C1 | none | **PG14 / PG13**, RV-3028-C7 0x52 (new `hal_i2c` bus 2) | RID AV-10 |
 | 14 | ADC1 | 9 external channels | + **IN6 PA1 VSW1_RB, IN9 PA4 MTQ_X_I, IN10 PA5 MTQ_Y_I, IN11 PA6 MTQ_Z_I, IN12 PA7 VJET_RB** | new `HalAdcChannel_t` entries |
 | 15 | ADC scale VBATT | `Linear(3.0, 0.0)` (2S) | `Linear(6.0, 0.0)` | EPS divider 1.00 M / 200 k (finding F1); the other EPS scales are unchanged (EPS board §11) |
@@ -522,7 +523,7 @@ design.
 | 17 | Sensor rails | none | GYRO_EN **PF6**, IMU2_EN **PF7**, SNS_EN **PF8**; trip readbacks **PF10–PF12** | RID AV-03 (latch-up) |
 | 18 | Repeat-path readbacks | none | TONE_OK **PC9**, XPDR_KEY **PG12**, PTT_EXCITER **PC7** (TIM8_CH2 capture) | RIDs RF-21, AV-05 |
 | 19 | Jetson readbacks | none | VSW1_RB (ADC), VJET_RB (ADC), JET_PG **PG6** | RID AV-06 |
-| 20 | GNSS | LPUART1 PG7/PG8, GNSS_EN PE5 | unchanged; + 1PPS **PC6** (TIM3_CH1), GNSS_PG **PG15** | LV-04 kept; EPS-14 closed |
+| 20 | GNSS | LPUART1 PG7/PG8, GNSS_EN PE5 | RX PG8 and GNSS_EN PE5 unchanged (TX to PB11: row 29); + 1PPS **PC6** (TIM3_CH1), GNSS_PG **PG15** | LV-04 kept; EPS-14 closed |
 | 21 | External watchdog | none | WDI **PG11** (falling edge every 10 s while every task has checked in) | RID AV-02 |
 | 22 | Mission clock 1 Hz | none | RTC CLKOUT → **PC8** (TIM3_CH3) | clock check of the MCU against the RTC |
 | 23 | Clocks | MSI 4 MHz → PLL 80 MHz | optional: HSE bypass 8 MHz on PH0, PLL M 1, N 20, R 2; LSE drive medium-high | the XO is fitted either way |
@@ -541,7 +542,7 @@ design.
 | 36 | TX_TEMP plausibility | none | outside −50 … +125 °C (0 V = open line with the new 1 MΩ pull-down) or rising faster than the PA can heat: sensor fault, fall back to the board temperatures with the duty limit; scale × 1.011 for the pull-down | SMA-B19 |
 | 37 | IWDG reload | 3750 / 256 | **3200 / 256** (24.1–27.8 s; D amended: was 3500 with the 470 nF CWD): the IWDG acts before the supervisor's 29.3 s minimum | §4.3, SMA-B08; SQSO-OBC-BRD-001 E §6 |
 | 38 | EPS heartbeat | none | write the EPS controller's heartbeat register (0x48, I2C2) every 60 s; the controller power-cycles SW10 after 10 min without it (EPS one-shot) | SMA-B09 (EPS side: E14) |
-| 39 | Unchanged | — | RADIO_EN PB5, ADCS_EN PB6, HEATER_EN PD2, LED PD3, RF_TX_EN PA3, EPS_ALERT_N PB7, DEPLOY_SENSE PE2 (pin), UMBILICAL_SENSE PB8, SOLAR_SENSE PB12, TX_PWR_SEL PE3, XPDR_EN PE4 (TIM7), GNSS_EN PE5, USART1/2/3, LPUART1, I2C2, I2C4, SPI3 pins, FRAM WP#/HOLD#, the nine existing ADC channels | — |
+| 39 | Unchanged | — | RADIO_EN PB5, ADCS_EN PB6, HEATER_EN PD2, LED PD3, RF_TX_EN PA3, EPS_ALERT_N PB7, DEPLOY_SENSE PE2 (pin), UMBILICAL_SENSE PB8, SOLAR_SENSE PB12, TX_PWR_SEL PE3, XPDR_EN PE4 (TIM7), GNSS_EN PE5, USART1/2/3, LPUART1_RX PG8, I2C2 pins (clock: row 31), I2C4, SPI3 pins, FRAM WP#/HOLD#, the nine existing ADC channels | — |
 
 New `HalGpioPin_t` entries implied (names suggested; indices are the flight software's choice): BURN_W2A (replacing
 ANTENNA_BURN), BURN_W2B, EOL_ARM, EOL_FIRE, LOCK_CLR, GYRO_EN, IMU2_EN, SNS_EN, GYRO_RB, IMU2_RB, SNS_RB, GYRO_RST_N,
@@ -569,7 +570,7 @@ second CS in `hal_spi`.
 | E14 | EPS (SQSO-EPS-BRD-001 §13.2, §14) | W3 pin 28 = I2C3_SCL, pin 40 = I2C3_SDA (were GND): **U80's A side to these two pins**, off I2C2; no pull-ups on the EPS side; I2C2 keeps INA228 0x40, 0x44 and the controller 0x48. Heartbeat (SMA-B09): a controller register the OBC writes every 60 s; after 600 s without a write the controller pulls SW10's EN low through a hardware one-shot for 1.95 ± 0.1 s, no cycle within 600 s of a controller start or of the last cycle, at most 3 cycles in 24 h (ICD-001 1.7, V-EPS-16); GND contacts on W3 now 3, 4, 7, 35 and AGND 21, 27 | SMA-B07, SMA-B09 |
 | E15 | EPS / harness (W7C), AntS | wire both AntS controllers: if the AntS variant brings side B (0x32) out on its own I2C pins, W7C and U80 carry it (a second buffer channel); if both share one bus, the address is enough. Confirm in the AntS ICD | SMA-B07 |
 | E16 | Harness (W3, W8), GSE | W3 pins 28 and 40 become signal wires (SFSDT, no gauge change); W8 pin 6 is RST_REQ (active high, reset request): the GSE adapter drives it from VTREF through an inverter from the probe's nRESET | SMA-B07, SMA-B14 |
-| E10 | RF (SQSO-RF-BRD-001) | none: the OBC side of J1 is as the RF board asks (pull-downs fitted on the OBC) | — |
+| E17 | RF (SQSO-RF-BRD-001) | none: the OBC side of J1 is as the RF board asks (pull-downs fitted on the OBC) (numbered E10 in Version D, a duplicate) | — |
 
 ## 8. Verification Items (interconnect)
 
@@ -593,3 +594,5 @@ second CS in `hal_spi`.
 | C | 2026-10-27 | Harness design SQSO-HAR-001 2.0 taken in (items I-1 to I-3): §1 rule 5 to the SQSO-HAR-001 2.0 §5.2 derating (EEE-INST-002 with the bundle factor; gauge follows the terminal), governing baseline Rev E; §2 harness table and §2.1 routing and bundle fill rewritten by the harness designer (W1 22 AWG pack leads, W2–W12 connector parts, gauges and lengths, EPS harness connectors on the EPS bottom side, band B resolution, W6C routes), accepted by the ICX owner; §3.1–§3.6 notes: W3, W4A SFSDT 30 AWG on TFM, W4B, W6B, W6C, W9 28 AWG, W5A 24 AWG quad, W6D unshielded (J8-13/14 unused, J8 a Pico-Clasp 12), §3.6 the bulkhead is the access-port board A3's Micro-D 21 (pin map; SQSO-OBC-BRD-001 C §15.1) |
 | D | 2026-10-27 | Board FMEA SQSO-FMEA-003 A findings: §3.7 sense and status input table (polarity, pull, open state, rule; SMA-B02); AntS on its own I2C3 port (PG7/PB4, W3 pins 28 and 40), both AntS controllers, two parallel pull-ups per line on I2C2 and I2C3 (SMA-B06/B07); EPS heartbeat path on I2C2 (SMA-B09); second FRAM CS# PD7 (SMA-B10); RST_REQ in place of NRST at the access port (SMA-B14); magnetometer on its own switch U35 and segment U34, MAG_EN PF14, MAG_RB PF15 (SMA-B18); TX_TEMP 1 MΩ pull-down (SMA-B19); LPUART1_TX PG7 → PB11; IWDG reload 3500 with the redundant CWD (SMA-B08); changes 29–38, E14–E16, V-ICX-6 to -8 |
 | D, amended | 2026-10-27 | §4.3 and §6 row 37: IWDG reload 3200 (was 3500), following the orderable 440 nF C0G watchdog capacitor network of SQSO-OBC-BRD-001 E (parts audit SQSO-MFG-003) |
+| E | 2026-10-27 | Documentation audit (post-CDR 2026): stale text against the later amendments corrected: §2.1 height under the EPS 12.1 mm (2.0 mm EPS); §3.1 W3 wire currents against the SQSO-HAR-001 2.0 §9.1 derating (30 AWG, 0.65 A; the 0.25 A of the withdrawn table removed); §3.4 J8 a 12-way part; §6 rows 12, 20 and 39 aligned with rows 29, 31 and 33 (LPUART1_TX PB11, RM3100 behind U34, I2C clock); §7 duplicate E10 renumbered E17; ICD-003 cited by its ID. No pin or signal changed |
+| F | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: §4.1 NRST row: J9-6 is RST_REQ through Q1 (Version D, SMA-B14), not a direct NRST connection. No pin or signal changed |

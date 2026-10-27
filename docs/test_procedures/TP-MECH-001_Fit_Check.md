@@ -2,17 +2,23 @@
 ## TP-MECH-001
 
 **Document Number:** SQSO-TP-MECH-001
-**Version:** 1.1
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.2
+**Date:** 2026-10-27
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements verified:** SYS-001, SYS-004
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
 ## 1. PURPOSE
 
-Verify CubeSat mechanical fit to dispenser interface per CDS Rev 14.1.
+Verify CubeSat mechanical fit to dispenser interface per CDS Rev 14.1 and the integrator's dispenser, the Exolaunch
+EXOpod Nova on the baseline launch path (`docs/BASELINE_PARAMETERS.md` §3; SYS-900).
 
 ---
 
@@ -20,7 +26,7 @@ Verify CubeSat mechanical fit to dispenser interface per CDS Rev 14.1.
 
 | Equipment | Specification |
 |-----------|---------------|
-| Test-POD or equivalent | CDS-compliant |
+| Integrator's test pod (EXOpod Nova) or equivalent | Per the integrator's ICD (SYS-900) |
 | Go/no-go gauges | Rail dimensions |
 | Calipers | 0.01mm resolution |
 
@@ -30,12 +36,12 @@ Verify CubeSat mechanical fit to dispenser interface per CDS Rev 14.1.
 
 | Step | Action | Expected | P/F |
 |------|--------|----------|-----|
-| 1 | Measure rail width | 8.5 +0/-0.1 mm | |
+| 1 | Measure rail width | ≥ 8.5 mm (SYS-080; CDS §2.2.5) | |
 | 2 | Measure rail length | 113.5 ±0.1 mm | |
 | 3 | Measure overall width | 100 ±0.1 mm | |
-| 4 | Verify edge radii | ≤ 1.0 mm | |
+| 4 | Verify rail edge radii | ≥ 1 mm (SYS-080; CDS §2.2.7); 0.5 ± 0.1 mm only if the NRCSD backup is used (BASELINE §3) | |
 | 5 | Insert into Test-POD | Smooth insertion | |
-| 6 | Verify deployment switch contact | Correct actuation | |
+| 6 | Verify deployment switch contact | All three switches (DS1–DS3) actuated (BASELINE §4) | |
 | 7 | Verify no interference | Clear of structure | |
 | 8 | Extract from Test-POD | Smooth extraction | |
 
@@ -58,3 +64,4 @@ Verify CubeSat mechanical fit to dispenser interface per CDS Rev 14.1.
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial release |
 | 1.1 | 2026-10-16 | Requirement IDs added to the header and to the sections that verify them; steps whose values conflict with a requirement are listed, not cited (finding VV-06) |
+| 1.2 | 2026-10-27 | Documentation audit (post-CDR 2026): EXOpod Nova test pod; rail width and edge radius per SYS-080 (edge radius was ≤ 1.0 mm, the wrong sense); three deployment switches; status and banner |

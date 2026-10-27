@@ -2,7 +2,7 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-DEV-005
-**Revision:** E
+**Revision:** F
 **Date:** 2026-10-27
 **Reference:** NPR 7150.2, NASA Ames SmallSat Heritage
 
@@ -188,9 +188,9 @@ Required documents for flight release:
 | Document | Location | Status |
 |----------|----------|--------|
 | Software Version Description | docs/software/SOFTWARE_VERSION_DESCRIPTION.md | [ ] |
-| Change Log | CHANGELOG.md | [ ] |
-| Test Report | docs/verification/release_test_report.md | [ ] |
-| Known Issues | docs/software/KNOWN_ISSUES.md | [ ] |
+| Change Log | CHANGELOG.md (to be created with the first release; none exists yet) | [ ] |
+| Test Report | docs/verification/release_test_report.md (to be written for the release) | [ ] |
+| Known Issues | docs/reviews/KNOWN_ISSUES.md (SQSO-KI-001) | [ ] |
 | Build Configuration | build_info.txt | [ ] |
 
 ### 5.5 Release Approval
@@ -349,3 +349,4 @@ cmake --build build
 | C | 2026-10-24 | §5.2 note for the Rust flight software: where the version is set, how the image is built, the tests, and the steps not yet available (`package` target, build-info script) | SMART-QSO Team |
 | D | 2026-10-25 | §5.2 rewritten for the Rust flight software: the release build packages the image with `scripts/release_package.sh` (the `package` target and build-info script it called did not exist); §7 artifacts and checksums to match | SMART-QSO Team |
 | E | 2026-10-27 | §5.3.1 added: programming the flight board sets the SRAM2 parity option bit (`SRAM2_PE` = 0) before the image is loaded and checks it in the boot telemetry (RID AV-07, SRS-F154); §5.3 step 7 refers to it | SMART-QSO Team |
+| F | 2026-10-27 | Documentation audit (post-CDR 2026): §5.4 Known Issues path to `docs/reviews/KNOWN_ISSUES.md`; the change log and test report marked as documents still to be created |

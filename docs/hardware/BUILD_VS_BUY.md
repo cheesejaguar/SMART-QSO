@@ -1,7 +1,7 @@
 # Build versus Buy: COTS Survey, Gyro, ADCS Gains and Battery
 
 **Document ID**: SQSO-BVB-001
-**Version**: E
+**Version**: F
 **Date**: 2026-10-27
 **Status**: Draft; vendor data from public pages on 2026-10-26, no quotes yet
 
@@ -29,7 +29,7 @@ snippet. cubesatshop.com could not be reached from the research environment.
 | Transponder radio | **Build** (the repeat path on the telecommand receiver and the 2 m transmitter) (§3) | No flight-proven U/v FM transponder is for sale; the only U/v-capable catalogue item is unflown |
 | Transponder enable (XPDR_EN) | **Build**: hardware gate with a heartbeat enable (§3) | Must fail safe when the OBC hangs; TX-OFF stays the hardware cessation path |
 | Antennas | **Buy** ISIS AntS 1U–3U, monopole/hybrid configuration | > 500 units flown since 2010, redundant release, < 90 g |
-| Magnetometer | **Buy** (GomSpace M315, AAC MM200 or Spacemanic Lodestone) | 8–12 g, flight-proven, digital |
+| Magnetometer | **Build: PNI RM3100 on board A2** at the +Z end frame (OBC board design, SQSO-OBC-BRD-001 §9.4); a bought module (GomSpace M315, AAC MM200 or Spacemanic Lodestone) with I2C at 3.3 V fits the same slot and harness if AV-V4 fails | Single-shot conversion on command in the coils-off window; 15 nT noise; ≈ 3 g with board and harness against 8–12 g |
 | Magnetorquers | **Buy** CubeSpace CR0002 rods (> 0.2 A·m², 16.5 g each), or keep the air-core coils | Saves ≈ 80 g; rods add remanence that the magnetometer calibration must handle |
 | Gyro | **Buy: Epson M-G370PDT0** primary, **Bosch BMI088** backup on the OBC board (§5) | The Monte Carlo needs ≤ 0.1°/s bias; the M-G370 meets it from the factory and has 20 krad TID data |
 | ADCS gains | **B-dot 10⁴; spin 8°/s; spin hold added** (§6) | B-dot at 5·10⁶ left 15 of 40 trials tumbling; without a spin hold 23 of 40 settled with −Y on the Sun; at 2°/s +Y was within 15° of the Sun for only 75 % of sunlit time |
@@ -128,7 +128,7 @@ control.**
 
 | Function | Buy | Notes |
 |----------|-----|-------|
-| Magnetometer | GomSpace M315 (8 g, 15 nT), AAC MM200 (10–12 g, 30 krad) or Spacemanic Lodestone (€800, magnetometer and gyro in < 10 g) | Mount away from the coils and the Jetson |
+| Magnetometer | Superseded by the OBC board design: PNI RM3100 on board A2 at the +Z end frame, harness W6E (SQSO-OBC-BRD-001 §9.4, chair item C1). Fallback modules: GomSpace M315 (8 g, 15 nT), AAC MM200 (10–12 g, 30 krad) or Spacemanic Lodestone (€800, magnetometer and gyro in < 10 g) | Mount away from the coils and the Jetson |
 | Coarse sun sensors | The panel photodiodes (§2.3) | The Monte Carlo used 5° per sensor; 10° made no difference (§6.4) |
 | Magnetorquers | CubeSpace CR0002 rods, > 0.2 A·m², 16.5 g each | Or keep the 139 g air-core coils. Rods add remanence and hysteresis that the magnetometer calibration must cover |
 | Gyro | §5 | — |
@@ -144,6 +144,8 @@ These predate the funding audit and should not feed decisions; they are listed f
 3. `hardware/solar/SOLAR.md` recommends a GomSpace deployable that exists only for 3U and 6U.
 4. `docs/hardware/PARTS_LIST.md` 1.0 still has an Apollo4 OBC, a 2-cell battery, an SPV1050 and a Si4463 radio. The
    gyro and battery rows are corrected in 1.1; the rest are not.
+
+Each of these four now carries a superseded notice pointing to the current design (documentation audit, 2026-10-27).
 
 ## 3. Transponder and its enable hardware
 
@@ -187,7 +189,7 @@ Readbacks to the OBC: TONE_OK, XPDR_KEY, PTT_EXCITER
 |---------|----------------|-----|
 | Heartbeat detector | TI SN74LVC1G123 retriggerable monostable, pull-down on the input | An OBC that hangs with the pin high, resets (high-Z) or browns out drops the transponder within ≈ 50 ms. EASAT-2's AC activation, in the fail-safe direction |
 | Key gate | TI SN74LVC1G11 3-input AND | Hardware logic between the enable, the tone and the timer |
-| CTCSS decoder and audio conditioning | CML CMX138A (configured at boot by the RF board's TNC microcontroller); NiceRF SA818-U for the first engineering model. The analog FM receivers are discontinued, so the board demodulates in a CC1200 and the repeat audio passes through the TNC microcontroller's firmware (not the OBC flight software); the tone decode, band-limiting, level limit, key gate, 120 s timer and TX permit stay in hardware (SQSO-RF-BRD-001) | Tone decode, tone removal, emphasis and band-limiting in one part, in hardware. A Goertzel detector on the OBC would put flight software in the audio path; rejected |
+| CTCSS decoder and audio conditioning | CML CMX138A (configured at boot by the RF board's TNC microcontroller). The analog FM receivers are discontinued, so the board demodulates in a CC1200 and the repeat audio passes through the TNC microcontroller's firmware (not the OBC flight software); the tone decode, band-limiting, level limit, key gate, 120 s timer and TX permit stay in hardware (SQSO-RF-BRD-001) | Tone decode, tone removal, emphasis and band-limiting in one part, in hardware. A Goertzel detector on the OBC would put flight software in the audio path; rejected |
 | Audio select and mute | TI TMUX1219 SPDT | The TNC's frames take the transmitter first, with no software arbitration; receiver noise never rides on the beacon |
 | Key-down timer | 120 s hardware timer | Fox-1 practice. A stuck ground carrier is stopped long before the 25 % duty gate would act |
 | Repeat-path power (optional) | TI TPS22918 load switch from EN_OK | The tone decoder and filters draw nothing while disabled. It must not switch the 435 MHz receiver |
@@ -552,6 +554,7 @@ with the latch-up trip acting on the PDU switch), not a bigger battery.
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| F | 2026-10-27 | SMART-QSO Team (documentation audit) | Documentation audit (post-CDR 2026): magnetometer decision to the OBC board design (PNI RM3100 on board A2, SQSO-OBC-BRD-001 §9.4, item C1) in §1 and §2.7, the modules kept as the fallback; SA818-U engineering-model receiver removed from §3.2 (the EM uses the flight-design RF board, ETP Rev C §2); §2.8 notes the superseded notices |
 | C | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §6.4 re-run with the final CAD tensors (C-13 ballast as re-placed; CBE and MEV rows, the flight software's mean as the default plant) and the round-3 flight software |
 | E | 2026-10-27 | SMART-QSO Team (CDR round 3 closure, GN&C) | §6.4 re-run in full (ADCS_DESIGN 1.9: stowed products corrected, MASS_BUDGET 3.2 tensors); rows added for the wrong one-wing preset, the wings stowed with the AntS held 25 h, the AntS 3 h after the wings, magnetometer gating and the face photodiodes with albedo (P3F-G-04, -05, C-21, C-22); the wing rows now ADCS_DESIGN's |
 | D | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fourth part) | §6.4 the M-G370 and CAD CBE/MEV rows re-run at MASS_BUDGET 3.2's tensors (RID GNC-07); the wing rows are ADCS_DESIGN 1.8 §11.4's to copy |

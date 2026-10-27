@@ -2,11 +2,16 @@
 ## TP-RF-001
 
 **Document Number:** TP-RF-001
-**Revision:** D
-**Date:** 2026-01-02
+**Revision:** F
+**Date:** 2026-10-27
 **Classification:** Development/Qualification Test
 
 **Requirements verified:** SYS-200, SYS-201, SYS-202, SYS-203, SYS-206, SYS-210, SYS-211, SYS-212
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -28,9 +33,9 @@ This procedure tests the RF subsystem in standalone and integrated configuration
 
 | Document | Title |
 |----------|-------|
-| SQSO-RF-001 | RF Design Document |
-| SMART-QSO-ICD-006 | Beacon Format ICD |
-| SQSO-REG-001 | Regulatory Compliance Document |
+| SMART-QSO-RF-001 | RF Design Document (`docs/hardware/RF_DESIGN.md`); SQSO-RF-BRD-001, RF board build-to design |
+| `docs/BEACON_SPEC.md` | Beacon specification (supersedes the Beacon Format ICD SMART-QSO-ICD-006) |
+| SQSO-REG-001 | IARU Satellite Frequency Coordination — Status (`docs/regulatory/IARU_COORDINATION.md`) |
 
 ## 4. Test Article
 
@@ -67,7 +72,7 @@ This procedure tests the RF subsystem in standalone and integrated configuration
 ## 7. Safety
 
 - **RF Hazard:** Output up to 1 W (SYS-201), use dummy load
-- **Electrical Hazard:** 12V supply to PA
+- **Electrical Hazard:** 5 V PA supply (5V_PA) from the 14.4 V bus
 
 **Required PPE:** Safety glasses, ESD wrist strap
 
@@ -108,9 +113,9 @@ This procedure tests the RF subsystem in standalone and integrated configuration
 
 | Step | Parameter | Expected | Measured | Tolerance | P/F |
 |------|-----------|----------|----------|-----------|-----|
-| 13 | FM deviation (1200 Hz tone) | ±3.5 kHz | _______ | ±0.5 kHz | |
-| 14 | FM deviation (2200 Hz tone) | ±3.5 kHz | _______ | ±0.5 kHz | |
-| 15 | Modulation index | 3.5-4.0 | _______ | | |
+| 13 | FM deviation (1200 Hz tone) | ±3.0 kHz (10K4F2D, BASELINE §7; TP-RF-004) | _______ | ±0.5 kHz | |
+| 14 | FM deviation (2200 Hz tone) | ±3.0 kHz | _______ | ±0.5 kHz | |
+| 15 | Occupied bandwidth | ≤ 10.4 kHz (10K4F2D) | _______ | | |
 | 16 | Audio bandpass (300-3000 Hz) | Pass | _______ | | |
 
 ### 8.5 AX.25 Frame Generation [SYS-210, SYS-212]
@@ -149,10 +154,10 @@ This procedure tests the RF subsystem in standalone and integrated configuration
 
 | Step | Frequency | Limit | Measured | P/F |
 |------|-----------|-------|----------|-----|
-| 34 | 2nd harmonic (2 × f_c, 291.6–292.0 MHz) | < -40 dBc (SYS-203) and ≤ 25 µW (47 CFR 97.307(e): < -43 dBc at 0.5 W, < -46 dBc at 1 W) | _______ | |
-| 35 | 3rd harmonic (3 × f_c, 437.4–438.0 MHz) | As step 34; target < -60 dBc (`docs/BASELINE_PARAMETERS.md` §7) | _______ | |
-| 36 | Out-of-band (DC-30 MHz) | < -40 dBc | _______ | |
-| 37 | Out-of-band (300-1000 MHz) | < -40 dBc | _______ | |
+| 34 | 2nd harmonic (2 × f_c, 291.6–292.0 MHz) | ≤ −46 dBc and ≤ 25 µW at 1 W (SYS-203; 47 CFR 97.307(e)) | _______ | |
+| 35 | 3rd harmonic (3 × f_c, 437.4–438.0 MHz) | ≤ −70 dBc at the antenna port (SYS-203 Rev G; `docs/BASELINE_PARAMETERS.md` §7) | _______ | |
+| 36 | Out-of-band (DC-30 MHz) | ≤ −46 dBc and ≤ 25 µW | _______ | |
+| 37 | Out-of-band (300-1000 MHz) | ≤ −46 dBc and ≤ 25 µW | _______ | |
 
 ### 8.9 TX/RX Isolation (if applicable)
 
@@ -183,9 +188,9 @@ This procedure tests the RF subsystem in standalone and integrated configuration
 **Pass:**
 - Power output within ±1 dB of specification
 - Frequency within ±1 kHz
-- FM deviation within ±0.5 kHz of 3.5 kHz
+- FM deviation within ±0.5 kHz of 3.0 kHz
 - All AX.25 frames decode correctly
-- Spurious emissions at least 40 dB below carrier (SYS-203) and ≤ 25 µW (47 CFR 97.307(e))
+- Spurious emissions at least 46 dB below carrier and ≤ 25 µW at 1 W (SYS-203; 47 CFR 97.307(e)); third harmonic at least 70 dB below carrier (SYS-203 Rev G)
 - Beacon timing within ±1 second
 
 **Fail:** Any parameter outside specification.
@@ -229,3 +234,5 @@ Record all measurements in RF Test Data Log:
 | B | 2026-10-16 | Beacon Format ICD cited by its own number, SMART-QSO-ICD-006 (was SQSO-ICD-003, the OBC-to-RF ICD) (finding PI-17) | SMART-QSO Team |
 | C | 2026-10-16 | §8.3 cites SYS-206, frequency accuracy (formerly a duplicate ID); its 145.825 MHz carrier is flagged as conflicting with the frequency requirement (finding VV-06) | SMART-QSO Team |
 | D | 2026-10-16 | Steps corrected to the requirements and cited: carrier the IARU-coordinated frequency (SYS-200, TBD-SYS-001; was 145.825 MHz); power 0.5 W and 1 W maximum, the 2 W step and the 2 W safety limit removed (SYS-201); SSID 11 (was 1); beacon intervals 180/120/60 s in SAFE/IDLE/ACTIVE (SYS-211; were 120/60/30 s); harmonics as multiples of the carrier, < -40 dBc (SYS-203) and ≤ 25 µW (47 CFR 97.307(e)) (finding VV-06) | SMART-QSO Team |
+| E | 2026-10-27 | Documentation audit (post-CDR 2026): deviation ±3.0 kHz (10K4F2D; was 3.5 kHz), spurious per SYS-203 Rev G, 5 V PA supply; document numbers corrected; banner | Documentation audit |
+| F | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: §3 beacon reference is BEACON_SPEC (SMART-QSO-ICD-006 is superseded) | Documentation audit |

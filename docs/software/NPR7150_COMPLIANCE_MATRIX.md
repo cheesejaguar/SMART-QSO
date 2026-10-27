@@ -1,7 +1,7 @@
 # NPR 7150.2D Requirements Mapping and Compliance Matrix (Class C)
 
 **Document ID**: SQSO-FSW-012
-**Version**: C
+**Version**: D
 **Date**: 2026-10-27
 **Status**: Draft (CDR)
 **Applies to**: the Class C software of `docs/software/SOFTWARE_DEVELOPMENT_PLAN.md` §3.1 (OBC flight software, Jetson
@@ -171,8 +171,8 @@ The design constraints of SRS §8.1 have verification methods since SRS v1.6 (T 
 |--------------|-------------|-------------------|
 | I: build configuration, CI toolchain pin | SRS-C001 | Met |
 | T: ctest `no_dynamic_memory`, CI symbol check | SRS-C002 | Met |
-| A: `scripts/stack_usage.py` on the image (CI gate); T: HIL-044 | SRS-C003 | Met by analysis: 6,004 B of 8,192 B (73.3 %, the CDR round-2 image with the NMI handler); hardware pending |
-| I: image size at each release | SRS-C004 | Met at the last measurement (115,876 B, 2026-10-25); not a CI gate |
+| A: `scripts/stack_usage.py` on the image (CI gate); T: HIL-044 | SRS-C003 | Met by analysis: 5,812 B of 8,192 B (70.9 %, 2026-10-27, the image after CDR round 3; `software/flight/docs/MEMORY_POLICY.md` §6.2); hardware pending |
+| I: image size at each release | SRS-C004 | Met at the last measurement (211,604 B of 256 KB, 2026-10-27); not a CI gate |
 | as in the SRS table | SRS-C005 to SRS-C009 | see SRS §8.1 |
 | I and T: beacon content filter against 47 CFR 97 | SRS-C010 | Met |
 | T: `test_rf_silence`, `test_downlink`, SIL `rf-silence` | SRS-C011 | Met (45.0 min in the SIL commissioning run) |
@@ -199,3 +199,4 @@ The design constraints of SRS §8.1 have verification methods since SRS v1.6 (T 
 | A | 2026-10-27 | SMART-QSO Team (CDR avionics and flight-software review) | Initial: Appendix C mapping for Class C, SRS-C verification status, open items C-1 to C-6 (programmatics finding SE-10) |
 | B | 2026-10-27 | SMART-QSO Team (CDR flight software, round 2) | The RF board TNC firmware and the EPS controller firmware added as Class C items (§2.4, open items C-7 and C-8); SWE-039 and SWE-205 rows updated (FSW-05 closed: the transponder and the operations record are safety-critical); SRS-C003 at 6,004 B |
 | C | 2026-10-27 | SMART-QSO Team (CDR round 3, software systems; finding P3A-03) | §2.4: SWE-050 met for both board firmware items (SQSO-SRS-TNC-001 A, SQSO-SRS-EPSC-001 A), SWE-052 and SWE-205 met, rows 016, 034, 184 and 219 added, 061 and 066 restated; §2.1 SWE-016, SWE-052, SWE-205 and §2.2 SWE-050 rows cite them; open items C-7 narrowed to the tests, C-8 closed, C-9 new (DA-22) |
+| D | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): SRS-C003 and SRS-C004 rows at the current image (5,812 B stack, 211,604 B text) |

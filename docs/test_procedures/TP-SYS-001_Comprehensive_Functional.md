@@ -2,9 +2,16 @@
 ## TP-SYS-001
 
 **Document Number:** TP-SYS-001
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B
+**Date:** 2026-10-27
 **Classification:** System Integration Test
+
+**Requirements exercised:** SYS-211, SYS-221, SYS-224, SYS-304, SYS-503, SYS-521, SYS-800, SYS-801; the comprehensive performance test of the protoflight campaign (`docs/environment/ENVIRONMENTAL_TEST_PLAN.md` §4) and the reference limits of VI-12
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ---
 
@@ -75,48 +82,48 @@ This comprehensive functional test verifies:
 | 9 | Apply power via GSE | OBC boots | | |
 | 10 | Verify boot sequence | LEDs indicate boot | | |
 | 11 | Wait for initialization | 30 seconds | | |
-| 12 | Verify safe mode entry | SAFE mode in TLM | | |
+| 12 | Verify mode after boot | DETUMBLE in TLM (`software/rust/sqso-fsw/src/mode.rs`) | | |
 | 13 | Verify RF silence active (`[RF_SILENCE] state=COUNTING` at boot) | No RF signal for 45 min (CDS §2.4.5, SYS-224); radio unpowered | | |
 
 ### 6.3 Subsystem Health Check
 
 | Step | Subsystem | Check | Expected | Observed | P/F |
 |------|-----------|-------|----------|----------|-----|
-| 14 | EPS | Battery voltage | 14.4-16.8V | | |
+| 14 | EPS | Battery voltage | 11.2–16.4 V (4S, charged to 4.10 V/cell; BASELINE §5) | | |
 | 15 | EPS | 3.3V rail | 3.30V ±2% | | |
 | 16 | EPS | 5.0V rail | 5.00V ±2% | | |
-| 17 | EPS | Current draw | < 500mA (SAFE) | | |
+| 17 | EPS | Power draw | Record against the SAFE load, 0.79 W (BASELINE §5) | | |
 | 18 | OBC | CPU temperature | 20-40°C | | |
 | 19 | OBC | Memory usage | < 80% | | |
 | 20 | OBC | Watchdog status | Active | | |
 | 21 | ADCS | Magnetometer | Valid data | | |
 | 22 | ADCS | Sun sensors | Valid data | | |
 | 23 | RF | Subsystem status | Standby | | |
-| 24 | Payload | Power status | Off (SAFE mode) | | |
+| 24 | Payload | Power status | Off | | |
 
-### 6.4 First Beacon (After 30-min Inhibit)
+### 6.4 First Beacon (After the 45-min RF Silence)
 
 | Step | Action | Expected | Observed | P/F |
 |------|--------|----------|----------|-----|
-| 25 | Wait for inhibit timer | 30 minutes | | |
+| 25 | Wait for the RF silence; the wings deploy at 30 min and the AntS after them | No RF before 45 min (SYS-224), nor before the AntS reports deployed (decision C-19) | | |
 | 26 | Verify first beacon TX | RF output detected | | |
 | 27 | Decode beacon | AX.25 frame decoded | | |
 | 28 | Verify callsign | KK6GDB-11 | | |
 | 29 | Verify telemetry in beacon | All fields present | | |
-| 30 | Record beacon interval | 120 sec (SAFE mode) | | |
+| 30 | Record beacon interval | 180 s in SAFE, 120 s in IDLE (SYS-211) | | |
 
 ### 6.5 Power Mode Transitions
 
 | Step | Transition | Trigger | Expected | Observed | P/F |
 |------|------------|---------|----------|----------|-----|
-| 31 | SAFE → IDLE | SOC > 60% | Mode change | | |
-| 32 | Verify IDLE beacon interval | 60 seconds | | | |
+| 31 | SAFE → IDLE | SOC > 40% | Mode change | | |
+| 32 | Verify IDLE beacon interval | 120 seconds | | | |
 | 33 | Verify loads enabled | ADCS active | | | |
-| 34 | IDLE → ACTIVE | SOC > 80% | Mode change | | |
-| 35 | Verify ACTIVE beacon interval | 30 seconds | | | |
-| 36 | Verify Jetson power | Payload enabled | | | |
-| 37 | ACTIVE → IDLE | SOC < 70% | Mode change | | |
-| 38 | IDLE → SAFE | SOC < 25% | Mode change | | |
+| 34 | IDLE → ACTIVE | SOC ≥ 55 %, sunlit | Mode change | | |
+| 35 | Verify ACTIVE beacon interval | 60 seconds | | | |
+| 36 | Verify Jetson power | Payload enabled for a burst only when sunlit, SOC ≥ 55 % and Jetson ≥ −15 °C (BASELINE §6) | | | |
+| 37 | ACTIVE → IDLE | SOC < 40% | Mode change | | |
+| 38 | IDLE → SAFE | SOC < 25%; EMERGENCY (beacon shed) below 15 % (BASELINE §5) | Mode change | | |
 | 39 | Verify load shedding | Payload off | | | |
 
 ### 6.6 ADCS Operation
@@ -128,7 +135,7 @@ This comprehensive functional test verifies:
 | 42 | Detumble mode activation | Mode active | | |
 | 43 | Magnetorquer operation | Current flowing | | |
 | 44 | ADCS telemetry | All fields present | | |
-| 45 | Sun pointing (if applicable) | Attitude change | | |
+| 45 | Sun pointing (spin about +Y at 8°/s) | Commanded dipole sign per the law (TP-ADCS-003 §3.3) | | |
 
 ### 6.7 AI Payload Operation
 
@@ -137,10 +144,10 @@ This comprehensive functional test verifies:
 | 46 | Jetson power-on | Boot sequence | | |
 | 47 | OBC-Jetson communication | UART active | | |
 | 48 | Health data to Jetson | JSON transmitted | | |
-| 49 | AI-generated beacon text | Text received | | |
-| 50 | Beacon with AI text | AI source indicated | | |
-| 51 | Jetson power consumption | < 10W peak | | |
-| 52 | Jetson thermal | < 70°C | | |
+| 49 | Beacon text from the OBC selector | Pre-approved template chosen (flight baseline, D5) | | |
+| 50 | Gated experiment only: Jetson lines in the beacon | Filtered on the OBC (BEACON_SPEC §6); source indicated | | |
+| 51 | Jetson power consumption | ≤ 8 W at the carrier input (SYS-501) | | |
+| 52 | Jetson thermal | Junction ≤ 95 °C (SYS-603) | | |
 | 53 | Fallback to template | On Jetson failure | | |
 
 ### 6.8 Fault Injection Testing
@@ -158,11 +165,11 @@ This comprehensive functional test verifies:
 
 | Step | Parameter | Expected Range | Observed | P/F |
 |------|-----------|----------------|----------|-----|
-| 60 | Battery voltage | 14.4-16.8V | | |
+| 60 | Battery voltage | 11.2–16.4 V | | |
 | 61 | Solar array current | 0-2A | | |
-| 62 | Total power | 0-15W | | |
+| 62 | Total power | 0-12 W (ACTIVE with a Jetson burst) | | |
 | 63 | OBC temperature | 0-50°C | | |
-| 64 | Battery temperature | 0-40°C | | |
+| 64 | Battery temperature | 0 to +45 °C for charging (BASELINE §5) | | |
 | 65 | Reset counter | Incrementing | | |
 | 66 | Beacon counter | Incrementing | | |
 | 67 | Uptime counter | Incrementing | | |
@@ -178,12 +185,16 @@ This comprehensive functional test verifies:
 
 ### 6.11 End-of-Life Functions (Simulated)
 
+The charge disconnect is permanent and non-resettable (SYS-800; `docs/BASELINE_PARAMETERS.md` §5). On the flight unit it
+is exercised only up to the arm step, or with the one-shot replaced by a dummy load on the EM; it is never fired on the
+flight unit.
+
 | Step | Test | Expected | Observed | P/F |
 |------|------|----------|----------|-----|
-| 72 | EOL beacon message | Transmitted | | |
-| 73 | Charge disable | Confirmed | | |
-| 74 | RF disable | No transmission | | |
-| 75 | Recovery from EOL | Nominal operation | | |
+| 72 | Passivation arm (operational key) | Accepted; armed state in telemetry (SQSO-ICD-013 §6.4) | | |
+| 73 | Passivation execute (recovery key), EM or dummy load only | Charge-disconnect drive seen at the dummy load; final frame carries the disconnect and fuse state | | |
+| 74 | RF disable | No transmission; TX-OFF latched | | |
+| 75 | Disarm (flight unit) or restore the dummy load (EM) | Passivation not armed; nominal operation | | |
 
 ### 6.12 Extended Operation (Optional)
 
@@ -191,7 +202,7 @@ This comprehensive functional test verifies:
 |------|----------|------|----------|-----|
 | 76 | 1 hour | Continuous operation | Stable | |
 | 77 | 4 hours | Extended operation | No anomalies | |
-| 78 | 24 hours | Day-in-the-life | All nominal | |
+| 78 | 24 hours | Day-in-the-life (TP-SYS-002) | All nominal | |
 
 ### 6.13 Test Completion
 
@@ -268,3 +279,4 @@ Any anomaly during testing:
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-27 | Documentation audit (post-CDR 2026): SOC thresholds and beacon intervals from BASELINE §5/§8 (were 60/80/70 % and 120/60/30 s), first beacon after the 45-min silence (was 30 min), 4S voltages, Jetson ≤ 8 W, EOL passivation never fired on the FM; banner | Documentation audit |

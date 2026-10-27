@@ -1,7 +1,7 @@
 # Software Requirements Specification (SRS)
 
 **Document Number**: SMART-QSO-SRS-001
-**Version**: 1.12
+**Version**: 1.14
 **Date**: 2026-10-27
 **Status**: Preliminary
 
@@ -137,7 +137,7 @@ Requirements are identified as:
 
 | ID | Requirement | Verification | Priority |
 |----|-------------|--------------|----------|
-| SRS-F050 | The software shall kick the hardware watchdog (IWDG, 24.1–27.8 s) at least every 30 seconds, and only at the external supervisor's WDI falling edges (every 10 s while every task checks in), so after a stall the IWDG acts before the supervisor (RID P3F-A-03) | T | High |
+| SRS-F050 | The software shall kick the hardware watchdog at least every 24.1 seconds (IWDG 24.1–27.8 s): every 10 s, only at the supervisor's WDI falling edges while every task checks in, so the IWDG acts first after a stall (RID P3F-A-03) | T | High |
 | SRS-F051 | The software shall save state before watchdog reset | T | High |
 | SRS-F052 | The software shall detect watchdog reset and log occurrence | T | Medium |
 
@@ -351,8 +351,10 @@ D3. If either rejects it, it is removed before launch: one condition in `softwar
 
 The downlink interface (SRS-I023) is a PI decision, CR-2026-005 (`docs/project/CHANGE_REQUEST_LOG.md`): a KISS TNC on
 USART2, shared with the uplink receiver, adds the FCS, modulates (SRS-I022, AFSK 1200 in the TNC) and keys the
-transmitter. Implemented in `software/rust/sqso-fsw/src/downlink.rs` and `software/flight/include/downlink.h`; the
-TNC and transmitter are not selected, so SRS-I022 and the thresholds (TBR-SRS-003) are verified on hardware.
+transmitter. Implemented in `software/rust/sqso-fsw/src/downlink.rs` and `software/flight/include/downlink.h`. The
+TNC and transmitter are selected and designed on the RF board (`hardware/electrical/rf/RF_BOARD_DESIGN.md`,
+SQSO-RF-BRD-001 Rev F: the TNC on an STM32L431, a separate Class C firmware item; the LMX2571 exciter; the TX_FWD,
+TX_REV and TX_TEMP monitors) but not built, so SRS-I022 and the thresholds (TBR-SRS-003) are verified on the EM.
 
 ---
 
@@ -362,7 +364,7 @@ TNC and transmitter are not selected, so SRS-I022 and the thresholds (TBR-SRS-00
 
 | ID | Requirement | Verification | Priority |
 |----|-------------|--------------|----------|
-| SRS-Q001 | The software shall operate continuously for minimum 1 year | A | High |
+| SRS-Q001 | The software shall operate continuously for the 2-year design life (the minimum mission is 12 months; BASELINE §2, MRD-001) | A | High |
 | SRS-Q002 | The software shall recover from single-bit memory errors | T | Medium |
 | SRS-Q003 | MTBF for software-induced failures shall exceed 30 days | A | Medium |
 
@@ -422,8 +424,8 @@ change request CR-2026-001, `docs/project/CHANGE_REQUEST_LOG.md`).
 |----|--------|
 | SRS-C001 | Met. The flight code is Rust (2024 edition), written to `docs/development/CODING_STANDARDS.md` §11. The C is `software/flight/src/flight_log_fmt.c` (C11, the printf-style flight-log shim, not linked into the image) and the C test suites |
 | SRS-C002 | Met: no dynamic allocation at any time. Checked by the ctest `no_dynamic_memory` and by CI's check that the image links no `malloc`, `free` or `_sbrk` (`software/flight/docs/MEMORY_POLICY.md`) |
-| SRS-C003 | Met by analysis: worst case 6,004 B of 8,192 B (73.3 %, 2026-10-27, after the CDR round-2 changes and the NMI handler), computed from the image's machine code by `scripts/stack_usage.py`, a CI gate (`software/flight/docs/MEMORY_POLICY.md` §6). At run time an MPU guard below the 8 KB faults an overrun. Measurement on hardware (HIL-044) pending |
-| SRS-C004 | Release image text 160,004 B (2026-10-27, the CDR round-2 image; 115,876 B on 2026-10-25), below 256 KB (62 %). Checked at each release (`docs/development/RELEASE_PROCEDURE.md` §5.3); not a CI gate |
+| SRS-C003 | Met by analysis: worst case 5,812 B of 8,192 B (70.9 %, 2026-10-27, after the CDR round-3 changes), computed from the image's machine code by `scripts/stack_usage.py`, a CI gate (`software/flight/docs/MEMORY_POLICY.md` §6). At run time an MPU guard below the 8 KB faults an overrun. Measurement on hardware (HIL-044) pending |
+| SRS-C004 | Release image text 211,604 B (2026-10-27, after the CDR round-3 changes; 115,876 B on 2026-10-25), below 256 KB (81 %; `software/flight/docs/MEMORY_POLICY.md` §3.2). Checked at each release (`docs/development/RELEASE_PROCEDURE.md` §5.3); not a CI gate |
 
 ### 8.2 External Constraints
 
@@ -459,11 +461,11 @@ See Requirements Traceability Matrix (RTM) document for complete traceability to
 
 | ID | Item | Resolution Date |
 |----|------|-----------------|
-| TBD-SRS-001 | Exact beacon interval range | PDR |
-| TBD-SRS-002 | Uplink command set definition | CDR |
-| TBR-SRS-001 | Watchdog timeout value (currently 30s) | PDR |
-| TBR-SRS-002 | SRS-F040 ("all fault conditions") cannot be tested; PI ratifies, amends or rejects the proposed wording beneath §3.5 (finding VV-16) | TBD |
-| TBR-SRS-003 | Downlink values to confirm with the selected TNC and transmitter (SRS-I025 to SRS-I027, `downlink.h`): duty 25 %, TXDELAY 300 ms, VSWR 3:1 on 3 samples, 70/60 °C, 0.1 W output present, the monitor scaling (`firmware/src/adc.rs`) | EM transmitter test |
+| TBD-SRS-001 | Exact beacon interval range | Closed (2026-10-27): 60 s in ACTIVE, 120 s in IDLE, 180 s in SAFE (BASELINE §8, SYS-211), jittered ±5 s (SRS-F127); `SET_BEACON` accepts 10–120 s (`software/flight/command_dictionary.json`, SQSO-ICD-013 §7) |
+| TBD-SRS-002 | Uplink command set definition | Closed (2026-10-27): the 32 commands of `software/flight/command_dictionary.json`, generated by `scripts/gen_command_dictionary.py` and documented in SQSO-ICD-013 §7 and SQSO-CMD-001 §1.1 |
+| TBR-SRS-001 | Watchdog timeout value (currently 30s) | Closed (2026-10-27): IWDG reload 3200 at LSI / 256, 25.6 s nominal, 24.1–27.8 s over the LSI range (`software/rust/firmware/src/wdt.rs`; SQSO-ICX-001 D §6 row 37; SQSO-OBC-BRD-001 §6) |
+| TBR-SRS-002 | SRS-F040 ("all fault conditions") cannot be tested; PI ratifies, amends or rejects the proposed wording beneath §3.5 (finding VV-16) | — |
+| TBR-SRS-003 | Downlink values to confirm by measurement on the EM RF board (SQSO-RF-BRD-001 F selects the TNC, exciter, PA and monitors; SRS-I025 to SRS-I027, `downlink.h`): duty 25 %, TXDELAY 300 ms, VSWR 3:1 on 3 samples, 70/60 °C, 0.1 W output present, the monitor scaling (`firmware/src/adc.rs`, matching the board's AD8361 and TMP235 scalings) | EM transmitter test |
 
 ---
 
@@ -495,3 +497,5 @@ See Requirements Traceability Matrix (RTM) document for complete traceability to
 | 1.10 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, third part) | SRS-F164 sensor rail turn-on 0.6 s (R_FAULT 220 kΩ); SRS-F165 AntS temperature gate (decision C-18); SRS-F111 the EPS board ≥ 0 °C condition of the fire, bounded at 6 h of each attempt and not held by an unreadable temperature (SMA-B20); SRS-F146 the IWDG at 25.6 s (reload 3200: 24.1–27.8 s) before the supervisor's 29.3 s; SRS-F166 the payload batch within its hard limits (SIL-39) |
 | 1.11 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fourth part) | SRS-F167 transmitters silent while the AntS deployment is pending (decision C-19); SRS-F168 the exciter keying watch (SW-HAZ-014 control C-014-9); SRS-F085 housekeeping text cut into frames of whole fields (SIL finding SIL-40) |
 | 1.12 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fifth part; closure-panel findings) | SRS-F169 AntS read only while powered (P3F-A-01); SRS-F159 separation persisted across resets (SMA-B02 reopened); SRS-F168 repeat path bounded by the heartbeat and one over, unexplained keying counted across overs (P3F-A-02); SRS-F001 and SRS-F050 the IWDG refreshed only with the WDI edge, initialisation checkpoints (P3F-A-03); SRS-F165 deferral slot and force flag persisted (P3F-A-04), cap release in sunlight and the schedule fallback after three unknown readings (P3F-G-02); SRS-F172 no empty frame, PDOP bounded (P3F-A-05); SRS-F170 selector counters in HK2 (SMA-15); SRS-F151 energy per accepted line (C-20); SRS-F171 preset 0 unless the ground selects (C-21) |
+| 1.13 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): §5 downlink note and TBR-SRS-003 reworded: the TNC and transmitter are selected on the RF board (SQSO-RF-BRD-001 F); what stays open is the EM measurement of the values; SRS-C003 and SRS-C004 status from the current image (5,812 B stack, 211,604 B text) |
+| 1.14 | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up | SRS-F050: kicked at least every 24.1 s, every 10 s at the WDI edges (was "at least every 30 seconds", longer than the 24.1–27.8 s IWDG timeout); SRS-Q001 the 2-year design life (was 1 year); Appendix A: TBD-SRS-001 (beacon intervals), TBD-SRS-002 (command set) and TBR-SRS-001 (IWDG 25.6 s) closed with their values and sources; TBR-SRS-002 date cell blank (PI) |

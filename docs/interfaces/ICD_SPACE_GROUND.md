@@ -1,7 +1,7 @@
 # Interface Control Document: Space-to-Ground
 
 **Document ID**: SQSO-ICD-005
-**Version**: 2.6
+**Version**: 2.8
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR. RF values follow BASELINE §7; frequencies are planning values until the IARU coordination letter.
@@ -17,11 +17,11 @@ baseline, and Version 2.0 replaces it.
 
 | Document | Title |
 |----------|-------|
-| SQSO-BL-001 Rev D | Baseline parameters |
-| SQSO-LBA-001 v3.0 | Link budget (`docs/environment/LINK_BUDGET_ANALYSIS.md`) |
+| SQSO-BL-001 Rev E | Baseline parameters |
+| SQSO-LBA-001 v3.5 | Link budget (`docs/environment/LINK_BUDGET_ANALYSIS.md`) |
 | SMART-QSO-ICD-006 | Beacon format (`docs/BEACON_SPEC.md`) |
 | SQSO-ICD-013 | Telecommand authentication and TX-OFF (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md`): **governs telecommand** |
-| SQSO-GND-001 Rev C | Ground station design (`docs/ground/GROUND_STATION_DESIGN.md`) |
+| SQSO-GND-001 Rev H | Ground station design (`docs/ground/GROUND_STATION_DESIGN.md`) |
 | SQSO-GSOM-001 | Ground station operations manual |
 | `docs/operations/TELEMETRY_DICTIONARY.md` | Telemetry fields |
 
@@ -54,7 +54,7 @@ baseline, and Version 2.0 replaces it.
 | Transponder | FM voice, ±5.0 kHz peak; 16K0F3E | |
 | Power | 0.5 W nominal, 1 W maximum (EIRP ≤ −1 dBW) | BASELINE §7 |
 | Polarization | Linear (spinning spacecraft; polarization angle rotates with the spin and with Faraday rotation) | Circular ground antennas see a constant 3 dB loss; linear ones see fades |
-| Silence | Nothing for 45 min after deployment; nothing while TX-OFF or the loss-of-contact inhibit is in force | SQSO-ICD-013 §6 |
+| Silence | Nothing for 45 min after deployment, nor afterwards while the AntS deployment is pending (decision C-19; at worst about 25.8 h after a cold separation, SQSO-MTL-001 §8.2); nothing while TX-OFF or the loss-of-contact inhibit is in force | SQSO-ICD-013 §6; SRS-F167 |
 
 ### 4.2 Uplink (ground to space)
 
@@ -67,13 +67,13 @@ baseline, and Version 2.0 replaces it.
 | Doppler correction | **Telecommand: pre-correct to ±1 kHz** (uncorrected 10 kHz does not decode). Users: 5 kHz steps across the pass | SQSO-LBA-001 §3.2, §4.4 |
 | Polarization | Any; the spacecraft element is linear | |
 
-### 4.3 Link summary (SQSO-LBA-001 v3.2, 475 km; analysis)
+### 4.3 Link summary (SQSO-LBA-001 v3.5, 475 km; analysis; BASELINE Rev E §7)
 
 | Link | Case | Margin or SINAD |
 |------|------|-----------------|
 | Beacon, 0.5 W, reference station (12 dBic, 500 K) | 5°, median / 10th-percentile spacecraft gain | +7.9 dB / +0.9 dB |
-| Telecommand, 64 dBm EIRP toward the spacecraft (decision C-14; either station variant), receiver as designed | 5° / 10°, 10th-percentile gain, +6 dB interference | +6.5 / +8.3 dB, less 0.3 dB pointing |
-| Transponder, handheld Yagis both ends | 5° / 20° | 20 dB / 27 dB SINAD |
+| Telecommand, 64 dBm EIRP toward the spacecraft (decision C-14; either station variant), receiver as designed | 5° / 10°, 10th-percentile gain, +6 dB interference | ≥ +6.6 / ≥ +8.4 dB at both variants' minimums (BASELINE §7; LBA 3.5 §6.1) |
+| Transponder, handheld Yagis both ends | 5° / 20° / zenith | 21 dB / 28 dB / 33 dB SINAD on the downlink; 20 / 27 / 31 dB end to end (BASELINE §7; LBA 3.5 §4.3, §6.3) |
 | Transponder, handheld whips both ends | 20° / zenith | 14 dB / 26 dB SINAD |
 
 ## 5. Protocol Interface
@@ -96,7 +96,7 @@ and DM in Version 1.x are removed). FCS CRC-16/X.25.
 The beacon's information field is plain ASCII (BEACON_SPEC §3):
 
 ```
-de KK6GDB-11: <text> | T=<unix s> M=<SAFE|IDLE|ACTIVE> SOC=<%> BV=<V.d> SUN=<0|1> RF=<0|1> QSO=<count>
+de KK6GDB-11: <text> | T=<s since boot> M=<SAFE|IDLE|ACTIVE> SOC=<%> BV=<V.d> SUN=<0|1> RF=<0|1> QSO=<count>
 ```
 
 | Mode | Interval | Text |
@@ -212,7 +212,7 @@ minutes of dump at the maximum rate; the mission simulation's plan asks for the 
 | GS-2 | Holds the operational key under SQSO-ICD-013 §9 (offline at rest; never on a networked machine); the recovery key with a separate custodian | Telecommand stations |
 | GS-3 | Counters per SQSO-ICD-013 §5.2 (shared sequence or UTC-derived, §5.2.1) | Telecommand stations |
 | GS-4 | Doppler pre-correction to ±1 kHz; tracking antennas | Telecommand stations |
-| GS-5 | ≥ 64 dBm EIRP (2.5 kW) toward the spacecraft above 10° elevation (decision C-14): variant A, outside the 47 CFR 2.106 US270 areas, ≥ 100 W PEP at the feed into ≥ 15.5 dBic; variant B, inside them (the Bay Area site near Beale AFB, Fairbanks near Clear SFS), **≤ 50 W PEP** at the feed into ≥ 17.5 dBic (a stacked pair of cross-Yagis, ≤ 0.5 dB feed); power within 47 CFR 97.313 and 2.106 US270 (≤ 50 W PEP at US270 sites); RF exposure per 1.1310 (SQSO-GND-001 Rev F §3.1a) | Telecommand stations |
+| GS-5 | ≥ 64 dBm EIRP (2.5 kW) toward the spacecraft above 10° elevation (decision C-14): variant A, outside the 47 CFR 2.106 US270 areas, ≥ 100 W PEP at the feed into ≥ 15.5 dBic; variant B, inside them (the Bay Area site near Beale AFB, Fairbanks near Clear SFS), **≤ 50 W PEP** at the feed into ≥ 17.8 dBic (a stacked pair of cross-Yagis, ≤ 0.5 dB feed); power within 47 CFR 97.313 and 2.106 US270 (≤ 50 W PEP at US270 sites); RF exposure per 1.1310 (SQSO-GND-001 Rev F §3.1a) | Telecommand stations |
 | GS-6 | Able to send `TX_DISABLE` on the next pass after an FCC order (97.207(b)); 24-hour contact number | Telecommand stations |
 | GS-7 | Forward decoded frames with time, station and Doppler-corrected frequency to the mission database | All receive stations |
 | GS-8 | Transponder users identify per 97.119 and use CTCSS 67.0 Hz | Users |
@@ -225,13 +225,13 @@ minutes of dump at the maximum rate; the mission simulation's plan asks for the 
 |------|--------|
 | AOS − 10 min | Current orbit elements; clock checked against GNSS (±1 s); Doppler table loaded |
 | AOS | Receive; wait for a beacon (it confirms the spacecraft is not silent and gives the frequency) |
-| Above 15° | Send the planned commands, each with a new counter; up to four attempts a command, each checked by its acknowledgement (§5.5) |
+| Above 10° (12° in the degraded mode; decision C-14) | Send the planned commands, each with a new counter; up to four attempts a command, each checked by its acknowledgement (§5.5) |
 | LOS | Log counters used, results, beacons heard; upload to the mission database |
 
 ### 7.2 Pass statistics (SQSO-GND-001 §4)
 
-Santa Clara, 475 km SSO (the baseline target; SQSO-GND-001 Rev D §4): 3.77 passes a day above 5°, 6.9 min average, 26 minutes a day; 2.4 a day above 15°. Longest
-gap between passes 12.9 h.
+Santa Clara, 475 km SSO (the baseline target; SQSO-GND-001 Rev H §4): 3.77 passes a day above 5°, 6.9 min average, 26 minutes a day; 2.4 a day above 15°,
+2.97 a day reaching 10° (the commanding rule of C-14). Longest gap between passes 12.9 h.
 
 ## 8. Security and Amateur-Radio Compliance
 
@@ -247,7 +247,7 @@ gap between passes 12.9 h.
 
 | Parameter | Value |
 |-----------|-------|
-| Spacecraft time | UTC seconds in the beacon `T=` field; set from GNSS when available (D6) |
+| Spacecraft time | The beacon `T=` field is seconds since the last OBC boot (not UTC; `BEACON_SPEC.md` §3); UTC is the mission clock's UNIX time in HK2 `RT` (RV-3028-C7), or from ground correlation of `T=` with the time of reception; GNSS time (D6) is parsed but not yet used as a time source |
 | Propagation | 1.7–7 ms (500–2,078 km) |
 | Command to effect | < 1 s onboard; seen in the next beacon (≤ 60 s in ACTIVE) |
 
@@ -257,7 +257,7 @@ gap between passes 12.9 h.
 |------|-----------|------|
 | End-to-end RF compatibility: a telecommand station kit against the EM over an attenuated cable link at the budget's levels, with Doppler applied | Beacons decoded at the §4.3 levels; commands accepted at 53 dB-Hz; TX-OFF end to end | EM (with VI-RF-03, VI-RF-12) |
 | SatNOGS decoder | The SatNOGS demodulator and the published decoder decode recorded EM beacons | Before launch |
-| Beacon format | `software/ground/beacon_decoder.py` decodes every BEACON_SPEC field | Software test |
+| Beacon format | A ground decoder parses every field of the BEACON_SPEC §3–§4 information field (call sign, text, `T`, `M`, `SOC`, `BV`, `SUN`, `RF`, `QSO`, with `-` read as not measured). **Not met today:** `software/ground/beacon_decoder.py` parses an earlier `V:` / `B:` / `T:` layout and `software/ground/tools/beacon_decoder.py` a binary health beacon; neither reads the `\| T=… M=… SOC=…` tail | Software test, before the SatNOGS decoder is published |
 
 ## 11. Revision History
 
@@ -274,3 +274,5 @@ gap between passes 12.9 h.
 | 2.4 | 2026-10-27 | CDR S&MA analysis (decision C-14) | §4.3 telecommand margin at 64 dBm EIRP; GS-5 the EIRP requirement and the two station variants, ≤ 50 W PEP at US270 sites |
 | 2.5 | 2026-10-27 | CDR flight software, round 3 (second part) | §5.3 the HK2 frame and the GNSS state frame `GNS` (RID LV-04, SRS-F158; fields in SQSO-TLM-001 §4.4.2) |
 | 2.6 | 2026-10-27 | CDR flight software, round 3 (fourth part) | §5.3 a housekeeping text longer than a frame goes in frames of whole fields, the `HKn N=<n>` head repeated (SIL finding SIL-40) |
+| 2.7 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): §2 revisions (BASELINE E, LBA 3.5, GND-001 H); §4.1 the C-19 hold after the RF silence; §4.3 telecommand ≥ +6.2 / ≥ +8.0 dB and transponder 20/28/32 dB SINAD from BASELINE Rev E §7 (LBA 3.5); GS-5 variant B ≥ 17.8 dBic (C-14); §7.1 commanding above 10° (was 15°); §7.2 the 10° pass count |
+| 2.8 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026), follow-up: §4.3 telecommand ≥ +6.6 / ≥ +8.4 dB at 5° / 10° (both variants' minimums) and transponder 21 / 28 / 33 dB SINAD downlink (20 / 27 / 31 end to end), from BASELINE Rev E (amended) §7 and LBA 3.5 (were the 100 W / 14 dBic +6.2 / +8.0 dB and 20 / 28 / 32 dB); §5 beacon `T=` is seconds since the last OBC boot and §9 spacecraft time accordingly (was "UTC seconds"); §10 the beacon-format check records that neither ground decoder parses the BEACON_SPEC tail yet (the claim that one does is withdrawn) |

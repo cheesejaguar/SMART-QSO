@@ -28,7 +28,7 @@ pub const MEAS_MAX_AGE_MS: u64 = 60_000;
 /// Random jitter on each beacon interval, ± ms (RF-04): with the 6–8°/s
 /// spin the 60 s interval would put successive beacons at nearly the same
 /// spin phase, so a station in the antenna null lost them together
-/// (SQSO-LBA-001 v3.0 §5.3). Uniform and symmetric, so the mean interval
+/// (SQSO-LBA-001 v3.5 §5.3). Uniform and symmetric, so the mean interval
 /// of each mode is unchanged
 pub const JITTER_MS: u32 = 5000;
 

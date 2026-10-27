@@ -1,5 +1,14 @@
 # SMART-QSO Orbital Environment Analysis
 
+> **Historical record (2026-01, superseded).** Superseded for current values by `docs/BASELINE_PARAMETERS.md` and
+> `docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`. This early overview assumed an ISS deployment (400–450 km, 51.6°) and a
+> "Jetson Orin Nano Super"; the baseline is a 475 km sun-synchronous orbit (465–485 km, cap 485 km), with ISS
+> deployment only as the backup, and a Jetson Orin Nano 8 GB module in the 7 W mode (BASELINE §3, §6). Its heat-balance
+> figures (hundreds of watts absorbed) are not physical for a 1U spacecraft. Current analyses:
+> `docs/environment/THERMAL_ANALYSIS.md` (thermal), `docs/environment/RADIATION_ANALYSIS.md` (radiation),
+> `docs/regulatory/filings/ODAR_SMART-QSO.md` §6 (orbital lifetime). Still good for: the list of environment topics
+> a reader should expect the current analyses to cover.
+
 ## Executive Summary
 
 This document provides comprehensive analysis of the orbital environment for the SMART-QSO CubeSat mission, including thermal environment characterization, radiation shielding requirements for the Jetson Orin Nano Super payload, and orbital parameters based on typical NanoRacks NRCSD deployments. The analysis supports mission design decisions and ensures proper environmental protection for critical payload systems.
@@ -199,8 +208,8 @@ Period             | 91.7 ± 0.6         | minutes
 #### 3.3.1 Atmospheric Drag Effects
 - **Drag Coefficient**: 2.2 (typical CubeSat)
 - **Ballistic Coefficient**: 65 kg/m² (earlier value, not consistent with the current mass or drag area; to be recomputed, TB-03)
-- **Drag Area**: 0.01 m² (superseded: BASELINE §3 uses 0.028 m² wings deployed, 0.0164 m² wings failed)
-- **Mass**: CBE 1.69 kg, predicted 1.92–2.00 kg (`docs/environment/MASS_BUDGET.md` v2.0); the lifetime analyses in BASELINE §3 use 1.6 kg with a 1.8 kg bound and need updating
+- **Drag Area**: 0.01 m² (superseded: BASELINE §3 uses 0.0247 m² wings deployed, 0.0164 m² wings failed)
+- **Mass**: superseded: CBE 1.52 kg, MEV 1.755 kg (BASELINE §4); the lifetime analyses in BASELINE §3 use 1.6 kg with a 1.85 kg bound
 
 #### 3.3.2 Lifetime Projections
 ```

@@ -2,8 +2,8 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-FSW-FDIR-001
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B
+**Date:** 2026-10-27
 **Reference:** NASA-HDBK-1002, NASA Ames SmallSat Heritage
 
 ---
@@ -11,6 +11,44 @@
 ## 1. Purpose
 
 This document defines the Fault Detection, Isolation, and Recovery (FDIR) architecture for the SMART-QSO CubeSat flight software, ensuring mission continuity and spacecraft safety.
+
+### 1.1 Status (Revision B, 2026-10-27)
+
+Sections 2 to 10 are the Revision A design of January 2026, written for a C flight software and an earlier
+spacecraft. They are kept as design intent; the C sketches are not the implementation. The flight software is Rust
+(`software/rust/README.md`), and `docs/BASELINE_PARAMETERS.md` governs every value. Known differences:
+
+- **Battery.** The pack is 4S1P Li-ion, 14.4 V nominal, charged to 16.4 V (4.10 V/cell), cell over-voltage protection
+  ≤ 4.25 V/cell, charge window 0 °C to +45 °C (BASELINE §5). The 6.0 V and 8.5 V limits of §3.2.1 are those of a 2S
+  pack and do not apply.
+- **Mode thresholds.** ACTIVE at SOC ≥ 55 % (sunlit); IDLE below 40 %; SAFE below 25 %; EMERGENCY (beacon shed) below
+  15 % (BASELINE §5; `software/rust/sqso-fsw/src/mode.rs`). There is no "emergency shutdown" at 10 %.
+- **Jetson.** OBC-enforced limits in `software/rust/sqso-fsw/src/payload_guard.rs`: input ≤ 8 W (latch-up trip at
+  12 W), spreader ≤ +70 °C, junction ≤ 95 °C, 10 minutes' cool-down, power-on only at ≥ −15 °C, off after 5 s without
+  telemetry; spreader ≤ +40 °C in a 600 s batch is a thermal design limit (SYS-603, BASELINE §6). Not the −20/+70 °C of
+  §3.2.2.
+- **Battery heater.** On below +5 °C, off above +9 °C (`heater.rs`, BASELINE §8).
+- **Downlink transmitter.** VSWR above 3:1 on 3 samples lowers the power to 0.5 W, then stops the downlink for 10
+  minutes; over 70 °C it is held until below 60 °C (`downlink.rs`, SRS-I027; values TBR-SRS-003). Not the 65 °C of
+  §3.2.2.
+- **Loss of contact.** All transmitters are inhibited after N days without an authenticated telecommand, N = 30 at
+  launch, 14 after commissioning (BASELINE §7, `contact_monitor.rs`). This replaces the "beacon only after 48 hours"
+  row of §6.1.
+- **ADCS.** Detumble from 10 °/s, then spin-stabilized +Y sun-pointing at 8 °/s (BASELINE §8, `adcs.rs`).
+- **Fault log.** 100 entries of 96 B, each with its CRC-32, in FRAM (`fault_log.rs`,
+  `software/flight/docs/MEMORY_POLICY.md` §8.1); not 256 entries of 16 B (§7.1).
+- **Watchdog.** No tasks: the stages of the one main loop check in with the watchdog manager (1 s, health 20 s; three
+  misses stop the refresh); IWDG 25.6 s (`WDT_HW_TIMEOUT_MS`), refreshed only at the TPS3850 supervisor's WDI edges
+  every 10 s; the supervisor (minimum 29.3 s) is the backstop (`software/flight/docs/RTOS_ARCHITECTURE.md` §8,
+  `hardware/obc/OBC_DESIGN.md`). The 30 s of §3.1 and §8.1 is the Revision A value. There is no 10 s software
+  watchdog (§8.1).
+- **Memory.** SRAM2 parity with an NMI reset and a once-a-minute check of the persisted safety state
+  (`MEMORY_POLICY.md` §10); no ECC correction of RAM.
+- **Commands.** The override commands of §9.1 (`DISABLE_FDIR`, `FORCE_SAFE` and the others) do not exist. The command
+  dictionary is `software/flight/command_dictionary.json` (`SET_MODE` through the transition table, `CLEAR_FAULTS`,
+  `TX_DISABLE`, `PLD_DISABLE`, `XPDR_DISABLE` and others), each authenticated (SQSO-ICD-013).
+
+The current failure analyses are `docs/safety/SOFTWARE_FMEA.md` and `docs/safety/SOFTWARE_HAZARD_ANALYSIS.md`.
 
 ## 2. FDIR Philosophy
 
@@ -459,3 +497,4 @@ typedef struct {
 | Rev | Date | Description | Author |
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
+| B | 2026-10-27 | Documentation audit (post-CDR 2026): §1.1 status: §2 to §10 are the Revision A design; the values that differ from the baseline and the implementation (4S battery, mode thresholds, Jetson and transmitter limits, loss of contact, fault log, watchdog, commands) | SMART-QSO Team |

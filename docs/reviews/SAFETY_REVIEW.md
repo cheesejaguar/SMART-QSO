@@ -1,13 +1,24 @@
 # SMART-QSO Safety Review Package
 
+> **Historical record (2026-01-02).** Superseded for current values by
+> [`docs/BASELINE_PARAMETERS.md`](../BASELINE_PARAMETERS.md) and
+> [`docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`](CDR/CDR_2026_DESIGN_REVIEW.md). It is the safety review package
+> generated on 2026-01-02; it closes no hazard. No independent safety review has been held: the project is in Phase B
+> (pre-PDR), and the independent PDR (2027-01-12) and CDR (2027-09-28) are planned in `mission/SCHEDULE.md` (BASELINE
+> §1). The record is kept as written; its values, statuses, approvals and the dated "superseded" notes in its body are
+> those of their dates and are not to be cited. Still useful for: the first hazard list. The current safety analyses
+> are `docs/safety/SYSTEM_SAFETY_DATA_PACKAGE.md` (SQSO-SDP-002, HR-01 to HR-16, none closed),
+> `docs/safety/SAFETY_DATA_PACKAGE.md` (SQSO-SDP-001), `docs/safety/SOFTWARE_HAZARD_ANALYSIS.md` and
+> `docs/environment/BATTERY_SAFETY_ASSESSMENT.md`. Index of the review documents: [README.md](README.md).
+
 > **Funding audit notice (2026-10-14): internal self-assessment, not an independent review.**
 > This record was generated on 2026-01-02 without named independent reviewers, signatures, or a
 > RID/RFA log. Its PASS/APPROVED/COMPLETE statements are **not substantiated** and must not be cited
 > to funders or regulators as review outcomes. See `docs/funding_audit/FUNDING_AUDIT_REPORT.md` and
-> finding F-PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
+> finding PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
 
 **Document ID**: SQSO-SR-001
-**Version**: 1.0
+**Version**: 1.1
 **Date**: 2026-01-02
 **Classification**: Unclassified
 **Status**: CDR Baseline
@@ -384,3 +395,4 @@ Systems Engineer: _________ Date: _____
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
+| 1.1 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): historical-record banner (superseded by BASELINE, SQSO-REV-CDR-002 and the current safety data packages); notice cites finding PI-03 (was F-PI-03); body unchanged |

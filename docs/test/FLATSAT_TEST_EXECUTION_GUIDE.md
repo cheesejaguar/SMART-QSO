@@ -1,10 +1,14 @@
 # SMART-QSO Flatsat Test Execution Guide
 
 **Document ID**: SQSO-FTEG-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Draft; not yet run (no CDR has been held; no flatsat exists)
+
+> **Guide for tests not yet run.** No flatsat has been built (`docs/BASELINE_PARAMETERS.md` §1); every result and
+> signature field is blank. The controlled flatsat procedure is `docs/test_procedures/TP-FLATSAT-001_Software_Development.md`;
+> values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended), which governs where this guide differs.
 
 ## 1. Purpose
 
@@ -130,20 +134,20 @@ POWER-ON SEQUENCE
    └─ Continuity check if uncertain
 
 2. Set power supply limits
-   └─ Voltage: 8.4V (2S battery equivalent)
+   └─ Voltage: 14.4 V (4S pack nominal; 11.2–16.4 V, BASELINE §5)
    └─ Current: 2A limit
 
 3. Enable power supply output
-   └─ Monitor current (should be <100mA at boot)
+   └─ Monitor current (record at boot)
 
 4. Verify OBC boot
    └─ Check console output
    └─ Verify version string
-   └─ Confirm SAFE mode entry
+   └─ Confirm DETUMBLE after boot, then IDLE (SAFE if SOC < 25 %)
 
 5. Verify subsystem initialization
    └─ EPS responding (I2C)
-   └─ RF configured (SPI)
+   └─ RF board configured (USART2 and readbacks, SQSO-ICX-001)
    └─ Jetson powered down
 
 6. Record power-on data
@@ -159,10 +163,10 @@ Expected boot time: <30 seconds
 | Check | Expected | Actual | Pass |
 |-------|----------|--------|------|
 | OBC boot complete | "Boot OK" | | [ ] |
-| Mode | SAFE | | [ ] |
+| Mode | DETUMBLE or IDLE | | [ ] |
 | EPS telemetry | All valid | | [ ] |
-| Voltage | 8.2-8.4V | | [ ] |
-| Current | <200mA | | [ ] |
+| Voltage | 11.2–16.4 V (4S) | | [ ] |
+| Current | Record | | [ ] |
 | Temperature | 20-25°C | | [ ] |
 | RF disabled | TX off | | [ ] |
 
@@ -178,7 +182,7 @@ Expected boot time: <30 seconds
 TEST PROCEDURE: BOOT AND INITIALIZATION
 
 SETUP:
-[ ] Power supply at 8.4V, 2A limit
+[ ] Power supply at 14.4 V, 2A limit
 [ ] Console connected
 [ ] Log capture enabled
 
@@ -199,7 +203,7 @@ Step 2: Verify boot messages
 
 Step 3: Check mode
   Action: Send CMD_GET_MODE
-  Expected: MODE_SAFE
+  Expected: MODE_DETUMBLE, then MODE_IDLE
   Actual: _____________________
   Pass: [ ]
 
@@ -343,7 +347,7 @@ Step 1: Enable beacon in IDLE mode
 
 Step 2: Verify RF transmission
   Action: Monitor SDR waterfall
-  Expected: Beacon visible every 60s
+  Expected: Beacon visible every 120 s in IDLE (SYS-211)
   Actual: _____________________
   Pass: [ ]
 
@@ -359,10 +363,10 @@ Step 4: Verify beacon content
   Message: _____________________
   Pass: [ ]
 
-Step 5: Enable AI beacon (ACTIVE mode)
+Step 5: Enable AI beacon (ACTIVE mode; gated experiment, D5)
   Action: Transition to ACTIVE
   Wait: AI generates content
-  Expected: AI-generated message
+  Expected: Template chosen by the OBC selector, or accepted Jetson lines when the experiment is enabled
   Actual: _____________________
   Pass: [ ]
 
@@ -388,13 +392,13 @@ EXECUTION:
 
 Step 1: Watchdog timeout
   Action: Halt OBC (debugger)
-  Wait: 5 seconds
+  Wait: 28 seconds (IWDG 24.1–27.8 s)
   Expected: Watchdog reset
   Actual: _____________________
   Pass: [ ]
 
 Step 2: Low voltage response
-  Action: Reduce supply to 6.0V
+  Action: Reduce the simulated SOC below 25 %
   Expected: SAFE mode entry
   Actual: _____________________
   Pass: [ ]
@@ -439,31 +443,31 @@ EXECUTION:
 
 Step 1: Measure SAFE mode power
   Action: Record power in SAFE
-  Expected: <200 mW
+  Expected: 0.79 W (BASELINE §5)
   Actual: _____________________
   Pass: [ ]
 
 Step 2: Measure IDLE mode power
   Action: Record power in IDLE
-  Expected: <400 mW
+  Expected: 1.18 W
   Actual: _____________________
   Pass: [ ]
 
 Step 3: Measure ACTIVE mode power
   Action: Record power in ACTIVE (no AI)
-  Expected: <800 mW
+  Expected: record against the BASELINE §5 loads
   Actual: _____________________
   Pass: [ ]
 
 Step 4: Measure AI burst power
   Action: Trigger AI inference
-  Expected: <7 W peak
+  Expected: ≤ 8 W at the carrier input (SYS-501)
   Actual: _____________________
   Pass: [ ]
 
 Step 5: AI duty cycle
   Action: Run for 1 hour
-  Expected: AI <10% duty
+  Expected: ≤ 5 % tumbling, ≤ 10 % sun-pointed
   Actual: _____________________
   Pass: [ ]
 
@@ -550,7 +554,7 @@ OVERALL: [ ] PASS  [ ] FAIL  [ ] PARTIAL
 | No boot | Power connection | Check cables |
 | No console | UART settings | Verify 115200 8N1 |
 | EPS not responding | I2C issue | Check address, pull-ups |
-| RF not working | SPI issue | Check mode, clock |
+| RF not working | USART2 or readback issue | Check mode, clock |
 | Jetson no response | Power enable | Check GPIO |
 | Watchdog resets | Task hang | Check stack, debug |
 | No beacon | TX not enabled | Verify mode, command |
@@ -628,3 +632,4 @@ Example: 20260102_143000_FLATSAT001_boot_test.log
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | CDR baseline |
+| 1.1 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): status "CDR Baseline" replaced, not-yet-run banner; 4S supply 14.4 V (was 8.4 V, a 2S pack); boot to DETUMBLE; IDLE beacon 120 s (was 60 s); watchdog wait 28 s (was 5 s); mode powers from BASELINE §5 (were 0.2/0.4/0.8/7 W); RF board on USART2 (was SPI); template beacon baseline (D5) |

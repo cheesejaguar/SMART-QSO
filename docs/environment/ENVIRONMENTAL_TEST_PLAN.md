@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-ETP-001
-**Revision:** E
+**Revision:** G
 **Date:** 2026-10-27
 **Reference:** GSFC-STD-7000B (GEVS, 2021-04-28) including Appendix B (CubeSats); SpaceX Rideshare Payload User's Guide
 v11 (August 2026, "UG v11"); Cal Poly CubeSat Design Specification Rev 14.1 §3; LSP-REQ-317.01 Rev B (CSLI path only)
@@ -137,8 +137,9 @@ covered by the deployment tests (§3.8). SQSO-LVR-001 LVR-046 and VI-LV-16 carry
 
 GEVS-B §2.6.3.2.1.1 sets the protoflight test margin at no less than 10 °C beyond the allowable flight temperatures
 (AFT), and at the system level at least 10 °C beyond the margined predictions. The correlated thermal model does not
-exist yet (finding TB-07; `docs/environment/THERMAL_ANALYSIS.md` is the unverified January 2026 issue), so the interim
-levels are set from the requirement and part limits and capped by the battery:
+exist yet (`docs/environment/THERMAL_ANALYSIS.md` v2.5 is the CDR analysis of an uncorrelated model, to be correlated by
+the EM thermal balance V-THM-1), so the interim levels are set from the requirement and part limits and capped by the
+battery:
 
 | Plateau | GEVS-B rule | Uncapped value | **Interim test value** | Limiting item |
 |---------|-------------|----------------|------------------------|---------------|
@@ -172,7 +173,7 @@ plateau is compliant only if the hot-case prediction plus 10 °C is at or below 
 | Operational plateau | Stabilised (98 % of sensors within 2 °C, or < 0.1 °C/h) + the performance test; ≥ 3 h | GEVS-B §2.6.3.2.3; Appendix B §2.6 ("not necessary for a cubesat to dwell for 24 hours") |
 | Non-operating plateau | ≥ 2 h after stabilisation | GEVS-B §2.6.3.2.3 (unit level) |
 | Comprehensive performance test (TP-SYS-001) | At the first and last hot and cold operational plateaus; limited functional at the others | GEVS-B Appendix B §2.3.2 |
-| Jetson burst | One 120 s burst at each hot operational plateau, with the per-rail current and temperature limits armed | BASELINE §6; SYS-504 |
+| Jetson burst | One burst at each hot operational plateau as the flight software runs it (one power-on of ≤ 10 min and ≤ 3.6 kJ, decision C-20), with the per-rail current and temperature limits armed | BASELINE §6; SYS-504 |
 | Transition rate | ≤ 1 °C/min | GEVS-B Table 2.6-1 |
 | Pressure | ≤ 1 × 10⁻⁵ Torr (1.33 × 10⁻³ Pa) | GEVS-B §2.6.3.2.4 |
 | Thermal balance | Two steady-state points (hot operational with burst, cold safe mode) for model correlation | GEVS-B §2.6.4, Appendix B §2.6.3 |
@@ -317,7 +318,7 @@ and FM_BURNIN).
 ## 6. Engineering-Model Development Tests (before the CDR)
 
 These retire the design risks that the CDR needs answered and are scheduled as event EMT (2027-07-27 to 2027-09-21,
-`mission/SCHEDULE.md` Rev D; CDR 2027-09-28): Jetson heat path and burst energy (VI-01, VI-02), EM TVAC with thermal
+`mission/SCHEDULE.md` Rev E; CDR 2027-09-28): Jetson heat path and burst energy (VI-01, VI-02), EM TVAC with thermal
 balance (VI-03), pathfinder vibration (VI-04), antenna pattern (VI-05), EMC pre-scan and GNSS noise (VI-06), shock if
 VI-07 requires it, burn-in (VI-09) and the ≥ 500 h on the EM boards (VI-11). Their pass criteria are in §8. Every
 verification item of the design documents, with its event and date, is in `docs/verification/VI_REGISTER.md`.
@@ -344,11 +345,11 @@ in the lifecycle ROM WBS 10 (SQSO-AUD-005 Rev F). The custom-battery abuse tests
 
 | VI | Test | Pass criterion | Verifies | Article, event |
 |----|------|----------------|----------|----------------|
-| VI-01 | Jetson heat path: steady 8 W into the module, then 120 s bursts and a 600 s batch, in vacuum; module, spreader and structure temperatures; conductance and junction-to-spreader resistance derived | Measured values entered in the thermal model; with them SYS-603 is met: spreader ≤ +40 °C in a 600 s batch, junction ≤ 95 °C, spreader ≤ +70 °C stuck on (design 1.10 W/K, 1.09–1.16 K/W) | SYS-603 (Rev G), BASELINE §6 | EM, EMT (2027-07 to 2027-09) |
+| VI-01 | Jetson heat path: steady 8 W into the module, then bursts as flown (one power-on of ≤ 10 min and ≤ 3.6 kJ, decision C-20) including a full 600 s batch, in vacuum; module, spreader and structure temperatures; conductance and junction-to-spreader resistance derived | Measured values entered in the thermal model; with them SYS-603 is met: spreader ≤ +40 °C in a 600 s batch, junction ≤ 95 °C, spreader ≤ +70 °C stuck on (design 1.10 W/K, 1.09–1.16 K/W) | SYS-603 (Rev G), BASELINE §6 | EM, EMT (2027-07 to 2027-09) |
 | VI-02 | Energy per accepted beacon line at the carrier input, boot to power-off, ≥ 30 bursts of the flight definition (one power-on, ≤ 10 min, ≤ 3.6 kJ, the energy gate on), counted on the lines the content filter accepts (decision C-20) | Total burst energy over total accepted lines ≤ 0.1 Wh (360 J), and every burst ≤ 10 min and ≤ 3.6 kJ; the per-burst distribution (p50, p95) recorded | SYS-512, D5 gate, SRS-F151 | EM, EMT |
 | VI-03 | EM TVAC, 4 cycles −30/+60 °C, two thermal-balance points | Model correlated within ± 5 °C at the balance points; all functions at each plateau | SYS-600, SYS-601 (closes TBR-TPENV003-001), SYS-504 | EM, EMT |
 | VI-04 | EM random vibration at the §3.1 envelope, 2 min/axis, in the test pod | Sine-signature shifts within §3.2; no structural or workmanship failure; inhibits hold | SYS-703, SYS-704, SYS-705 | EM, EMT |
-| VI-05 | Antenna pattern of the deployed EM, two orthogonal planes, both bands | Agrees with the model within 2 dB; gain ≥ −6 dBi over ≥ 90 % of the sphere (proposed SYS-222 wording) | SYS-222, SYS-223 | EM, EMT |
+| VI-05 | Antenna pattern of the deployed EM, two orthogonal planes, both bands | Agrees with the model within 2 dB; over the pass-weighted directions of SQSO-LBA-001 §5.2, gain median ≥ −3 dBi and 10th percentile ≥ −10 dBi for each antenna (SYS-222 Rev G, RF-P013) | SYS-222, SYS-223 | EM, EMT |
 | VI-06 | EMC pre-scan and GNSS noise (§3.6) | §3.6 criteria | SYS-713, SYS-203 | EM, EMT |
 | VI-07 | Obtain the integrator's attenuated EXOpod Nova shock MPE (RFQ DA-07; ICD DA-08); compare with the §3.3 equivalent SRS; decide by 2027-07-14 (DA-21) | Analysis shows the vibe-equivalent SRS envelops the shock MPE below 2000 Hz (it cannot on the UG v11 levels); else an EM shock test at MPE + 3 dB, 2 actuations per axis: no structural damage, no release of a deployable, functional test passes after | SYS-708, LVR-046 | Integrator ICD (CON, 2027-06-30), EM tests if needed |
 | VI-08 | Integrator's thermal-cycle count | If 20 total is required: 8 further FM air cycles in a thermal chamber, −29/+60 °C | SYS-707, SYS-902 | FM, PFE |
@@ -378,7 +379,7 @@ met, every anomaly dispositioned through `docs/integration/ANOMALY_RESOLUTION.md
 requirements updated with the test report. A failure on the FM triggers root cause, repair and the re-test that the
 integrator and GEVS-B §2.4.2.8 require. The campaign must end by L − 4 months (`docs/mission/LAUNCH_VEHICLE_REQUIREMENTS.md`
 §9): for the June 2028 opportunity it is 80 days late before any re-test; for the 2028-11 planning launch it has 71
-days of float, 0.5 weeks more than the GOLD Rule 1.06 margin (`mission/SCHEDULE.md` Rev D §3).
+days of float, 0.5 weeks more than the GOLD Rule 1.06 margin (`mission/SCHEDULE.md` Rev E §3).
 
 ---
 
@@ -394,3 +395,5 @@ days of float, 0.5 weeks more than the GOLD Rule 1.06 margin (`mission/SCHEDULE.
 | D | 2026-10-27 | CDR round 3 (VV-07, VV-08, REL-01, P3P-03, P3E-07, P3S-10, SE-07): §3.3 shock: the UG v11 MPE exceeds the vibe-equivalent SRS, so the RFQ asks for the attenuated Nova MPE and an EM shock test is planned and costed if VI-07 needs it (deviation 7); §3.4 one TVAC definition, the SpaceX ± 5 °C / 20-cycle advice mapped onto it; new §3.11 reliability programme (VI-11 ≥ 500 h EM flatsat, VI-12 ≥ 200 h FM burn-in); §5 matrix; §6 EM test dates from SQSO-SCH-001 D; §7 cost $42k–130k with the battery abuse tests in the ROM; VI-01 criterion for SYS-603 Rev G; deviations 1–3 and 7 to the PI by CR-2026-013 | CDR round 3, systems and programmatics |
 | E | 2026-10-27 | VI-02 to decision C-20 (CR-2026-018): the flight burst definition (≤ 10 min, ≤ 3.6 kJ) and the energy per accepted line over ≥ 30 bursts (was 120 s bursts and a p95 per beacon) | CDR round 3, flight software |
 | D, amended | 2026-10-27 | CDR round 3 (STR-04, P3S-01, P3S-04): §3.7 spin-balance mass properties to ± 0.5 % / ± 1 × 10⁻⁵ kg·m²; §3.8 cold deployment at −55 °C with the 10 s burn (C-17); MoS₂ hinge humidity, cycle budget and film inspection; (THM-04, CR-2026-017) §3.4 cold operational plateau −40 °C (AFT −30 °C − 10 °C) and cold start at −40 °C for the first-orbit extension of the AFT, tested at its AFT without the 10 °C margin (new §9 deviation 8), V-THM-8 on the EM; deviation 4 range −40/+60 °C | Design review chair |
+| F | 2026-10-27 | Documentation audit (post-CDR 2026): §3.4 the thermal analysis is the uncorrelated CDR model (SQSO-THA-001 v2.5), not the January 2026 issue; §6 and §10 cite `mission/SCHEDULE.md` Rev E (dates unchanged) | Documentation audit |
+| G | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up: §3.4 hot-plateau Jetson burst and VI-01 to the decision C-20 burst (≤ 10 min, ≤ 3.6 kJ; were 120 s bursts); VI-05 pass criterion to SYS-222 Rev G (median ≥ −3 dBi, 10th percentile ≥ −10 dBi over the pass-weighted directions; was the withdrawn "−6 dBi over 90 % of the sphere") | Documentation audit |

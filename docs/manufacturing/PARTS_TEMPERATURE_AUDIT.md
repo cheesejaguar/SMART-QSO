@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-MFG-003
-**Revision:** C
+**Revision:** D
 **Date:** 2026-10-27
 **Status:** CDR round 3 (RID P3T-01). EEE parts engineer's audit for the chair; the board designers own the BOMs and
 make the changes listed in §6
@@ -17,7 +17,9 @@ the bought items of `docs/manufacturing/EEE_PARTS_LIST.md` (SQSO-MFG-002 E §2A.
 against an operating rating of −40 … +70 °C and a non-operating (storage) rating of −40 … +70 °C, from the
 manufacturer's data sheet, a distributor's listing of the exact part, or the series data sheet with the part number
 decoded. Nothing was taken from the BOMs' own "Rating" columns. The battery sense board (its FM12 fuse F0, EPS
-board design §14) has no BOM file and is not counted; the superseded part tables of SQSO-MFG-002 §4–§11 (CC1125,
+board design §14) has no BOM file and is not counted (**since this audit it carries F0A and F0N (FM12A72V5.0A), F0B
+(FM08A125V5A), the tap fuses and 3 × 68.1 Ω chains, and, from SQSO-EPS-BRD-001 F, the BQ771806, Q16 and F3: none of
+these lines is audited here**; BATTERY_DESIGN 2.9 §7.2); the superseded part tables of SQSO-MFG-002 §4–§11 (CC1125,
 RF5110G, LIS3MDL, W25Q128 and others) name no flight part and are not audited.
 
 | Group | Lines | Verified | Decoded from the ordering code | Not confirmed | Not applicable | Non-compliant |
@@ -38,7 +40,8 @@ orderable part (§5). "Not applicable" lines are PCB features, pads, footprints,
 
 **Findings beyond the thermal analyst's list** (EPS fuses, RF crystal, Jetson module):
 
-1. **EPS F1, F3 (ITV4030L1412NR) fail at both ends**: −10 … +65 °C. The hot end (+65 °C) also misses the +70 °C
+1. **EPS F1, F3 (ITV4030L1412NR) fail at both ends**: −10 … +65 °C (F3 has since moved to the battery sense board,
+   SQSO-EPS-BRD-001 F, where it has to blow only while charging; the rating finding stands). The hot end (+65 °C) also misses the +70 °C
    test, which `hardware/structure/THERMAL_DESIGN.md` §1.1 does not record. No three-terminal fuse rated −40 … +70 °C
    was found in the 4030 footprint (§4).
 2. **RF Q601 (RD01MUS3) has no minimum operating temperature in its data sheet**; its storage minimum is −40 °C,
@@ -315,3 +318,4 @@ EEE_PARTS_LIST F §2A.2, §2A.6, §2A.8, §2A.9 and §6.4. Item 4 stays with the
 | A | 2026-10-27 | Initial issue (CDR round 3, RID P3T-01): part-by-part temperature audit of the six flight-board BOMs, the harness connectors and wire and the bought items; 443 lines; non-compliant and not-confirmed lines with replacements; line data in `PARTS_TEMPERATURE_AUDIT.csv` | EEE parts engineer, CDR round 3 |
 | B | 2026-10-27 | Chair action: §12 dated vendor actions for the bought items (AntS with the analysis predictions, CR0002, NCR18650GA, panels, RD01MUS3, piNAV-NG) with owners, due dates and fallbacks; §10 items 1–3 applied to THERMAL_DESIGN 1.6, THERMAL_ANALYSIS 2.3 and EEE_PARTS_LIST F | EEE parts engineer, CDR round 3 |
 | C | 2026-10-27 | Harness rows from SQSO-HAR-001 §15 P-3/P-4: H2 501193-9000 and H4 43030-0003 decoded (Pico-Clasp, Micro-Fit series), H7 73415-2261 and H9 MINI-1.13 verified; H11 D-436-36 rejected (tin barrel), D-200-82 instead; totals 164 verified, 250 decoded, 17 not confirmed. Board lines not re-audited after the designers' BOM changes | EEE parts engineer, CDR round 3 |
+| D | 2026-10-27 | Documentation audit (post-CDR 2026): §1 records that the battery sense board's parts (F0A, F0B, F0N, tap fuses and chains, and from EPS F the BQ771806, Q16 and F3) are not covered by this audit, and that F3 moved there; results unchanged | Documentation audit |

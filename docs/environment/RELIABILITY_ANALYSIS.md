@@ -1,7 +1,7 @@
 # SMART-QSO Reliability Analysis
 
 **Document ID**: SQSO-REL-001
-**Version**: 2.2
+**Version**: 2.4
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR analysis. Allocations and models, not measurements: no flight hardware exists. Version 1.2's
@@ -20,7 +20,7 @@ wear-out checks for the 2-year design life.
 | MIL-STD-1629A | FMEA form (`docs/safety/SYSTEM_FMEA_CIL.md`, SQSO-FMEA-002) |
 | Jacklin, *Small-Satellite Mission Failure Rates*, NASA/TM-2018-220034 (2019) | Empirical: of small satellites launched 2000–2016, 41.3 % failed or partially failed (24.2 % total failures, 11 % partial, 6.1 % launch failures) |
 | Langer and Bouwmeester, *Reliability of CubeSats – Statistical Data, Developers' Beliefs and the Way Forward*, SSC16-X-2 (2016) | Empirical two-Weibull survival of 178 CubeSats (parameters as quoted by TU Delft follow-up work; the original paper could not be retrieved from the review environment) |
-| `docs/environment/RADIATION_ANALYSIS.md` Rev C | TID and SEE rates for the baseline orbit |
+| `docs/environment/RADIATION_ANALYSIS.md` Rev F | TID and SEE rates for the baseline orbit (465–485 km) |
 
 Version 1.2 cited NASA-HDBK-4002A as its basis; that handbook covers spacecraft charging, not reliability.
 
@@ -68,7 +68,7 @@ mode with a 58-day scale and 18.5 % dead on arrival), so the allocation is built
 | EPS: charger, BMS, PDU, safety board (custom) | 0.050 | 0.030 | First build; EPS is the largest single contributor to CubeSat failures in the surveys |
 | Battery pack 4S1P (series) | 0.005 | 0.020 | Screened cells, but four in series with no bypass |
 | Solar array (loss of > 2 of 6 strings) | 0.002 | 0.002 | Bought panels; many strings |
-| OBC board (custom STM32L4R5) | 0.040 | 0.030 | First build; SEFI and SEL rates of RADIATION_ANALYSIS Rev C §5 inside λ |
+| OBC board (custom STM32L4R5) | 0.040 | 0.030 | First build; SEFI and SEL rates of RADIATION_ANALYSIS Rev F §5 inside λ |
 | Flight software and firmware | 0.040 | 0.020 | Class C, CI-tested, never run on hardware (R18) |
 | 435 MHz receiver | 0.030 | 0.020 | Custom; COTS RF parts with no radiation data |
 | 2 m transmitter and PA | 0.030 | 0.030 | Custom; PA thermal stress at transponder duty |
@@ -129,8 +129,8 @@ both-wings-lost probability is the wings-failed input of the ODAR's disposal pro
 ## 7. Single Points of Failure
 
 The single points and their retention rationale are in SQSO-FMEA-002 §3–§4 (CIL-05 to CIL-13). Class D accepts them;
-two are recommended for removal because the cost is small (separate wing burn drivers; the receiver and loss-of-contact
-coupling).
+two were recommended for removal because the cost is small, and both are now in the design: separate wing burn drivers
+(one per resistor on four lines, §6) and the receiver and loss-of-contact coupling (REL-04, SRS-F115 to F117).
 
 ## 8. Wear-Out and Life-Limited Items
 
@@ -142,14 +142,15 @@ BATTERY LIFE ANALYSIS (summary of BATTERY_DESIGN §3.3; analysis, not measured)
 Cell: Samsung INR18650-35E (candidate), 4S1P, 3.45 Ah, 49.7 Wh (BASELINE §5), charged to 4.10 V/cell (D8)
 
 Cycling:
-- Eclipses: 5,559 per year at 500 km; 11,118 in 2 years
-- DoD per eclipse: 1.3 % nominal, 2.0 % bounding (limit 10 %, BASELINE §5); mission simulation 2.0–3.2 %
-- Equivalent full cycles in 2 years: 148 nominal, 408 bounding
+- Eclipses: 5,589 per year at 475 km; 11,178 in 2 years (BATTERY_DESIGN 2.12 §3.3)
+- DoD per eclipse: 1.4 % nominal, 2.4 % bounding (limit 10 %, BASELINE §5); as flown in the mission simulation
+  ≤ 2.3 % in the power-budget year runs, ≤ 3.5 % in the full SIL run, 2.8 % in the deepest contingency (BASELINE §5)
+- Equivalent full cycles in 2 years: 160 nominal, 389 bounding
 - Cell data: specification criterion, >= 60 % of minimum capacity after
   500 full-depth 1C cycles; no shallow-DoD data found for this cell
-- Margin on charge throughput: 3.4x nominal, 1.2x bounding
+- Margin on charge throughput: 3.1x nominal, 1.3x bounding
   (no credit taken for shallow cycling)
-- Capacity needed at end of life for the 10 % DoD limit: 20 % of BOL
+- Capacity needed at end of life for the 10 % DoD limit: 24 % of BOL
 
 Calendar ageing: the pack sits at the end of charge most of the mission; 4.10 V reduces it (D8). Not quantified for
 this cell; LEO-profile cycling and calendar test of flight-lot cells (BATTERY_DESIGN §9.3, V-BSA-8)
@@ -179,7 +180,7 @@ line coverage was 94.8 % (C and Rust) on 2026-10-24.
 
 The probability that the spacecraft re-enters within 5 years of the end of its mission (FCC) depends on the failure-time
 distribution of §5 and the deployment altitude; it is computed with the same Monte Carlo and reported in
-`docs/regulatory/filings/ODAR_SMART-QSO.md` Draft B §6.4.
+`docs/regulatory/filings/ODAR_SMART-QSO.md` Draft D §6.4.
 
 ## 11. Revision History
 
@@ -192,3 +193,5 @@ distribution of §5 and the deployment altitude; it is computed with the same Mo
 | 2.0 | 2026-10-27 | CDR S&MA review | Rewritten: RBD, failure-rate allocation and Monte Carlo for L1/L2/L3 of MISSION_SUCCESS_CRITERIA v2.0 (0.75 / 0.60 / 0.50), empirical cross-check (Jacklin 2019; Langer and Bouwmeester 2016), sensitivity, contributors, early-failure reduction program, wear-out table; Version 1.2 predictions, the Apollo4/Si4463 parts table, the 400 km radiation table and the NASA-HDBK-4002A citation withdrawn |
 | 2.1 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Wing deployment re-modelled for the EPS board's four independent burn lines (one driver per resistor, burned one at a time) with the shared SW6/U17/DEPLOY_EN supply: both wings lost 0.29 % (was 1.6 %); L1/L2/L3 0.75 / 0.61 / 0.51 (was 0.75 / 0.60 / 0.50); RBD, allocation, §5, §6 |
 | 2.2 | 2026-10-27 | CDR round 3, systems and programmatics (RIDs REL-01, P3P-03) | §5: acceptance is the PI's decision DA-02 by 2026-12-15; §6: the flatsat and burn-in targets are verification items ETP VI-11 and VI-12 with dates in SQSO-SCH-001 D. Figures unchanged |
+| 2.3 | 2026-10-27 | Documentation audit (post-CDR 2026) | Radiation source Rev F (was Rev C); §8.1 eclipse count at 475 km noted and the as-flown depth of discharge from BASELINE §5; §7 both recommended single-point removals recorded as done; §10 ODAR Draft D. Figures unchanged |
+| 2.4 | 2026-10-27 | Documentation audit (post-CDR 2026), follow-up | §6.1 battery-life summary from BATTERY_DESIGN 2.12 §3.2–§3.3 (475 km cycle count, DoD 1.4 / 2.4 %, 160 / 389 EFC, 24 % of BOL needed; full-SIL DoD 3.5 %) |

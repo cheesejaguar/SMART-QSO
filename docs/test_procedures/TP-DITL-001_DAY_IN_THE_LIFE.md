@@ -1,12 +1,17 @@
 # TP-DITL-001: Day-in-the-Life Test Procedure
 
 **Document ID**: SQSO-TP-DITL-001
-**Version**: 1.1
-**Date**: 2026-01-02
+**Version**: 1.2
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status:** Draft; not yet run (no hardware exists)
 
 **Requirements exercised:** MRD-002 (autonomy; 24 hours of the 7 days), MRD-071, SYS-215, SYS-304, SRS-F013. This test validates operations procedures and team readiness; it verifies no requirement on its own.
+
+> **Procedure for a test not yet run.** No hardware has been built and this procedure has never been executed
+> (`docs/BASELINE_PARAMETERS.md` §1; `docs/project/HARDWARE_READINESS_TRACKER.md`). Every P/F, measured-value, date and
+> signature field is blank until the test is run. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended) and the
+> verification items of `docs/verification/VI_REGISTER.md`; where a step disagrees with them, they govern.
 
 ## 1. Test Overview
 
@@ -145,7 +150,9 @@ TIME    EVENT                           RESPONSIBLE
 04:30   PASS 2 - COMMANDING
         - Release from SAFE             FC
         - Transition to ACTIVE          FC
-        - Enable AI payload             FC
+        - Enable AI payload (gated      FC
+          experiment, D5; only after
+          COMMISSIONING_RELEASE)
         - Collect AI beacons            Ground
 
 04:45   POST-PASS 2
@@ -530,3 +537,4 @@ ACTION ITEMS:
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial CDR baseline |
 | 1.1 | 2026-10-16 | SMART-QSO Team | Requirements it exercises listed in the header and §6.2 (finding VV-06) |
+| 1.2 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): AI enable marked the gated experiment after commissioning release; status and banner |

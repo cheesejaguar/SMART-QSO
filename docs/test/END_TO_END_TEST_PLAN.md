@@ -1,10 +1,16 @@
 # SMART-QSO End-to-End Test Plan
 
 **Document ID**: SQSO-E2E-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Draft; not yet run (no CDR has been held; no hardware exists)
+
+> **Plan for tests not yet run.** No flatsat, EM or FM exists (`docs/BASELINE_PARAMETERS.md` §1); every result, status
+> and signature field is blank. The FM end-to-end test is scheduled in `docs/environment/ENVIRONMENTAL_TEST_PLAN.md`
+> §3.10 (with TP-GS-001); its content there (authenticated telecommand, TX-OFF and recovery, transponder repeat path,
+> time-accelerated loss-of-contact inhibit) governs. Every command below is an authenticated telecommand (HMAC-SHA-256
+> with a counter, SQSO-ICD-013), except TX-OFF when no key is usable.
 
 ## 1. Purpose
 
@@ -92,14 +98,15 @@ Test Configurations:
 
 | Step | Action | Expected Result | Pass |
 |------|--------|-----------------|------|
-| 1 | Power on spacecraft | Boot to SAFE | [ ] |
-| 2 | Wait for beacon | Beacon received <2 min | [ ] |
+| 1 | Power on spacecraft (RF silence already completed and latched on the bench) | Boot to DETUMBLE, then IDLE | [ ] |
+| 2 | Wait for beacon | Beacon received within one interval (120 s in IDLE, SYS-211) | [ ] |
 | 3 | Decode telemetry | All fields valid | [ ] |
 | 4 | Send REQUEST_TLM | ACK received | [ ] |
 | 5 | Receive telemetry | Complete packet | [ ] |
 | 6 | Send SET_MODE(ACTIVE) | State change confirmed | [ ] |
 | 7 | Monitor 10 beacons | All received correctly | [ ] |
 | 8 | Send SAFE_MODE | Return to SAFE | [ ] |
+| 9 | Send TX_DISABLE, then TX_ENABLE | Silent at the port, then beacons resume (SYS-204; TP-RF-006) | [ ] |
 
 **Pass Criteria**: All steps complete without error
 
@@ -111,9 +118,9 @@ Test Configurations:
 |------|------------------|----------|
 | 1 | RELEASE_SAFE | → IDLE |
 | 2 | SET_MODE(ACTIVE) | → ACTIVE |
-| 3 | SET_TX_POWER(2) | Power level 2 |
+| 3 | SET_TX_POWER (maximum) | ≤ 1 W (SYS-201) |
 | 4 | REQUEST_TLM | Full telemetry |
-| 5 | AI_ENABLE(1) | AI content in beacon |
+| 5 | AI_ENABLE(1) | Jetson lines in the beacon after the OBC filter (gated experiment, D5) |
 | 6 | AI_ENABLE(0) | Template beacon |
 | 7 | SAFE_MODE | → SAFE |
 
@@ -134,7 +141,7 @@ Test Configurations:
 | 7 | Decode content | Contextual text valid |
 | 8 | Verify power | Within budget |
 
-**Pass Criteria**: AI-generated beacon received and decoded
+**Pass Criteria**: AI-generated beacon received and decoded; bursts within BASELINE §6 (≤ 10 min, ≤ 8 W)
 
 ### 4.4 E2E-004: Fault Injection
 
@@ -146,7 +153,8 @@ Test Configurations:
 | Bad command | Invalid opcode | NAK, no state change |
 | Comm loss | RF path blocked | Autonomous beacons |
 | Jetson hang | No AI response | Fallback to templates |
-| Low battery | Reduce input voltage | Auto-SAFE transition |
+| Low battery | Reduce the simulated SOC below 25 % | Auto-SAFE transition |
+| Loss of contact | No authenticated command for N days (time-accelerated; N = 1 day for the test) | Transmit inhibit, receiver on; released by an authenticated command (SYS-205) |
 
 **Pass Criteria**: All faults handled gracefully
 
@@ -166,7 +174,7 @@ Test Configurations:
 | 24 | End test | Final state recorded |
 
 **Pass Criteria**:
-- 1,440 beacons transmitted (±5%)
+- Beacon count matching the mode intervals (60 s ACTIVE, 120 s IDLE, 180 s SAFE; SYS-211) within ±5 %
 - No resets or anomalies
 - Power positive each orbit
 
@@ -224,9 +232,9 @@ DITL TIMELINE (24 HOURS)
 |-----------|------------|--------------|
 | TX Frequency | 145.XXX MHz | Same |
 | RX Frequency | 435.XXX MHz | Same |
-| TX Power | 0.5W (attenuated) | 0.5-2W |
+| TX Power | 0.5W (attenuated) | 0.5 W nominal, 1 W maximum (BASELINE §7) |
 | Path Loss | 60 dB (simulated) | 145 dB |
-| Data Rate | 1200/9600 bps | Same |
+| Data Rate | 1200 bps AFSK | Same (BASELINE §2) |
 
 ### 5.2 Orbit Simulation
 
@@ -234,7 +242,7 @@ DITL TIMELINE (24 HOURS)
 |-----------|------------|
 | Pass duration | 10 min simulated |
 | Eclipse | Simulated via power |
-| Doppler | Not simulated (static) |
+| Doppler | Not simulated (static); ground pre-correction of ±10.4 kHz at 435 MHz to ±1 kHz is checked in TP-GS-001 (BASELINE §7), the receiver's 3.5 kHz offset tolerance in VI-RF-03 |
 | Range | Fixed |
 
 ### 5.3 Environment Conditions
@@ -440,3 +448,4 @@ E2E TEST TEARDOWN
 | Version | Date | Author | Description |
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial CDR baseline |
+| 1.1 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): status "CDR Baseline" replaced, not-yet-run banner pointing to ETP §3.10; boot to DETUMBLE; TX-OFF and loss-of-contact steps added; TX power ≤ 1 W (was 0.5–2 W and a level 2); 1200 bps only (was 1200/9600); beacon count per mode interval (was 1,440 a day); Jetson text as the gated experiment |

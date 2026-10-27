@@ -2,7 +2,7 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-INT-001
-**Revision:** C
+**Revision:** D
 **Date:** 2026-10-27
 **Reference:** NPR 7123.1D §3.2 (Product Integration process), tailored (`docs/project/CDR_CRITERIA_MATRIX.md` §2)
 **Status:** Plan. No hardware exists; no integration step has been performed (`docs/project/HARDWARE_READINESS_TRACKER.md`)
@@ -157,8 +157,8 @@ Week 9-16: Flight Unit Assembly
 
 | Step | Activity | Verification |
 |------|----------|--------------|
-| 1 | Mount ADCS board | Torque specification |
-| 2 | Mount magnetometers | Alignment verified |
+| 1 | Mount the CR0002 rods (Y and Z beside the battery, X on the torquer deck) | Torque specification |
+| 2 | Mount magnetometer board A2 at the +Z end frame (the gyro is on the OBC) | Alignment verified |
 | 3 | Mount sun sensors | FOV verified |
 | 4 | Connect magnetorquers | Polarity verified |
 | 5 | Connect to OBC | Telemetry verified |
@@ -179,11 +179,11 @@ Week 9-16: Flight Unit Assembly
 
 | Step | Activity | Verification |
 |------|----------|--------------|
-| 1 | Install antenna base | Torque specification |
-| 2 | Stow antenna elements | Constraint verified |
-| 3 | Install burn wire | Resistance measured |
-| 4 | Deployment test (if safe) | Deployment verified |
-| 5 | RF test | VSWR < 2:1 |
+| 1 | Install the ISIS AntS on the −Z end frame | Vendor pattern (MECHANICAL_DESIGN §4.1) |
+| 2 | Stow antenna elements | Per the ISIS procedure; status reads stowed |
+| 3 | Install the wing burn resistors (two per wing) | Resistance 4–6.9 Ω |
+| 4 | Deployment tests, wings then AntS, before the protoflight vibration (TP-ENV-005, TP-MECH-002; ETP §3.8) | Deployment verified; re-stow and inspection |
+| 5 | RF test | VSWR < 2:1 (SYS-223) |
 
 ### 4.9 Final Assembly (TP-INT-006)
 
@@ -191,10 +191,10 @@ Week 9-16: Flight Unit Assembly
 |------|----------|--------------|
 | 1 | Final harness routing | No pinch points |
 | 2 | Tie-down all cables | Workmanship inspection |
-| 3 | Install solar panels | Connections verified |
+| 3 | Install body panels and the two solar wings, with the 2 × 10 g inertia ballast (C-13) | Connections verified |
 | 4 | Final mechanical closeout | Fasteners verified |
 | 5 | Mass measurement | Within budget |
-| 6 | CG measurement | Within spec |
+| 6 | CG and inertia measurement | CG within ±20 mm; deployed Iyy ≥ 1.03 × max (BASELINE §4; VI-MCAD-03) |
 | 7 | Final photography | Configuration documented |
 
 ## 5. Integration Test Matrix
@@ -307,3 +307,4 @@ Integration is complete when:
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | B | 2026-10-27 | CDR review (PM/SE/V&V): dated schedule from `mission/SCHEDULE.md` replaces the relative T+n schedule; status line (no hardware); reference NPR 7123.1D | CDR review, PM/SE/V&V |
 | C | 2026-10-27 | §8 schedule from SQSO-SCH-001 D: EM layout per board (two designers), CDR 2027-09-28, FM burn-in, protoflight 2028-03-03 to 2028-04-21, pre-ship 2028-05-19 (CDR round 3, P3P-05) | CDR round 3 |
+| D | 2026-10-27 | Documentation audit (post-CDR 2026): §4.6 rods and magnetometer board A2 (was an ADCS board); §4.8 the ISIS AntS and the wing burn resistors, deployment tests before the protoflight vibration (was "deployment test (if safe)" of a burn-wire antenna); §4.9 wings, ballast and inertia measurement | Documentation audit |

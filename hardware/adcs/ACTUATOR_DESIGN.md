@@ -2,9 +2,20 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-ADCS-ACT-001
-**Version:** 1.0
-**Date:** 2026-01-02
-**Status:** CDR Baseline
+**Version:** 1.1
+**Date:** 2026-10-27
+**Status:** Superseded (see the notice below)
+
+> **Superseded (documentation audit, 2026-10-27).** This document describes the air-core coils driven from 3.3 V
+> (DRV8833 / TB6612 class) that were the design before the CDR. The baseline has **CubeSpace CR0002 rods** (> 0.2 A·m²,
+> selected by decision C-3; BASELINE §8) driven by three **DRV8876-Q1** H-bridges on the OBC board from **VBAT_MTQ**
+> (EPS switch SW11), with a hardware current limit of 104–126 mA per rod and a hardware off-timer that ends every
+> 900 ms burst; there is no separate ADCS board. The design of record is
+> `hardware/electrical/obc/OBC_BOARD_DESIGN.md` (SQSO-OBC-BRD-001) §10, with the rods and the control law in
+> `docs/hardware/ADCS_DESIGN.md` §3.3.1, §4 and §6.1 and the interface in `docs/interfaces/ICD_OBC_ADCS.md`. The
+> air-core coil of §2 remains the alternate (BASELINE §8: 250 turns, ≥ 0.15 A·m²); everything else here (driver,
+> 20 kHz PWM, sense resistor, the < 24 h detumble requirement, which BASELINE §8 replaces with detumble from 10°/s
+> within 3 orbits) is withdrawn. Kept as a record of the alternate's sizing.
 
 ---
 
@@ -312,3 +323,4 @@ During RF transmission or magnetometer calibration:
 | Rev | Date | Description |
 |-----|------|-------------|
 | 1.0 | 2026-01-02 | Initial CDR baseline |
+| 1.1 | 2026-10-27 | Documentation audit (post-CDR 2026): marked superseded by SQSO-OBC-BRD-001 §10 and ADCS_DESIGN (CR0002 rods, DRV8876-Q1 from VBAT_MTQ); the air-core sizing kept as the alternate's record |

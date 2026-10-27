@@ -2,14 +2,18 @@
 ## SMART-QSO CubeSat Mission
 
 **Document Number:** SQSO-INT-003
-**Revision:** A
-**Date:** 2026-01-02
+**Revision:** B
+**Date:** 2026-10-27
+
+> **Template for a future review.** No hardware exists and no pre-ship review has been held; the review is planned
+> for 2028-05-19 (`docs/verification/VI_REGISTER.md`; `mission/SCHEDULE.md`). Every check box, date, initial and
+> signature is blank until then. Values follow `docs/BASELINE_PARAMETERS.md` Rev E (amended).
 
 ---
 
 ## 1. Purpose
 
-This checklist ensures the SMART-QSO CubeSat is ready for shipment to the launch site, verifying all hardware, software, documentation, and test requirements are complete.
+This checklist ensures the SMART-QSO CubeSat is ready for shipment to the integrator (Exolaunch on the baseline path, BASELINE §3), verifying all hardware, software, documentation, and test requirements are complete.
 
 ## 2. Checklist Summary
 
@@ -33,18 +37,19 @@ This checklist ensures the SMART-QSO CubeSat is ready for shipment to the launch
 | 1 | All fasteners installed and torqued | ☐ | | |
 | 2 | Witness marks applied to all fasteners | ☐ | | |
 | 3 | No loose hardware or FOD | ☐ | | |
-| 4 | Mass measured and within spec (≤2.0 kg) | ☐ | | |
+| 4 | Mass measured and within spec (≤ 2.0 kg, SYS-002; EXOpod Nova 1U limit 2.5 kg) | ☐ | | |
 | 5 | CG measured and within spec (±2 cm) | ☐ | | |
-| 6 | Fit check in deployer passed | ☐ | | |
+| 6 | Fit check in the integrator's test pod passed (TP-MECH-001) | ☐ | | |
+| 6a | Moments of inertia measured, ballast trimmed (VI-MCAD-03; Iyy ≥ 1.03 × max) | ☐ | | |
 | 7 | Rail surfaces clean and smooth | ☐ | | |
 
 ### 3.2 Deployment Systems
 
 | # | Item | Verified | Date | Initials |
 |---|------|----------|------|----------|
-| 8 | Antenna stowed and restrained | ☐ | | |
-| 9 | Antenna deployment mechanism armed | ☐ | | |
-| 10 | Deployment switches actuate properly | ☐ | | |
+| 8 | Antennas (ISIS AntS) and both solar wings stowed and restrained | ☐ | | |
+| 9 | Burn-resistor continuity (four resistors) and stowed-state telemetry recorded | ☐ | | |
+| 10 | All three deployment switches (DS1–DS3) actuate properly | ☐ | | |
 | 11 | RBF pins installed and accessible | ☐ | | |
 | 12 | Separation springs installed (if applicable) | ☐ | | |
 
@@ -55,7 +60,7 @@ This checklist ensures the SMART-QSO CubeSat is ready for shipment to the launch
 | 13 | All connectors mated and secured | ☐ | | |
 | 14 | Harness routing verified | ☐ | | |
 | 15 | No exposed conductors | ☐ | | |
-| 16 | Battery charged to ship level (30% SOC) | ☐ | | |
+| 16 | Battery at the shipping SOC agreed with the integrator (the final 60 % ± 5 % charge is made at the integrator about 47 days before launch, BASELINE §4) | ☐ | | |
 | 17 | Battery voltage recorded: ______V | ☐ | | |
 | 18 | Solar cells inspected (no damage) | ☐ | | |
 
@@ -135,7 +140,7 @@ This checklist ensures the SMART-QSO CubeSat is ready for shipment to the launch
 | 7 | TP-ENV-002 Vibration | ☐ | | |
 | 8 | TP-ENV-003 Thermal Vacuum | ☐ | | |
 | 9 | EMC/EMI Test | ☐ | | |
-| 10 | Deployment Test (post-env) | ☐ | | |
+| 10 | Deployment test, run before the protoflight vibration (TP-ENV-005), and post-environment continuity checks (CDS §3.5.2) | ☐ | | |
 
 ### 5.4 Final Verification
 
@@ -208,7 +213,7 @@ This checklist ensures the SMART-QSO CubeSat is ready for shipment to the launch
 | # | Item | Verified | Date | Initials |
 |---|------|----------|------|----------|
 | 1 | Spacecraft powered off | ☐ | | |
-| 2 | Battery at ship SOC (30%) | ☐ | | |
+| 2 | Battery at the agreed shipping SOC (BASELINE §4) | ☐ | | |
 | 3 | RBF pins installed | ☐ | | |
 | 4 | Antennas stowed | ☐ | | |
 | 5 | Deployment restraints in place | ☐ | | |
@@ -269,3 +274,4 @@ This checklist ensures the SMART-QSO CubeSat is ready for shipment to the launch
 |-----|------|-------------|--------|
 | A | 2026-01-02 | Initial release | SMART-QSO Team |
 | A, note | 2026-10-24 | Item 12a names the Rust file that replaced `separation_switch.c` | SMART-QSO Team |
+| B | 2026-10-27 | Documentation audit (post-CDR 2026): template banner (review planned 2028-05-19, none held); shipping SOC per BASELINE §4 (was 30 %; the 60 % ± 5 % charge is at the integrator); deployment test before vibration with continuity checks after (was post-environment); three switches, AntS, wings, inertia; Nova limit | Documentation audit |

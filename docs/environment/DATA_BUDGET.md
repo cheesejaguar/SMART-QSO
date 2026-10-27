@@ -1,7 +1,7 @@
 # SMART-QSO Data Budget
 
 **Document ID**: SQSO-DB-001
-**Version**: 2.3
+**Version**: 2.4
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: CDR analysis (finding TB-12). Values from BASELINE Rev E §8, BEACON_SPEC, the flight software as built (round 2: stored housekeeping and `DUMP_TLM`), the mission simulation (two-year `full` run at the Rev E baseline, 2026-10-27) and SQSO-LBA-001 v3.2 / SQSO-GND-001 Rev D (475 km, 8°/s). Not measured.
@@ -50,8 +50,8 @@ frames decoded at a class A station with the beacon jitter as built.
 
 | Receiver | Passes/day ≥ 5° | Contact | Beacons in view/day | Frames decoded | Beacons + HK1/day received | Information/day |
 |----------|-----------------|---------|---------------------|----------------|-----------------------------|-----------------|
-| One telecommand station (Santa Clara, class A) | 3.77 | 26.1 min | 26.1 | 98.2 % | **25.6 + 5.1** | 2.8 + ≤ 1.3 kB |
-| Two telecommand stations (Santa Clara + Blacksburg, 3,640 km apart) | 7.55 | 51.9 min (union) | 51.9 | ≈ 98 % | **≈ 51 + 10** | 5.6 + ≤ 2.6 kB |
+| One telecommand station (Santa Clara, class A; a candidate site, nothing agreed: SQSO-GND-001 §3.3) | 3.77 | 26.1 min | 26.1 | 98.2 % | **25.6 + 5.1** | 2.8 + ≤ 1.3 kB |
+| Two telecommand stations (Santa Clara + Blacksburg, 3,640 km apart; Blacksburg an example East Coast site, SQSO-GND-001 §3.3) | 7.55 | 51.9 min (union) | 51.9 | ≈ 98 % | **≈ 51 + 10** | 5.6 + ≤ 2.6 kB |
 | SatNOGS: 253 2 m stations active in the last 7 days, 49 directional (frame success 0.6 assumed) and 204 omni (0.35, SQSO-LBA-001 §5.3) | | Visible to ≥ 1 station 50 % of the time | 717 | 34 % of all beacons decoded by at least one station if every station observes | **≤ 488** beacons (upper bound; SatNOGS observations must be scheduled) | ≤ 54 kB |
 
 Network figures: `software/simulation/cdr/rf/pass_geometry_mc.py` (orbit, station geometry) against the station list
@@ -87,12 +87,12 @@ a commanding pass is one that reaches 10°: at Santa Clara **2.98 a day with 23.
 one station (100 and 400 at 15°; about 40 frames, 160 records, in a typical 8-minute pass); a single `DUMP_TLM` of 600
 records (150 frames, 30 minutes) spans several passes.
 
-| Dump plan | Records/day | Frames/day | Pass time | Keyed | Information | Transmitter energy (1.76 W DC) | Share of one station's commanding time |
+| Dump plan | Records/day | Frames/day | Pass time | Keyed | Information | Transmitter energy (1.84 W DC at 0.5 W RF, BASELINE §5) | Share of one station's commanding time |
 |-----------|-------------|------------|-----------|-------|-------------|-------------------------------|----------------------------------------|
-| SIL plan: newest 48 records a day (from the HK1 `ST=` field) | 48 (4 h of five-minute records) | 12 | 2.4 min | 19 s | 2.2 kB | 0.009 Wh | 10 % |
-| The whole five-minute stream | 288 | 72 | 14.4 min | 115 s | 13.0 kB | 0.056 Wh | **62 %** (31 % with two stations; 72 % with the 15° mask) |
-| One event window from the sixty-second store, on demand | 360 | 90 | 18 min | 144 s | 16.3 kB | 0.070 Wh | 78 % for a day |
-| Whole sixty-second store (rare) | 1,489 | 373 | 75 min | 597 s | 67.5 kB | 0.29 Wh | ≈ 3.2 days of one station |
+| SIL plan: newest 48 records a day (from the HK1 `ST=` field) | 48 (4 h of five-minute records) | 12 | 2.4 min | 19 s | 2.2 kB | 0.010 Wh | 10 % |
+| The whole five-minute stream | 288 | 72 | 14.4 min | 115 s | 13.0 kB | 0.059 Wh | **62 %** (31 % with two stations; 72 % with the 15° mask) |
+| One event window from the sixty-second store, on demand | 360 | 90 | 18 min | 144 s | 16.3 kB | 0.074 Wh | 78 % for a day |
+| Whole sixty-second store (rare) | 1,489 | 373 | 75 min | 597 s | 67.5 kB | 0.31 Wh | ≈ 3.2 days of one station |
 
 | Daily downlink at one station (SIL plan) | Frames | Information |
 |------------------------------------------|--------|-------------|
@@ -151,3 +151,4 @@ one, dump the newest 48–96 records a day and fetch the event windows after eac
 | 2.1 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Received telemetry at 475 km and 8°/s (3.77 passes, 26.1 min a day; 98.2 % of frames with the beacon jitter as built; SatNOGS ≤ 488 a day); broadcast counts from the two-year SIL run (1,725 frames a day, 2.7 % duty); §4 rewritten to the flight software's store (2,048 five-minute records, 7.1 days; 1,489 sixty-second records; 256 B index) and `DUMP_TLM` (≤ 600 records, 4 a frame, one frame per 12 s, 181 B); daily downlink budget recomputed: the whole five-minute stream needs 72 % of one station's commanding time; the stored-housekeeping verdict is now met by design |
 | 2.2 | 2026-10-27 | CDR S&MA analysis (decision C-14) | Commanding passes at the 10° rule: 2.98 a day, 23.2 min above 5° (was 2.43, 20.1 min at 15°); dump capacity 116 frames, 464 records a day; the whole five-minute stream takes 62 % of one station's commanding time (was 72 %) |
 | 2.3 | 2026-10-27 | CDR flight software, round 3 (fourth part) | §2.1 the housekeeping text in one or more frames of at most 250 bytes (SIL finding SIL-40) |
+| 2.4 | 2026-10-27 | Documentation audit (post-CDR 2026) | §4.2 dump energies at the RF board's designed 1.84 W DC at 0.5 W RF (BASELINE §5; was 1.76 W of an earlier RF board revision): 0.010 / 0.059 / 0.074 / 0.31 Wh; §3 the Santa Clara and Blacksburg stations labelled as candidate and example sites (nothing agreed, BASELINE §1) |

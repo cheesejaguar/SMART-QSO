@@ -1,10 +1,10 @@
 # SMART-QSO Operator Training Plan
 
 **Document ID**: SQSO-OTP-001
-**Version**: 1.0
-**Date**: 2026-01-02
+**Version**: 1.1
+**Date**: 2026-10-27
 **Classification**: Unclassified
-**Status**: CDR Baseline
+**Status**: Plan. No training has been held and no operator is certified; no independent CDR has been held (BASELINE Rev E §1)
 
 ## 1. Purpose
 
@@ -134,7 +134,7 @@ Following NASA Ames SmallSat heritage (GeneSat, PharmaSat, O/OREOS, EcAMSat), th
 - [ ] Command authority and constraints
 - [ ] Command verification (two-person rule)
 - [ ] Real-time commanding
-- [ ] Stored command sequences
+- [ ] Telecommand authentication: keys, counters (UTC-derived with two stations), acknowledgements and the keyless TX-OFF (SQSO-ICD-013 §5–§6); there are no stored command sequences on board
 - [ ] Command response verification
 - [ ] Emergency commanding
 
@@ -355,3 +355,4 @@ All training records maintained in:
 |---------|------|--------|-------------|
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.0, note | 2026-10-24 | SMART-QSO Team | OBC topic: the run-time architecture as built (no FreeRTOS) |
+| 1.1 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): status a plan, nobody trained or certified; Module 5 telecommand authentication in place of stored command sequences (none exist) |

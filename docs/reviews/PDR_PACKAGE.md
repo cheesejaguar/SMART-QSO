@@ -1,13 +1,23 @@
 # SMART-QSO Preliminary Design Review (PDR) Package
 
+> **Historical record (2026-01-02).** Superseded for current values by
+> [`docs/BASELINE_PARAMETERS.md`](../BASELINE_PARAMETERS.md) and
+> [`docs/reviews/CDR/CDR_2026_DESIGN_REVIEW.md`](CDR/CDR_2026_DESIGN_REVIEW.md). It is the PDR package generated on
+> 2026-01-02 with the self-assessed review records (finding PI-03). No independent PDR has been held: the project is
+> in Phase B (pre-PDR), and the independent PDR (2027-01-12) and CDR (2027-09-28) are planned in `mission/SCHEDULE.md`
+> (BASELINE §1). The record is kept as written; its values, statuses, approvals and the dated "superseded" notes in
+> its body are those of their dates and are not to be cited. Still useful for: the January 2026 requirements and
+> design as the funding audit found them; the package for the independent PDR is the schedule's PDR_PKG (to the board
+> by 2026-12-15). Index of the review documents: [README.md](README.md).
+
 > **Funding audit notice (2026-10-14): internal self-assessment, not an independent review.**
 > This record was generated on 2026-01-02 without named independent reviewers, signatures, or a
 > RID/RFA log. Its PASS/APPROVED/COMPLETE statements are **not substantiated** and must not be cited
 > to funders or regulators as review outcomes. See `docs/funding_audit/FUNDING_AUDIT_REPORT.md` and
-> finding F-PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
+> finding PI-03 in `docs/funding_audit/FINDINGS_REGISTER.md`.
 
 **Document Number**: SMART-QSO-PDR-001
-**Version**: 1.3
+**Version**: 1.4
 **Date**: 2026-01-02
 **Status**: Ready for Review
 
@@ -354,3 +364,4 @@ Based on this PDR package, the SMART-QSO project is recommended to proceed to th
 | 1.1 | 2026-10-16 | SMART-QSO Team | Requirement rows use the SRS wording (finding VV-06) |
 | 1.2 | 2026-10-16 | SMART-QSO Team | Dated notes beside the superseded mass, beacon interval and link margin (MASS_BUDGET v2.0, SYS-211, LINK_BUDGET_ANALYSIS v2.0; findings TB-05, TB-06); recorded values kept |
 | 1.3 | 2026-10-25 | SMART-QSO Team | Dated note beside the superseded software class in §3.4 (NPR 7150.2D Class C, SDP §3.1; findings PI-18, VV-12); recorded value kept |
+| 1.4 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): historical-record banner (superseded by BASELINE and SQSO-REV-CDR-002; no PDR held); notice cites finding PI-03 (was F-PI-03); body unchanged |

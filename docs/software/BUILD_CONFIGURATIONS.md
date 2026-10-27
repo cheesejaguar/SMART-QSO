@@ -2,7 +2,7 @@
 ## SMART-QSO Flight Software
 
 **Document Number:** SQSO-SW-008
-**Revision:** E
+**Revision:** F
 **Date:** 2026-10-27
 **Reference:** NPR 7150.2, NASA Ames SmallSat Heritage
 
@@ -45,7 +45,7 @@ Rust release profile (`software/rust/Cargo.toml`; the firmware's `software/rust/
 `debug-assertions = false`. The toolchain is pinned by `software/rust/rust-toolchain.toml` (1.97.0, target
 `thumbv7em-none-eabihf`).
 
-Image (release, 2026-10-27, flight software round 3, third part): text 207,284 B, data 26,400 B, bss 17,052 B. Vector table at
+Image (release, 2026-10-27, after flight software round 3, fifth part; `software/flight/docs/MEMORY_POLICY.md` §3.2): text 211,604 B, data 27,192 B, bss 17,052 B. Vector table at
 0x08000000, initial SP 0x20040000, entry `Reset`. Linked with cortex-m-rt's `link.x` and the firmware's own `memory.x`
 (2 MB flash; RAM SRAM2 alone, 64 KB with parity, holding the statics and the 8 KB stack). CI checks the entry point, the vector table, the initial SP, the presence of the flight symbols, and the absence
 of `malloc`, `free`, `_sbrk` and `printf` (job STM32L4 Cross-Compile (library)).
@@ -361,9 +361,9 @@ BIN file and no map file are produced yet.
 | Stack | 8 KB | Per task |
 | Heap | 32 KB | Dynamic allocation |
 
-Revision C: the limits are not checked by CI. The image measures text 115,876 B (code and constants together) and data
-19,764 B, both within the limits above. Its bss of 16,496 B is within the 30 KB limit. It has no heap, and its one stack
-has a worst case of 5,444 B of its 8 KB budget by static analysis, a CI gate (`software/flight/docs/MEMORY_POLICY.md` §6).
+Revision F: the limits are not checked by CI. The image measures text 211,604 B (code and constants together) and data
+27,192 B (2026-10-27); check them against the limits above. Its bss of 17,052 B is within the 30 KB limit. It has no heap, and its one stack
+has a worst case of 5,812 B of its 8 KB budget by static analysis, a CI gate (`software/flight/docs/MEMORY_POLICY.md` §6).
 
 ### 10.3 Build Verification Checklist
 
@@ -409,3 +409,4 @@ Each flight release includes:
 | D | 2026-10-27 | Stack worst case 5,444 B (was 5,004 B) after the CDR flight-software changes | SMART-QSO Team (CDR avionics review) |
 | E | 2026-10-27 | Flight software round 3: the image of the round-3 build (text 190,532 B), the firmware's own `memory.x` with RAM in SRAM2 alone, initial SP 0x20040000 (RID AV-13) | SMART-QSO Team |
 | C, note | 2026-10-25 | §8.2 and §8.3: the Embassy executor with no RTOS is the baseline (BASELINE §6, CR-2026-002) | SMART-QSO Team |
+| F | 2026-10-27 | Documentation audit (post-CDR 2026): the image figures (target build and the memory limits section) to the current image (text 211,604 B, data 27,192 B, bss 17,052 B; stack 5,812 B) | SMART-QSO Team |

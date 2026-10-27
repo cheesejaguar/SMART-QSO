@@ -1,7 +1,7 @@
 # Interface Control Document: OBC-EPS
 
 **Document Number**: SMART-QSO-ICD-001
-**Version**: 1.7
+**Version**: 1.8
 **Date**: 2026-10-27
 **Status**: Preliminary. Electrical values from the EPS board build-to design (`hardware/electrical/eps/EPS_BOARD_DESIGN.md`,
 SQSO-EPS-BRD-001) and pins from the master allocation (`hardware/electrical/INTERCONNECT.md`, SQSO-ICX-001);
@@ -26,13 +26,13 @@ This document covers:
 
 ### 1.3 Interface Diagram
 
-The OBC and EPS boards are PC/104 boards in one stack with no stack connector: harness W3 (a 40-way, 60 mm ribbon)
+The OBC and EPS boards are PC/104 boards in one stack with no stack connector: harness W3 (a 40-way, 65 mm SFSDT discrete-wire assembly)
 joins EPS J3 to OBC J1. The pin allocation is the master one of `hardware/electrical/INTERCONNECT.md` (SQSO-ICX-001
 §3.1, §4); the EPS side is `hardware/electrical/eps/EPS_BOARD_DESIGN.md` (SQSO-EPS-BRD-001 §11, §13.2). Where this
 document and SQSO-ICX-001 differ, SQSO-ICX-001 governs.
 
 ```
-+----------------+   W3: EPS J3 <-> OBC J1 (FTSH 40)  +----------------------------+
++----------------+   W3: EPS J3 <-> OBC J1 (TFM 40)   +----------------------------+
 |                |  I2C2 SCL PF1 / SDA PF0            |  INA228 pack gauge   0x44   |
 |      OBC       |<---------------------------------->|  INA228 array output 0x40   |
 | (STM32L4R5ZI)  |                                    |  EPS controller      0x48   |
@@ -55,11 +55,11 @@ document and SQSO-ICX-001 differ, SQSO-ICX-001 governs.
 
 | Parameter | OBC Side | EPS Side |
 |-----------|----------|----------|
-| Connector | J1, Samtec FTSH-120-01-L-DV-K (40 positions) | J3, Samtec FTSH-120-01-L-DV-K |
-| Harness | W3, FFSD-20-D ribbon, 28 AWG, 0.06 m | W3 |
+| Connector | J1, Samtec TFM-120 right-angle (40 positions) | J3, Samtec TFM-120 vertical, EPS bottom side |
+| Harness | W3, Samtec SFSDT PTFE discrete-wire assembly, 30 AWG, 0.065 m (SQSO-ICX-001 §2; the FFSD ribbon is PVC and withdrawn) | W3 |
 | I2C pins | I2C2_SCL J1-5 (PF1), I2C2_SDA J1-6 (PF0) | J3-5, J3-6 |
 | Power | 3V3_OBC J1-1, J1-2 | SW10 output (latch-up auto-retry) |
-| GND | J1-3, 4, 7, 28, 35, 40; AGND J1-21, 27 (analog return) | GND; AGND joins GND at the EPS analog star point |
+| GND | J1-3, 4, 7, 35; AGND J1-21, 27 (analog return). J1-28 and J1-40 are I2C3_SCL (PG7) and I2C3_SDA (PB4) for the AntS (SQSO-ICX-001 D §3.1; they were GND) | GND; AGND joins GND at the EPS analog star point |
 | Load control | enables on J1-9 to J1-15 (§3.2) | load switches, 100 kΩ pull-down on every enable |
 | Alert | EPS_ALERT_N J1-8 (PB7, 10 kΩ series) | open drain, active low, 4.7 kΩ pull-up: INA228 alerts and the controller's interrupt |
 
@@ -69,10 +69,10 @@ The full 40-pin list, with the burn, passivation, lockout, sense and readback li
 
 | Parameter | Min | Typ | Max | Unit |
 |-----------|-----|-----|-----|------|
-| I2C SCL frequency | - | 100 | 400 | kHz |
+| I2C SCL frequency | - | 100 | 100 | kHz |
 | I2C Logic High | 2.1 | 3.3 | 3.6 | V |
 | I2C Logic Low | 0 | 0 | 0.6 | V |
-| I2C Pull-up (on the OBC) | - | 2.2 | - | kΩ |
+| I2C Pull-up (on the OBC: two 4.7 kΩ in parallel, each works alone; SQSO-ICX-001 §3.1) | - | 2.35 | - | kΩ |
 | Load Control High | 2.4 | 3.3 | 3.6 | V |
 | Load Control Low | 0 | 0 | 0.4 | V |
 
@@ -82,7 +82,7 @@ The full 40-pin list, with the burn, passivation, lockout, sense and readback li
 |-----------|-------|
 | Bus | I2C2 (`hal_i2c` bus 0), PF1 SCL / PF0 SDA |
 | Mode | Standard/Fast |
-| Clock Speed | 100 kHz (default); the bus is designed for 400 kHz |
+| Clock Speed | 100 kHz (SQSO-ICX-001 §3.1: two 4.7 kΩ pull-ups in parallel, 100 kHz recommended) |
 | Address Mode | 7-bit |
 | EPS controller (MSP430FR2355, register block of §4) | 0x48 |
 | Pack gauge (INA228-Q1 U28 on the high-side pack shunt: voltage, current, charge, energy) | 0x44 (was "battery monitor 0x55") |
@@ -346,14 +346,9 @@ MODE (0x01) and LOAD_EN (0x02) are retired (§4.4). Writes are acknowledged and 
 
 ### 7.3 Telemetry Format for Beacon
 
-```
-BV=<vbatt>V,BI=<ibatt>mA,BT=<tbatt>C,SOC=<soc>%,SV=<vsolar>V,SI=<isolar>mA
-```
-
-Example:
-```
-BV=15.6V,BI=-80mA,BT=12.5C,SOC=72%,SV=4.6V,SI=450mA
-```
+The beacon carries `M=`, `SOC=`, `BV=` and `SUN=` from these readings in its telemetry tail, in the format of
+`docs/BEACON_SPEC.md` §3–§4; housekeeping values go in HK1 and HK2 (`docs/operations/TELEMETRY_DICTIONARY.md` §4.4).
+The comma-separated `BV=…V,BI=…mA,…` string of Version 1.0 is not what the flight software sends.
 
 ---
 
@@ -454,3 +449,4 @@ When Alert GPIO is asserted:
 | 1.5 | 2026-10-27 | CDR design (EPS board) | §3 payload row: JETSON_PWR on PA8 (PA2 is the spreader thermistor), both Jetson switches shed-gated; §4.6 (amended): EOL_KEY register 0x7E (key 0x3C, 0xC3), EOL_STATE bit 3, the OBC passivation sequence (RID P3E-11) |
 | 1.6 | 2026-10-27 | CDR design (EPS board) | SQSO-EPS-BRD-001 E: §4.6 OBC_HEARTBEAT 0x8C (every ≤ 60 s, 600 s timeout, ≤ 3 cycles per 24 h), ANTS_PWR 0x8D, TRK_DISABLE 0x8E, EPS_SUPV 0x8F; CHG_INHIBIT bit 6 (NTC1 implausible); LOAD_SHED without the PA; §2 AntS moved to the OBC's I2C3 (0x31, 0x32); AntS supply also by the controller; amended: passivation fire only with the EPS board ≥ 0 °C |
 | 1.7 | 2026-10-27 | CDR design (EPS board) | From SQSO-SRS-EPSC-001 §9: LOCK_UNLOCK self-clears after 1.0 s with the clear sequence stated; MODE (0x01) and LOAD_EN (0x02) retired (§4.2–§4.5, §6.1–§6.2); registers 0x90–0x9E and IMAGE_CRC 0xF2 adopted; TRK_DISABLE refuses an all-four mask; §3 load shed without the PA; amended: the passivation fire's temperature rule as SRS-F111 (6 h wait, then fire) |
+| 1.8 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): §1.3, §2.1 connector and harness per SQSO-ICX-001 D §2 (TFM-120 with an SFSDT 30 AWG assembly, 0.065 m; was FTSH with an FFSD ribbon), J1-28 and J1-40 are I2C3 for the AntS, not GND; §2.2, §2.3 pull-up two 4.7 kΩ in parallel (was 2.2 kΩ) and I2C2 at 100 kHz per SQSO-ICX-001 (was "designed for 400 kHz"); §7.3 beacon tail per BEACON_SPEC (was the Version 1.0 string) |

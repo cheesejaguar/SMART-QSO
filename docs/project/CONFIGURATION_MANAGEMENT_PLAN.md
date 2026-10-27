@@ -1,7 +1,7 @@
 # Configuration Management Plan (CMP)
 
 **Document Number**: SMART-QSO-CMP-001
-**Version**: 1.2
+**Version**: 1.3
 **Date**: 2026-10-27
 **Status**: Draft
 
@@ -13,7 +13,7 @@
 > **Status on 2026-10-27 (CDR review).** No configuration baseline has been established and the repository has no
 > Git tags. The working controls are: the document register (`docs/DOCUMENT_REGISTER.md`), the baseline parameters
 > (`docs/BASELINE_PARAMETERS.md`, changed only by change request), the change request log
-> (`docs/project/CHANGE_REQUEST_LOG.md`, CR-2026-001 to -015; CR-2026-007 and -008 approved by the review chair and awaiting the PI's ratification, CR-2026-009 to -015 proposed by the review and awaiting the PI's decision, both by 2027-01-12: `mission/SCHEDULE.md` DA-01), pull requests to `main`, and the automated checks of
+> (`docs/project/CHANGE_REQUEST_LOG.md`, CR-2026-001 to -019; CR-2026-007, -008, -018 and -019 approved by the review chair and awaiting the PI's ratification, CR-2026-009 to -017 proposed by the review and awaiting the PI's decision, all by 2027-01-12: `mission/SCHEDULE.md` DA-01), pull requests to `main`, and the automated checks of
 > §4.5. The `develop`/`release` branch model of §5.2 in version 1.0 was never used and is withdrawn.
 
 ---
@@ -543,3 +543,4 @@ Date: YYYY-MM-DD
 | 1.0 | 2026-01-02 | SMART-QSO Team | Initial release |
 | 1.1 | 2026-10-27 | CDR review, PM/SE/V&V | Reference standards corrected (NPR 7123.1D, NPR 7150.2D; NPR 7120.5 not governing); status notice (no baseline, no tags); CCB as it can work with one approver; real configuration items (Rust crates, firmware, simulations; hardware CIs); Class I scope (baseline parameters, requirements, ICDs; CR-2026-007); dated baselines with tag names; automated configuration checks; trunk-based branching replaces the unused develop/release model |
 | 1.2 | 2026-10-27 | CDR round 3, systems and programmatics | §4.5: the VCRM, RID-log and verification-item register checks run in CI (RID PM-04); §4.3: SYS Rev E/F/G in CR-2026-009 (SE-03), a review chair proposes but does not approve Class I changes (PM-04); status notice: CR-2026-001 to -015 and the PI ratification point DA-01; §4.1 CDR and pre-ship dates from SQSO-SCH-001 D |
+| 1.3 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): status notice lists CR-2026-001 to -019 and which await ratification or decision |

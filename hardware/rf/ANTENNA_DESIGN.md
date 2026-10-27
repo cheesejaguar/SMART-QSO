@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-RF-ANT-001
-**Version:** 2.3
+**Version:** 2.4
 **Date:** 2026-10-27
 **Status:** CDR. Antenna bought (ISIS AntS 1U–3U, `docs/hardware/BUILD_VS_BUY.md` §2.6); configuration recommended here, to be confirmed by RFQ and a PI decision. Not measured.
 
@@ -16,7 +16,7 @@ Version 2.0 replaces it.
 
 | ID | Requirement | Source |
 |----|-------------|--------|
-| ANT-1 | Separate deployable quarter-wave elements for 2 m (145.800–146.000 MHz) and 70 cm (435.000–437.300 MHz); no shared diplexed element | BASELINE §7 |
+| ANT-1 | Separate deployable quarter-wave elements for 2 m (145.800–146.000 MHz) and 70 cm (the uplink windows 435.222–435.778 or 436.222–436.500 MHz); no shared diplexed element | BASELINE §7 |
 | ANT-2 | Gain toward the ground over the pass-weighted directions: median ≥ −3 dBi, 10th percentile ≥ −10 dBi, each band, with the wings deployed (proposed replacement for SYS-222; RF_DESIGN RF-P013) | SQSO-LBA-001 §5 |
 | ANT-3 | VSWR < 2:1 at the coordinated frequencies, deployed on the flight body | SYS-223 |
 | ANT-4 | RF power rating ≥ 1 W continuous (2 m), in vacuum | BASELINE §7 |
@@ -53,7 +53,7 @@ evaluated three options along 60 days of passes:
 | **B** | One, along **+Y** (the spin axis) | No spin modulation; null toward the Sun and away from it: 0.23 fades per pass, about 80 s each | 100 % | 58 % | Yes at low elevation (−6.3 dBi); −12.8 dBi at 30–45° (marginal) |
 | **C** | Two, along ±X and ±Y, quadrature through a 90° hybrid | Never below −6 dBi | 100 % | 72 % | **Yes** (−3.6 dBi 10th percentile) |
 
-**Baseline (BASELINE Rev D §4, §7, chair decision with STR-01):** two 2 m elements along +X and −X (across the spin
+**Baseline (BASELINE Rev E §4, §7, decision C-3 with STR-01):** two 2 m elements along +X and −X (across the spin
 axis, keeping +Y the major axis of inertia) and two 70 cm elements along +Y and −Y, each pair fed in antiphase as a
 dipole (§4.1). The options below are the review's pattern analysis, kept for the record.
 
@@ -130,3 +130,4 @@ the losses for handheld stations (SQSO-LBA-001 §5.3, finding 2).
 | 2.1 | 2026-10-27 | CDR design completion, RF board | Baseline configuration recorded (2 m pair ±X, 70 cm pair ±Y, antiphase); §4.1 feed interface to the RF board (lattice baluns, matched coax, static bleed, isolation); RFQ question 1 restated |
 | 2.2 | 2026-10-27 | CDR S&MA analysis (RID SE-16) | Option table re-run at 8°/s and 475 km (SQSO-LBA-001 v3.2 §5) |
 | 2.3 | 2026-10-27 | CDR design completion, RF board | §4.1 feed interface to SQSO-RF-BRD-001 C §4.3: MMCX jacks and 1.37 mm cables (W10 v3) replace RG-316; AntS MMCX ports assumed (VI-RFB-13); port-to-antenna loss recorded |
+| 2.4 | 2026-10-27 | Documentation audit (post-CDR 2026) | ANT-1 70 cm band to the BASELINE Rev E uplink windows (was 435.000–437.300 MHz); baseline citation Rev E and decision C-3 |

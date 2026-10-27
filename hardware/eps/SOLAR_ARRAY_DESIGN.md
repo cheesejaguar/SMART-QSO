@@ -2,7 +2,7 @@
 ## SMART-QSO 1U CubeSat
 
 **Document Number:** SQSO-EPS-SA-001
-**Version:** 2.2
+**Version:** 2.3
 **Date:** 2026-10-27
 **Status:** Controlled array layout and power-versus-attitude table for the baseline in `docs/BASELINE_PARAMETERS.md` §5 (finding TB-14). **Analysis, not measured.** Other documents that state array power should cite §3 and §9 of this document.
 
@@ -197,7 +197,7 @@ Sections 4–8 and 10 carry Version 1.0 design values that have no source yet, e
 | Predicted, body panels | −23 … +52 °C | |
 | Used in §9 | +60 °C | Conservative against the predictions: the mission simulation, with the thermal model's temperatures, gives about 10 % more (§9.5) |
 | Eclipse | -40°C min | Up to 36.1 min per orbit (β = 2.4°, LTAN 23:30) |
-| Thermal cycling | ≈ 5,560 cycles/yr (one per orbit at 500 km) | 2 years |
+| Thermal cycling | ≈ 5,590 cycles/yr (one per orbit at 475 km) | 2 years |
 
 ### 7.2 Thermal Expansion
 
@@ -301,12 +301,13 @@ The "no shadowing" column reproduces BASELINE §5 (2.39 W tumbling, 3.58 W sun-p
 ### 9.5 Simulated Generation (CDR)
 
 The mission simulation (`software/rust/sqso-sil`, same cell data, shadowing and degradation, with the thermal model's
-cell temperatures and albedo) gives, at end of life in the worst 30 days of a year, at the string terminals (MPP) and
-delivered to the bus (× 0.97 diode × 0.92 MPPT): sun-pointed 4.41 W / **3.93 W**; free tumble (ADCS failed) 2.72 W /
-**2.43 W**; wings stowed 1.65 W / 1.47 W (`docs/environment/POWER_BUDGET_ANALYSIS.md` v2.0 §4). The §9.3 values
-are bounds: their 60 °C cell temperature is about 10 % pessimistic for the body cells and they omit albedo (≈ 5 %).
-With the simulated values the tumbling margin is +32 % against the 1.80 W allocation, and finding 1 below is closed
-(POWER_BUDGET_ANALYSIS §9).
+cell temperatures and albedo) gives, at end of life delivered to the bus, at 475 km from 2028-11-01, worst 30 days of
+the second year, LTAN 22:30 ± 1 h: sun-pointed **3.84 W** (3.79 W in the worst ADCS Monte Carlo trial with the face
+photodiodes and albedo, decision C-23); free tumble (ADCS failed) **2.48 W**; wings stowed 1.47 W (BASELINE §5;
+`docs/environment/POWER_BUDGET_ANALYSIS.md` v2.5 §4; v2.0 gave 3.93 / 2.43 W). The §9.3
+values are bounds: their 60 °C cell temperature is about 10 % pessimistic for the body cells and they omit albedo
+(≈ 5 %). With the simulated values the tumbling margin is +33 % against the 1.86 W allocation (BASELINE §5), and
+finding 1 below is closed (POWER_BUDGET_ANALYSIS §9).
 
 Findings for the power budget (TB-02), reported rather than changed here:
 
@@ -358,3 +359,4 @@ Findings for the power budget (TB-02), reported rather than changed here:
 | 2.0 | 2026-10-16 | Funding audit (TB-14): one array layout (§3.1), cell data from the AZUR SPACE datasheet, power-versus-attitude table with the calculation shown (§9); the 19.4 W all-cells total withdrawn |
 | 2.1 | 2026-10-27 | CDR review (EPS): bus at the 4.10 V/cell set point (§1.1); four trackers (§3.2); 24 AWG string wire (§4.2); predicted panel temperatures (§7.1); simulated generation and the tumbling margin closed (§9.5) |
 | 2.2 | 2026-10-27 | CDR design (EPS board): §4.2 string wire per SQSO-HAR-001 2.0 (S-1): 28 AWG M22759/33, two wires per pole (was 24 AWG) |
+| 2.3 | 2026-10-27 | Documentation audit (post-CDR 2026): §9.5 simulated generation to BASELINE §5 (2.48 W tumbling, 3.84 W sun-pointed at 475 km, PBA v2.5; was 2.43 / 3.93 W from PBA v2.0) and the tumbling margin +33 % against 1.86 W; §5 thermal cycles at 475 km. The §9.3 bound at 500 km is kept as the bound BASELINE §5 cites |

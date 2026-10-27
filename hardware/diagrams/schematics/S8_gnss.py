@@ -1,4 +1,4 @@
-"""S8 GNSS receiver interface, version 2 (2026-10-27): SkyFox piNAV-NG/FM (decision D6) on LPUART1 PG7/PG8 with
+"""S8 GNSS receiver interface, version 3 (2026-10-27; SQSO-ICX-001 D: LPUART1_TX moved from PG7 to PB11): SkyFox piNAV-NG/FM (decision D6) on LPUART1 PB11/PG8 with
 GNSS_EN on PE5 (RID EPS-14; PE4 is XPDR_EN), 1PPS on TIM3_CH1 (PC6). The receiver's 3.3 V from EPS SW7 passes through
 the OBC so that the translators take their receiver side from it (SQSO-OBC-BRD-001 12). Version 1 proposed UART4 on
 PC10/PC11 and GNSS_EN on PE4.
@@ -9,7 +9,7 @@ import schemdraw.elements as elm
 import sch
 
 d = sch.drawing("S8_gnss")
-sch.note(d, (-8, 6.5), "S8  GNSS receiver interface (version 2)", fontsize=12, color="black")
+sch.note(d, (-8, 6.5), "S8  GNSS receiver interface (version 3)", fontsize=12, color="black")
 sch.note(d, (-8, 5.9), "SQSO-HW-DIAG-001 · SQSO-OBC-BRD-001 12 · harness W9 version 2 · pins: SQSO-ICX-001 3.5 · receiver-side "
          "pin order per the SkyFox interface document", fontsize=8)
 
@@ -22,7 +22,7 @@ sch.flag(d, v.center, "3V3_GNSS: EPS SW7 (GNSS_EN PE5) -> W9B -> OBC J4 -> J5-1 
 d += elm.Ground().at(u.GND)
 d += elm.Line().at(u.RF_IN).right().length(0.8)
 d += elm.Antenna().label("L1 patch (Spacemanic ZENITH V3a)", loc="right", fontsize=7)
-for k, (ref, a, b, net, dirn) in enumerate((("U30", "RXD", "B", "LPUART1_TX (PG7)", "A to B"),
+for k, (ref, a, b, net, dirn) in enumerate((("U30", "RXD", "B", "LPUART1_TX (PB11)", "A to B"),
                                             ("U31", "TXD", "B", "LPUART1_RX (PG8, 100k up)", "B to A"),
                                             ("U32", "1PPS", "B", "GNSS_PPS (PC6, TIM3_CH1, 100k down)", "B to A"))):
     t = sch.ic(f"{ref} SN74LVC1T45-Q1\n{dirn}", left=["A"], right=["B"], top=["VCCA", "VCCB"], size=(4.2, 1.6), spread=("top",))

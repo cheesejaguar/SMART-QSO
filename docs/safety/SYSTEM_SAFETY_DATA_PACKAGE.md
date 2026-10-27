@@ -1,7 +1,7 @@
 # SMART-QSO System Safety Data Package
 
 **Document ID**: SQSO-SDP-002
-**Version**: 1.1
+**Version**: 1.2
 **Date**: 2026-10-27
 **Classification**: Unclassified
 **Status**: **CDR draft. System hazard analysis complete at the level of the CDR design; no hazard is closed.** Every
@@ -25,7 +25,7 @@ the verification evidence its row names.
 | Result | Value | Basis |
 |--------|-------|-------|
 | Hazards analysed | 16 (§5); HR-01, HR-02, HR-03, HR-05, HR-06 and HR-16 are catastrophic in at least one phase | §4 method |
-| Catastrophic hazard causes meeting their required tolerance **as designed** | External short (two-fault tolerant below the fuse); structural release and materials (design for minimum risk, analysis and test open). Since the EPS board build-to design (SQSO-EPS-BRD-001 Version B, 2026-10-27) also RF before 45 min and premature deployment (three inhibits DS1–DS3), overcharge (secondary protector) and internal short after deep discharge (recharge lockout), as designed; none verified | §6 |
+| Catastrophic hazard causes meeting their required tolerance **as designed** | External short (two-fault tolerant downstream and upstream of the AFE FETs: F0A and the diverse F0B in the positive leg, F0N in the negative, SQSO-BSA-001 H3, H3b, decision C-16); structural release and materials (design for minimum risk, analysis and test open). Since the EPS board build-to design (SQSO-EPS-BRD-001 Version B, 2026-10-27) also RF before 45 min and premature deployment (three inhibits DS1–DS3), overcharge (secondary protector) and internal short after deep discharge (recharge lockout), as designed; none verified | §6 |
 | Gaps that block the safety review | (1) and (2) of the first issue are closed by design: the third inhibit DS3 (SQSO-EPS-BRD-001 §6.2) and four 0.8 A burn drivers, one per resistor, with a 12 s hardware one-shot (SQSO-EPS-BRD-001 §9); (3) closed by design: recharge lockout K1 and the BQ771806 secondary protector (SQSO-EPS-BRD-001 §5.4, §6.1; EPS-11, EPS-12); open: (4) cell lot acceptance below JSC 20793 practice in BATTERY_DESIGN (SQSO-BSA-001 §4 fixes it); (5) UN 38.3 status of a one-off pack for shipping | §6, §12 RIDs |
 | RF exposure to personnel | 1 W at 145.9 MHz is exempt from routine evaluation beyond **0.65 m** (47 CFR 1.1307(b)(3)(i)(C)); radiating tests at ≥ 1 m or into a load | HR-09 |
 | Accidental-explosion probability on orbit | **1.4 × 10⁻⁴** (< 10⁻³; NASA-STD-8719.14C Req. 4.4-1), 9 × 10⁻⁵ of it from over-discharge then recharge, which a recharge lockout removes | ODAR §4; `software/simulation/cdr/sma/explosion_probability.py` |
@@ -55,7 +55,7 @@ test fixtures) and these phases:
 | SpaceX Rideshare Payload User's Guide, **Version 11, August 2026** ("UG v11", <https://storage.googleapis.com/rideshare-static/Rideshare_Payload_Users_Guide.pdf>) | §3.3.4 (appendage deployment ≥ 120 s, hard-body radius), §4.1.7.3 and Table 4-10 (transmitter turn-on delay), §5.2 (fasteners), §5.3 and Table 5-5 (materials, prohibited materials), §5.5.4 (sealed containers, batteries), §5.7 (dispensers, no passive appendage deployment), §6.7.7 (power inhibits verified during random vibration), §7.6 (all systems off during launch), §9.5.2–9.5.3 (no open-air RF checkout; hazardous procedures), §11.2 (hazardous systems), Appendices D, F, G | Yes (read 2026-10-27) |
 | Space Systems Command Manual (SSCMAN) 91-710, Range User's Manual, as tailored by SpaceX (UG v11 §11.1) | Range safety design and operations requirements, including the hazard classification and failure tolerance for flight hardware | **No.** Not publicly obtainable here. This package applies the conventional rule: catastrophic hazards two-fault tolerant, critical hazards single-fault tolerant, or design for minimum risk where tolerance is impractical (the rule UG v11 §5.5.7 states for propellant systems, and NSTS 1700.7B §200.1a, the origin of SSP 51700's) |
 | CubeSat Design Specification **Rev 14.1**, Cal Poly, 2022-02 | §2.1.7 materials, §2.1.9 venting, §2.3.1–2.3.8 power off, switches, RBF, battery protection, inhibits, §2.4.4–2.4.5 timers | Yes |
-| [BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md) Rev D | Design values | Yes |
+| [BASELINE_PARAMETERS.md](../BASELINE_PARAMETERS.md) Rev E | Design values | Yes |
 | 47 CFR 1.1307(b)(3) and 1.1310 | RF exposure exemption and limits | Yes (eCFR via Cornell LII, 2026-10-27) |
 | 49 CFR 172.101, 173.185; UN Manual of Tests and Criteria §38.3 | Hazardous-materials declaration; lithium-battery transport | Cited; test status open (HR-15) |
 | IEC 62133-2 / UL 1642 | Cell safety listing of the INR18650-35E (CDS §2.3.6 "extra documentation for non-UL cells") | Cell listing to be confirmed from the cell certificate |
@@ -71,28 +71,30 @@ test fixtures) and these phases:
 | Source | Quantity | Notes |
 |--------|----------|-------|
 | Li-ion battery | 4S1P Samsung INR18650-35E, 3.45 Ah, 14.4 V nominal, **49.7 Wh (179 kJ) at 4.20 V/cell; ≈ 45 Wh at the 4.10 V/cell set point (D8)**; 60 % ± 5 % SOC at integration | Sealed steel cans with a current-interrupt device (CID) and vent; ≈ 12.4 Wh a cell. Below the 80 Wh and 100 Wh thresholds noted in BASELINE §5 |
-| Mechanical springs | Two wing hinges (torsion springs), four AntS tape elements (stored strain), dispenser ejection spring (the dispenser's) | Hinge spring not yet selected; AntS is a flown product |
-| Burn-wire heaters | Two release resistors (≈ 5 Ω each) per channel on one driver (schematic S5) | At 14.4 V each draws ≈ 2.9 A, ≈ 41 W, unless limited (S5 note F7) |
+| Mechanical springs | Two wing hinges (two torsion springs each), four AntS tape elements (stored strain), dispenser ejection spring (the dispenser's) | Hinge springs designed (17-7PH, SQSO-MECH-001 §3A), not built; AntS is a flown product |
+| Burn-wire heaters | Two release resistors (≈ 5 Ω each) per wing, four in all, each on its own current-limited driver from the 7.0 V burn buck | 0.8 A (3.2 W) per resistor, one at a time for 10 s, 12 s hardware one-shot per driver, 2.0 A at the pack with all four on (SQSO-EPS-BRD-001 §9; BASELINE §4). The first issue's S5 drew one driver for two resistors, ≈ 2.9 A each at 14.4 V |
 | RF | One 2 m transmitter, ≤ 1 W into a quarter-wave monopole (≤ 1.6 W EIRP) | The 435 MHz radio and the GNSS are receivers |
 | AI payload | Jetson Orin Nano module, ≤ 8 W input, power-gated by the OBC | Powered only on orbit in sunlight; flatsat and TVAC on the ground |
-| Heater | ≈ 1 W polyimide film on the pack, hardware cut-out at ≈ +40 °C, fused | BUILD_VS_BUY §4.3 |
-| Magnetorquers | Air-core coils or CubeSpace CR0002 rods, ≤ 0.2 A·m² | Unpowered until deployment; rod remanence to measure (LVR-085) |
+| Heater | ≈ 207 Ω polyimide film on the pack (0.70–1.30 W across the 12.0–16.4 V bus), on below +5 °C, hardware cut-out at ≈ +40 °C, fused | BASELINE §8; BUILD_VS_BUY §4.3 |
+| Magnetorquers | CubeSpace CR0002 rods (selected; air-core coils the alternate), > 0.2 A·m² | Unpowered until deployment; rod remanence to measure (LVR-085) |
 | Electrolyte | ≈ 5 g a cell, LiPF₆ in carbonate solvents (flammable, corrosive on release) | Hazardous material (UG v11 Appendix F item 2; 49 CFR 172.101) |
 | None | Propellant, pressure vessels (other than the sealed cells, UG v11 §5.5.4), ordnance, lasers, radioactive material | Statement to the integrator |
 
 ### 3.2 Inhibit architecture as designed at CDR
 
-From the EPS board build-to design (`hardware/electrical/eps/EPS_BOARD_DESIGN.md`, SQSO-EPS-BRD-001 Version B §3, §6, §9) and
+From the EPS board build-to design (`hardware/electrical/eps/EPS_BOARD_DESIGN.md`, SQSO-EPS-BRD-001 Version G §3, §6, §9), the
+battery sense board (`hardware/eps/BATTERY_DESIGN.md` §7.2) and
 `hardware/diagrams/schematics/S1_eps_power_path.py`, `S5_burn_wire.py` (the first issue drew the earlier S1, with two
 switches and a dashed third inhibit):
 
 ```
-BAT_TOP ─ F2 5 A fuse ─ RT1 PTC ─ F3 (secondary protector) ─ AFE CHG/DSG FETs ─ PACK_P ─ Q4 (DS1) ─ Q5 (DS3) ─ VBAT bus
-BAT_BOT ─ PACK_N ─ Q6 + Q7 back to back (DS2) ─ GND                  RBF: in series with DS2's drive (ground only, not counted)
+Sense board: cell 4 + ─ F0A ─ F0B ─ F3 (BQ771806 secondary protector) ─ BAT_TOP;  cell 1 − ─ F0N ─ BAT_BOT;  taps via 3 × 68.1 Ω and tap fuses
+BAT_TOP ─ W1 ─ F2 5 A fuse ─ RT1 PTC ─ AFE CHG/DSG FETs ─ PACK_P ─ Q4 (DS1) ─ Q5 (DS3) ─ VBAT bus
+BAT_BOT ─ W1 ─ PACK_N ─ Q6 + Q7 back to back (DS2) ─ GND             RBF: in series with DS2's drive (ground only, not counted)
 VBAT bus ─ 5V_PA buck ─ SW3 (RF_TX_EN AND hardware load shed; after the 45 min software timer) ─ PA ─ VHF antenna
 VBAT bus ─ SW6 DEPLOY_EN ─ 7.0 V burn buck ─ 4 drivers, 0.8 A each, one per burn resistor, 12 s one-shot ─ return
 VBAT bus ─ SW8 DEPLOY_EN ─ 3V3_ANTS ─ AntS (its ARM command and thermal knives)
-Charge path: solar strings ─ trackers (TRK_EN held low by DS3's NO contact) ─ F1 EOL fuse ─ PACK_P (upstream of DS1/DS3)
+Charge path: solar strings ─ 4 trackers (TRK_EN held low by DS3's NO contact and DS2's second pole) ─ F1 EOL fuse ─ PACK_P (upstream of DS1/DS3)
 ```
 
 | Path | Physical inhibits that count (CDS §2.3.7–2.3.8) | Do not count | Required | Gap |
@@ -129,10 +131,10 @@ more than one of the three (SQSO-EPS-BRD-001 §6.3; BASELINE §4). The inhibit-b
 |-------|-------|
 | Phases, severity | P1–P4 **Critical** (facility, personnel near the cell, co-payloads in the dispenser); P6 **Catastrophic** (crewed cabin) |
 | Causes | (a) Overcharge: charger regulation fails high; BMS over-voltage fails; (b) external short: harness chafe or pinch at the isolated mount, conductive debris, test error at the GSE; (c) internal short: latent cell defect, mechanical damage, lithium plating from charging below 0 °C, copper dissolution after deep over-discharge and recharge; (d) over-temperature: heater stuck on, Jetson or burn-wire heating, test chamber fault; (e) cell-to-cell propagation after one cell vents |
-| Controls | The battery hazard causes, controls and their tolerance are analysed in detail in the EPS review's [BATTERY_SAFETY_ASSESSMENT.md](../environment/BATTERY_SAFETY_ASSESSMENT.md) (SQSO-BSA-001, H1–H9); this report carries the system view and agrees with it. **(a) overcharge:** C1 charger CV at 4.10 V/cell (D8); C2 BMS AFE (BQ76952, OTP thresholds) per-cell over-voltage ≤ 4.25 V opening the CHG FET; C3 a **dissimilar secondary protector** (BQ771806, 4.35 V/cell, fixed threshold, blowing the three-terminal fuse F3), **designed** (SQSO-EPS-BRD-001 §6.1; RID EPS-11); cell CID is a further, uncounted barrier. **(b) external short:** C4 non-resettable 5 A pack fuse F2; C5 PTC RT1; C6 BMS short-circuit trip (< 10 µs); C7 cell-tap leads through 1 kΩ (S1) so a tap-harness short is current-limited; insulated, staked harness; insulated tools and the GSE charger fused at ≤ 1 A. **(c) internal short:** C8 cell lot acceptance (§7.1; VI-SAF-03); C9 charge inhibited in hardware outside 0–45 °C (SYS-602); C10 **recharge lockout after any cell < 2.0 V (designed: latching relay K1, two-signal clear, SQSO-EPS-BRD-001 §5.4; RID EPS-12, SMA-06)** and the independent hardware low-voltage load disconnect (designed, SQSO-EPS-BRD-001 §8.4; EPS-09); vibration of the pack at qualification levels. **(d) over-temperature:** C11 heater hardware cut-out at ≈ +40 °C plus a fuse; C12 Jetson bursts only with OBC-enforced current and temperature trips; C13 burn-wire on-time limited in hardware (**designed**: 12 s one-shot per driver, 0.8 A per resistor, SQSO-EPS-BRD-001 §9; RID SMA-05). **(e) propagation:** pack mounted in an aluminium clamp with spacing; vent path out of the pack enclosure (VI-LV-12) |
-| Fault tolerance | (a) **two-fault tolerant as designed** with C3, if C1–C3 are independent (different ICs, sense lines and supply; VI-SAF-02); (b) two-fault tolerant downstream of F2; upstream of F2 only C7 (single) → DFMR by insulation and staking; (c) DFMR (screening, temperature inhibit, C10); (d) two-fault for the heater (thermostat, cut-out, fuse); single-fault for the burn line with C13; (e) not analysed |
+| Controls | The battery hazard causes, controls and their tolerance are analysed in detail in the EPS review's [BATTERY_SAFETY_ASSESSMENT.md](../environment/BATTERY_SAFETY_ASSESSMENT.md) (SQSO-BSA-001, H1–H9); this report carries the system view and agrees with it. **(a) overcharge:** C1 charger CV at 4.10 V/cell (D8); C2 BMS AFE (BQ76952, OTP thresholds) per-cell over-voltage ≤ 4.25 V opening the CHG FET; C3 a **dissimilar secondary protector** (BQ771806, 4.35 V/cell, fixed threshold, blowing the three-terminal fuse F3), **designed** (SQSO-EPS-BRD-001 §6.1; RID EPS-11); cell CID is a further, uncounted barrier. **(b) external short:** C4 non-resettable 5 A pack fuses on the sense board, F0A (FM12A72V5.0A) and F0B (FM08A125V5A, a diverse part) in the positive leg and F0N in the negative, with F2 on the EPS (SQSO-BSA-001 H3, H3b); C5 PTC RT1 (not counted as an interrupter); C6 BMS short-circuit trip (10 A, 15 µs); C7 cell taps through a 3 × 68.1 Ω current-limiting chain and a tap fuse at the sense board, so a tap-harness short is limited to ≤ 82 mA; insulated, staked harness; insulated tools and the GSE charger fused at ≤ 1 A. **(c) internal short:** C8 cell lot acceptance (§7.1; VI-SAF-03); C9 charge inhibited in hardware outside 0–45 °C (SYS-602); C10 **recharge lockout after any cell < 2.0 V (designed: latching relay K1, two-signal clear, SQSO-EPS-BRD-001 §5.4; RID EPS-12, SMA-06)** and the independent hardware low-voltage load disconnect (designed, SQSO-EPS-BRD-001 §8.4; EPS-09); vibration of the pack at qualification levels. **(d) over-temperature:** C11 heater hardware cut-out at ≈ +40 °C plus a fuse; C12 Jetson bursts only with OBC-enforced current and temperature trips; C13 burn-wire on-time limited in hardware (**designed**: 12 s one-shot per driver, 0.8 A per resistor, SQSO-EPS-BRD-001 §9; RID SMA-05). **(e) propagation:** pack mounted in an aluminium clamp with spacing; vent path out of the pack enclosure (VI-LV-12); no propagation test is required below 80 Wh (JSC 20793 Rev D §5.1.5.1a; SQSO-BSA-001 §1) |
+| Fault tolerance | (a) **two-fault tolerant as designed** with C3, if C1–C3 are independent (different ICs, sense lines and supply; VI-SAF-02); (b) two-fault tolerant downstream and upstream of the AFE FETs (three interrupters in every loop; taps two chains and a fuse: SQSO-BSA-001 H3, H3b); (c) DFMR (screening, temperature inhibit, C10); (d) two-fault for the heater (thermostat, cut-out, fuse); single-fault for the burn line with C13; (e) not required below 80 Wh |
 | Verification | V-BSA-1 cell lot screening, V-BSA-2 protection trip tests, V-BSA-3 pack acceptance, V-BSA-4 pack-to-frame isolation (SQSO-BSA-001 §9); VI-SAF-02 independence review of C1–C3 on the EPS schematic; VI-LV-11 (cell screening and pack acceptance, LVR-070, LVR-073); VI-LV-14 (battery-side drain ≤ 20 µA); VI-SAF-04 burn-line current and on-time test |
-| Status | **Open.** C3, C10 and C13 missing from the design |
+| Status | **Open** (C3, C10 and C13 designed since SQSO-EPS-BRD-001 B; verification open) |
 
 ### HR-02 RF emission before separation or within 45 minutes
 
@@ -171,18 +173,18 @@ more than one of the three (SQSO-EPS-BRD-001 §6.3; BASELINE §4). The inhibit-b
 |-------|-------|
 | Severity | **Catastrophic** in a shared dispenser (a loose part can jam the dispenser or another CubeSat) |
 | Causes | Fastener back-out (notably the low-preload Ti-6Al-4V screws in polymer bushings of the isolated battery mount, where creep and thermal cycling reduce preload: BUILD_VS_BUY §4.3); bracket or wing hold-down failure; Jetson module or heat spreader detaching; staking cracking |
-| Controls | DFMR: factors of safety 1.10 yield and 1.25 ultimate for flight (UG v11 Table 5-1); locking features on every fastener (UG v11 §5.2; NASA-STD-5020B practice): staking plus a prevailing-torque or locking insert, never thread-locker alone on a polymer-bushed joint; bought 1U frame with CDS rails; protoflight random vibration at 5.57 Grms with sine sweeps before and after |
+| Controls | DFMR: factors of safety 1.10 yield and 1.25 ultimate for flight (UG v11 Table 5-1); locking features on every fastener (UG v11 §5.2; NASA-STD-5020B practice): staking plus a prevailing-torque or locking insert, never thread-locker alone on a polymer-bushed joint; bought 1U frame with CDS rails; structural analysis with NASA-STD-5001B protoflight factors at MPE + 3 dB, every margin positive (lowest +0.97, +0.86 at MEV; `docs/environment/STRUCTURAL_ANALYSIS.md` B); protoflight random vibration at 8.18 Grms (ETP §3.1) with sine sweeps before and after |
 | Verification | VI-LV-03, VI-LV-04; VI-SAF-06 fastener list with locking feature and torque; inspection after vibration (no loose parts, staking intact, torque stripe unbroken) |
-| Status | Open (no structural analysis yet, TB-15) |
+| Status | Open (analysis done, SQSO-SA-001 B; test open) |
 
 ### HR-06 Materials: contamination, prohibited materials, flammability, offgassing
 
 | Field | Entry |
 |-------|-------|
 | Severity | Marginal for co-payload contamination; **Catastrophic on P6** for flammability and toxic offgassing in the crew cabin |
-| Controls | Every non-metallic material TML ≤ 1.0 %, CVCM ≤ 0.1 % (CDS §2.1.7; UG v11 RML ≤ 1.0 %), bakeout in TVAC (LVR-084); **UG v11 Table 5-5 prohibited materials apply to a containerized CubeSat** (§5.3 exempts only four other rows): no cadmium or cadmium plating, no zinc plating, no mercury, no pure tin or tin electroplate (see `docs/compliance/MATERIALS_LIST.md` Rev B §16 and `docs/manufacturing/EEE_PARTS_LIST.md` Rev C §2.3); no Sharpie markers (UG v11 Table 5-5) |
+| Controls | Every non-metallic material TML ≤ 1.0 %, CVCM ≤ 0.1 % (CDS §2.1.7; UG v11 RML ≤ 1.0 %), bakeout in TVAC (LVR-084); **UG v11 Table 5-5 prohibited materials apply to a containerized CubeSat** (§5.3 exempts only four other rows): no cadmium or cadmium plating, no zinc plating, no mercury, no pure tin or tin electroplate (see `docs/compliance/MATERIALS_LIST.md` §2.2 and `docs/manufacturing/EEE_PARTS_LIST.md` §2A.3); no Sharpie markers (UG v11 Table 5-5) |
 | Verification | VI-LV-09 materials list and contamination report; VI-SAF-07 prohibited-materials declaration with each EEE part's terminal finish |
-| Status | Open (materials list has unsourced values and one known non-compliant item, Loctite 242: MATERIALS_LIST Rev B) |
+| Status | Open (materials list has open E595 items; Loctite 242, found non-compliant in MATERIALS_LIST Rev B, is replaced by locking inserts and staking, WORKMANSHIP_STANDARDS §6.3) |
 
 ### HR-07 Electrical hazards to personnel and GSE faults
 
@@ -198,8 +200,8 @@ more than one of the three (SQSO-EPS-BRD-001 §6.3; BASELINE §4). The inhibit-b
 | Field | Entry |
 |-------|-------|
 | Severity | Marginal on the ground (touch temperature of the heat spreader during flatsat runs; carrier fault overheating) |
-| Controls | Ground runs ≤ 120 s per burst as in flight, OBC per-rail current and temperature trips independent of the Jetson; thermocouple on the spreader in every test; 74LVC1T45 Ioff translators against back-powering (S7, finding F13); powered off during launch (UG v11 §7.6) |
-| Verification | Flatsat procedure; EM thermal test (TB-07) |
+| Controls | Ground runs within the flight burst limits (≤ 10 min and ≤ 3.6 kJ per power-on, decision C-20), OBC per-rail current and temperature trips independent of the Jetson; thermocouple on the spreader in every test; 74LVC1T45 Ioff translators against back-powering (S7, finding F13); powered off during launch (UG v11 §7.6) |
+| Verification | Flatsat procedure; EM heat-path test VI-01 (ETP §8) |
 | Status | Open |
 
 ### HR-09 RF exposure of personnel
@@ -252,7 +254,7 @@ panels, inspection.
 |-------|-------|
 | Severity | Critical (fire in transport) |
 | Requirement | Hazardous material declared against 49 CFR 172.101 for the FAA payload review and the UG v11 Appendix F certification (**LVR-072**); lithium-ion transport per 49 CFR 173.185: the battery design must pass UN 38.3, or ship under the prototype/low-production provision (173.185(e)) with its packaging limits; ≈ 50 Wh installed in equipment |
-| Controls | Cells with a UN 38.3 test summary from the manufacturer; the **pack** (a one-off 4S1P) needs either its own UN 38.3 tests or the 173.185(e) route; ship at 60 % ± 5 % SOC, RBF in, in a fire-resistant container; carrier and integrator informed |
+| Controls | Cells with a UN 38.3 test summary from the manufacturer; the **pack** (a one-off 4S1P) needs either its own UN 38.3 tests or the 173.185(e) route; ship by air at ≤ 30 % SOC (road at the 60 % ± 5 % integration state), final charge to 60 % ± 5 % at the integrator (SQSO-BSA-001 §6), RBF in, in a fire-resistant container; carrier and integrator informed |
 | Verification | VI-SAF-09 shipping classification memo with the UN 38.3 test summary or the 173.185(e) approval route |
 | Status | **Open** |
 
@@ -283,7 +285,7 @@ These are in addition to the VI-LV items of SQSO-LVR-001 §10.
 | VI-SAF-01 | (Covered by V-BSA-2 of SQSO-BSA-001: each protection tripped alone, including the secondary protector on the EM) | Trip within ±25 mV and ±2 °C of the setting | HR-01 | EM, then flight pack |
 | VI-SAF-02 | Independence review of the overcharge controls on the EPS schematic | C1, C2, C3 use different ICs, different sense paths and no common supply or software | HR-01a | EPS CDR, before PCB release |
 | VI-SAF-03 | (Covered by V-BSA-1 and V-BSA-3 of SQSO-BSA-001: JSC 20793 Rev D §4.2.3 and §6.4.3.3 screening of one lot, ±3σ, pack vibration and thermal vacuum with mass and OCV change < 0.5 %, which is also the UG v11 §5.5.4 vacuum test of the sealed cells, LVR-073) | SQSO-BSA-001 §4 | HR-01c, HR-14 | Before the EM pack; flight pack |
-| VI-SAF-04 | Burn-line test on the EM: current, on-time, behaviour with the driver forced on | Current per resistor within the design limit (0.5–1 A, S5 F7); total burn current below the BMS and fuse trips with ≥ 30 % margin; hardware cut-off ≤ the design on-time (proposed 10 s) with the OBC driver held on | HR-01d, HR-03 | EM |
+| VI-SAF-04 | Burn-line test on the EM: current, on-time, behaviour with the driver forced on | Current per resistor at the design 0.8 A (limit 0.5–1 A); pack current ≤ 1.0 A with one resistor on and ≤ 2.0 A with all four forced on, below the BMS and fuse trips; hardware cut-off at the 12 s one-shot with the OBC driver held on (the flight burn is 10 s) | HR-01d, HR-03 | EM |
 | VI-SAF-05 | Restraint-line tension and break test | Line strength ≥ 2× the hinge spring's maximum load after thermal cycling; tension within ± 10 % of the drawing | HR-03 C5 | EM, then flight unit |
 | VI-SAF-06 | Fastener and locking-feature list, torque table, inspection after vibration | Every fastener has a locking feature (UG v11 §5.2); none loosened; staking uncracked | HR-05 | With VI-LV-04 |
 | VI-SAF-07 | Prohibited-materials and terminal-finish declaration | No cadmium, zinc plating, mercury; every pure-tin-finished part re-tinned with Sn-Pb or coated per MATERIALS_LIST Rev B §16 | HR-06 | L-4 M, with VI-LV-09 |
@@ -292,21 +294,22 @@ These are in addition to the VI-LV items of SQSO-LVR-001 §10.
 
 ## 8. Battery Safety Program Summary
 
-- **Cells.** Samsung INR18650-35E (named in `hardware/eps/BATTERY_DESIGN.md` v2.0; the repository names three other cells
-  elsewhere, finding TB-08: freeze the part number). Buy from an authorized distributor, one lot, with the manufacturer's
+- **Cells.** Samsung INR18650-35E (`hardware/eps/BATTERY_DESIGN.md`, SQSO-BSA-001 and the thermal analysis; the only
+  other cell still named is the EEE parts list's NCR18650GA alternative, to be recorded or deleted by SQSO-MFG-003 §12 V-3). Buy from an authorized distributor, one lot, with the manufacturer's
   UN 38.3 summary and safety listing; screening and acceptance per SQSO-BSA-001 §4.
-- **Pack.** 4S1P with BMS, fuse, PTC, cell-tap resistors (secondary protector to add); charged to 4.10 V/cell;
-  integration SOC 60 % ± 5 % (LVR-051) or 50 % ± 10 % (SQSO-BSA-001 §6), to be made one value (SMA-10); charged only
+- **Pack.** 4S1P with BMS AFE, sense-board fuses F0A, F0B, F0N, PTC, cell-tap chains and the secondary protector
+  (designed); charged to 4.10 V/cell; integration SOC 60 % ± 5 % (LVR-051, SQSO-BSA-001 §6; decision C-7); charged only
   inside 0–45 °C.
 - **Launch-site charging.** UG v11 Appendix D scenario A (no charging after stand-alone operations): the pack must stay
   flight-ready for ≥ 45 days encapsulated (LVR-071).
 - **Design elements missing at the first issue, now designed** (SQSO-EPS-BRD-001; RIDs SMA-05, SMA-06; EPS-09, EPS-11, EPS-12 of SQSO-BSA-001): burn-line current and
   on-time limit; dissimilar secondary over-voltage protector; recharge lockout after deep over-discharge; hardware
   low-voltage load disconnect; and the end-of-life charge-path disconnect (F1, ITV4030 three-terminal fuse fired only by EOL_ARM and EOL_FIRE), which is a debris
-  requirement (ODAR §4) rather than a launch-safety one. Its command sequence is designed, not implemented:
-  PASSIVATE_ARM (0x34, operational key), then PASSIVATE_EXECUTE (0x35, recovery key) within 600 s, which latches TX-OFF
-  first and then fires the SYS-800 disconnect (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md` v0.7 §6.4). It cannot
-  act before deployment: the bus is unpowered behind the inhibits and the command is refused in the first 365 days.
+  requirement (ODAR §4) rather than a launch-safety one. Its command sequence is implemented and host-tested:
+  PASSIVATE_ARM (0x70, operational key, with the EPS controller's key), then PASSIVATE_EXECUTE (0x71, recovery key) within
+  600 s, which fires the disconnect while the spacecraft still transmits, sends the final report and then latches TX-OFF
+  (`docs/interfaces/TELECOMMAND_AUTHENTICATION.md` §6.4). It cannot act before deployment: the bus is unpowered behind
+  the inhibits.
 
 ## 9. Ground Operations and Hazardous Procedures
 
@@ -343,7 +346,7 @@ battery and Jetson limits) and never for launch safety.
 | SMA-06 | 2 | No recharge lockout after a cell falls below ≈ 2.0 V (the precharge mode charges any cell under 3.0 V); it is the largest term of the explosion probability (ODAR §4) | Latched charge lockout (same as EPS-12), cleared only by ground command | Closed in hardware (SQSO-EPS-BRD-001 §5.4); clear command for the flight software |
 | SMA-07 | 2 | Cell screening in BATTERY_DESIGN §9.1 has no vibration, vacuum, self-discharge or lot statistics | Adopt SQSO-BSA-001 §4 (V-BSA-1, -3) | Verification item |
 | SMA-08 | 2 | Pack UN 38.3 status and the 49 CFR 172.101 declaration | VI-SAF-09 (V-BSA-5) | Verification item |
-| SMA-10 | 3 | Integration SOC differs between documents: 60 % ± 5 % (LVR-051, LVR-071) and 50 % ± 10 % (SQSO-BSA-001 §6) | One value in the battery program and the launch requirements | For the chair |
+| SMA-10 | 3 | Integration SOC differs between documents: 60 % ± 5 % (LVR-051, LVR-071) and 50 % ± 10 % (SQSO-BSA-001 §6) | One value in the battery program and the launch requirements | Closed: 60 % ± 5 % (decision C-7; SQSO-BSA-001 §6, BASELINE §4) |
 | SMA-09 | 3 | SSCMAN 91-710 and the ISS documents not obtained | Obtain through the integrator / Voyager | Open |
 
 ## Appendix A. Launch-Provider Deliverable Mapping
@@ -361,8 +364,8 @@ vehicle and is handled inside the ISS, so the crew is exposed and the safety pro
 
 | Topic | Additional content | SMART-QSO status |
 |-------|--------------------|------------------|
-| Failure tolerance | Catastrophic hazards two-fault tolerant, critical single-fault (SSP 51700, from NSTS 1700.7B §200.1) | As §6; DS3 needed |
-| Battery | JSC 20793 Rev D: cell and battery qualification and lot acceptance, two-fault tolerance to overcharge, over-discharge, external short and over-temperature, venting design, and an assessment of cell-to-cell propagation; the 4S1P pack is ≈ 50 Wh, below the 80 Wh level the baseline notes for added assessment | VI-SAF-01–03; propagation not analysed; this is the cost driver BASELINE §3 records (6–9 months, R17) |
+| Failure tolerance | Catastrophic hazards two-fault tolerant, critical single-fault (SSP 51700, from NSTS 1700.7B §200.1) | As §6 (DS3 designed) |
+| Battery | JSC 20793 Rev D: cell and battery qualification and lot acceptance, two-fault tolerance to overcharge, over-discharge, external short and over-temperature, venting design, and an assessment of cell-to-cell propagation; the 4S1P pack is ≈ 50 Wh, below the 80 Wh level the baseline notes for added assessment | VI-SAF-01–03; propagation test not required below 80 Wh (SQSO-BSA-001 §1); the abuse-test programme of SQSO-BSA-001 §3.1 ($50–75k); this is the cost driver BASELINE §3 records (6–9 months, R17) |
 | RF and deployables | Inhibits as for the rideshare; deployer switches; no RF or deployment inside the ISS or before the deployer's minimum time | §3.2 |
 | Materials | Flammability (NASA-STD-6001B Test 1 or configuration analysis), offgassing toxicity (Test 7), and the materials usage agreement for any exceedance | Not started; MATERIALS_LIST Rev B §2.3 |
 | Structures | Loads and fracture control for the cargo-vehicle environment (soft-stowed); pack restraint | Not started |
@@ -376,3 +379,4 @@ vehicle and is handled inside the ISS, so the crew is exposed and the safety pro
 | 0.1 | 2026-10-16 | SMART-QSO Team | Skeleton created (funding audit VV-20), structured on SpaceX Rideshare Payload User's Guide v11 as the interim provider |
 | 1.0 | 2026-10-27 | CDR S&MA review | System hazard analysis: energy-source inventory, inhibit architecture against CDS 2.3.7–2.3.8 from schematics S1 and S5, 16 hazard reports with causes, controls, fault tolerance and verification, fault-tolerance summary, VI-SAF-01–09, battery program, ground operations, ISS backup appendix; UG v11 sections cited from the guide; LVR-070–073 reflected (HR-01, HR-14, HR-15) |
 | 1.1 | 2026-10-27 | CDR documentation review | CDR 2026 consistency pass: §1 result rows, §3.2 inhibit architecture (three deployment switches DS1–DS3 on three rails, four burn drivers, EOL fuse F1), HR-01 controls (secondary protector, recharge lockout, burn on-time limit designed), HR-02/HR-03 tolerance and the §6 summary, and the dispositions of SMA-01, SMA-05, SMA-06, all from SQSO-EPS-BRD-001 Version B; no hazard closed (verification open) |
+| 1.2 | 2026-10-27 | Documentation audit (post-CDR 2026) | Brought to SQSO-EPS-BRD-001 G and SQSO-BSA-001 H: §0 and HR-01 external short 2-FT upstream and downstream of the AFE (sense-board fuses F0A, diverse F0B, F0N; decision C-16); §3.1 burn resistors on four 0.8 A drivers, heater ≈ 207 Ω, rods selected, hinge springs designed; §3.2 diagram with the sense board; HR-01 status (C3, C10, C13 designed); HR-05 structural analysis and the 8.18 Grms level; HR-08 the C-20 burst; HR-15 air transport at ≤ 30 % SOC; VI-SAF-04 the designed limits; §8 cells, pack, integration SOC (C-7) and the passivation as implemented (0x70/0x71, no year-1 refusal in the command path); SMA-10 closed; BASELINE Rev E. No hazard closed |
