@@ -240,7 +240,7 @@ put("i2c2_tr_one", 0.8473 * 4.7e3 * CB, "s", "I2C2 rise time with one pull-up op
 put("i2c3_tr", 0.8473 * 2.35e3 * 80e-12, "s", "I2C3 (AntS) rise time, 2.35 k, 80 pF (W3 + EPS U80 A side)")
 put("i2c3_tr_one", 0.8473 * 4.7e3 * 80e-12, "s", "I2C3 with one pull-up open: <= 1000 ns for 100 kHz")
 put("tx_temp_pd_err", 11e3 / 1e6, "", "TX_TEMP reading low by 11 k / 1 M (1.1 %) with the 1 M open-line pull-down on PA0")
-put("i2c2_iol", 3.3 / 2.2e3, "A", "sink current at VOL (<= 3 mA)")
+put("i2c2_iol", 3.3 / 2.35e3, "A", "sink current at VOL with both pull-ups (<= 3 mA)")
 put("i2c4_tr", 0.8473 * 2.2e3 * 50e-12, "s", "I2C4 OBC side, 50 pF")
 put("i2c4b_tr", 0.8473 * 4.7e3 * (0.10 * 100e-12 + 25e-12), "s",
     "I2C4 sensor side (4.7 k): W6E 0.10 m at 100 pF/m plus 25 pF of parts and ESD on both boards; <= 300 ns at 400 kHz")

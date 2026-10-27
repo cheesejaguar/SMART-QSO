@@ -182,6 +182,9 @@ pub struct Housekeeping2 {
     pub mtq_faults: (u32, u32),
     /// SRAM2 parity on
     pub parity: Option<bool>,
+    /// Separation latched on this boot, and the stowed readings since
+    /// (`SEP`, RID SMA-B02)
+    pub separation: (bool, u32),
 }
 
 struct Out<'a> {
@@ -326,6 +329,7 @@ pub fn format2(hk: &Housekeeping2, out: &mut [u8]) -> usize {
         )
     })
     .and_then(|()| opt_u(&mut w, hk.parity.map(u32::from)))
+    .and_then(|()| write!(w, " SEP={}/{}", u8::from(hk.separation.0), hk.separation.1))
     .is_ok();
     if ok { w.len } else { 0 }
 }
@@ -498,12 +502,13 @@ mod tests {
             trips: [1, 0, 0],
             gyro: (0, 37),
             parity: Some(true),
+            separation: (true, 1),
             ..Housekeeping2::default()
         };
         assert_eq!(
             text2(&hk),
             "HK2 N=7 CA=12/3/1 WD=2 XE=4/3600/4100 IA=412 HL=0 JB=6/1210/10/0 JP=5/1/0/0 EOL=4/0 \
-             RT=1900000000/- CK=-12 TR=1/0/0 GY=0/37 MF=0/0 PE=1"
+             RT=1900000000/- CK=-12 TR=1/0/0 GY=0/37 MF=0/0 PE=1 SEP=1/1"
         );
         let worst = Housekeeping2 {
             seq: u16::MAX,
@@ -521,12 +526,13 @@ mod tests {
             gyro: (2, u32::MAX),
             mtq_faults: (u32::MAX, u32::MAX),
             parity: Some(false),
+            separation: (true, u32::MAX),
         };
         assert!(text2(&worst).len() <= MAX_LEN, "{}", text2(&worst).len());
         let none = text2(&Housekeeping2::default());
         assert!(none.contains("IA=- "), "{none}");
         assert!(none.contains("EOL=-/0"), "{none}");
-        assert!(none.ends_with("PE=-"), "{none}");
+        assert!(none.ends_with("PE=- SEP=0/0"), "{none}");
         assert_eq!(format2(&worst, &mut [0u8; 20]), 0);
     }
 

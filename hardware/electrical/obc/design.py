@@ -52,7 +52,7 @@ def cv(key, fmt="{:.3g}"):
 
 # ------------------------------------------------------------------------------------------------- helpers
 _nets = {}
-POWER_NETS = ["GND", "3V3_OBC", "3V3_ADCS", "3V3_GYRO", "3V3_IMU2", "3V3_SNS", "3V3_RTC", "VBAT_MTQ", "JET_3V3",
+POWER_NETS = ["GND", "3V3_OBC", "3V3_ADCS", "3V3_GYRO", "3V3_IMU2", "3V3_SNS", "3V3_MAG", "3V3_RTC", "VBAT_MTQ", "JET_3V3",
               "3V3_GNSS", "VDDA", "3V3_VTREF"]
 
 
@@ -108,6 +108,7 @@ TR = sym("R", "R", "1:A:P 2:B:P")
 TC = sym("C", "C", "1:A:P 2:B:P")
 TFB = sym("FB", "FB", "1:A:P 2:B:P")
 TD = sym("D", "D", "1:K:P 2:A:P")
+TQN = sym("Q_NMOS", "Q", "1:G:P 2:S:P 3:D:P")
 TLED = sym("LED", "D", "1:K:P 2:A:P")
 TTP = sym("TP", "TP", "1:TP:P")
 TCOIL = sym("COIL", "L", "1:A:P 2:B:P")
@@ -164,6 +165,7 @@ CAPS = {  # (value, V, size) -> (Murata GCM AEC-Q200 part, dielectric)
     ("10nC0G", 50, "0603"): ("GCM1885C1H103JA16D", "C0G"),
     ("10p", 50, "0603"): ("GCM1885C1H100JA16D", "C0G"),
     ("100nC0G", 50, "1206"): ("GCM31C5C1H104JA16L", "C0G"),
+    ("470nC0G", 50, "1210"): ("C0G 470 nF 50 V 1210, soft termination (Murata GCJ / TDK CGA6 class; order code to select)", "C0G"),
     ("1u", 25, "0603"): ("GCM188R71E105KA64D", "X7R"),
     ("2.2u", 25, "0805"): ("GCM21BR71E225KA73L", "X7R"),
     ("4.7u", 50, "1210"): ("GCM32ER71H475KA55L", "X7R"),
@@ -173,7 +175,7 @@ CAPS = {  # (value, V, size) -> (Murata GCM AEC-Q200 part, dielectric)
 
 
 CAP_DEFAULT = {"1u": (25, "0603"), "2.2u": (25, "0805"), "10u": (25, "1206"), "22u": (16, "1210"),
-               "4.7u": (50, "1210"), "100nC0G": (50, "1206")}
+               "4.7u": (50, "1210"), "100nC0G": (50, "1206"), "470nC0G": (50, "1210")}
 
 
 def C(val, a, b, v=None, size=None, vop=3.3, note="", ref=None, dnp=False):
@@ -289,7 +291,7 @@ def pm(pin, net, func, d, level, reset, dest):
 
 HZ = "analog (high-Z)"
 # --- port A
-pm("PA0", "TX_TEMP", "ADC1_IN5", "A", "0.3-1.7 V", HZ, "J2-11 RF board (10 k series, 10 nF)")
+pm("PA0", "TX_TEMP", "ADC1_IN5", "A", "0.3-1.7 V; open line reads 0 V (1 M pull-down)", HZ, "J2-11 RF board (10 k series, 10 nF, 1 M pull-down: SMA-B19)")
 pm("PA1", "VSW1_RB", "ADC1_IN6", "A", "0-2.8 V (VBAT_SW1 / 6)", HZ, "J1-37 EPS (new; was DEPLOY_EN)")
 pm("PA2", "PT_NTC", "ADC1_IN7", "A", "VDDA x R/(10.0 k + R): 2.93 V at -15 C, 0.49 V at 70 C", HZ,
    "J3-5 Jetson spreader NTC (new, E10; was JETSON_PWR)")
@@ -311,15 +313,15 @@ pm("PB0", "VBUS_SNS", "ADC1_IN15", "A", "0-2.5 V (5V_PA / 2)", HZ, "J1-26 EPS")
 pm("PB1", "TEMP_BOARD", "ADC1_IN16", "A", "10 mV/C, 0.5 V at 0 C", HZ, "U21 TMP235 on the OBC")
 pm("PB2", "PAYLOAD_EN", "GPIO out", "O", "3.3 V, high = SW1 on", HZ + "; EPS 100 k pull-down", "J1-9 EPS (moved from PB4)")
 pm("PB3", "SWO", "spare (JTDO/SWO)", "-", "", "JTDO", "TP only")
-pm("PB4", None, "spare (NJTRST)", "-", "", "NJTRST, pull-up: never an enable", "")
+pm("PB4", "I2C3_SDA", "I2C3_SDA AF4", "B", "open drain, 2 x 4.7 k on the OBC, 100 kHz", "NJTRST with its internal pull-up until configured (harmless on an open-drain bus)", "J1-28 EPS: AntS bus via U80 (SMA-B07)")
 pm("PB5", "RADIO_EN", "GPIO out", "O", "3.3 V, high = SW2 on", HZ + "; EPS 100 k pull-down", "J1-10 EPS")
 pm("PB6", "ADCS_EN", "GPIO out", "O", "3.3 V, high = SW4 + VBAT_MTQ switch on", HZ + "; EPS 100 k pull-down", "J1-11 EPS")
-pm("PB7", "EPS_ALERT_N", "GPIO in, EXTI7", "I", "open drain, active low (EPS 4.7 k)", HZ, "J1-8 EPS (10 k series)")
+pm("PB7", "EPS_ALERT_N", "GPIO in, EXTI7", "I", "open drain, active low (EPS 4.7 k)", HZ + "; OBC 1 M pull-up (open reads no alert)", "J1-8 EPS (10 k series)")
 pm("PB8", "UMBILICAL_SENSE", "GPIO in", "I", "high = GSE plug present", HZ + "; 100 k pull-down", "J9-9 access port")
 pm("PB9", "BURN_W2A", "GPIO out", "O", "3.3 V, high = burn (12 s hardware limit)", HZ + "; EPS 100 k pull-down", "J1-17 EPS (was ANTENNA_BURN)")
 pm("PB10", "BURN_W1A", "GPIO out", "O", "3.3 V, high = burn", HZ + "; EPS 100 k pull-down", "J1-18 EPS (was SOLAR_BURN)")
-pm("PB11", None, "spare (was ANTENNA_SENSE)", "-", "", HZ, "")
-pm("PB12", "SOLAR_SENSE", "GPIO in", "I", "low = both wings deployed", HZ + "; EPS pull-up", "J1-20 EPS (10 k series)")
+pm("PB11", "LPUART1_TX", "LPUART1_TX AF8", "O", "3.3 V UART 9600", HZ, "U30 -> J5-3 GNSS (moved from PG7)")
+pm("PB12", "SOLAR_SENSE", "GPIO in", "I", "low = both wings deployed", HZ + "; EPS 10 k pull-up, OBC 1 M pull-up (open reads high)", "J1-20 EPS (10 k series)")
 pm("PB13", "IMU2_SCK", "SPI2_SCK AF5", "O", "3.3 V, <= 10 MHz", HZ, "U12 -> BMI088")
 pm("PB14", "IMU2_MISO", "SPI2_MISO AF5", "I", "3.3 V", HZ + "; 100 k pull-down", "U12 <- BMI088 SDO1/SDO2")
 pm("PB15", "IMU2_MOSI", "SPI2_MOSI AF5", "O", "3.3 V", HZ, "U12 -> BMI088")
@@ -348,7 +350,7 @@ pm("PD3", "LED_STATUS", "GPIO out", "O", "3.3 V", HZ, "D1 (DNP in flight)")
 pm("PD4", "IMU2_ACS_N", "GPIO out (SPI2 CS2)", "O", "3.3 V, low = select", HZ + "; 100 k pull-up", "U13 -> BMI088 CSB1")
 pm("PD5", "USART2_TX", "USART2_TX AF7", "O", "3.3 V UART 9600", HZ, "J2-2 RF TNC")
 pm("PD6", "USART2_RX", "USART2_RX AF7", "I", "3.1 V UART", HZ + "; 100 k pull-up", "J2-3 RF TNC (10 k series)")
-pm("PD7", None, "spare", "-", "", HZ, "")
+pm("PD7", "FRAM2_CS_N", "GPIO out", "O", "3.3 V, low = second FRAM selected", HZ + "; 10 k pull-up", "U36 FM25V20A CS# (SMA-B10)")
 pm("PD8", "USART3_TX", "USART3_TX AF7", "O", "3.3 V UART 115200", HZ, "J9-7 access port")
 pm("PD9", "USART3_RX", "USART3_RX AF7", "I", "3.3 V UART", HZ + "; 100 k pull-up", "J9-8 access port (10 k series)")
 pm("PD10", "GYRO_DRDY", "GPIO in, EXTI10", "I", "3.3 V", HZ + "; 100 k pull-down", "U10 <- M-G370 DRDY")
@@ -360,7 +362,7 @@ pm("PD15", "IMU2_DRDY", "GPIO in, EXTI15", "I", "3.3 V", HZ + "; 100 k pull-down
 # --- port E
 pm("PE0", "FRAM_WP_N", "GPIO out", "O", "3.3 V, high = writes allowed", HZ + "; 10 k pull-up", "U3")
 pm("PE1", "FRAM_HOLD_N", "GPIO out", "O", "3.3 V, high", HZ + "; 10 k pull-up", "U3")
-pm("PE2", "DEPLOY_SENSE", "GPIO in, EXTI2", "I", "high = DS2 released (1 M source)", HZ, "J1-16 EPS (10 k series)")
+pm("PE2", "DEPLOY_SENSE", "GPIO in, EXTI2", "I", "high = DS2 released (1 M source); no internal pull", HZ + "; 10 M pull-down (open reads low)", "J1-16 EPS (10 k series)")
 pm("PE3", "TX_PWR_SEL", "GPIO out", "O", "3.3 V, low 0.5 W / high 1 W", HZ + "; RF 100 k pull-down", "J2-5 RF board")
 pm("PE4", "XPDR_EN", "GPIO out (TIM7 heartbeat)", "O", "100 Hz square wave", HZ + "; RF 100 k pull-down", "J2-6 RF board")
 pm("PE5", "GNSS_EN", "GPIO out", "O", "3.3 V, high = SW7 on", HZ + "; EPS 100 k pull-down", "J1-15 EPS")
@@ -375,8 +377,8 @@ pm("PE13", "MTQ_Z_PWM", "TIM1_CH3 AF1", "O", "3.3 V PWM 40 kHz", HZ + "; DRV pul
 pm("PE14", "MTQ_FAULT_N", "GPIO in, EXTI14", "I", "open drain, 10 k pull-up", HZ, "U22-U24 nFAULT")
 pm("PE15", "MTQ_EXPIRED", "GPIO in", "I", "high = hardware off-timer expired", HZ, "U25 Q10")
 # --- port F
-pm("PF0", "I2C2_SDA", "I2C2_SDA AF4", "B", "open drain, 2.2 k on the OBC", HZ, "J1-6 EPS (0x40, 0x44, 0x48, AntS 0x31)")
-pm("PF1", "I2C2_SCL", "I2C2_SCL AF4", "B", "open drain, 2.2 k on the OBC", HZ, "J1-5 EPS")
+pm("PF0", "I2C2_SDA", "I2C2_SDA AF4", "B", "open drain, 2 x 4.7 k on the OBC", HZ, "J1-6 EPS (0x40, 0x44, 0x48; heartbeat register in 0x48)")
+pm("PF1", "I2C2_SCL", "I2C2_SCL AF4", "B", "open drain, 2 x 4.7 k on the OBC", HZ, "J1-5 EPS")
 pm("PF2", None, "spare", "-", "", HZ, "")
 pm("PF3", "DEPLOY_EN", "GPIO out", "O", "3.3 V, high = SW6/SW8 on (master arm)", HZ + "; EPS 100 k pull-down", "J1-13 EPS (moved from PA1)")
 pm("PF4", "EOL_ARM", "GPIO out", "O", "3.3 V, rising edge sets the arm latch", HZ + "; EPS 100 k pull-down", "J1-32 EPS (new)")
@@ -389,8 +391,8 @@ pm("PF10", "GYRO_RB", "GPIO in", "I", "low with GYRO_EN high = latch-up trip", H
 pm("PF11", "IMU2_RB", "GPIO in", "I", "as GYRO_RB", HZ, "U6 EN node (100 k)")
 pm("PF12", "SNS_RB", "GPIO in", "I", "as GYRO_RB", HZ, "U7 EN node (100 k)")
 pm("PF13", "RX_FAULT", "GPIO in, EXTI13", "I", "3.1 V CMOS, high = receiver fault", HZ + "; 100 k pull-down (unwired or radio off reads healthy)", "J2-16 RF board (10 k series; new, FSW round 2)")
-pm("PF14", None, "spare", "-", "", HZ, "")
-pm("PF15", None, "spare", "-", "", HZ, "")
+pm("PF14", "MAG_EN", "GPIO out", "O", "3.3 V, high = 3V3_MAG on", HZ + "; 100 k pull-down", "U35 TPS2553-Q1 (magnetometer switch, SMA-B18)")
+pm("PF15", "MAG_RB", "GPIO in", "I", "low with MAG_EN high = latch-up trip", HZ, "U35 EN node (100 k)")
 # --- port G (PG2-PG15 on VDDIO2)
 pm("PG0", "RX_CD", "GPIO in, EXTI0", "I", "3.1 V CMOS, high = receiver carrier detect", HZ + "; 100 k pull-down", "J2-15 RF board (10 k series; new, FSW round 2)")
 pm("PG1", "EOL_FIRE", "GPIO out", "O", "3.3 V, high = fire (>= 60 s)", HZ + "; EPS 100 k pull-down", "J1-33 EPS (new)")
@@ -399,7 +401,7 @@ pm("PG3", "FRAM_MISO", "SPI1_MISO AF5", "I", "3.3 V", HZ, "U3 (moved from PA6)")
 pm("PG4", "FRAM_MOSI", "SPI1_MOSI AF5", "O", "3.3 V", HZ, "U3 (moved from PA7)")
 pm("PG5", "FRAM_CS_N", "GPIO out", "O", "3.3 V, low = select", HZ + "; 10 k pull-up", "U3 (moved from PA4)")
 pm("PG6", "JET_PG", "GPIO in, EXTI6", "I", "high = carrier 3.3 V up", HZ + "; 100 k pull-down", "J3-4 Jetson (10 k series)")
-pm("PG7", "LPUART1_TX", "LPUART1_TX AF8", "O", "3.3 V UART 9600", HZ, "U30 -> J5-3 GNSS")
+pm("PG7", "I2C3_SCL", "I2C3_SCL AF4", "B", "open drain, 2 x 4.7 k on the OBC, 100 kHz", HZ, "J1-27 EPS: AntS bus via U80 (SMA-B07; LPUART1_TX moved to PB11)")
 pm("PG8", "LPUART1_RX", "LPUART1_RX AF8", "I", "3.3 V UART", HZ + "; 100 k pull-up", "U31 <- J5-4 GNSS")
 pm("PG9", None, "spare", "-", "", HZ, "")
 pm("PG10", None, "spare", "-", "", HZ, "")
@@ -491,8 +493,9 @@ def reset_supervisor():
        stress="VDD 3.4 V / 7 V abs = 49 %",
        notes=(f"RID AV-02: window watchdog {cv('wd_twdl_max', '{:.1f}')} s (max lower) to {cv('wd_twdu_min', '{:.1f}')} s "
               f"(min upper), kick every 10 s; UV 3.069 V, OV 3.531 V; reset 200 ms (CRST open); RESET and WDO wired to NRST"))
-    for i in range(5):
-        C("100nC0G", "WD_CWD", "GND", 50, "1206", note="CWD 5 x 100 nF C0G: tWDU 38.8 s typical")
+    for k in (1, 2):   # SMA-B08: two parallel strings of two in series; one short or one open keeps a working window
+        C("470nC0G", "WD_CWD", f"WD_CM{k}", note=f"CWD string {k}, upper (470 nF total: tWDU 36.4 s typ)")
+        C("470nC0G", f"WD_CM{k}", "GND", note=f"CWD string {k}, lower; one short -> 705 nF, one open -> 235 nF")
     C("100n", "3V3_OBC", "GND", note="TPS3850 VDD")
     R(100e3, "WD_SET0", "GND", note="SET0 low: watchdog enabled in flight")
     R(10e3, "WDT_DIS", "WD_SET0", note="GSE pulls SET0 high: watchdog disabled (latched at the next supervisor reset)")
@@ -513,6 +516,15 @@ def fram():
     for n in ("FRAM_CS_N", "FRAM_WP_N", "FRAM_HOLD_N"):
         R(10e3, "3V3_OBC", n, note="FRAM control pull-up (deselected, not held, during MCU reset)")
     C("100n", "3V3_OBC", "GND", note="FRAM")
+    # second FRAM (SMA-B10): own chip select, its own WP#/HOLD# pull-ups (not shared with U3's driven lines)
+    ic(S_FRAM, "U36", "FM25V20A", "FM25V20A-GTR", "Infineon", "SOIC-8", "2 Mbit SPI FRAM, 40 MHz, 2.0-3.6 V, -40..85 C",
+       {"CS": "FRAM2_CS_N", "SO": "FRAM_MISO", "WP": "FRAM2_WP_N", "VSS": "GND", "SI": "FRAM_MOSI", "SCK": "FRAM_SCK_R",
+        "HOLD": "FRAM2_HOLD_N", "VDD": "3V3_OBC"}, stress="20 MHz / 40 MHz = 50 %",
+       notes="mirror NVM (SMA-B10): every record mirrored; read from the mirror when U3 fails; CS# PD7",
+       finish="Sn (matte): re-tin or coat", checked="not checked (Infineon site not read; EEE_PARTS_LIST)")
+    for n in ("FRAM2_CS_N", "FRAM2_WP_N", "FRAM2_HOLD_N"):
+        R(10e3, "3V3_OBC", n, note="second FRAM control pull-up (WP#, HOLD# not driven: no shared control line)")
+    C("100n", "3V3_OBC", "GND", note="FRAM 2")
 
 
 def rtc():
@@ -821,8 +833,13 @@ def eps_connector():
     for nm in ("PAYLOAD_EN", "RADIO_EN", "ADCS_EN", "HEATER_EN", "DEPLOY_EN", "RF_TX_EN", "GNSS_EN", "BURN_W2A",
                "BURN_W1A", "JETSON_PWR", "BURN_W1B", "BURN_W2B", "EOL_ARM", "EOL_FIRE", "LOCK_CLR"):
         R(100, nm, f"{nm}_J", note="series (ESD current, edge rate)")
-    R(2.2e3, "3V3_OBC", "I2C2_SCL", note="I2C2 pull-up (the only ones on the bus: EPS adds none)")
-    R(2.2e3, "3V3_OBC", "I2C2_SDA", note="I2C2 pull-up")
+    for bus, what in (("I2C2", "EPS bus (the only pull-ups on it)"), ("I2C3", "AntS bus to EPS U80 (SMA-B07)")):
+        for ln in ("SCL", "SDA"):
+            for k in (1, 2):
+                R(4.7e3, "3V3_OBC", f"{bus}_{ln}", note=f"{what}: pull-up {k} of 2 in parallel, each works alone (SMA-B07)")
+    R(1e6, "3V3_OBC", "EPS_ALERT_N", note="defined state with the line open: no alert")
+    R(1e6, "3V3_OBC", "SOLAR_SENSE", note="defined state with the line open: reads not deployed")
+    R(10e6, "DEPLOY_SENSE", "GND", note="defined state with the line open: reads low (stowed); 3.0 V with the EPS 1 M source")
     sig = [n for n in pins if n not in ("3V3_OBC", "GND", "VBAT_MTQ", "3V3_RTC")]
     for k in range(0, len(sig), 4):
         esd4(None, sig[k:k + 4] + [None] * (4 - len(sig[k:k + 4])), "J1 EPS lines")
@@ -834,7 +851,7 @@ def eps_connector():
 J1_PINS = ["3V3_OBC", "3V3_OBC", "GND", "GND", "I2C2_SCL", "I2C2_SDA", "GND", "EPS_ALERT_N_J", "PAYLOAD_EN_J",
            "RADIO_EN_J", "ADCS_EN_J", "HEATER_EN_J", "DEPLOY_EN_J", "RF_TX_EN_J", "GNSS_EN_J", "DEPLOY_SENSE_J",
            "BURN_W2A_J", "BURN_W1A_J", "VJET_RB_J", "SOLAR_SENSE_J", "GND", "VBATT_SNS_J", "IBATT_SNS_J", "VSOLAR_SNS_J",
-           "ISOLAR_SNS_J", "VBUS_SNS_J", "GND", "GND", "JETSON_PWR_J", "BURN_W1B_J", "BURN_W2B_J", "EOL_ARM_J",
+           "ISOLAR_SNS_J", "VBUS_SNS_J", "I2C3_SCL", "I2C3_SDA", "JETSON_PWR_J", "BURN_W1B_J", "BURN_W2B_J", "EOL_ARM_J",
            "EOL_FIRE_J", "LOCK_CLR_J", "GND", "VBAT_MTQ", "VSW1_RB_J", "3V3_RTC", "VBAT_MTQ", "GND"]
 
 
@@ -859,6 +876,7 @@ def rf_connector():
     for src, dst in (("TX_TEMP_J", "TX_TEMP"), ("TX_FWD_J", "TX_FWD"), ("TX_REV_J", "TX_REV")):
         R(10e3, src, dst, note="analog series (back-power limit)")
         C("10n", dst, "GND", note="ADC reservoir")
+    R(1e6, "TX_TEMP", "GND", note="open W4A pin 11 reads 0 V = -50 C, a detectable sensor fault (SMA-B19); reading low by 1.1 %")
     esd4(None, ["TNC_RXD_J", "TNC_TXD_J", "TX_PWR_SEL_J", "XPDR_EN_J"], "J2 RF")
     esd4(None, ["TONE_OK_J", "XPDR_KEY_J", "PTT_EXC_J", "RX_CD_J"], "J2 RF")
     esd4(None, ["TX_TEMP_J", "TX_FWD_J", "TX_REV_J", "RX_FAULT_J"], "J2 RF")
@@ -893,19 +911,28 @@ def access_port():
               "contact rating per Samtec (not read)", "signals",
               "W8A (SFSDT 30 AWG) to the access-port board A3 (SWD, NRST, console, umbilical sense, watchdog disable); cable toward -X, plug's back <= x -43.1",
               "Au 30 uin", "not checked")
-    conn(j, {"P1": "3V3_VTREF", "P2": "SWDIO_J", "P3": "GND", "P4": "SWCLK_J", "P5": "WDT_DIS_J", "P6": "NRST_J",
+    conn(j, {"P1": "3V3_VTREF", "P2": "SWDIO_J", "P3": "GND", "P4": "SWCLK_J", "P5": "WDT_DIS_J", "P6": "RST_REQ_J",
              "P7": "USART3_TX_J", "P8": "USART3_RX_J", "P9": "UMB_J", "P10": "GND"})
     R(100, "3V3_OBC", "3V3_VTREF", note="VTREF for the probe; the GSE plug also ties pin 9 to it")
     R(22, "SWDIO", "SWDIO_J", note="series")
     R(22, "SWCLK", "SWCLK_J", note="series")
-    R(100, "NRST", "NRST_J", note="series")
+    # SMA-B14: the access port asks for a reset; it cannot hold NRST. High on J9-6 turns Q1 on, which pulls NRST;
+    # a short of the line or its ESD channel to ground leaves Q1 off.
+    R(1e3, "RST_REQ_J", "RST_REQ_G", note="gate series (ESD current)")
+    R(100e3, "RST_REQ_G", "GND", note="gate pull-down: no request = no reset; a shorted line = no reset")
+    p = place(TQN, "Q1", "2N7002BK", "2N7002BK,215", "Nexperia", "SOT-23", "60 V, 0.35 A N-MOSFET, AEC-Q101",
+              "Vgs 3.3 V / 20 V = 17 %", "NRST pull-down on a GSE reset request (active high, from the adapter's inverter)",
+              "Sn (matte): re-tin or coat", "not checked")
+    link("RST_REQ_G", p["G"])
+    link("GND", p["S"])
+    link("NRST", p["D"])
     R(100, "USART3_TX", "USART3_TX_J", note="series")
     R(10e3, "USART3_RX_J", "USART3_RX", note="back-power limit from a powered GSE adapter")
     R(100e3, "3V3_OBC", "USART3_RX", note="RX idle")
     R(1e3, "UMB_J", "UMBILICAL_SENSE", note="series")
     R(100e3, "UMBILICAL_SENSE", "GND", note="low in flight (no plug)")
     R(0, "WDT_DIS_J", "WDT_DIS", note="to the SET0 network")
-    esd4(None, ["SWDIO_J", "SWCLK_J", "NRST_J", "WDT_DIS_J"], "J9 access port")
+    esd4(None, ["SWDIO_J", "SWCLK_J", "RST_REQ_J", "WDT_DIS_J"], "J9 access port")
     esd4(None, ["USART3_TX_J", "USART3_RX_J", "UMB_J", "3V3_VTREF"], "J9 access port")
 
 

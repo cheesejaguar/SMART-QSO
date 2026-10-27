@@ -667,9 +667,9 @@
   "note": "TX_TEMP reading low by 11 k / 1 M (1.1 %) with the 1 M open-line pull-down on PA0"
  },
  "i2c2_iol": {
-  "value": 0.0014999999999999998,
+  "value": 0.001404255319148936,
   "unit": "A",
-  "note": "sink current at VOL (<= 3 mA)"
+  "note": "sink current at VOL with both pull-ups (<= 3 mA)"
  },
  "i2c4_tr": {
   "value": 9.320300000000002e-08,

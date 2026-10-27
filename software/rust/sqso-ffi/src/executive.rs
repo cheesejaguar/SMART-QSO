@@ -46,7 +46,7 @@ use crate::sensors::Sensor;
 use crate::{
     adcs_control, beacon, cmd_handler, contact_monitor, deployment, downlink, eps_control, eps_lockout, fault_mgmt,
     gse_provision, hk_store, jetson_link, mission_data, ops_state, passivation, payload_guard, receiver, rf_control,
-    rf_silence, sensors, state_machine, system_state, uart_comm, uplink, watchdog_mgr,
+    rf_silence, sensors, separation_switch, state_machine, system_state, uart_comm, uplink, watchdog_mgr,
 };
 use crate::{hw, pins};
 
@@ -1297,6 +1297,7 @@ impl Executive {
                 2 => Some(true),
                 _ => None,
             },
+            separation: separation_switch::status(),
         }
     }
 

@@ -1,7 +1,7 @@
 # SMART-QSO RF Board: Build-to Design
 
 **Document ID**: SQSO-RF-BRD-001
-**Version**: D
+**Version**: E
 **Date**: 2026-10-27
 **Status**: Build-to design for the engineering model (EM): schematic captured as code with selected, orderable parts,
 netlist, BOM, ERC, calculations and layout rules. Not built, not measured. Values follow
@@ -44,8 +44,8 @@ the AX.25 beacon and the FM repeat path, a KISS TNC on USART2, and the hardware 
 | Repeat path, `XPDR_EN` | LVC1G123 monostable (49.7 ms), CMX138A CTCSS decode and audio filter, HC4060 120 s timer, LVC1G11 AND, TMUX1101 mute, TMUX1219 select, TX permit in the PTT gate | Unkeys ≤ 59 ms after the last heartbeat edge; key-down timer 120 ± 4.6 s |
 | Power | Receive section on RADIO_3V3 (SW2) | 0.102 W typical, 0.127 W worst (allocation 0.15 W); repeat path +24 mW (allocation 30 mW) |
 | Receiver supervision (B) | RX_CD (CC1200 carrier sense) and RX_FAULT (hardware monostable on the TNC's health pulses) to the OBC on J1-15/16 | RX_FAULT asserts 0.36–0.62 s after the last health pulse; unpowered board reads not fault |
-| Magnetic cleanliness (B, amended: OBC item C16) | Magnetometer board A2 above (+24, +27): no part within 20 mm, no ferrite or ferromagnetic lid within 40 mm, nickel-silver shield with soldered lids (no clips), PA supply and return paired on L4/L5 and kept ≥ 60 mm away; J1 in the (+X, −Y) corner, J2 by the PA (§10.1) | PA current field at the sensor 0.4 nT at 1 W (22 nT if unpaired or routed past the sensor); RM3100 noise 15 nT |
-| Parts | 330 placed, 300 fitted and orderable, 194 nets; 4 mechanical items (shield frame and three lids) | ERC: 0 errors, 0 warnings, 7 waivers |
+| Magnetic cleanliness (B, amended: OBC item C16) | Magnetometer board A2 above (+24, +27): no part within 20 mm, no ferrite or ferromagnetic lid within 40 mm, nickel-silver shield with soldered lids (no clips), PA supply and return paired on L4/L5 and kept ≥ 60 mm away; J1 in the (+X, −Y) corner, J2 by the PA (§10.1) | PA current field at the sensor 0.4 nT at 1 W (23 nT if unpaired or routed past the sensor); RM3100 noise 15 nT |
+| Parts | 330 placed, 300 fitted and orderable, 193 nets; 4 mechanical items (shield frame and three lids) | ERC: 0 errors, 0 warnings, 7 waivers |
 
 Three findings change the earlier documents and are reported for the chair (§15):
 
@@ -835,3 +835,4 @@ VI-RF-01 to VI-RF-17 of SQSO-LBA-001 §8, RF_DESIGN §6 and ANTENNA_DESIGN §7 s
 | C | 2026-10-27 | CDR design completion, RF board (§15 item 15) | Antenna ports settled (§4.3): SMA end launch replaced by Molex 73415-1473 MMCX jacks (non-magnetic) at x −34.5, J3/J4 in a −X shield notch; 1.37 mm cables with Molex 73414-0351 right-angle MMCX plugs down the −X wall gap in the free bands y ±(20 … 24) to the AntS (MMCX assumed); positions, envelopes and cable path for the CAD; J1/J2/J3–J6 mated-height allocations; loss and return loss computed (`rf_calcs.py` §16): 0.44 dB at 146 MHz (0.56 dB inside the LBA's 1.0 dB), 0.62 dB at 436 MHz, T_sys 548–598 K (requirement 650 K); W10 v3; VI-RFB-12 (drawings, due 2026-11-13), VI-RFB-13 (AntS ICD) |
 | D | 2026-10-27 | CDR design completion, RF board (SQSO-HAR-001 2.0 §15 R-1 to R-3) | J1 to Samtec TFM-108-01-S-D-RA right-angle (gold), cable toward +X, plug's back ≤ x +43.1, shield notch x > +30.0 (§4.1); J2 to the gold Pico-Clasp 203556-0607 (§4.2); W4B 28 AWG in three twisted pairs, LMX2571 supply minimum recomputed with the harness drops and EPS ±2 %: 3.198 V, 48 mV margin (§5.1); W10 cable candidate Taoglas PRT.001221 (4 mm minimum static bend), the 7 mm bends accepted by analysis against the 6 × OD rule (§4.3); finishes (§12); VI-RFB-12 extended |
 | D (amended) | 2026-10-27 | CDR round 3 (P3A-06, P3A-05) | One Ø 1.5 mm vent per shield lid (SH2–SH4) with positions; leakage 61/51/37 dB at 146 MHz/437 MHz/2.4 GHz, V/A ≤ 9.4 m (`rf_calcs.py` §17, §10). TCXO ageing decided (RFB-05): ground-side uplink correction, RF-P005 amended (§2, §6.5, §15 item 11) |
+| E | 2026-10-27 | CDR board FMEA (SQSO-FMEA-003 A: SMA-B11, SMA-B16) | SMA-B16: LMX2571 on its own TPS7A2033 (U805) from +5V_PA, EN on the PA_5V divider (was a TPS22918 from RADIO_3V3): 3.25 V minimum (100 mV margin) independent of 3V3_AO, second TX-permit path kept; keyed DC +0.08 W (1.84 W at 0.5 W, 2.42 W at 1 W), receive 0.102/0.127 W, board dissipation 1.34–1.46 W (§5, §7.3, §11). SMA-B11: TNC criterion 6 noise-floor check (`rf_calcs.py` §18), KISS STATUS loop query, RX_FAULT power-on self-test, meaning of RX_CD stuck high (§8.6); TNC firmware requirements TNC-FW-NF, -STAT, -POR, -CAL (§13); VI-RFB-10 extended; 193 nets |
