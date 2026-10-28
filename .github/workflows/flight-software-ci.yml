@@ -29,12 +29,26 @@ env:
 jobs:
   build:
     name: Build and Static Analysis
-    runs-on: ubuntu-24.04   # pinned
+    runs-on: >- # pinned
+      ${{
+        (github.event_name == 'pull_request' &&
+         (github.event.pull_request.head.repo.full_name != github.repository ||
+          github.event.pull_request.user.login == 'dependabot[bot]')) &&
+        'ubuntu-latest' ||
+        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-latest"]')
+      }}
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Install the pinned flight Rust toolchain
+      if: runner.environment == 'self-hosted'
+      uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+      with:
+        toolchain: 1.97.0
+        components: clippy, rustfmt, llvm-tools
+        targets: thumbv7em-none-eabihf
     - name: Install dependencies
       run: |
         sudo apt-get update
@@ -67,13 +81,27 @@ jobs:
 
   unit-tests:
     name: Unit Tests
-    runs-on: ubuntu-24.04   # pinned
+    runs-on: >- # pinned
+      ${{
+        (github.event_name == 'pull_request' &&
+         (github.event.pull_request.head.repo.full_name != github.repository ||
+          github.event.pull_request.user.login == 'dependabot[bot]')) &&
+        'ubuntu-latest' ||
+        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-latest"]')
+      }}
     needs: build
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Install the pinned flight Rust toolchain
+      if: runner.environment == 'self-hosted'
+      uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+      with:
+        toolchain: 1.97.0
+        components: clippy, rustfmt, llvm-tools
+        targets: thumbv7em-none-eabihf
     - name: Install dependencies
       run: |
         sudo apt-get update
@@ -109,13 +137,27 @@ jobs:
 
   sanitizers:
     name: Sanitizer Checks
-    runs-on: ubuntu-24.04   # pinned
+    runs-on: >- # pinned
+      ${{
+        (github.event_name == 'pull_request' &&
+         (github.event.pull_request.head.repo.full_name != github.repository ||
+          github.event.pull_request.user.login == 'dependabot[bot]')) &&
+        'ubuntu-latest' ||
+        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-latest"]')
+      }}
     needs: build
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Install the pinned flight Rust toolchain
+      if: runner.environment == 'self-hosted'
+      uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+      with:
+        toolchain: 1.97.0
+        components: clippy, rustfmt, llvm-tools
+        targets: thumbv7em-none-eabihf
     - name: Install dependencies
       run: |
         sudo apt-get update
@@ -176,12 +218,26 @@ jobs:
 
   flight-build:
     name: Flight Configuration Build
-    runs-on: ubuntu-24.04   # pinned
+    runs-on: >- # pinned
+      ${{
+        (github.event_name == 'pull_request' &&
+         (github.event.pull_request.head.repo.full_name != github.repository ||
+          github.event.pull_request.user.login == 'dependabot[bot]')) &&
+        'ubuntu-latest' ||
+        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-latest"]')
+      }}
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Install the pinned flight Rust toolchain
+      if: runner.environment == 'self-hosted'
+      uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+      with:
+        toolchain: 1.97.0
+        components: clippy, rustfmt, llvm-tools
+        targets: thumbv7em-none-eabihf
     - name: Install dependencies
       run: |
         sudo apt-get update
@@ -212,12 +268,26 @@ jobs:
   # host builds on its own HAL. The job keeps its name: it is a required check.
   target-build:
     name: STM32L4 Cross-Compile (library)
-    runs-on: ubuntu-24.04   # pinned
+    runs-on: >- # pinned
+      ${{
+        (github.event_name == 'pull_request' &&
+         (github.event.pull_request.head.repo.full_name != github.repository ||
+          github.event.pull_request.user.login == 'dependabot[bot]')) &&
+        'ubuntu-latest' ||
+        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-latest"]')
+      }}
 
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
 
+    - name: Install the pinned flight Rust toolchain
+      if: runner.environment == 'self-hosted'
+      uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+      with:
+        toolchain: 1.97.0
+        components: clippy, rustfmt, llvm-tools
+        targets: thumbv7em-none-eabihf
     - name: Arm binutils (image inspection only)
       run: |
         sudo apt-get update
@@ -303,7 +373,14 @@ jobs:
 
   documentation:
     name: Documentation Check
-    runs-on: ubuntu-24.04   # pinned
+    runs-on: >- # pinned
+      ${{
+        (github.event_name == 'pull_request' &&
+         (github.event.pull_request.head.repo.full_name != github.repository ||
+          github.event.pull_request.user.login == 'dependabot[bot]')) &&
+        'ubuntu-latest' ||
+        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-latest"]')
+      }}
 
     steps:
     - name: Checkout repository
