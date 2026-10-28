@@ -30,12 +30,26 @@ permissions:
 jobs:
   python-tests:
     name: Payload, Ground and Simulation Tests
-    runs-on: ubuntu-24.04   # pinned
+    runs-on: >- # pinned
+      ${{
+        (github.event_name == 'pull_request' &&
+         (github.event.pull_request.head.repo.full_name != github.repository ||
+          github.event.pull_request.user.login == 'dependabot[bot]')) &&
+        'ubuntu-latest' ||
+        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-latest"]')
+      }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install the pinned flight Rust toolchain
+        if: runner.environment == 'self-hosted'
+        uses: dtolnay/rust-toolchain@683b588c487a69d01f6c6ddf40f036ff682cc2c8
+        with:
+          toolchain: 1.97.0
+          components: clippy, rustfmt, llvm-tools
+          targets: thumbv7em-none-eabihf
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -75,7 +89,14 @@ jobs:
 
   docs-integrity:
     name: Documentation Reference Integrity
-    runs-on: ubuntu-24.04   # pinned
+    runs-on: >- # pinned
+      ${{
+        (github.event_name == 'pull_request' &&
+         (github.event.pull_request.head.repo.full_name != github.repository ||
+          github.event.pull_request.user.login == 'dependabot[bot]')) &&
+        'ubuntu-latest' ||
+        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-latest"]')
+      }}
 
     steps:
       - name: Checkout repository
@@ -117,7 +138,14 @@ jobs:
 
   secret-scan:
     name: Secret Scan
-    runs-on: ubuntu-24.04   # pinned
+    runs-on: >- # pinned
+      ${{
+        (github.event_name == 'pull_request' &&
+         (github.event.pull_request.head.repo.full_name != github.repository ||
+          github.event.pull_request.user.login == 'dependabot[bot]')) &&
+        'ubuntu-latest' ||
+        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-latest"]')
+      }}
 
     steps:
       - name: Checkout repository
