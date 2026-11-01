@@ -9,8 +9,9 @@ Date: 2026-01-02
 Version: 1.0
 """
 
+import time
 import unittest
-from unittest.mock import patch
+from datetime import datetime, timezone
 
 import sys
 import os
@@ -41,42 +42,6 @@ class TestHealth(unittest.TestCase):
         self.assertEqual(health.call, "SQSO-1")
         self.assertEqual(health.soc, 85)
         self.assertEqual(health.sun, 1)
-
-    def test_all_modes(self):
-        """Test all valid modes."""
-        for mode in ["ACTIVE", "IDLE", "SAFE"]:
-            health = Health(
-                call="TEST", time_iso_z="2026-01-02Z",
-                mode=mode, soc=50, sun=1, rf=1, pwr="GOOD", qso=0
-            )
-            self.assertEqual(health.mode, mode)
-
-    def test_all_power_states(self):
-        """Test all valid power states."""
-        for pwr in ["GOOD", "FAIR", "LOW"]:
-            health = Health(
-                call="TEST", time_iso_z="2026-01-02Z",
-                mode="ACTIVE", soc=50, sun=1, rf=1, pwr=pwr, qso=0
-            )
-            self.assertEqual(health.pwr, pwr)
-
-    def test_soc_range(self):
-        """Test SOC values at boundaries."""
-        for soc in [0, 50, 100]:
-            health = Health(
-                call="TEST", time_iso_z="2026-01-02Z",
-                mode="ACTIVE", soc=soc, sun=1, rf=1, pwr="GOOD", qso=0
-            )
-            self.assertEqual(health.soc, soc)
-
-    def test_sun_values(self):
-        """Test sun flag values."""
-        for sun in [0, 1]:
-            health = Health(
-                call="TEST", time_iso_z="2026-01-02Z",
-                mode="ACTIVE", soc=50, sun=sun, rf=1, pwr="GOOD", qso=0
-            )
-            self.assertEqual(health.sun, sun)
 
 
 class TestToAscii(unittest.TestCase):
@@ -239,13 +204,7 @@ class TestBuildTail(unittest.TestCase):
         )
         tail = build_tail(health)
 
-        self.assertIn("T=2026-01-02Z", tail)
-        self.assertIn("M=ACTIVE", tail)
-        self.assertIn("SOC=85", tail)
-        self.assertIn("SUN=1", tail)
-        self.assertIn("RF=1", tail)
-        self.assertIn("PWR=GOOD", tail)
-        self.assertIn("QSO=42", tail)
+        self.assertEqual(tail, "T=2026-01-02Z M=ACTIVE SOC=85 SUN=1 RF=1 PWR=GOOD QSO=42")
 
 
 class TestComposeInfoField(unittest.TestCase):
@@ -259,9 +218,7 @@ class TestComposeInfoField(unittest.TestCase):
         )
         info = compose_info_field(health, "Hello from space!")
 
-        self.assertIn("Hello from space!", info)
-        self.assertIn(" | ", info)
-        self.assertIn("SOC=85", info)
+        self.assertEqual(info, "Hello from space! | " + build_tail(health))
 
     def test_truncates_long_text(self):
         """Test long text is truncated."""
@@ -272,7 +229,10 @@ class TestComposeInfoField(unittest.TestCase):
         long_text = "A" * 300
         info = compose_info_field(health, long_text)
 
-        self.assertLessEqual(len(info), 200)
+        # The text is cut so that text, separator and tail fill exactly 200 bytes
+        tail = build_tail(health)
+        self.assertEqual(len(info), 200)
+        self.assertEqual(info, "A" * (200 - 3 - len(tail)) + " | " + tail)
 
     def test_removes_unicode(self):
         """Test unicode is removed from text."""
@@ -282,8 +242,7 @@ class TestComposeInfoField(unittest.TestCase):
         )
         info = compose_info_field(health, "Hello 🛰️ World")
 
-        # Should not contain emoji
-        info.encode('ascii')  # Should not raise
+        self.assertEqual(info, "Hello  World | " + build_tail(health))
 
 
 class TestNowIsoZ(unittest.TestCase):
@@ -301,19 +260,28 @@ class TestNowIsoZ(unittest.TestCase):
         result = now_iso_z()
         self.assertTrue(result.endswith('Z'))
 
-    @patch('formatter.datetime')
-    def test_uses_utc(self, mock_datetime):
-        """Test uses UTC timezone."""
-        from datetime import timezone
+    @unittest.skipUnless(hasattr(time, "tzset"), "time.tzset is POSIX-only")
+    def test_uses_utc(self):
+        """The date is the UTC date, whatever the local time zone.
 
-        mock_now = mock_datetime.now
-        mock_now.return_value.strftime.return_value = "2026-01-02Z"
-
-        result = now_iso_z()
-
-        mock_now.assert_called_once()
-        args = mock_now.call_args[0]
-        self.assertEqual(args[0], timezone.utc)
+        At any instant the local date at UTC+14 or at UTC-12 differs from the
+        UTC date, so a local-time implementation fails in one of the two zones.
+        """
+        old_tz = os.environ.get("TZ")
+        try:
+            for tz in ("Etc/GMT-14", "Etc/GMT+12"):  # POSIX sign: UTC+14, UTC-12
+                os.environ["TZ"] = tz
+                time.tzset()
+                before = datetime.now(timezone.utc).strftime("%Y-%m-%dZ")
+                result = now_iso_z()
+                after = datetime.now(timezone.utc).strftime("%Y-%m-%dZ")
+                self.assertIn(result, {before, after}, tz)
+        finally:
+            if old_tz is None:
+                os.environ.pop("TZ", None)
+            else:
+                os.environ["TZ"] = old_tz
+            time.tzset()
 
 
 if __name__ == '__main__':

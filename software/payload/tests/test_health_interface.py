@@ -10,7 +10,7 @@ Version: 1.0
 """
 
 import unittest
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import patch, MagicMock
 import json
 import struct
 import time
@@ -20,6 +20,7 @@ import sys
 import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
+import obc_link
 from health_interface import (
     HealthInterface, HealthCommand, HealthStatus, HealthData,
     create_health_interface
@@ -138,11 +139,15 @@ class TestHealthInterface(unittest.TestCase):
 
     @patch('serial.Serial')
     def test_connect_success(self, mock_serial):
-        """Test successful connection."""
-        mock_serial.return_value = MagicMock()
+        """connect() opens the configured UART at 8N1 (serial.Serial is the hardware)."""
+        import serial
+        mock_serial.return_value = MagicMock(is_open=True)
         result = self.interface.connect()
         self.assertTrue(result)
         self.assertTrue(self.interface.is_connected())
+        mock_serial.assert_called_once_with(
+            port="/dev/ttyTest", baudrate=115200, bytesize=serial.EIGHTBITS,
+            parity=serial.PARITY_NONE, stopbits=serial.STOPBITS_ONE, timeout=1.0)
 
     @patch('serial.Serial')
     def test_connect_failure(self, mock_serial):
@@ -154,16 +159,23 @@ class TestHealthInterface(unittest.TestCase):
         self.assertFalse(self.interface.is_connected())
 
     def test_register_command_callback(self):
-        """Test callback registration."""
-        callback = Mock()
-        self.interface.register_command_callback(callback)
-        # No assertion needed - just verify no exception
+        """A registered command callback receives each valid OBC line as HealthData."""
+        received = []
+        self.interface.register_command_callback(received.append)
+        self.interface._process_line(b"STATUS_REQ,5D03\n")
+        self.assertEqual([d.command for d in received], [HealthCommand.STATUS_REQUEST])
 
     def test_register_disconnect_callback(self):
-        """Test disconnect callback registration."""
-        callback = Mock()
-        self.interface.register_disconnect_callback(callback)
-        # No assertion needed - just verify no exception
+        """A registered disconnect callback runs when the link drops, and the port is closed."""
+        import serial
+        calls = []
+        self.interface.register_disconnect_callback(lambda: calls.append(True))
+        self.interface._serial = serial.serial_for_url("loop://")
+        self.interface._connected = True
+        self.interface._handle_disconnect()
+        self.assertEqual(calls, [True])
+        self.assertFalse(self.interface._serial.is_open)
+        self.assertFalse(self.interface.is_connected())
 
     def test_get_statistics_initial(self):
         """Test initial statistics."""
@@ -172,8 +184,7 @@ class TestHealthInterface(unittest.TestCase):
         self.assertEqual(stats["rx_errors"], 0)
         self.assertEqual(stats["crc_errors"], 0)
 
-    @patch('serial.Serial')
-    def test_send_response_when_disconnected(self, mock_serial):
+    def test_send_response_when_disconnected(self):
         """Test sending response when disconnected."""
         result = self.interface.send_response(HealthStatus.OK)
         self.assertFalse(result)
@@ -188,6 +199,8 @@ class TestHealthInterface(unittest.TestCase):
         self.interface.connect()
         result = self.interface.send_response(HealthStatus.OK, {"test": "data"})
         self.assertTrue(result)
+        # Unknown keys are ignored; missing metrics are sent as zero
+        mock_instance.write.assert_called_once_with(obc_link.status(0, 0, 0, 0, 0))
 
 
 class TestLineFraming(unittest.TestCase):

@@ -10,7 +10,7 @@ Version: 1.0
 """
 
 import unittest
-from unittest.mock import Mock, patch, MagicMock
+import subprocess
 import time
 import threading
 
@@ -22,6 +22,9 @@ from supervisor import (
     PayloadSupervisor, SupervisorState, PowerState,
     SupervisorConfig, SystemMetrics, ProcessInfo
 )
+
+# A real, harmless child process that runs until it is stopped
+SLEEPER = [sys.executable, "-c", "import time; time.sleep(60)"]
 
 
 class TestSupervisorState(unittest.TestCase):
@@ -128,6 +131,7 @@ class TestProcessManagement(unittest.TestCase):
         self.supervisor = PayloadSupervisor()
 
     def tearDown(self):
+        self.supervisor._stop_all_processes()
         if self.supervisor._running:
             self.supervisor.stop()
 
@@ -155,39 +159,43 @@ class TestProcessManagement(unittest.TestCase):
         self.assertFalse(proc.restart_on_failure)
         self.assertEqual(proc.max_restarts, 5)
 
-    @patch('subprocess.Popen')
-    def test_start_process(self, mock_popen):
-        """Test starting a process."""
-        mock_popen.return_value = MagicMock()
-        mock_popen.return_value.pid = 12345
-
-        self.supervisor.register_process(
-            name="test",
-            command=["echo", "test"]
-        )
+    def test_start_process(self):
+        """start_process launches the registered command as a real child process."""
+        self.supervisor.register_process(name="test", command=SLEEPER)
         result = self.supervisor.start_process("test")
         self.assertTrue(result)
+        proc = self.supervisor._processes["test"].process
+        self.assertIsInstance(proc, subprocess.Popen)
+        self.assertIsNone(proc.poll())  # still running
+        self.assertGreater(self.supervisor._processes["test"].last_start_time, 0)
+
+    def test_start_process_bad_command(self):
+        """A command that cannot be executed is reported as a failed start."""
+        self.supervisor.register_process(
+            name="test", command=["/nonexistent/smart-qso-binary"])
+        self.assertFalse(self.supervisor.start_process("test"))
+        self.assertIsNone(self.supervisor._processes["test"].process)
 
     def test_start_unregistered_process(self):
         """Test starting unregistered process."""
         result = self.supervisor.start_process("nonexistent")
         self.assertFalse(result)
 
-    @patch('subprocess.Popen')
-    def test_stop_process(self, mock_popen):
-        """Test stopping a process."""
-        mock_proc = MagicMock()
-        mock_proc.poll.return_value = None  # Still running
-        mock_popen.return_value = mock_proc
-
-        self.supervisor.register_process(
-            name="test",
-            command=["sleep", "100"]
-        )
+    def test_stop_process(self):
+        """stop_process terminates the running child and forgets it."""
+        self.supervisor.register_process(name="test", command=SLEEPER)
         self.supervisor.start_process("test")
-        result = self.supervisor.stop_process("test")
+        proc = self.supervisor._processes["test"].process
+
+        result = self.supervisor.stop_process("test", timeout=5.0)
         self.assertTrue(result)
-        mock_proc.terminate.assert_called_once()
+        self.assertIsNotNone(proc.poll())  # the child has exited
+        self.assertIsNone(self.supervisor._processes["test"].process)
+
+    def test_stop_process_not_started(self):
+        """Stopping a registered process that never started succeeds."""
+        self.supervisor.register_process(name="test", command=SLEEPER)
+        self.assertTrue(self.supervisor.stop_process("test"))
 
     def test_stop_unregistered_process(self):
         """Test stopping unregistered process."""
@@ -270,6 +278,7 @@ class TestProcessStatus(unittest.TestCase):
         self.supervisor = PayloadSupervisor()
 
     def tearDown(self):
+        self.supervisor._stop_all_processes()
         if self.supervisor._running:
             self.supervisor.stop()
 
@@ -278,39 +287,36 @@ class TestProcessStatus(unittest.TestCase):
         status = self.supervisor._get_process_status()
         self.assertEqual(status, {})
 
-    @patch('subprocess.Popen')
-    def test_get_process_status_with_processes(self, mock_popen):
-        """Test process status with registered processes."""
-        mock_proc = MagicMock()
-        mock_proc.pid = 12345
-        mock_proc.poll.return_value = None  # Still running
-        mock_popen.return_value = mock_proc
-
-        self.supervisor.register_process(
-            name="test",
-            command=["echo", "test"]
-        )
+    def test_get_process_status_with_processes(self):
+        """Process status reports the real child's PID while it runs, and not after."""
+        self.supervisor.register_process(name="test", command=SLEEPER)
         self.supervisor.start_process("test")
+        pid = self.supervisor._processes["test"].process.pid
 
         status = self.supervisor._get_process_status()
-        self.assertIn("test", status)
-        self.assertTrue(status["test"]["running"])
-        self.assertEqual(status["test"]["pid"], 12345)
+        self.assertEqual(status, {"test": {"running": True, "pid": pid, "restarts": 0}})
 
-
-if __name__ == '__main__':
-    unittest.main()
+        self.supervisor.stop_process("test")
+        status = self.supervisor._get_process_status()
+        self.assertEqual(status, {"test": {"running": False, "pid": None, "restarts": 0}})
 
 
 class TestBeaconRequest(unittest.TestCase):
     """The supervisor owns the UART and answers the OBC's BEACON_REQ."""
 
     def test_beacon_request_answered_with_beacon_response(self):
-        from health_interface import HealthCommand, HealthData
+        import serial
+        from health_interface import HealthCommand, HealthData, HealthInterface
         import obc_link
 
         sup = PayloadSupervisor()
-        sup._health = Mock()
+        # The real health interface, on pyserial's loopback port in place of
+        # the Jetson UART: what the supervisor writes can be read back
+        sup._health = HealthInterface()
+        sup._health._serial = serial.serial_for_url("loop://", timeout=1.0)
+        sup._health._connected = True
+        self.addCleanup(sup._health._serial.close)
+
         sup._handle_health_command(HealthData(
             timestamp=1, command=HealthCommand.HEARTBEAT, power_state=1, battery_soc=0.2,
             obc_temp=20.0, payload_enabled=True, data={"sunlit": False}))
@@ -318,8 +324,58 @@ class TestBeaconRequest(unittest.TestCase):
             timestamp=2, command=HealthCommand.BEACON_REQUEST, power_state=0, battery_soc=0.0,
             obc_temp=0.0, payload_enabled=True, data={"seq": 9, "max_len": 40}))
 
-        sup._health.send_line.assert_called_once()
-        msg = obc_link.parse(sup._health.send_line.call_args[0][0])
+        line = sup._health._serial.readline()
+        self.assertEqual(sup._health._serial.in_waiting, 0)  # exactly one line
+        msg = obc_link.parse(line)
         self.assertEqual(msg.type, "BEACON_RSP")
         self.assertEqual(msg.fields[0], "9")
         self.assertTrue(0 < len(msg.fields[1]) <= 40)
+
+
+class TestShutdownWithProcesses(unittest.TestCase):
+    """Stopping and restarting managed processes must not deadlock on the process lock."""
+
+    def _reap(self, sup, children):
+        """Kill and reap the children directly: the supervisor's lock may be held."""
+        children = children + [i.process for i in sup._processes.values() if i.process]
+        for proc in children:
+            proc.kill()
+            proc.wait()
+            for pipe in (proc.stdout, proc.stderr):
+                if pipe is not None:
+                    pipe.close()
+
+    def _run_with_timeout(self, fn, timeout=10.0):
+        worker = threading.Thread(target=fn, daemon=True)
+        worker.start()
+        worker.join(timeout)
+        self.assertFalse(worker.is_alive(), f"{fn.__name__} did not return (deadlock)")
+
+    def test_stop_terminates_running_processes(self):
+        sup = PayloadSupervisor()
+        sup.register_process(name="worker", command=SLEEPER)
+        sup.start_process("worker")
+        proc = sup._processes["worker"].process
+        self.addCleanup(self._reap, sup, [proc])
+
+        self._run_with_timeout(sup.stop)
+        self.assertIsNotNone(proc.poll())
+        self.assertEqual(sup.get_state(), SupervisorState.STOPPED)
+
+    def test_exited_process_is_restarted(self):
+        sup = PayloadSupervisor()
+        sup.register_process(name="worker", command=[sys.executable, "-c", "pass"],
+                             restart_on_failure=True, max_restarts=2)
+        sup.start_process("worker")
+        first = sup._processes["worker"].process
+        first.wait(timeout=10)
+        self.addCleanup(self._reap, sup, [first])
+
+        self._run_with_timeout(sup._check_processes)
+        info = sup._processes["worker"]
+        self.assertEqual(info.restart_count, 1)
+        self.assertIsNotNone(info.process)  # started again
+
+
+if __name__ == '__main__':
+    unittest.main()

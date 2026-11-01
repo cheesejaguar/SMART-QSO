@@ -121,7 +121,9 @@ class PayloadSupervisor:
 
         # Managed processes
         self._processes: Dict[str, ProcessInfo] = {}
-        self._process_lock = threading.Lock()
+        # Reentrant: _stop_all_processes, _restart_all_processes and
+        # _check_processes hold it while calling start_process/stop_process
+        self._process_lock = threading.RLock()
 
         # Threads
         self._monitor_thread: Optional[threading.Thread] = None
@@ -274,6 +276,7 @@ class PayloadSupervisor:
                     proc_info.process.kill()
                     proc_info.process.wait()
 
+                _close_pipes(proc_info.process)
                 proc_info.process = None
                 logger.info(f"Stopped process: {name}")
                 return True
@@ -496,6 +499,7 @@ class PayloadSupervisor:
                 if proc_info.process.poll() is not None:
                     exit_code = proc_info.process.returncode
                     logger.warning(f"Process {name} exited with code {exit_code}")
+                    _close_pipes(proc_info.process)
                     proc_info.process = None
 
                     # Restart if configured
@@ -559,6 +563,13 @@ class PayloadSupervisor:
                 self.stop_process(name)
                 time.sleep(0.5)
                 self.start_process(name)
+
+
+def _close_pipes(process: subprocess.Popen) -> None:
+    """Close the stdout/stderr pipes of a process that has exited."""
+    for pipe in (process.stdout, process.stderr):
+        if pipe is not None:
+            pipe.close()
 
 
 def main():

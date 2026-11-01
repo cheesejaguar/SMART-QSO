@@ -11,10 +11,14 @@ class TestCrc16(unittest.TestCase):
     """Verify the CRC matches the ICD parameters and catalogue check value."""
 
     def test_check_value(self):
-        self.assertEqual(crc16_ccitt(b"123456789"), CRC16_CHECK)
+        # CRC-16/CCITT-FALSE catalogue check value, stated literally so a wrong
+        # constant in crc16.py cannot hide a wrong CRC
+        self.assertEqual(crc16_ccitt(b"123456789"), 0x29B1)
+        self.assertEqual(CRC16_CHECK, 0x29B1)
 
     def test_empty_input_returns_init(self):
-        self.assertEqual(crc16_ccitt(b""), CRC16_INIT)
+        self.assertEqual(crc16_ccitt(b""), 0xFFFF)
+        self.assertEqual(CRC16_INIT, 0xFFFF)
 
     def test_incremental_matches_one_shot(self):
         data = b'{"command": 1, "timestamp": 12345}'
