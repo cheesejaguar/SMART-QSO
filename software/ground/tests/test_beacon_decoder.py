@@ -242,17 +242,12 @@ class TestBeaconDecoderFCS(unittest.TestCase):
 
     def test_calculate_fcs_empty(self):
         """Test FCS of empty data."""
-        fcs = self.decoder._calculate_fcs(b"")
-        self.assertIsInstance(fcs, int)
+        # CRC-16/X-25: init 0xFFFF, final XOR 0xFFFF
+        self.assertEqual(self.decoder._calculate_fcs(b""), 0x0000)
 
     def test_calculate_fcs_known_data(self):
-        """Test FCS calculation returns consistent value."""
-        data = b"Test data for FCS calculation"
-
-        fcs1 = self.decoder._calculate_fcs(data)
-        fcs2 = self.decoder._calculate_fcs(data)
-
-        self.assertEqual(fcs1, fcs2)
+        """The AX.25 FCS is CRC-16/X-25: catalogue check value 0x906E."""
+        self.assertEqual(self.decoder._calculate_fcs(b"123456789"), 0x906E)
 
     def test_calculate_fcs_different_data(self):
         """Test FCS differs for different data."""
@@ -446,6 +441,8 @@ class TestDecodeBeaconConvenience(unittest.TestCase):
         result = decode_beacon(b"\x7e\x00\x7e")
 
         self.assertIsInstance(result, DecodedBeacon)
+        self.assertFalse(result.valid)
+        self.assertEqual(result.errors, ["Failed to parse AX.25 frame"])
 
     def test_decode_beacon_invalid_frame(self):
         """Test convenience function with invalid frame."""

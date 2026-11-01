@@ -205,21 +205,17 @@ def test_sitemap_lists_the_pages(site):
         assert f"<loc>{loc}</loc>" in sitemap
 
 
-def test_missing_table_fails_loudly(tmp_path, monkeypatch):
+def test_missing_table_fails_loudly(tmp_path):
     """A document that loses a table the site needs stops the build; nothing is published."""
     sys.path.insert(0, str(REPO / "site"))
     import build  # noqa: E402
 
-    real = build.read
-
-    def broken(path):
-        text = real(path)
-        if path == build.CDR:
-            text = text.replace("| Quantity | Requirement |", "| Quantity | Needed |")
-        return text
-
-    monkeypatch.setattr(build, "read", broken)
     build._cache.clear()
+    # The CDR document as read from disk, less the table the site needs, seeded
+    # into the build's source cache (no monkeypatching of the build itself)
+    cdr = (REPO / build.CDR).read_text(encoding="utf-8")
+    assert "| Quantity | Requirement |" in cdr
+    build._cache[build.CDR] = cdr.replace("| Quantity | Requirement |", "| Quantity | Needed |")
     out = tmp_path / "out"
     assert build.main(["--out", str(out)]) == 1
     assert not out.exists()

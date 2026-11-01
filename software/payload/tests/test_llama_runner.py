@@ -10,7 +10,6 @@ Version: 1.0
 """
 
 import unittest
-from unittest.mock import Mock, patch, MagicMock
 
 import sys
 import os
@@ -131,81 +130,65 @@ class TestLlamaRunnerGeneration(unittest.TestCase):
 
 
 class TestLlamaRunnerPromptBuilding(unittest.TestCase):
-    """Test prompt construction."""
+    """The chat prompt sent to the model."""
 
-    def test_prompt_includes_system(self):
-        """Test that prompt template exists for system message."""
-        config = LlamaConfig(model_path="/test.gguf")
-        runner = LlamaRunner(config)
+    def _runner(self, text="Hello"):
+        runner = LlamaRunner(LlamaConfig(model_path="/test.gguf"))
+        runner._ll = _FakeLlama(text)
+        return runner
 
-        # The actual prompt is built inside generate_one_line
-        # We can only verify the interface works
-        result = runner.generate_one_line(
-            system="You are a helpful satellite.",
-            user="What is your status?"
-        )
-        self.assertIsNotNone(result)
+    def test_prompt_includes_system_and_user(self):
+        """System and user messages go into the chat template, in that order."""
+        runner = self._runner()
+        runner.generate_one_line(system="You are a helpful satellite.",
+                                 user="What is your status?")
+        prompt = runner._ll.calls[0][0]
+        self.assertEqual(prompt, "<|system|>\nYou are a helpful satellite.\n"
+                                 "<|user|>\nWhat is your status?\n<|assistant|>\n")
 
-    def test_prompt_includes_user(self):
-        """Test that prompt template exists for user message."""
-        config = LlamaConfig(model_path="/test.gguf")
-        runner = LlamaRunner(config)
-
-        result = runner.generate_one_line(
-            system="System prompt here.",
-            user="User message here."
-        )
-        self.assertIsNotNone(result)
+    def test_default_sampling(self):
+        runner = self._runner()
+        runner.generate_one_line("sys", "usr")
+        kwargs = runner._ll.calls[0][1]
+        self.assertEqual(kwargs["max_tokens"], 32)
+        self.assertEqual(kwargs["top_k"], 3)
 
 
 class TestLlamaRunnerEdgeCases(unittest.TestCase):
-    """Test edge cases and error handling."""
+    """Edge cases in the prompt and in the model's reply."""
+
+    def _runner(self, reply):
+        runner = LlamaRunner(LlamaConfig(model_path="/test.gguf"))
+        runner._ll = _FakeLlama("")
+        runner._ll.create_completion = lambda prompt, **kw: reply
+        return runner
 
     def test_empty_system_prompt(self):
-        """Test empty system prompt."""
-        config = LlamaConfig(model_path="/test.gguf")
-        runner = LlamaRunner(config)
+        runner = LlamaRunner(LlamaConfig(model_path="/test.gguf"))
+        runner._ll = _FakeLlama("ok")
+        self.assertEqual(runner.generate_one_line(system="", user="Generate text"), "ok")
+        self.assertEqual(runner._ll.calls[0][0],
+                         "<|system|>\n\n<|user|>\nGenerate text\n<|assistant|>\n")
 
-        result = runner.generate_one_line(
-            system="",
-            user="Generate text"
-        )
-        self.assertIsInstance(result, str)
+    def test_unicode_in_prompts_passed_through(self):
+        runner = LlamaRunner(LlamaConfig(model_path="/test.gguf"))
+        runner._ll = _FakeLlama("ok")
+        runner.generate_one_line(system="System with émojis 🛰️", user="User with ünïcödé")
+        prompt = runner._ll.calls[0][0]
+        self.assertIn("émojis 🛰️", prompt)
+        self.assertIn("ünïcödé", prompt)
 
-    def test_empty_user_prompt(self):
-        """Test empty user prompt."""
-        config = LlamaConfig(model_path="/test.gguf")
-        runner = LlamaRunner(config)
+    def test_whitespace_only_reply_is_empty(self):
+        self.assertEqual(self._runner({"choices": [{"text": " \n "}]}).generate_one_line("s", "u"), "")
 
-        result = runner.generate_one_line(
-            system="System",
-            user=""
-        )
-        self.assertIsInstance(result, str)
+    def test_reply_without_choices_is_empty(self):
+        self.assertEqual(self._runner({}).generate_one_line("s", "u"), "")
 
-    def test_unicode_in_prompts(self):
-        """Test handling of unicode in prompts."""
-        config = LlamaConfig(model_path="/test.gguf")
-        runner = LlamaRunner(config)
-
-        result = runner.generate_one_line(
-            system="System with émojis 🛰️",
-            user="User with ünïcödé"
-        )
-        # Result should be ASCII (fallback text)
-        self.assertIsInstance(result, str)
-
-    def test_very_long_prompts(self):
-        """Test handling of very long prompts."""
-        config = LlamaConfig(model_path="/test.gguf", n_ctx=128)
-        runner = LlamaRunner(config)
-
+    def test_very_long_prompts_without_model(self):
+        """No model: even an oversized prompt gives empty text, never an exception."""
+        runner = LlamaRunner(LlamaConfig(model_path="/test.gguf", n_ctx=128))
         long_prompt = "A" * 10000
-        result = runner.generate_one_line(
-            system=long_prompt,
-            user=long_prompt
-        )
-        self.assertIsInstance(result, str)
+        self.assertEqual(runner.generate_one_line(system=long_prompt, user=long_prompt), "")
 
 
 if __name__ == '__main__':

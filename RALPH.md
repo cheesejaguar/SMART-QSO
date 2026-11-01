@@ -1857,7 +1857,7 @@ This section details the complete flight software implementation tasks, organize
   - [x] Sensor → Telemetry → Health data
   - [x] Health data → Jetson → Beacon text
   - [x] Beacon text → AX.25 frame → Transmitter
-  - [x] E2E tests in `software/tests/integration/test_beacon_e2e.c`
+  - [x] E2E tests in `software/flight/tests/integration/` (an earlier Unity file, test_beacon_e2e.c, was removed 2026-10-31: written against functions the flight headers do not declare, and never built)
 
 ### 17.4 Ground Software
 

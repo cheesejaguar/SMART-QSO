@@ -16,6 +16,7 @@ import tempfile
 import json
 import csv
 import time
+from datetime import datetime
 
 import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -29,25 +30,12 @@ from telemetry_display import (
 class TestLimitStatus(unittest.TestCase):
     """Test LimitStatus enumeration."""
 
-    def test_nominal(self):
-        """Test NOMINAL status."""
-        self.assertIsNotNone(LimitStatus.NOMINAL)
-
-    def test_warning_low(self):
-        """Test WARNING_LOW status."""
-        self.assertIsNotNone(LimitStatus.WARNING_LOW)
-
-    def test_warning_high(self):
-        """Test WARNING_HIGH status."""
-        self.assertIsNotNone(LimitStatus.WARNING_HIGH)
-
-    def test_critical_low(self):
-        """Test CRITICAL_LOW status."""
-        self.assertIsNotNone(LimitStatus.CRITICAL_LOW)
-
-    def test_critical_high(self):
-        """Test CRITICAL_HIGH status."""
-        self.assertIsNotNone(LimitStatus.CRITICAL_HIGH)
+    def test_members(self):
+        """The five limit states, each distinct."""
+        self.assertEqual([s.name for s in LimitStatus],
+                         ["NOMINAL", "WARNING_LOW", "WARNING_HIGH",
+                          "CRITICAL_LOW", "CRITICAL_HIGH"])
+        self.assertEqual(len({int(s) for s in LimitStatus}), 5)
 
 
 class TestAlarmPriority(unittest.TestCase):
@@ -430,94 +418,91 @@ class TestTelemetryDisplayCallbacks(unittest.TestCase):
         self.display.update("temp", 5)
 
         callback.assert_called_once()
+        alarm = callback.call_args[0][0]
+        self.assertEqual(alarm.parameter, "temp")
+        self.assertEqual(alarm.value, 5)
+        self.assertEqual(alarm.limit_status, LimitStatus.CRITICAL_LOW)
+        self.assertEqual(alarm.priority, AlarmPriority.CRITICAL)
+        self.assertEqual(alarm.message, "temp critically low: 5 < 10")
 
     def test_callback_exception_handled(self):
         """Test callback exceptions are handled."""
         callback = Mock(side_effect=Exception("Test error"))
         self.display.register_update_callback(callback)
 
-        # Should not raise
-        self.display.update("voltage", 3.8)
+        self.display.update("voltage", 3.8)  # does not raise
+
+        callback.assert_called_once_with("voltage", 3.8)
+        self.assertEqual(self.display.get_value("voltage"), 3.8)
 
 
 class TestTelemetryDisplayExport(unittest.TestCase):
     """Test data export functionality."""
 
+    T0 = 1_700_000_000.0
+
     def setUp(self):
         self.display = TelemetryDisplay()
-        self.display.update("voltage", 3.8, "V")
-        self.display.update("voltage", 3.9, "V")
-        self.display.update("temp", 25, "C")
+        self.display.update("voltage", 3.8, "V", timestamp=self.T0)
+        self.display.update("voltage", 3.9, "V", timestamp=self.T0 + 10)
+        self.display.update("temp", 25, "C", timestamp=self.T0)
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        self.tmp = tmp.name
+
+    def _rows(self, filename):
+        with open(filename, newline='') as f:
+            return list(csv.reader(f))
 
     def test_export_csv(self):
-        """Test CSV export."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
-            filename = f.name
+        """CSV export: one row per timestamp, blank where a parameter has no sample."""
+        filename = os.path.join(self.tmp, "out.csv")
+        self.display.export_csv(filename)
 
-        try:
-            self.display.export_csv(filename)
-
-            with open(filename, 'r') as f:
-                reader = csv.reader(f)
-                header = next(reader)
-
-                self.assertIn("timestamp", header)
-                self.assertIn("voltage", header)
-                self.assertIn("temp", header)
-        finally:
-            os.unlink(filename)
+        rows = self._rows(filename)
+        self.assertEqual(rows[0], ["timestamp", "datetime", "voltage", "temp"])
+        self.assertEqual(rows[1], [str(self.T0), datetime.fromtimestamp(self.T0).isoformat(),
+                                   "3.8", "25"])
+        self.assertEqual(rows[2], [str(self.T0 + 10),
+                                   datetime.fromtimestamp(self.T0 + 10).isoformat(), "3.9", ""])
+        self.assertEqual(len(rows), 3)
 
     def test_export_csv_specific_params(self):
-        """Test CSV export with specific parameters."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.csv', delete=False) as f:
-            filename = f.name
+        """CSV export of chosen parameters only."""
+        filename = os.path.join(self.tmp, "out.csv")
+        self.display.export_csv(filename, parameters=["voltage"])
 
-        try:
-            self.display.export_csv(filename, parameters=["voltage"])
-
-            with open(filename, 'r') as f:
-                reader = csv.reader(f)
-                header = next(reader)
-
-                self.assertIn("voltage", header)
-                self.assertNotIn("temp", header)
-        finally:
-            os.unlink(filename)
+        rows = self._rows(filename)
+        self.assertEqual(rows[0], ["timestamp", "datetime", "voltage"])
+        self.assertEqual([r[2] for r in rows[1:]], ["3.8", "3.9"])
 
     def test_export_json(self):
-        """Test JSON export."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-            filename = f.name
+        """JSON export: every parameter with its unit, current value and history."""
+        filename = os.path.join(self.tmp, "out.json")
+        before = time.time()
+        self.display.export_json(filename)
 
-        try:
-            self.display.export_json(filename)
+        with open(filename) as f:
+            data = json.load(f)
 
-            with open(filename, 'r') as f:
-                data = json.load(f)
-
-                self.assertIn("export_time", data)
-                self.assertIn("parameters", data)
-                self.assertIn("voltage", data["parameters"])
-        finally:
-            os.unlink(filename)
+        self.assertGreaterEqual(data["export_time"], before)
+        self.assertEqual(set(data["parameters"]), {"voltage", "temp"})
 
     def test_export_json_structure(self):
-        """Test JSON export structure."""
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False) as f:
-            filename = f.name
+        """JSON export structure for one parameter."""
+        filename = os.path.join(self.tmp, "out.json")
+        self.display.export_json(filename, parameters=["voltage"])
 
-        try:
-            self.display.export_json(filename)
+        with open(filename) as f:
+            data = json.load(f)
 
-            with open(filename, 'r') as f:
-                data = json.load(f)
-
-                voltage = data["parameters"]["voltage"]
-                self.assertIn("unit", voltage)
-                self.assertIn("current_value", voltage)
-                self.assertIn("history", voltage)
-        finally:
-            os.unlink(filename)
+        self.assertEqual(data["parameters"], {"voltage": {
+            "unit": "V",
+            "current_value": 3.9,
+            "current_timestamp": self.T0 + 10,
+            "history": [{"timestamp": self.T0, "value": 3.8},
+                        {"timestamp": self.T0 + 10, "value": 3.9}],
+        }})
 
 
 class TestTelemetryDisplayStatistics(unittest.TestCase):
