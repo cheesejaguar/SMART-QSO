@@ -13,11 +13,6 @@
 #include <stdint.h>
 #include <setjmp.h>
 #include <cmocka.h>
-/* cmocka 2.0 deprecates assert_in_range; 1.1 lacks assert_uint_in_range */
-#ifndef assert_uint_in_range
-#define assert_uint_in_range(value, minimum, maximum) \
-    assert_in_range((value), (minimum), (maximum))
-#endif
 #include <string.h>
 
 /* Include the module under test */
@@ -25,6 +20,7 @@
 #include "eps_control.h"
 #include "payload_guard.h"
 #include "smart_qso.h"
+#include "test_range.h"
 
 /*===========================================================================*/
 /* Test Fixtures                                                              */
@@ -471,7 +467,7 @@ static void test_sm_get_state_duration(void **state)
     sm_init(&g_ctx, STATE_IDLE);
     smart_qso_sim_advance_ms(250U);
     assert_int_equal(sm_get_state_duration(&g_ctx, &duration), SMART_QSO_OK);
-    assert_uint_in_range(duration, 250U, 250U + 1000U);   /* the host clock runs too */
+    assert_u64_in_range(duration, 250U, 250U + 1000U);   /* the host clock runs too */
 }
 
 /**

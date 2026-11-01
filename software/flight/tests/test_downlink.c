@@ -16,11 +16,6 @@
 #include <stdint.h>
 #include <setjmp.h>
 #include <cmocka.h>
-/* cmocka 2.0 deprecates assert_in_range; 1.1 lacks assert_uint_in_range */
-#ifndef assert_uint_in_range
-#define assert_uint_in_range(value, minimum, maximum) \
-    assert_in_range((value), (minimum), (maximum))
-#endif
 #include <math.h>
 #include <string.h>
 
@@ -32,6 +27,7 @@
 #include "rf_control.h"
 #include "rust_contract.h"
 #include "smart_qso.h"
+#include "test_range.h"
 #include "hal/hal_adc.h"
 #include "hal/hal_flash.h"
 #include "hal/hal_gpio.h"
@@ -232,7 +228,7 @@ static void test_duty_limit(void **state)
     assert_int_equal(r, SMART_QSO_ERROR_BUSY);
     assert_int_equal(status().duty, 1U);
     /* 15 s of credit, each frame about 3 s on the air while 1.25 s refills */
-    assert_uint_in_range(sent, 5U, 12U);
+    assert_u64_in_range(sent, 5U, 12U);
 
     /* A full window later there is credit again */
     smart_qso_sim_advance_ms(DOWNLINK_DUTY_WINDOW_MS);
