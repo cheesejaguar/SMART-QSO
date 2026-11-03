@@ -305,8 +305,8 @@ current.
 | SRS-F087 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
 | SRS-F088 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
 | SRS-F089 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F090 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
-| SRS-F091 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
+| SRS-F090 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
+| SRS-F091 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Partial (CI) |
 | SRS-F092 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
 | SRS-F093 | T, A | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
 | SRS-F094 | T | CI + FS | continuous; 2027-06 to 2027-07 | Host tests in CI; HIL on the STM32L4R5 (software/flight/tests/hil/HIL_TEST_PLAN.md) | Not verified |
@@ -577,8 +577,8 @@ current.
 
 | Status | Requirements |
 |--------|--------------|
-| Not verified | 406 |
-| Partial (CI) | 80 |
+| Not verified | 404 |
+| Partial (CI) | 82 |
 | Deleted | 1 |
 | **Total** | **487** |
 
