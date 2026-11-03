@@ -1,6 +1,6 @@
 {
-  "built_at_utc": "2026-11-03T08:41:42-08:00",
-  "source_commit": "7fa1d39c12ea33d04c2f131a0a3b9d533978ec92",
+  "built_at_utc": "2026-11-03T08:41:52-08:00",
+  "source_commit": "b0e5c4e15f12201a22513a4075b3d6b7849ad5db",
   "url": "https://cheesejaguar.github.io/SMART-QSO/",
   "base_path": "/SMART-QSO/",
   "generator": "site/build.py",
@@ -13,7 +13,7 @@
       "revision": "E"
     },
     "docs/BEACON_SPEC.md": {
-      "sha256": "0e72ef3fdddf555be65514a1500f65081bd50189a480a9ab1cdb4a621c1b9b73",
+      "sha256": "a0ce37644d8ff0d8e9b6c9ed39883931bb33d2e937c48e24eef9483670e37426",
       "document_id": null,
       "revision": null
     },
@@ -103,24 +103,24 @@
       "revision": "E"
     },
     "software/ground/tools/README.md": {
-      "sha256": "edceb0cc508fdd0185451704cc77ae39937d6ef0485dd49dbacbc379043724d4",
+      "sha256": "c59c67691bd62031adca48c64e78d314d348e194351f541b22fff32cf4db262b",
       "document_id": "SMART-QSO-GND-000",
-      "revision": "1.2"
+      "revision": "1.3"
     },
     "software/rust/README.md": {
-      "sha256": "26b0a364b99a4e7215de9d45cc7a512217e970e6132f7aba06e7748edcb0a5c6",
+      "sha256": "ad1859c0913c2539d0304c934484a4ed61afc927dde370024d83fb797c530eac",
       "document_id": null,
       "revision": null
     }
   },
   "artifacts": {
     ".nojekyll": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "404.html": "97aeb6562d60ce4d3487460ef890b30c2ad68c437522314ac799f7b16882875f",
+    "404.html": "b48ad8a408af1b95303770b43dc42d05cb4f1f0fbcd4c4aa35b1dbbfc1d3c72a",
     "assets/drawing_deployed.svg": "21996770efc7ddd1f13fcf27771305c82f5a2fcb577810b10a2a689b8515fd99",
     "assets/drawing_stowed_3view.svg": "7c563e49c845e8c06b5e5d6c6f76df96ac7412457f1a69a62fcfa87b23e50394",
     "assets/site.css": "4764b545dc42adb3f7a8a70034314b8881837bde3f79c29a2d8be9abe2d65480",
-    "checksums.sha256": "a61c8c71ece501c0893962d85481843614abea317af1027e95b75a68979930a9",
-    "engineering/index.html": "85ee8c595c441ccd43959bb61603d07169d3c7d28a86f0b7346999442277cf93",
+    "checksums.sha256": "fb974e4f17df6873be9666c5cae85f6c1f7e54c141a3d0ecb0038cd3dcc52592",
+    "engineering/index.html": "6ee71de61d9d4507d5a505e10c4a3c8134d2d4ae1be2182385caf7a54209a6c4",
     "evidence/authorization_status.json": "dc29f0ed8df8d37a868a815ce02116d22b2d4416218cb696a4190abdbb985f58",
     "evidence/chair_decisions.json": "d107595ceb699b50170313a07fcba79651b0a5245fbc903ae2b264c9f115e2a0",
     "evidence/key_values.json": "cee518973008c8f39af2b55a526579b93769f7c57edb401e6651b2006df60c08",
@@ -129,12 +129,12 @@
     "evidence/rid_summary.json": "4233b80e1b62009ecd9d29ddbcef5e6fafa0da366ada148e85bd476cd2a44170",
     "evidence/schedule_actions.json": "9a93e2f78bcfafe6a53c198dfd9c173ccc3c8d257a8f41c953a53dca48b02f5a",
     "favicon.svg": "9dd4caab167a6f0b63d2ada761c2143e9c91fb18661cd7e3b98a0f63666fb96c",
-    "index.html": "969b0d3b3d6cdbf02ac549fc4c4bb80acec1750acafb56fb0406a25dceee590d",
-    "mission/index.html": "f462b27c27877171b8a390ddb418dea45593c6877fb400a458b6a7df1516fd16",
-    "participate/index.html": "a27aa4f6628dbad671c8fd9084980df2d058a3c0754c48a3f36825126a57a201",
+    "index.html": "6055c3520537588aabdb70a233f4551725e33293a58a2100b48489e839bce05f",
+    "mission/index.html": "0dcd1b7bf7b67c2bef84b9d8987484b79fac54abed910231f425046ca8e2d2de",
+    "participate/index.html": "e1381e31a3279c15f6b79aabd7523c60599b5889cfa2f04373bc1d29c3a3c8c3",
     "research/index.html": "19c3be90ef8758998c8f99054f28a178cfee85f157f6a4f038f82e47fc9d0419",
     "robots.txt": "3add2225135a80e3b86546aef270f7319fdfca1be33a0cce493552dd93a73ea7",
     "sitemap.xml": "173b04fb13e3de8db25aa025e8fd6c98187f914fbb296feebfd35cd67b616b3f",
-    "spacecraft/index.html": "aa2e743e6a4c44efbd03dd5398f1ffa3d72996a54d09cd7249be9b4a4d6d04f5"
+    "spacecraft/index.html": "40d9629ea5b3b02ca09ce93852513185ef5392051414eb3a547ee618bd248610"
   }
 }
