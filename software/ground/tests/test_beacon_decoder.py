@@ -31,8 +31,8 @@ def fixture_frames():
     with open(FIXTURE, encoding="utf-8") as fh:
         for line in fh:
             if line.strip() and not line.startswith("#"):
-                label, hexed = line.split()
-                out[label] = bytes.fromhex(hexed)
+                label, *hexed = line.split()
+                out[label] = bytes.fromhex("".join(hexed))
     return out
 
 
@@ -358,10 +358,12 @@ def test_gnss_frame_through_gnss_frame_py():
 
 def test_read_lines_forms():
     hexed = FRAMES["beacon_typical"].hex()
-    lines = ["# comment", "", hexed, f"2026-11-03T10:00:00Z {hexed}",
+    spaced = " ".join(FRAMES["beacon_typical"].hex()[i:i + 2] for i in range(0, len(hexed), 2))
+    lines = ["# comment", "", hexed, f"2026-11-03T10:00:00Z {hexed}", f"beacon_typical {spaced}",
              json.dumps({"rx_utc": "2026-11-03T10:00:05Z", "frame_hex": hexed})]
     got = list(bd.read_lines(lines))
-    assert [rx for _, rx in got] == [None, None, "2026-11-03T10:00:05Z"]
+    assert [rx for _, rx in got] == [None, None, None, "2026-11-03T10:00:05Z"]
+    assert all(raw == FRAMES["beacon_typical"] for raw, _ in got)
     with pytest.raises(bd.DecodeError, match="line 1"):
         list(bd.read_lines(["zz"]))
 

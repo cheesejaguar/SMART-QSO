@@ -609,10 +609,15 @@ def _utc_now() -> str:
     return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
 
+def _is_hex(word: str) -> bool:
+    return len(word) % 2 == 0 and all(c in "0123456789abcdefABCDEF" for c in word)
+
+
 def read_lines(lines: Iterable[str]) -> Iterator[Tuple[bytes, Optional[str]]]:
     """Frames from logged lines: a JSON object with ``frame_hex`` (and
-    ``rx_utc``), or text whose last word is the frame in hex. Blank lines and
-    ``#`` comments are skipped; a line that is neither raises DecodeError."""
+    ``rx_utc``), or text ending with the frame in hex, as one word or as the
+    trailing words that are all hex (``7E 86 A2 ...``). Blank lines and ``#``
+    comments are skipped; a line that is neither raises DecodeError."""
     for number, line in enumerate(lines, 1):
         line = line.strip()
         if not line or line.startswith("#"):
@@ -621,8 +626,14 @@ def read_lines(lines: Iterable[str]) -> Iterator[Tuple[bytes, Optional[str]]]:
             record = json.loads(line)
             hexed, rx = record.get("frame_hex"), record.get("rx_utc") or record.get("utc")
         else:
-            hexed, rx = line.split()[-1], None
+            words = line.split()
+            tail: List[str] = []
+            while words and _is_hex(words[-1]):
+                tail.insert(0, words.pop())
+            hexed, rx = ("".join(tail) or None), None
         try:
+            if not hexed:
+                raise ValueError
             yield bytes.fromhex(hexed), rx
         except (TypeError, ValueError):
             raise DecodeError(f"line {number}: no frame in hex") from None
@@ -666,7 +677,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         description="Decode SMART-QSO downlink frames (beacon, HK1, HK2, GNS, ack) to JSON lines.")
     parser.add_argument("frames", nargs="*", help="frames in hex")
     parser.add_argument("-f", "--file", action="append", default=[],
-                        help="a frame log: one frame per line (hex as the last word, or JSON with frame_hex)")
+                        help="a frame log: one frame per line (hex at the end of the line, as one word or byte by byte, or JSON with frame_hex)")
     parser.add_argument("--stdin", action="store_true", help="read a frame log from standard input")
     parser.add_argument("--kiss-tcp", metavar="HOST:PORT", help="decode live from a KISS TCP port (Direwolf: localhost:8001)")
     parser.add_argument("--kiss-file", metavar="PATH",

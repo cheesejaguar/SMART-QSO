@@ -42,7 +42,7 @@ python beacon_decoder.py --kiss-tcp localhost:8001 --log beacon_log_YYYYMMDD_HHM
 # Live from a KISS serial TNC (set the line up first, e.g. stty -F /dev/ttyUSB0 9600 raw)
 python beacon_decoder.py --kiss-file /dev/ttyUSB0 --log frames.jsonl
 
-# Afterwards: a frame log (one frame per line: hex as the last word, or JSON with frame_hex)
+# Afterwards: a frame log (one frame per line: hex at the end of the line, or JSON with frame_hex)
 python beacon_decoder.py -f beacon_log_YYYYMMDD_HHMMSS.jsonl -o decoded.jsonl
 
 # One frame in hex, or a log on standard input

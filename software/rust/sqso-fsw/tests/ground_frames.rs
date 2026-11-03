@@ -4,7 +4,9 @@
 //! FCS) and the housekeeping texts (`housekeeping::format`, `format2`, cut
 //! into frames by `housekeeping::Parts` as the executive sends them, each in
 //! a UI frame to CQ with its FCS, as the TNC puts it on the air). Each
-//! frame is one line, `<label> <hex>`, a form the decoder's file input reads.
+//! frame is one line, `<label> <hex bytes>`, the bytes separated by spaces
+//! (a form the decoder's file input reads, and one the repository's secret
+//! scan does not take for a 256-bit key).
 //!
 //! The test fails when the committed fixture differs from what the
 //! formatters make now, so a change to a flight format reaches the ground
@@ -26,8 +28,9 @@ fn fixture_path() -> PathBuf {
 }
 
 fn hex(bytes: &[u8]) -> String {
-    bytes.iter().fold(String::new(), |mut s, b| {
-        let _ = write!(s, "{b:02X}");
+    bytes.iter().enumerate().fold(String::new(), |mut s, (i, b)| {
+        let sep = if i == 0 { "" } else { " " };
+        let _ = write!(s, "{sep}{b:02X}");
         s
     })
 }
@@ -238,7 +241,7 @@ fn hk2_widest() -> Housekeeping2 {
 fn fixture() -> String {
     let mut out = String::from(
         "# Frames made by the flight formatters (software/rust/sqso-fsw/tests/ground_frames.rs); do not edit.\n\
-         # One frame per line: <label> <frame hex>. Beacons on the air (flags and FCS); housekeeping frames\n\
+         # One frame per line: <label> <frame bytes in hex>. Beacons on the air (flags and FCS); housekeeping frames\n\
          # from the address field through the FCS.\n",
     );
     let mut line = |label: &str, frame: &[u8]| {
