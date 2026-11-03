@@ -31,9 +31,11 @@
  * post-deployment RF silence (the simulated flash is RAM) and the beacon
  * interval is 60 s, so no beacon is sent in a run.
  *
- * The driver's own end of each terminal is raw with VMIN 0 and VTIME 0, so
- * its reads return what has arrived; the OBC's host port sets the same on
- * its end (uart_comm.rs, set_raw_8n1), as the target's port behaves.
+ * The driver reads the master ends, which are non-blocking. It leaves VMIN
+ * and VTIME of the Jetson line as a fresh terminal has them (VMIN 1): the
+ * OBC's host port must set VMIN 0 and VTIME 0 itself (uart_comm.rs,
+ * set_raw_8n1), as the target's port reads without waiting, or its poll of
+ * the silent line would block and the timing checks here would fail.
  *
  * Usage: test_executive_jetson <smart_qso_flight> link|guard <sensors.yaml>
  *
@@ -403,7 +405,7 @@ static void on_idle(int *jetson_fd)
 /* Running the simulation                                                     */
 /*===========================================================================*/
 
-/** Raw, non-blocking terminal: no echo, no line editing, VMIN 0 and VTIME 0 */
+/** Raw terminal: no echo, no line editing; VMIN and VTIME are left to the OBC's port */
 static int make_raw(int fd)
 {
     struct termios tty;
@@ -414,8 +416,6 @@ static int make_raw(int fd)
     tty.c_oflag &= ~(tcflag_t)OPOST;
     tty.c_lflag &= ~(tcflag_t)(ECHO | ECHONL | ICANON | ISIG | IEXTEN);
     tty.c_cflag = (tty.c_cflag & ~(tcflag_t)(CSIZE | PARENB)) | CS8;
-    tty.c_cc[VMIN] = 0;
-    tty.c_cc[VTIME] = 0;
     return tcsetattr(fd, TCSANOW, &tty);
 }
 
