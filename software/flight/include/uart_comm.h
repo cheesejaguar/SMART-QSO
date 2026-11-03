@@ -56,7 +56,7 @@ extern "C" {
 typedef struct {
     char device[UART_DEVICE_MAX_LEN];  /**< Device path */
     int baudrate;                       /**< Baud rate */
-    uint32_t timeout_ms;                /**< Read timeout in milliseconds */
+    uint32_t timeout_ms;                /**< Read timeout in ms; not used: reads return what has arrived without waiting */
 } UartConfig_t;
 
 /*===========================================================================*/

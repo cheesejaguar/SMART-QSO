@@ -26,6 +26,8 @@ use crate::ptr;
 pub struct UartConfig {
     device: [u8; DEVICE_MAX_LEN],
     baudrate: c_int,
+    /// Kept for the C layout; not used. Reads never wait, on the host (VMIN 0,
+    /// VTIME 0) or the target (timeout 0): the executive polls every pass
     timeout_ms: u32,
 }
 

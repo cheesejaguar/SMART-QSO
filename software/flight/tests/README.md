@@ -67,8 +67,9 @@ The Rust also has its own unit tests (`cd software/rust && cargo test --workspac
     telemetry that waited for the interval timer is a whole interval late.
 
   The beacon is not checked here: these boots start the 45-minute RF silence (`integration/test_downlink_sim.c` checks
-  it). The driver sets VMIN 0 and VTIME 0 on the Jetson line first, because the OBC's host port keeps the terminal's VMIN 1 and
-  its poll of the line would otherwise block until the Jetson sends a byte. Each run writes its transcript
+  it). The driver leaves the Jetson line's VMIN and VTIME as a fresh terminal has them (VMIN 1), so the run
+  also checks that the OBC's host port sets VMIN 0 and VTIME 0 itself: otherwise its poll would block until the Jetson
+  sends a byte, which the target's port does not do. Each run writes its transcript
   (`executive_jetson_link.log`, `executive_jetson_guard.log`) to `build/tests`.
 - `test_downlink.c` specifies the downlink (`downlink.h`): the gate before the TNC (TX-OFF and each inhibit), one frame
   at a time, the duty credit, the power select line, the HAL refusing a frame, the VSWR, no-output and thermal

@@ -270,9 +270,18 @@ static void test_uart_send_and_receive_over_pty(void **state) {
     assert_string_equal(line, "STATUS_REQ,5D03\n");
 
     assert_int_equal(write(master, "ACK,X,0000\n", 11U), 11);
+    /* Reads do not wait (VMIN 0, VTIME 0) and a pty passes bytes to its slave
+     * asynchronously: poll for up to 1 s until the line has arrived */
     char buffer[32] = {0};
     size_t received = 0U;
-    assert_int_equal(uart_receive(buffer, sizeof(buffer), &received), SMART_QSO_OK);
+    for (int attempt = 0; (attempt < 100) && (received < 11U); attempt++) {
+        size_t got = 0U;
+        assert_int_equal(uart_receive(buffer + received, sizeof(buffer) - received, &got), SMART_QSO_OK);
+        received += got;
+        if (received < 11U) {
+            (void)usleep(10000);
+        }
+    }
     assert_int_equal(received, 11U);
     assert_memory_equal(buffer, "ACK,X,0000\n", 11U);
 
