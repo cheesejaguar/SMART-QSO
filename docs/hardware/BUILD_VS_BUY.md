@@ -1,8 +1,8 @@
 # Build versus Buy: COTS Survey, Gyro, ADCS Gains and Battery
 
 **Document ID**: SQSO-BVB-001
-**Version**: F
-**Date**: 2026-10-27
+**Version**: G
+**Date**: 2026-11-03
 **Status**: Draft; vendor data from public pages on 2026-10-26, no quotes yet
 
 This document compares the hardware that does not have to be custom with what CubeSat vendors sell now, and decides
@@ -459,8 +459,17 @@ nutation damping and the spin hold, and the simulation's ideal coils: expect the
 - Rigid body only: the flexible 2 m antenna tapes are not modelled (GNC-03, a verification item).
 - The sensor errors are datasheet values.
 - Rod remanence and recoil are not modelled (GNC-06); the Monte Carlo is re-run with measured rod data on the EM.
-- The coils' field at the magnetometer is modelled; the flight software samples 50 ms after a 900 ms burst. The coil
-  driver's own hardware off-timer is part of the OBC board design (AV-03).
+- Coil field at the magnetometer: closed in the flight software and the simulation, open on hardware. The flight
+  software drives each command as a 900 ms burst (dipole × 1000/900, saturated at 0.2 A·m²) and uses a magnetometer
+  sample only after the coils have been off 50 ms (`sqso_fsw::adcs::CoilTiming`, SRS-F090, SRS-F091; timing in
+  ADCS_DESIGN §5.3, tests in §11.1). The Monte Carlo puts the coils' field at the magnetometer through a configurable
+  coupling (`--coupling`, 1·10⁻⁴ T per A·m² by default: 20 µT at full dipole) that decays after the burst. Re-run
+  2026-11-03: the M-G370, no-gyro and missing-window rows above reproduce to the printed precision; with the window,
+  couplings of 0, 1·10⁻⁴ and 3·10⁻⁴ T per A·m² give identical results; without it, the gyroless case loses 27 of 40
+  trials to the timeout, and a window the software checks but the driver ignores rejects every sample (43,197 in half
+  a day) and times out as a reported fault. Still open: the coupling and the CR0002 rods' recoil after the burst are
+  measured on the EM (the 50 ms settle is a constant, `MAG_SETTLE_MS`), and the driver's hardware off-timer is part
+  of the OBC board design, not yet run on hardware (AV-03).
 - Aerodynamic torque at solar maximum (2.1·10⁻¹² kg/m³ mean at 500 km) is 4.5–8.9·10⁻⁸ N·m for a 1–2 cm centre of
   pressure offset, comparable to a 2 mA·m² residual dipole; it is in the model.
 - The final flight inertia comes from the CAD (`docs/environment/MASS_BUDGET.md` 3.1 §6.5); the Iyy/Izz sweep above
@@ -554,6 +563,7 @@ with the latch-up trip acting on the PDU switch), not a bigger battery.
 
 | Version | Date | Author | Changes |
 |---------|------|--------|---------|
+| G | 2026-11-03 | SMART-QSO Team | §6.5 the coil-field item restated: the measurement window is in the flight software and the coupling in the Monte Carlo, the §6.4 window rows re-run 2026-11-03 and confirmed; what stays open is the EM measurement of the coupling and the rods' recoil |
 | F | 2026-10-27 | SMART-QSO Team (documentation audit) | Documentation audit (post-CDR 2026): magnetometer decision to the OBC board design (PNI RM3100 on board A2, SQSO-OBC-BRD-001 §9.4, item C1) in §1 and §2.7, the modules kept as the fallback; SA818-U engineering-model receiver removed from §3.2 (the EM uses the flight-design RF board, ETP Rev C §2); §2.8 notes the superseded notices |
 | C | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3) | §6.4 re-run with the final CAD tensors (C-13 ballast as re-placed; CBE and MEV rows, the flight software's mean as the default plant) and the round-3 flight software |
 | E | 2026-10-27 | SMART-QSO Team (CDR round 3 closure, GN&C) | §6.4 re-run in full (ADCS_DESIGN 1.9: stowed products corrected, MASS_BUDGET 3.2 tensors); rows added for the wrong one-wing preset, the wings stowed with the AntS held 25 h, the AntS 3 h after the wings, magnetometer gating and the face photodiodes with albedo (P3F-G-04, -05, C-21, C-22); the wing rows now ADCS_DESIGN's |
