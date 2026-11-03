@@ -6,7 +6,8 @@ one short line of plain-language text, followed by measured telemetry. Design va
 `docs/operations/TELEMETRY_DICTIONARY.md` section 4.
 
 Implementation: `software/rust/sqso-fsw/src/beacon.rs` (frame, telemetry, scheduling; C interface `software/rust/sqso-ffi/src/beacon.rs`), `software/rust/sqso-protocol/src/filter.rs`
-(content rules), `software/payload/formatter.py` and `software/payload/content_filter.py` (Jetson text).
+(content rules), `software/payload/formatter.py` and `software/payload/content_filter.py` (Jetson text). Ground decoder:
+`software/ground/tools/beacon_decoder.py` (every field of §3–§4).
 
 ## 1. Radio and Modem
 
@@ -131,3 +132,6 @@ jitter, so that successive beacons do not fall at the same phase of the 8°/s sp
 *Revision note (2026-10-27, documentation audit, follow-up): §3–§4 the `T=` field is seconds since the last OBC boot
 (`smart_qso_now_ms()`, the HAL time base; it restarts at every reset), not seconds since the Unix epoch; the example is
 from the host simulation, whose clock is the host wall clock; UTC is HK2 `RT`.*
+
+*Revision note (2026-11-03, ground software): the ground decoder that parses every field of §3–§4 is
+`software/ground/tools/beacon_decoder.py`.*

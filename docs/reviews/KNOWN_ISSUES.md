@@ -1,8 +1,8 @@
 # SMART-QSO Known Issues Document
 
 **Document ID**: SQSO-KI-001
-**Version**: 1.4
-**Date**: 2026-10-27
+**Version**: 1.5
+**Date**: 2026-11-03
 **Classification**: Unclassified
 **Status**: Draft, live (updated as issues change). No issue acceptance has been signed; no independent PDR or CDR has
 been held (BASELINE §1)
@@ -197,11 +197,12 @@ Accepted as-is.
 **Severity**: Low
 **Status**: Accepted
 **Component**: Ground Software
-**Affected Files**: `software/ground/beacon_decoder.py`
+**Affected Files**: `software/ground/tools/beacon_decoder.py`
 
 **Description**:
-The ground beacon decoder is tested only by unit tests on synthetic AX.25 and KISS data
-(`software/ground/tests/test_beacon_decoder.py`); no TNC or radio has been connected to it. Compatibility with real TNCs
+The ground decoder is tested only by unit tests (`software/ground/tests/test_beacon_decoder.py`) on frames the flight
+formatters make, fed as hex, as a KISS byte stream and over a local KISS TCP socket; no TNC or radio has been connected
+to it. Compatibility with real TNCs
 is not verified.
 
 **Impact**:
@@ -298,3 +299,4 @@ The undersigned acknowledge and accept the known issues documented herein for fl
 | 1.3 | 2026-10-25 | SMART-QSO Team | KI-001: the downlink transmitter driver is written (CR-2026-005, `downlink.h`, the firmware's `hal_radio_transmit`); the TNC and transmitter are still not selected (TBR-SRS-003). `beacon_transmit()` removed from the affected functions |
 | 1.1, note | 2026-10-24 | SMART-QSO Team | KI-003 affected files name the Rust files of the 2026-10-24 port; the issue is unchanged |
 | 1.4 | 2026-10-27 | SMART-QSO Team | Documentation audit (post-CDR 2026): status "Draft, live" (was "CDR Baseline"; no CDR has been held). KI-001 to the code after the CDR 2026 design review: ADCS sensor and magnetorquer drivers exist on the target, pin map from SQSO-ICX-001, RF parts chosen in SQSO-RF-BRD-001; the sensor table remains simulated; closure on the EM flatsat. KI-004: the model is loaded at every burst; no model upload in the baseline (was "model updates are rare"). KI-005: tested by unit tests on synthetic data only (was "with development TNC"); paths given in full |
+| 1.5 | 2026-11-03 | Ground software | KI-005: the one ground decoder is `software/ground/tools/beacon_decoder.py` (the earlier one in `software/ground/` removed); its tests use frames from the flight formatters, with KISS file and TCP input; still no TNC connected |

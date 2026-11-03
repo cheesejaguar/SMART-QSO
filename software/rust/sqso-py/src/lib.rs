@@ -2,8 +2,10 @@
 //! the Jetson payload agent and the ground tools.
 //!
 //! Each function mirrors one in the Rust crate. Malformed input raises
-//! `LinkError` (a `ValueError`), with `CrcError` for a wrong CRC, or
-//! `ValueError` for builder arguments out of range.
+//! `LinkError` (a `ValueError`), with `CrcError` for a wrong CRC; an AX.25
+//! frame that does not parse raises `Ax25Error` (a `ValueError`), with
+//! `FcsError` for a wrong FCS; builder arguments out of range raise
+//! `ValueError`.
 
 #![allow(clippy::needless_pass_by_value)] // PyO3 argument extraction
 
@@ -17,6 +19,8 @@ use sqso_protocol::{Command, KeyClass, ax25, checksum, filter, gse};
 
 create_exception!(sqso_protocol, PyLinkError, PyValueError, "A line that does not follow the ICD.");
 create_exception!(sqso_protocol, PyCrcError, PyLinkError, "A well-formed line whose CRC does not match.");
+create_exception!(sqso_protocol, PyAx25Error, PyValueError, "An AX.25 frame that is not a UI frame with PID 0xF0.");
+create_exception!(sqso_protocol, PyFcsError, PyAx25Error, "An AX.25 frame whose FCS does not match.");
 
 fn link_error(e: LinkError) -> PyErr {
     match e {
@@ -286,6 +290,76 @@ fn kiss_frame<'py>(py: Python<'py>, frame: &[u8], port: u8) -> PyResult<Bound<'p
     Ok(bytes(py, out.get(..n).unwrap_or(&[])))
 }
 
+/// An address field entry as text: `CALL-SSID`, or `CALL` for SSID 0
+fn address_text(addr: &[u8]) -> String {
+    let (call, ssid) = addr.split_at(addr.len().min(6));
+    let call: String = call.iter().map(|b| char::from(b >> 1)).collect();
+    let call = call.trim_end();
+    match ssid.first().map(|s| (s >> 1) & 0x0F) {
+        Some(0) | None => call.to_owned(),
+        Some(n) => format!("{call}-{n}"),
+    }
+}
+
+/// Check and parse an AX.25 UI frame with PID 0xF0, from the address field
+/// through the FCS (`fcs = False`: without it, as a KISS TNC delivers a
+/// frame it has checked). Returns `(dest, src, digipeaters, info)`, the
+/// stations as `CALL-SSID` text; raises `FcsError` for a wrong FCS and
+/// `Ax25Error` for anything else
+#[pyfunction]
+#[pyo3(signature = (frame, fcs = true))]
+fn ax25_parse_ui<'py>(
+    py: Python<'py>,
+    frame: &[u8],
+    fcs: bool,
+) -> PyResult<(String, String, Vec<String>, Bound<'py, PyBytes>)> {
+    let mut with_fcs = vec![0u8; frame.len() + 2];
+    let frame = if fcs {
+        frame
+    } else {
+        let n = ax25::append_fcs(frame, &mut with_fcs).ok_or_else(|| PyAx25Error::new_err("frame too long"))?;
+        with_fcs.get(..n).unwrap_or(&[])
+    };
+    let ui = ax25::parse_ui(frame).map_err(|e| match e {
+        ax25::Ax25Error::Fcs => PyFcsError::new_err("FCS mismatch"),
+        ax25::Ax25Error::Format => PyAx25Error::new_err("too short, or a malformed address field"),
+        ax25::Ax25Error::NotUi => PyAx25Error::new_err("not a UI frame with PID 0xF0"),
+    })?;
+    let digipeaters = ui.digipeaters.chunks_exact(ax25::ADDR_LEN).map(address_text).collect();
+    Ok((address_text(ui.dest), address_text(ui.src), digipeaters, bytes(py, ui.info)))
+}
+
+/// Longest KISS data frame [`KissDecoder`] keeps, bytes (an AX.25 frame of
+/// at most `ax25::MAX_FRAME_LEN`, with room for a TNC that passes the FCS)
+const KISS_FRAME_MAX: usize = 512;
+
+/// A byte stream from a KISS TNC (serial or TCP) cut into its data frames on
+/// one port: `feed(data)` returns the frames the bytes complete
+#[pyclass(name = "KissDecoder")]
+struct PyKissDecoder {
+    inner: sqso_protocol::kiss::Decoder<KISS_FRAME_MAX>,
+}
+
+#[pymethods]
+impl PyKissDecoder {
+    #[new]
+    #[pyo3(signature = (port = 0))]
+    fn new(port: u8) -> Self {
+        PyKissDecoder { inner: sqso_protocol::kiss::Decoder::new(port) }
+    }
+
+    /// The data frames these bytes complete (FEND, command and escapes removed)
+    fn feed<'py>(&mut self, py: Python<'py>, data: &[u8]) -> Vec<Bound<'py, PyBytes>> {
+        data.iter().filter_map(|b| self.inner.feed(*b).map(|f| bytes(py, f))).collect()
+    }
+
+    /// Frames dropped: too long, or badly escaped
+    #[getter]
+    fn dropped(&self) -> u32 {
+        self.inner.dropped
+    }
+}
+
 /// A GSE umbilical provisioning frame
 #[pyfunction]
 #[pyo3(signature = (op, slot, key_id, key_bytes = b"".as_slice()))]
@@ -307,6 +381,10 @@ fn sqso_protocol_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     let py = m.py();
     m.add("LinkError", py.get_type::<PyLinkError>())?;
     m.add("CrcError", py.get_type::<PyCrcError>())?;
+    m.add("Ax25Error", py.get_type::<PyAx25Error>())?;
+    m.add("FcsError", py.get_type::<PyFcsError>())?;
+    m.add("AX25_MAX_FRAME_LEN", ax25::MAX_FRAME_LEN)?;
+    m.add_class::<PyKissDecoder>()?;
     m.add("LINE_MAX", jetson::LINE_MAX)?;
     m.add("TEXT_MAX", jetson::TEXT_MAX)?;
     m.add("FILTER_MAX_LEN", filter::MAX_LEN)?;
@@ -341,6 +419,7 @@ fn sqso_protocol_module(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(tc_frame, m)?)?;
     m.add_function(wrap_pyfunction!(ax25_ui_frame, m)?)?;
     m.add_function(wrap_pyfunction!(kiss_frame, m)?)?;
+    m.add_function(wrap_pyfunction!(ax25_parse_ui, m)?)?;
     m.add_function(wrap_pyfunction!(gse_frame, m)?)?;
     Ok(())
 }

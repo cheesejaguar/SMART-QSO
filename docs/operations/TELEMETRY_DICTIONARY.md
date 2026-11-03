@@ -1,8 +1,8 @@
 # SMART-QSO Telemetry Dictionary
 
 **Document ID**: SQSO-TLM-001
-**Version**: 1.8
-**Date**: 2026-10-27
+**Version**: 1.9
+**Date**: 2026-11-03
 **Classification**: Unclassified
 **Status**: Draft. §4 is the telemetry the flight software sends (the 2026-01 binary frame of earlier versions is removed, §2). No independent CDR has been held (BASELINE Rev E §1)
 
@@ -78,7 +78,7 @@ whole in as many frames as it needs (Version 1.5, SIL finding SIL-40):** cut at 
 one, 5 s apart, each frame after the first starting with the first's tag and sequence (`HK1 N=7 `), so a decoder that
 reads `KEY=value` pairs merges the frames of one `N`. HK1 with every field at its widest is 341 bytes (two frames);
 in flight it passes 250 bytes once its counters grow (in the mission simulation after about 140 days, when Version 1.4's
-single frame went out empty and the `ST=` the ground plans dumps with was lost). HK2 at its widest is 474 bytes (two
+single frame went out empty and the `ST=` the ground plans dumps with was lost). HK2 at its widest is 573 bytes (three
 frames). The order on the air: the HK1 frames, then the HK2 frames, then the GNSS frame when one is due.
 
 | Key | Value | Unit |
@@ -230,37 +230,26 @@ criterion. STORAGE_DESIGN §3.4.2 keeps the map unchanged.
 
 ### 6.1 Decoder Output Format (JSON)
 
+The ground decoder `software/ground/tools/beacon_decoder.py` writes one JSON object per line: one per beacon, one per
+HK1 or HK2 text (merged from its frames by the `HKn N=` head), and one per GNS frame or acknowledgement
+(`software/ground/tools/README.md`). Every record keeps the raw `KEY=value` text in `fields` and gives the values in
+`values`, named and in engineering units, `null` for `-`. A beacon (abridged):
+
 ```json
-{
-  "timestamp": "2026-01-02T12:34:56Z",
-  "sequence": 12345,
-  "uptime": 86400,
-  "state": "ACTIVE",
-  "battery": {
-    "voltage": 15.6,
-    "current": 0.3,
-    "soc": 78
-  },
-  "thermal": {
-    "obc": 25.0,
-    "battery": 22.0,
-    "jetson": 45.0
-  },
-  "rf": {
-    "tx_enabled": true,
-    "tx_power": 1,
-    "tx_count": 1440
-  },
-  "faults": []
-}
+{"kind": "beacon", "rx_utc": "2026-11-03T10:00:05.120000Z", "source": "KK6GDB-11", "fcs": "absent",
+ "beacon": {"callsign": "KK6GDB-11", "text": "Greetings from LEO! 73 to all",
+            "fields": {"T": "1792115511", "M": "ACTIVE", "SOC": "83", "BV": "14.4", "SUN": "1", "RF": "1", "QSO": "-"},
+            "values": {"mission_time_s": 1792115511, "power_mode": "ACTIVE", "soc_pct": 83, "battery_v": 14.4,
+                       "sunlit": 1, "rf_power": 1, "qso_count": null}}}
 ```
+
+An HK1 text (abridged): `{"kind": "hk1", "seq": 7, "frames": 1, "complete": true, "values": {"soc_pct": 87.3,
+"battery_v": 15.812, "battery_a": -0.12, "battery_temp_c": 12.3, "jetson_temp_c": null, "rate_z_dps": 6.0, ...},
+"missing_keys": [], ...}`. The decoder does not check the §5 limits.
 
 ### 6.2 CSV Export Format
 
-```csv
-timestamp,seq,state,batt_v,batt_i,batt_soc,obc_temp,batt_temp,jetson_temp
-2026-01-02T12:34:56Z,12345,ACTIVE,15.6,0.3,78,25.0,22.0,45.0
-```
+None yet: the decoder's JSON lines are the archive format (§7).
 
 ## 7. Telemetry Archival
 
@@ -293,3 +282,4 @@ SQSO_SUMMARY_YYYYMM.csv
 | 1.6 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fifth part) | §4.4.1 HK2 `SL` selector decisions and abstentions per head (RID SMA-15), `GE` geometry preset and `SN` body sun vector (decision C-21), `TS` and `RL` listed; `JB` lines are accepted lines (decision C-20); HK2 text up to 573 bytes, cut into frames of whole fields; §4.4.2 every GNS and acknowledgement field has a fixed width, no frame is empty, PDOP ≤ 99.9 (RID P3F-A-05) |
 | 1.7 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): status; §2–§3 marked superseded by §4 (the 2026-01 frame is not sent); §4.3 example BV=15.8 (was 8.1, a 2S value); §5.1 battery-voltage limits for the 4S pack in HK1 `VB` mV and Jetson spreader limits from BASELINE §6 (were single-cell 3.0–4.2 V and 60/70 °C); §6 decoder examples 15.6 V |
 | 1.8 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026), follow-up: §2–§3 the superseded 2026-01 binary frame and its TLM-001 to TLM-061 table removed (pointers to the frames of §4); §4.2 the beacon `T=` field is seconds since the last OBC boot (`smart_qso_now_ms()`), not Unix/UTC seconds; UTC is HK2 `RT` |
+| 1.9 | 2026-11-03 | Ground software | §4.4 HK2 at its widest is 573 bytes, three frames (was 474 bytes, two; the flight formatter's test and the ground decoder's fixture); §6.1 the decoder output as `software/ground/tools/beacon_decoder.py` writes it (the earlier example was of no existing decoder); §6.2 no CSV export yet |

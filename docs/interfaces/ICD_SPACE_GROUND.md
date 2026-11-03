@@ -1,8 +1,8 @@
 # Interface Control Document: Space-to-Ground
 
 **Document ID**: SQSO-ICD-005
-**Version**: 2.8
-**Date**: 2026-10-27
+**Version**: 2.9
+**Date**: 2026-11-03
 **Classification**: Unclassified
 **Status**: CDR. RF values follow BASELINE §7; frequencies are planning values until the IARU coordination letter.
 
@@ -115,8 +115,9 @@ Every fifth beacon is followed by the housekeeping frame `HK1 ...` (SQSO-TLM-001
 which carries the loss-of-contact state (`CT=` timeout in days, `CS=` hours since contact) and the commands counted as
 contact since boot (`CN=`), and 5 s later by the second frame `HK2 ...` (SQSO-TLM-001 §4.4.1). A housekeeping text
 longer than one frame's 250 bytes goes in two or more frames 5 s apart, cut between fields, each after the first
-starting with the same `HK1 N=<n> ` (or `HK2 N=<n> `) head (SQSO-TLM-001 1.5 §4.4; SIL finding SIL-40). The decoder
-merges the frames of one `N`.
+starting with the same `HK1 N=<n> ` (or `HK2 N=<n> `) head (SQSO-TLM-001 1.5 §4.4; SIL finding SIL-40). The ground
+decoder (`software/ground/tools/beacon_decoder.py`) merges the frames of one `N` and reports a text whose frames did not
+all arrive as incomplete, with the fields missing.
 
 **GNSS state frame.** After each GNSS session that ended with a fix, and after HK2 on `GET_HOUSEKEEPING` (0x09), one UI
 frame from KK6GDB-11 to CQ whose information field is plain ASCII (SRS-F158, RID LV-04):
@@ -257,7 +258,7 @@ Santa Clara, 475 km SSO (the baseline target; SQSO-GND-001 Rev H §4): 3.77 pass
 |------|-----------|------|
 | End-to-end RF compatibility: a telecommand station kit against the EM over an attenuated cable link at the budget's levels, with Doppler applied | Beacons decoded at the §4.3 levels; commands accepted at 53 dB-Hz; TX-OFF end to end | EM (with VI-RF-03, VI-RF-12) |
 | SatNOGS decoder | The SatNOGS demodulator and the published decoder decode recorded EM beacons | Before launch |
-| Beacon format | A ground decoder parses every field of the BEACON_SPEC §3–§4 information field (call sign, text, `T`, `M`, `SOC`, `BV`, `SUN`, `RF`, `QSO`, with `-` read as not measured). **Not met today:** `software/ground/beacon_decoder.py` parses an earlier `V:` / `B:` / `T:` layout and `software/ground/tools/beacon_decoder.py` a binary health beacon; neither reads the `\| T=… M=… SOC=…` tail | Software test, before the SatNOGS decoder is published |
+| Beacon format | A ground decoder parses every field of the BEACON_SPEC §3–§4 information field (call sign, text, `T`, `M`, `SOC`, `BV`, `SUN`, `RF`, `QSO`, with `-` read as not measured) and of the HK1 and HK2 texts, merging the frames of a text by its `HKn N=` head. **Met by software test:** `software/ground/tools/beacon_decoder.py` (the one ground decoder), tested in `software/ground/tests/test_beacon_decoder.py` on frames the flight formatters make (`software/ground/tests/fixtures/flight_frames.txt`, kept current by `software/rust/sqso-fsw/tests/ground_frames.rs`), including the widest HK1 (two frames) and HK2 (three frames). Not yet shown on received RF frames, and no SatNOGS decoder is written | Software test (done); recorded EM beacons before the SatNOGS decoder is published |
 
 ## 11. Revision History
 
@@ -276,3 +277,4 @@ Santa Clara, 475 km SSO (the baseline target; SQSO-GND-001 Rev H §4): 3.77 pass
 | 2.6 | 2026-10-27 | CDR flight software, round 3 (fourth part) | §5.3 a housekeeping text longer than a frame goes in frames of whole fields, the `HKn N=<n>` head repeated (SIL finding SIL-40) |
 | 2.7 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026): §2 revisions (BASELINE E, LBA 3.5, GND-001 H); §4.1 the C-19 hold after the RF silence; §4.3 telecommand ≥ +6.2 / ≥ +8.0 dB and transponder 20/28/32 dB SINAD from BASELINE Rev E §7 (LBA 3.5); GS-5 variant B ≥ 17.8 dBic (C-14); §7.1 commanding above 10° (was 15°); §7.2 the 10° pass count |
 | 2.8 | 2026-10-27 | Documentation audit | Documentation audit (post-CDR 2026), follow-up: §4.3 telecommand ≥ +6.6 / ≥ +8.4 dB at 5° / 10° (both variants' minimums) and transponder 21 / 28 / 33 dB SINAD downlink (20 / 27 / 31 end to end), from BASELINE Rev E (amended) §7 and LBA 3.5 (were the 100 W / 14 dBic +6.2 / +8.0 dB and 20 / 28 / 32 dB); §5 beacon `T=` is seconds since the last OBC boot and §9 spacecraft time accordingly (was "UTC seconds"); §10 the beacon-format check records that neither ground decoder parses the BEACON_SPEC tail yet (the claim that one does is withdrawn) |
+| 2.9 | 2026-11-03 | Ground software | §5.3 and §10: one ground decoder, `software/ground/tools/beacon_decoder.py`, parses every BEACON_SPEC §3–§4 field and the HK1/HK2 texts, merging multi-frame texts by their `HKn N=` head; tested on frames from the flight formatters (the earlier decoder in `software/ground/` is removed). The SatNOGS decoder and a test on received RF frames remain open |

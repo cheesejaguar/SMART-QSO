@@ -58,7 +58,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-REL-001 | SMART-QSO Reliability Analysis | `docs/environment/RELIABILITY_ANALYSIS.md` | 2.4 | Draft |
 | SQSO-THA-001 | SMART-QSO Thermal Analysis | `docs/environment/THERMAL_ANALYSIS.md` | 2.6 | Draft |
 | SQSO-GND-001 | Ground Station Design | `docs/ground/GROUND_STATION_DESIGN.md` | H | Draft |
-| SQSO-GSOM-001 | SMART-QSO Ground Station Operations Manual | `docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md` | 1.8 | Draft |
+| SQSO-GSOM-001 | SMART-QSO Ground Station Operations Manual | `docs/ground/GROUND_STATION_OPERATIONS_MANUAL.md` | 1.9 | Draft |
 | SQSO-GND-002 | Orbit Determination and Operator Ephemeris | `docs/ground/ORBIT_DETERMINATION_AND_EPHEMERIS.md` | A | Draft; owner: ground segment lead |
 | SMART-QSO-ADCS-001 | Attitude Determination and Control Subsystem (ADCS) Design Document | `docs/hardware/ADCS_DESIGN.md` | 1.11 | Draft |
 | SQSO-BVB-001 | Build versus Buy: COTS Survey, Gyro, ADCS Gains and Battery | `docs/hardware/BUILD_VS_BUY.md` | G | Draft; vendor data from public pages, no quotes |
@@ -80,7 +80,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SMART-QSO-ICD-001 | Interface Control Document: OBC-EPS | `docs/interfaces/ICD_OBC_EPS.md` | 1.8 | Draft |
 | SMART-QSO-ICD-002 | Interface Control Document: OBC-Jetson | `docs/interfaces/ICD_OBC_JETSON.md` | 1.5 | Draft |
 | SQSO-ICD-003 | Interface Control Document: OBC to RF Subsystem | `docs/interfaces/ICD_OBC_RF.md` | 2.5 | Draft |
-| SQSO-ICD-005 | Interface Control Document: Space-to-Ground | `docs/interfaces/ICD_SPACE_GROUND.md` | 2.8 | Draft |
+| SQSO-ICD-005 | Interface Control Document: Space-to-Ground | `docs/interfaces/ICD_SPACE_GROUND.md` | 2.9 | Draft |
 | SQSO-ICD-000 | Interface Control Document - Master | `docs/interfaces/INTERFACE_CONTROL_MASTER.md` | D | Draft |
 | SQSO-IVP-001 | SMART-QSO Interface Verification Plan | `docs/interfaces/INTERFACE_VERIFICATION_PLAN.md` | 1.1 | Draft |
 | SQSO-ICD-013 | Interface Control Document: Telecommand Authentication and TX-OFF | `docs/interfaces/TELECOMMAND_AUTHENTICATION.md` | 0.16 | Draft |
@@ -107,7 +107,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-OTM-001 | SMART-QSO Operator Training Materials | `docs/operations/OPERATOR_TRAINING_MATERIALS.md` | 1.1 | Draft |
 | SQSO-OTP-001 | SMART-QSO Operator Training Plan | `docs/operations/OPERATOR_TRAINING_PLAN.md` | 1.1 | Draft |
 | SQSO-SRP-001 | SMART-QSO Software Rollback and Recovery Procedures | `docs/operations/SOFTWARE_ROLLBACK_PROCEDURES.md` | 1.1 | Draft |
-| SQSO-TLM-001 | SMART-QSO Telemetry Dictionary | `docs/operations/TELEMETRY_DICTIONARY.md` | 1.8 | Draft |
+| SQSO-TLM-001 | SMART-QSO Telemetry Dictionary | `docs/operations/TELEMETRY_DICTIONARY.md` | 1.9 | Draft |
 | SQSO-AUD-006 | Onboard AI Model Selection (Decision D5) | `docs/payload/AI_MODEL_SELECTION.md` | C | Draft |
 | SQSO-AUD-001 | SMART-QSO Funding Audit Report | `docs/funding_audit/FUNDING_AUDIT_REPORT.md` | B | Audit record (2026-10-14); under document control from 2026-10-27 (RID P3P-09) |
 | SQSO-AUD-002 | Funding Audit — Findings Register | `docs/funding_audit/FINDINGS_REGISTER.md` | B | Living register (`scripts/register_status.py --check`) |
@@ -147,7 +147,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-FRR-001 | SMART-QSO Flight Readiness Review Package | `docs/reviews/FLIGHT_READINESS_REVIEW.md` | 1.1 | Template |
 | SQSO-FSW-DEL-001 | SMART-QSO Flight Software Delivery Package | `docs/reviews/FLIGHT_SOFTWARE_DELIVERY.md` | 1.3 | Draft; status claims not substantiated (its notice) |
 | SQSO-FIR-001 | SMART-QSO Formal Inspection Report Template | `docs/reviews/FORMAL_INSPECTION_REPORT.md` | 1.0 | Template |
-| SQSO-KI-001 | SMART-QSO Known Issues Document | `docs/reviews/KNOWN_ISSUES.md` | 1.4 | Draft |
+| SQSO-KI-001 | SMART-QSO Known Issues Document | `docs/reviews/KNOWN_ISSUES.md` | 1.5 | Draft |
 | SQSO-LRR-001 | SMART-QSO Launch Readiness Review Package | `docs/reviews/LAUNCH_READINESS_REVIEW.md` | 1.1 | Template |
 | SQSO-MOR-001 | SMART-QSO Mission Operations Review Package | `docs/reviews/MISSION_OPERATIONS_REVIEW.md` | 1.1 | Template |
 | SQSO-REV-PDR-001 | SMART-QSO Preliminary Design Review (PDR) | `docs/reviews/PDR/PDR_REVIEW_MINUTES.md` | — | Self-assessment record; no independent PDR held |
@@ -275,7 +275,7 @@ tagged baseline. The first configuration baseline tag is to be created when PDR 
 | SQSO-FSW-007 | Timing Analysis | `software/flight/docs/TIMING_ANALYSIS.md` | C | Draft |
 | SMART-QSO-HIL-001 | Hardware-in-the-Loop (HIL) Test Plan | `software/flight/tests/hil/HIL_TEST_PLAN.md` | 1.5 | Draft |
 | SMART-QSO-REG-001 | Regression Test Suite | `software/flight/tests/regression/REGRESSION_TESTS.md` | 1.2 | Draft |
-| SMART-QSO-GND-000 | SMART-QSO Ground Software Tools | `software/ground/tools/README.md` | 1.2 | Draft |
+| SMART-QSO-GND-000 | SMART-QSO Ground Software Tools | `software/ground/tools/README.md` | 1.3 | Draft |
 
 ## 3. Test Procedures Defined Inside Documents
 

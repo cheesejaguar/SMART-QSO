@@ -1,8 +1,8 @@
 # SMART-QSO Ground Station Operations Manual
 
 **Document ID**: SQSO-GSOM-001
-**Version**: 1.8
-**Date**: 2026-10-27
+**Version**: 1.9
+**Date**: 2026-11-03
 **Classification**: Unclassified
 **Status**: CDR draft for the designated telecommand stations (none agreed yet; `docs/ground/GROUND_STATION_DESIGN.md` Rev H). Frequencies are planning values until the IARU letter. Command procedures follow SQSO-ICD-013, which governs.
 
@@ -55,7 +55,7 @@ This manual provides step-by-step procedures for operating the SMART-QSO ground 
 |----------|---------|---------|
 | Gpredict | 2.2.1+ | Tracking & Doppler |
 | Direwolf | 1.7+ | TNC/KISS interface |
-| smart-qso-ground | 1.0.0 | Beacon decoder |
+| `beacon_decoder.py` | this repository (`software/ground/tools/`, needs `sqso_protocol`) | Live KISS decoder and frame logger: beacon, HK1/HK2, GNS, acknowledgements to JSON lines |
 | `telecommand_builder.py` | this repository | Authenticated frames, UTC-derived counters (offline key machine) |
 | `ephemeris_tool.py` | this repository | Orbit determination from the GNSS frames: CCSDS OEM, TLE, quality flag (SQSO-GND-002) |
 | Hamlib | 4.5+ | Radio control |
@@ -91,13 +91,14 @@ This manual provides step-by-step procedures for operating the SMART-QSO ground 
      □ Verify audio device connected
      □ Verify KISS TCP port open (8001)
 
-□ 5. Start frame logging
-     □ Log every received frame (hex, with UTC time) from the TNC's KISS port to
-       beacon_log_YYYYMMDD_HHMMSS (the station's own logger)
-     □ Verify log file created
-     Note: the repository has no live KISS decoder yet. software/ground/tools/
-     beacon_decoder.py decodes hex frames afterwards (-f FILE, --stdin) and does
-     not yet parse the docs/BEACON_SPEC.md §3 telemetry field.
+□ 5. Start the decoder and frame logging
+     $ python software/ground/tools/beacon_decoder.py --kiss-tcp localhost:8001 \
+         --log beacon_log_YYYYMMDD_HHMMSS.jsonl | tee decoded_YYYYMMDD_HHMMSS.jsonl
+     □ Verify log file created (every frame received, with UTC time, in hex)
+     □ Decoder connected (no error; it prints one JSON line per beacon and per
+       merged HK1/HK2 text as they arrive)
+     Note: the decoder parses every docs/BEACON_SPEC.md §3 field and the HK1/HK2
+     fields (SQSO-TLM-001 §4.4); it does not check limits (§5.1 of SQSO-TLM-001).
 ```
 
 ### 3.3 T-15 Minutes: Antenna Positioning
@@ -136,7 +137,7 @@ This manual provides step-by-step procedures for operating the SMART-QSO ground 
 
 □ 10. Final verification
       □ Audio levels nominal
-      □ Decoder showing "Waiting for data"
+      □ Decoder running (step 5), no output yet
       □ Log file open
 ```
 
@@ -210,15 +211,17 @@ At LOS (elevation < 0°):
      □ Verify log file saved
 
 □ 2. Archive data
-     $ cp beacon_log_YYYYMMDD_HHMMSS.json \
+     $ cp beacon_log_YYYYMMDD_HHMMSS.jsonl decoded_YYYYMMDD_HHMMSS.jsonl \
          ~/smart-qso/passes/
 
-□ 3. Process telemetry
-     $ python software/ground/tools/beacon_decoder.py "<frame hex>"
-       (one frame per call: the AX.25 header and addresses, as JSON)
-     □ Read the telemetry fields (docs/BEACON_SPEC.md §3, §4) from each
-       information field; software/ground/telemetry_display.py is a library
-       with no command line yet
+□ 3. Process telemetry (again from the log, e.g. after a decoder update)
+     $ python software/ground/tools/beacon_decoder.py \
+         -f beacon_log_YYYYMMDD_HHMMSS.jsonl -o decoded_YYYYMMDD_HHMMSS.jsonl
+     □ Beacons: "values" holds every BEACON_SPEC §4 field; null = not measured
+     □ HK1/HK2: "complete": false means a frame of a multi-frame text was not
+       received ("missing_keys" lists its fields)
+     □ software/ground/telemetry_display.py is a library with no command line
+       yet
 
 □ 4. Review telemetry
      □ Check all values in limits
@@ -484,12 +487,12 @@ CHECK:
 1. □ Direwolf running?
 2. □ Audio levels correct?
 3. □ KISS port connected?
-4. □ Decoder receiving data?
+4. □ Decoder receiving data? (frames appear in the --log file)
 
 FIX:
-- Restart Direwolf
+- Restart Direwolf, then the decoder (it exits when the KISS connection closes)
 - Adjust audio levels (peak at 50%)
-- Check decoder logs for errors
+- Records of kind "error" (FCS, not AX.25) or with "errors": see the frame hex
 ```
 
 ### 8.4 Command Not Acknowledged
@@ -598,3 +601,4 @@ If telemetry indicates emergency:
 | 1.6 | 2026-10-27 | CDR round 3, ground software (RIDs GND-04, LV-04, RFB-05) | UTC-derived counters in the command procedure (§7.2), clock maximum error ≤ 0.5 s (§2.2, §3.4); the command acknowledgement used to verify (§7.2); quick reference with the whole dictionary, 0x08 to 0x0B, 0x14, 0x24 to 0x26, 0x34, 0x35, 0x50, 0x60, 0x70, 0x71 (§7.3); uplink frequency offset from the measured downlink (§7.4); orbit determination and the 24 h ephemeris procedure (§5.3, SQSO-GND-002); troubleshooting and the checklist card |
 | 1.7 | 2026-10-27 | CDR flight software, round 3 (third part) | DEPLOY_RETRY's force flag past the AntS temperature gate (decision C-18), HK1 `AD` |
 | 1.8 | 2026-10-27 | Documentation audit (post-CDR 2026) | Status and §9.1a cite GROUND_STATION_DESIGN Rev H; §3.2 step 5 and §5.1 no longer call `beacon_decoder.py --kiss` or a `telemetry_display.py` command line, which do not exist: frame logging, then the hex decoder |
+| 1.9 | 2026-11-03 | Ground software | §2.3, §3.2 step 5, §5.1 and §8.3: `beacon_decoder.py --kiss-tcp` decodes live from Direwolf's KISS port and logs every frame (`--log`); post-pass decoding of that log with `-f`; the decoder parses every BEACON_SPEC §3 field and the HK1/HK2 texts |

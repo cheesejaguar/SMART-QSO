@@ -134,8 +134,10 @@ c56e5f4 (`git log --stat --diff-filter=D -- software/flight/src`).
 - The C headers in `software/flight/include` (the interface) and the C test suites in `software/flight/tests`.
 
 The Python payload and ground tools use `sqso_protocol` for the same formats: `obc_link.py`, `content_filter.py` and
-`crc16.py` (payload), and `telecommand_builder.py` and `key_provision.py` (ground). The OBC, the Jetson and the ground
-station run one implementation of each format (findings SW-04, SW-24).
+`crc16.py` (payload), and `telecommand_builder.py`, `key_provision.py` and `beacon_decoder.py` (ground: AX.25 parsing
+with `ax25_parse_ui` and KISS deframing with `KissDecoder`). The OBC, the Jetson and the ground station run one
+implementation of each format (findings SW-04, SW-24). The ground decoder's test frames are made by the flight
+formatters (`sqso-fsw/tests/ground_frames.rs` writes and checks `software/ground/tests/fixtures/flight_frames.txt`).
 
 ## Build and test
 
