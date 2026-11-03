@@ -30,6 +30,8 @@
  * @requirement SYS-422 The ADCS shall achieve gravity gradient or sun-pointing stabilization
  * @requirement SRS-F040 The software shall detect and log all fault conditions
  * @requirement SRS-S004 The software shall validate all commands before execution
+ * @requirement SRS-F090 The software shall use a magnetometer sample only when the magnetorquers have been off for at least 50 ms, discard and count any other sample
+ * @requirement SRS-F091 The software shall command each magnetorquer burst for 900 ms of the 1 s control period, with the dipole scaled by the period over the on-time
  */
 
 #include <stdarg.h>
@@ -43,6 +45,7 @@
 
 #include "adcs_control.h"
 #include "fault_mgmt.h"
+#include "hal/hal_mtq.h"
 
 /*===========================================================================*/
 /* Helpers                                                                    */
@@ -56,6 +59,12 @@
 
 /** One control cycle (ADCS_DESIGN §5.3: 1 Hz) */
 #define CYCLE_MS 1000U
+
+/** Coil burst from each command (ADCS_DESIGN §5.3, §11.1: 900 ms) */
+#define BURST_MS 900U
+
+/** Coils off at least this long before a sample is used (§5.3, §11.1: 50 ms) */
+#define SETTLE_MS 50U
 
 /** Body-frame magnetic field the simulated magnetometer returns (uT) */
 static Vec3_t s_field;
@@ -250,6 +259,63 @@ static void test_idle_keeps_coils_off(void **cm_state)
     assert_int_equal(adcs_get_mode(), ADCS_MODE_IDLE);
     assert_int_equal(get_state().control_cycles, 10);
     assert_coils_off();
+}
+
+/**
+ * The magnetometer is read with the coils off (ADCS_DESIGN §5.3, §11.1;
+ * SRS-F090, SRS-F091): each command is a burst of 900 ms, then the coils are
+ * off until the next cycle. A sample taken during the burst, or less than
+ * 50 ms after it, is not used: no B-dot that cycle (coils off), the reading
+ * not valid, and the first such sample logged as an ADCS fault. A sample
+ * taken 50 ms or more after the burst is used.
+ */
+static void test_magnetometer_read_only_in_coils_off_window(void **cm_state)
+{
+    (void)cm_state;
+    const Vec3_t z = {0.0, 0.0, 1.0};
+    FaultLogEntry_t entry;
+
+    assert_int_equal(adcs_set_mode(ADCS_MODE_DETUMBLE), SMART_QSO_OK);
+    tumble(3.0, 3U);
+    AdcsState_t st = get_state();
+    assert_true(st.mag.valid);
+    assert_true(st.mtq.enabled);
+    assert_true(hal_mtq_active()); /* the burst runs from the command */
+
+    /* Inside the burst: not used, coils off for the cycle, logged once */
+    step(&z, 3.0, BURST_MS / 2U);
+    st = get_state();
+    assert_false(st.mag.valid);
+    assert_double_equal(vec3_magnitude(&st.mtq.dipole), 0.0, 1e-12);
+    assert_false(hal_mtq_active()); /* bridges asleep (hal_mtq_off) */
+    assert_int_equal(fault_log_get_count(), 1);
+    assert_int_equal(fault_log_get_last(&entry), SMART_QSO_OK);
+    assert_int_equal(entry.fault_type, FAULT_TYPE_ADCS);
+
+    /* The next cycle is in the window: used, and the coils driven again */
+    step(&z, 3.0, CYCLE_MS);
+    tumble(3.0, 1U);
+    st = get_state();
+    assert_true(st.mag.valid);
+    assert_true(vec3_magnitude(&st.mtq.dipole) > 0.0);
+    assert_true(hal_mtq_active());
+
+    /* Burst ended but not settled (49 ms): not used, counted not logged */
+    step(&z, 3.0, BURST_MS + SETTLE_MS - 1U);
+    st = get_state();
+    assert_false(st.mag.valid);
+    assert_double_equal(vec3_magnitude(&st.mtq.dipole), 0.0, 1e-12);
+    assert_false(hal_mtq_active());
+    assert_int_equal(fault_log_get_count(), 1);
+
+    /* Exactly settled after a fresh burst: used */
+    tumble(3.0, 2U);
+    assert_true(hal_mtq_active());
+    step(&z, 3.0, BURST_MS + SETTLE_MS);
+    st = get_state();
+    assert_true(st.mag.valid);
+    assert_true(vec3_magnitude(&st.mtq.dipole) > 0.0);
+    assert_int_equal(st.mode, ADCS_MODE_DETUMBLE);
 }
 
 /** Commanded DETUMBLE starts the detumble clock and drives the coils */
@@ -926,6 +992,7 @@ int main(void)
         cmocka_unit_test_setup(test_reinit_returns_to_idle, setup),
         cmocka_unit_test_setup(test_idle_keeps_coils_off, setup),
         cmocka_unit_test_setup(test_command_detumble_starts_bdot, setup),
+        cmocka_unit_test_setup(test_magnetometer_read_only_in_coils_off_window, setup),
         cmocka_unit_test_setup(test_detumble_complete_hands_over_to_sunpoint, setup),
         cmocka_unit_test_setup(test_rate_spike_restarts_settling, setup),
         cmocka_unit_test_setup(test_rate_above_threshold_never_settles, setup),

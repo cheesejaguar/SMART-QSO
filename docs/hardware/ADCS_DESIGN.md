@@ -1,8 +1,8 @@
 # Attitude Determination and Control Subsystem (ADCS) Design Document
 
 **Document Number**: SMART-QSO-ADCS-001
-**Version**: 1.10
-**Date**: 2026-10-27
+**Version**: 1.11
+**Date**: 2026-11-03
 **Status**: Preliminary Design
 
 **Governing Standards**:
@@ -404,8 +404,12 @@ and no requirement rests on it.
 
 | Parameter | Value | Description |
 |-----------|-------|-------------|
-| Control loop rate | 1 Hz | Magnetorquer update rate |
-| Sensor sampling | 10 Hz | Magnetometer/sun sensor |
+| Control loop rate | 1 Hz | Magnetorquer update rate (`CONTROL_PERIOD_MS` = 1000 ms) |
+| Coil burst | 900 ms from each command | `MTQ_ON_MS`: the coils are driven from the command (0 ms) to 900 ms; TIM15's one-pulse ends the burst in hardware, the board's off-timer at 0.92–0.98 s if it does not (§6.1) |
+| Settling before the sample | 50 ms | `MAG_SETTLE_MS`: coil current to zero (air coils L/R < 1 ms; DRV8876 current zero within 1.9 ms, §6.1), rod eddy currents and recoil, margin; a constant, re-measured on the EM (§11.5) |
+| Magnetometer sample | 1 Hz, at 950–1000 ms of the period, coils off | Single-shot RM3100 conversion triggered at 50 ms after the burst ends; a sample read with the coils on or not settled is not used, counted (`mag_rejected`, housekeeping `MR`) and the first logged as a fault (§11.1, SRS-F090) |
+| Sun sensors, gyro | 1 Hz | Read with the magnetometer at each control cycle |
+| Dipole scaling | × 1000/900, saturated at 0.2 A·m² | The impulse per period is the control law's; when the law already asks for 0.2 A·m² (early detumble) the impulse is 10 % less (SRS-F091) |
 | Detumble timeout | 285 min | Max detumble duration (3 orbits, BASELINE §8). In the Monte Carlo, the slowest trial took 1.5 h from tip-offs of up to 30°/s (§4.1) |
 | Settling time | 5 min | Time to declare detumble complete |
 | Eclipse threshold | 5% | Sun sensor threshold for eclipse |
@@ -593,6 +597,14 @@ The Monte Carlo (§11.4) shows the window costs nothing with the gyro and is wha
 the coils on through the sample and the software unaware, the gyroless case loses 27 of 40 trials to the 285-minute
 timeout; with the window enforced but the coils left on (a driver fault), every sample is rejected (43,197 in half a day)
 and the detumble times out as a reported fault instead of a false completion.
+
+Tests: `sqso_fsw::adcs` unit tests (the sample gate, the burst scaling, no detumble on a stale estimate) and, through
+the C interface, `test_magnetometer_read_only_in_coils_off_window` in `software/flight/tests/test_adcs.c` (a sample
+inside the burst or 49 ms after it is not used, the dipole is zero and the bridges asleep, the first is logged; one at
+50 ms is used). Re-run 2026-11-03 (40 trials, 2 days): the M-G370, no-gyro and missing-window rows of BUILD_VS_BUY §6.4
+reproduce to the printed precision, and with the window the results at a coupling of 0, 1·10⁻⁴ and 3·10⁻⁴ T per A·m²
+are identical: with the model's 5 ms decay (`COIL_TAU_S`) the 50 ms settle leaves e⁻¹⁰ of the coil field at the
+sample (≈ 1 nT at full dipole and 1·10⁻⁴ T per A·m²).
 
 ### 11.2 Inertia (layout B, STR-01, STR-27)
 
@@ -1028,3 +1040,4 @@ void mag_field_eci(double jd, Vec3 *r_eci, Vec3 *B_eci) {
 | 1.8 | 2026-10-27 | SMART-QSO Team (CDR flight software, round 3, fourth part) | §11.2 the tensors of MASS_BUDGET 3.2 §6.5 (deployed (3.064, 4.481, 4.262) × 10⁻³, the presets' major axes 8.4°, 9.1°, 3.6°); §11.4 the M-G370, CAD-plant and preset rows re-run with them (RID GNC-07) |
 | 1.9 | 2026-10-27 | SMART-QSO Team (CDR round 3 closure, GN&C) | Findings P3F-G-04 to -07 and decisions C-21, C-22, C-23: §2.1, §2.2 ADCS-F002 and ADCS-P002 restated for power (≤ 5 % of the sunlit generation lost to the pointing and the Sun within 30° of +Y ≥ 95 % of sunlit time, every trial, photodiodes and albedo), ADCS-F003 the sun vector and rate the law needs, ADCS-P003 withdrawn, ADCS-P007 rate knowledge (≤ 0.2°/s); ADCS-I003, §3.1, §7 no quaternion; §4.3 the EKF/TRIAD removed from the flight baseline (TRIAD kept as a ground tool); §8.1 F003 method and status; §11.2 stowed products and the AntS-stowed tensor; §11.3 preset axes regenerated from the code (8.4°, 9.1°, 3.6°) and the C-21 rule; §11.4 the gain sweep and the robustness table re-run with the current tensors (C-4 rationale revised: no gain holds Iyy = Izz; 8°/s and 3·10⁻⁴ stand on the 1.005–1.05 range), the proposed BASELINE §8 text; §11.6 new: gating, wings stowed with the AntS held 25 h, the AntS 3 h after the wings, one wing at CBE/MEV with the wrong preset, the face-photodiode sun sensors with albedo, the sun-vector knowledge (reported) and ADCS-P002 per trial (met at 3–7 mA·m², not at the 10 mA·m² limit: 6 of 40 trials); §11.7 new: the wing-identification signatures and pass criteria |
 | 1.10 | 2026-10-27 | SMART-QSO Team (documentation audit) | Documentation audit (post-CDR 2026): hardware brought into line with SQSO-OBC-BRD-001 §9–§10 (its chair items C1, C2): §3.1 block diagram, §3.2.1 RM3100 on board A2 (HMC5883L placeholder withdrawn), §3.2.2 panel photodiodes into the ADS7138 (SLCD-61N8 withdrawn), §3.3.1 CR0002 rods selected and air-core coils the alternate, §6.1 DRV8876-Q1 from VBAT_MTQ with the hardware off-timer (L293D/DRV8833 withdrawn), §6.2–§6.3 interfaces; §10 A3200 marked not a current option; heritage line reworded (reference missions, not project heritage) |
+| 1.11 | 2026-11-03 | SMART-QSO Team | §5.3 timing: the coil burst (900 ms), the settling before the magnetometer sample (50 ms), the sample's place in the period and the dipole scaling (the 10 Hz sensor sampling row withdrawn: the sensors are read once per control cycle); §11.1 the C suite test of the window and the Monte Carlo re-run of 2026-11-03 |
