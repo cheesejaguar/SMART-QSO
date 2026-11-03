@@ -34,8 +34,8 @@ jobs:
         (github.event_name == 'pull_request' &&
          (github.event.pull_request.head.repo.full_name != github.repository ||
           github.event.pull_request.user.login == 'dependabot[bot]')) &&
-        'ubuntu-latest' ||
-        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-latest"]')
+        'ubuntu-24.04' ||
+        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-24.04"]')
       }}
 
     steps:
@@ -86,8 +86,8 @@ jobs:
         (github.event_name == 'pull_request' &&
          (github.event.pull_request.head.repo.full_name != github.repository ||
           github.event.pull_request.user.login == 'dependabot[bot]')) &&
-        'ubuntu-latest' ||
-        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-latest"]')
+        'ubuntu-24.04' ||
+        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-24.04"]')
       }}
     needs: build
 
@@ -142,8 +142,8 @@ jobs:
         (github.event_name == 'pull_request' &&
          (github.event.pull_request.head.repo.full_name != github.repository ||
           github.event.pull_request.user.login == 'dependabot[bot]')) &&
-        'ubuntu-latest' ||
-        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-latest"]')
+        'ubuntu-24.04' ||
+        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-24.04"]')
       }}
     needs: build
 
@@ -223,8 +223,8 @@ jobs:
         (github.event_name == 'pull_request' &&
          (github.event.pull_request.head.repo.full_name != github.repository ||
           github.event.pull_request.user.login == 'dependabot[bot]')) &&
-        'ubuntu-latest' ||
-        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-latest"]')
+        'ubuntu-24.04' ||
+        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-24.04"]')
       }}
 
     steps:
@@ -273,8 +273,8 @@ jobs:
         (github.event_name == 'pull_request' &&
          (github.event.pull_request.head.repo.full_name != github.repository ||
           github.event.pull_request.user.login == 'dependabot[bot]')) &&
-        'ubuntu-latest' ||
-        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-latest"]')
+        'ubuntu-24.04' ||
+        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-24.04"]')
       }}
 
     steps:
@@ -378,8 +378,8 @@ jobs:
         (github.event_name == 'pull_request' &&
          (github.event.pull_request.head.repo.full_name != github.repository ||
           github.event.pull_request.user.login == 'dependabot[bot]')) &&
-        'ubuntu-latest' ||
-        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-latest"]')
+        'ubuntu-24.04' ||
+        fromJSON(vars.RUNNER_FLEET_LABELS || '["ubuntu-24.04"]')
       }}
 
     steps:
