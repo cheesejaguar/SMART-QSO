@@ -1,458 +1,427 @@
-"""
-Unit tests for Beacon Decoder Module
+"""Tests of the ground decoder (software/ground/tools/beacon_decoder.py).
 
-Tests AX.25 frame parsing, telemetry extraction, and KISS decoding
-for SMART-QSO ground station.
-
-Author: SMART-QSO Team
-Date: 2026-01-02
-Version: 1.0
+The frames come from the flight formatters: fixtures/flight_frames.txt is
+written by software/rust/sqso-fsw/tests/ground_frames.rs, whose test fails
+when the file is not what the formatters make now. So these tests decode
+what the flight software sends, and a change to a flight format reaches them.
 """
 
-import unittest
-import struct
-
-import sys
+import io
+import json
 import os
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import socket
+import sys
+import threading
 
-from beacon_decoder import (
-    BeaconDecoder, BeaconType, AX25Address, AX25Frame,
-    DecodedBeacon, decode_beacon
+import pytest
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.join(os.path.dirname(HERE), "tools"))
+
+import sqso_protocol  # noqa: E402
+
+import beacon_decoder as bd  # noqa: E402
+
+FIXTURE = os.path.join(HERE, "fixtures", "flight_frames.txt")
+
+
+def fixture_frames():
+    """{label: frame bytes} in file order"""
+    out = {}
+    with open(FIXTURE, encoding="utf-8") as fh:
+        for line in fh:
+            if line.strip() and not line.startswith("#"):
+                label, hexed = line.split()
+                out[label] = bytes.fromhex(hexed)
+    return out
+
+
+FRAMES = fixture_frames()
+
+
+def hk_frames(name):
+    return [f for label, f in FRAMES.items() if label.startswith(name + ".")]
+
+
+def decode_all(frames, **kw):
+    dec = bd.Decoder(**kw)
+    out = []
+    for f in frames:
+        out.extend(dec.feed(f, now=0.0))
+    return out + dec.flush()
+
+
+def kiss_body(frame):
+    """What a KISS TNC delivers: no flags, no FCS"""
+    return frame.strip(b"\x7e")[:-2]
+
+
+# --- The beacon -------------------------------------------------------------
+
+
+def test_beacon_every_field():
+    f = bd.decode_frame(FRAMES["beacon_typical"])
+    assert (f.kind, f.dest, f.source, f.fcs, f.errors) == ("beacon", "CQ", "KK6GDB-11", "ok", [])
+    b = f.beacon
+    assert b.callsign == "KK6GDB-11"
+    assert b.text == "Amateur satellite beacon - 73 de KK6GDB-11"
+    assert list(b.fields) == ["T", "M", "SOC", "BV", "SUN", "RF", "QSO"]
+    assert b.values == {
+        "mission_time_s": 1792115511,
+        "power_mode": "ACTIVE",
+        "soc_pct": 83,
+        "battery_v": 14.4,
+        "sunlit": 1,
+        "rf_power": 1,
+        "qso_count": None,  # "-": not measured, never zero
+    }
+    assert b.unknown_keys == []
+
+
+def test_beacon_unmeasured_fields_are_none():
+    b = bd.decode_frame(FRAMES["beacon_unmeasured"]).beacon
+    assert b.values["power_mode"] == "SAFE"
+    assert b.values["mission_time_s"] == 42
+    for name in ("soc_pct", "battery_v", "sunlit", "rf_power", "qso_count"):
+        assert b.values[name] is None
+
+
+def test_beacon_idle_and_rounded_voltage():
+    b = bd.decode_frame(FRAMES["beacon_idle"]).beacon
+    assert (b.values["power_mode"], b.values["battery_v"], b.values["mission_time_s"]) == ("IDLE", 14.4, 0)
+
+
+def test_beacon_widest():
+    f = bd.decode_frame(FRAMES["beacon_widest"])
+    assert len(f.info) == 255  # 176 text bytes and the telemetry at its widest
+    b = f.beacon
+    assert len(b.text) == 176 and b.text.startswith("Hello from orbit: a long")  # ": " inside the text
+    assert b.values == {
+        "mission_time_s": 4294967295,
+        "power_mode": "ACTIVE",
+        "soc_pct": 255,
+        "battery_v": 65.5,
+        "sunlit": 255,
+        "rf_power": 255,
+        "qso_count": 65535,
+    }
+
+
+@pytest.mark.parametrize(
+    "info, message",
+    [
+        ("hello", "no 'de ' prefix"),
+        ("de KK6GDB-11 hello", "without 'de CALL: '"),
+        ("de KK6GDB-11: hello T=1", "separator"),
+        ("de KK6GDB-11: x | T=1 M=SAFE SOC=1 BV=1.0 SUN=1 RF=1", "missing: QSO"),
+        ("de KK6GDB-11: x | T=1 M=BURST SOC=1 BV=1.0 SUN=1 RF=1 QSO=0", "M=BURST"),
+        ("de KK6GDB-11: x | T=1 M=SAFE SOC=1 BV=14 SUN=1 RF=1 QSO=0", "one decimal"),
+        ("de KK6GDB-11: x | T=1 M=SAFE SOC=x SUN=1 BV=1.0 RF=1 QSO=0", "not an integer"),
+        ("de KK6GDB-11: x | T=1 M=SAFE SOC=1 SOC=2 BV=1.0 SUN=1 RF=1 QSO=0", "twice"),
+        ("de KK6GDB-11: x | T=1 M SOC=1", "KEY=value"),
+    ],
 )
+def test_beacon_malformed(info, message):
+    with pytest.raises(bd.DecodeError, match=message):
+        bd.parse_beacon(info)
+
+
+def test_beacon_empty_text_and_unknown_field():
+    b = bd.parse_beacon("de KK6GDB-11:  | T=0 M=SAFE SOC=- BV=- SUN=- RF=- QSO=- NEW=5")
+    assert b.text == ""
+    assert b.unknown_keys == ["NEW"] and b.fields["NEW"] == "5"
+
+
+# --- Housekeeping -----------------------------------------------------------
+
+
+def test_hk1_one_frame():
+    (hk,) = decode_all(hk_frames("hk1_typical"))
+    assert (hk["kind"], hk["seq"], hk["frames"], hk["complete"]) == ("hk1", 7, 1, True)
+    v = hk["values"]
+    assert (v["uptime_s"], v["boots"], v["reset_cause"], v["mode"]) == (3600, 3, 2, 3)
+    assert (v["commissioning_hold"], v["transponder_enabled"], v["tx_permitted"]) == (1, 0, 1)
+    assert (v["soc_pct"], v["battery_v"], v["battery_a"], v["array_w"]) == (87.3, 15.812, -0.12, 2.41)
+    assert (v["battery_temp_c"], v["obc_temp_c"], v["pa_temp_c"], v["jetson_temp_c"]) == (12.3, 21.5, 30.1, None)
+    assert (v["deployment_state"], v["ants_deployed_mask"], v["wing_sense"]) == (8, 15, 1)
+    assert (v["rf_silence_state"], v["rf_silence_s"], v["contact_timeout_d"], v["since_contact_h"]) == (3, 2700, 30, 2)
+    assert (v["fault_count"], v["last_fault_type"], v["last_fault_severity"]) == (4, 17, 2)
+    assert (v["rate_x_dps"], v["rate_y_dps"], v["rate_z_dps"], v["adcs_mode"]) == (0.12, -0.05, 6.0, 2)
+    assert (v["gnss_fix_age_s"], v["gnss_sats"], v["gnss_sessions"], v["gnss_sessions_with_fix"]) == (1200, 7, 5, 4)
+    assert (v["passivation_phase"], v["eol_state"], v["eol_fire_attempts"], v["eol_fire_reasons"]) == (1, 4, 0, 3)
+    assert (v["rx_recovery_cycles"], v["rx_failed"], v["contacts"]) == (2, 0, 3)
+    assert (v["stored_summary_next"], v["stored_detail_next"], v["fram_state"]) == (12, 60, 0)
+    assert (v["ants_temp_deferrals"], v["ants_temp_c"]) == (2, -19)
+
+
+def test_hk1_widest_is_two_frames_merged():
+    frames = hk_frames("hk1_widest")
+    assert len(frames) == 2
+    texts = [bd.decode_frame(f).info.decode() for f in frames]
+    assert all(t.startswith("HK1 N=65535 ") for t in texts) and all(len(t) <= 250 for t in texts)
+    (hk,) = decode_all(frames)
+    assert (hk["seq"], hk["frames"], hk["complete"], hk["unknown_keys"]) == (65535, 2, True, [])
+    assert list(hk["fields"]) == list(bd.HK1_FIELDS)  # every field, in the flight order
+    v = hk["values"]
+    assert (v["soc_pct"], v["battery_v"], v["battery_a"], v["array_w"]) == (100.0, 16.8, -3.5, 9.999)
+    assert v["rate_x_dps"] == -327.68 and v["jetson_temp_c"] == -40.0
+    assert (v["mag_rejected"], v["stored_detail_next"], v["fram_failed_checks"]) == (4000000000, 2**32 - 1, 2**32 - 1)
+    assert (v["gnss_sessions"], v["eol_state"], v["ants_temp_c"]) == (99999, 255, -60)
+
+
+def test_hk1_unmeasured():
+    (hk,) = decode_all(hk_frames("hk1_unmeasured"))
+    v = hk["values"]
+    assert hk["complete"]
+    for name in ("soc_pct", "battery_v", "battery_a", "array_w", "battery_temp_c", "ants_deployed_mask",
+                 "last_fault_type", "last_fault_severity", "gnss_fix_age_s", "gnss_sats", "eol_state", "ants_temp_c"):
+        assert v[name] is None, name
+    assert v["deployment_state"] == 0 and v["eol_fire_attempts"] == 0
+
+
+def test_hk2_one_frame():
+    (hk,) = decode_all(hk_frames("hk2_typical"))
+    assert (hk["kind"], hk["seq"], hk["complete"]) == ("hk2", 7, True)
+    v = hk["values"]
+    assert (v["commands_executed"], v["commands_refused"], v["auth_failures"], v["watchdog_resets"]) == (12, 3, 1, 2)
+    assert (v["transponder_enables"], v["repeater_keyed_s"], v["exciter_keyed_s"]) == (4, 3600, 4100)
+    assert (v["array_a"], v["hard_limit_violations"]) == (0.412, 0)
+    assert (v["jetson_bursts"], v["last_burst_j"], v["last_burst_lines"], v["energy_gate_ends"]) == (6, 1210, 10, 0)
+    assert (v["jetson_off_clean"], v["jetson_off_cut"], v["jetson_pg_faults"], v["jetson_readback_faults"]) == (5, 1, 0, 0)
+    assert (v["eol_state"], v["eol_fire_attempts"], v["rtc_unix_s"], v["last_reset_unix_s"]) == (4, 0, 1900000000, None)
+    assert (v["mcu_clock_ppm"], v["trips_gyro"], v["gyro_in_use"], v["mag_samples_gated"]) == (-12, 1, 0, 37)
+    assert (v["sram2_parity"], v["separation_latched"], v["stowed_readings"]) == (1, 1, 1)
+    assert (v["tx_temp_faulted"], v["tx_temp_faults"], v["eps_supv"], v["heartbeats_refused"]) == (0, 2, 33, 0)
+    assert v["chg_inhibit"] == 64
+    assert (v["tnc_version"], v["tnc_criteria"], v["tnc_floor_dbm"], v["tnc_floor_cal_dbm"]) == (3, 5, -121, -119)
+    assert (v["tnc_carrier_count"], v["tnc_frames"], v["tnc_uptime_s"]) == (42, 17, 86400)
+    assert (v["rx_fault_selftest_ok"], v["tnc_status_unanswered"]) == (1, 0)
+    assert [v[k] for k in ("selector_enabled", "h1_decisions", "h1_abstentions", "h2_decisions", "h2_abstentions",
+                           "h3_decisions", "h3_abstentions")] == [1, 1, 0, 0, 0, 0, 1]
+    assert (v["geometry_preset"], v["sun_x"], v["sun_y"], v["sun_z"]) == (1, -0.138, 0.989, 0.044)
+
+
+def test_hk2_widest_is_three_frames_merged():
+    frames = hk_frames("hk2_widest")
+    assert len(frames) == 3
+    (hk,) = decode_all(frames)
+    assert (hk["seq"], hk["frames"], hk["complete"], hk["unknown_keys"]) == (65535, 3, True, [])
+    assert list(hk["fields"]) == list(bd.HK2_FIELDS)
+    v = hk["values"]
+    assert v["last_burst_lines"] == 2**64 - 1 and v["last_burst_j"] == 2_000_000_000
+    assert (v["array_a"], v["mcu_clock_ppm"], v["tnc_floor_dbm"]) == (-2.6, -1000000, -128)
+    assert (v["sun_x"], v["sun_y"], v["sun_z"], v["geometry_preset"]) == (-1.0, -1.0, -1.0, 255)
+
+
+def test_hk2_unmeasured():
+    (hk,) = decode_all(hk_frames("hk2_unmeasured"))
+    v = hk["values"]
+    for name in ("array_a", "eol_state", "rtc_unix_s", "last_reset_unix_s", "mcu_clock_ppm", "sram2_parity",
+                 "eps_supv", "chg_inhibit", "tnc_version", "tnc_uptime_s", "sun_x", "sun_z"):
+        assert v[name] is None, name
+
+
+def test_field_tables_have_unique_names():
+    for spec in (bd.HK1_FIELDS, bd.HK2_FIELDS):
+        names = [p.name for parts in spec.values() for p in parts]
+        assert len(names) == len(set(names))
 
 
-class TestBeaconType(unittest.TestCase):
-    """Test BeaconType enumeration."""
-
-    def test_status_value(self):
-        """Test STATUS beacon type."""
-        self.assertEqual(BeaconType.STATUS, 0)
-
-    def test_science_value(self):
-        """Test SCIENCE beacon type."""
-        self.assertEqual(BeaconType.SCIENCE, 1)
-
-    def test_greeting_value(self):
-        """Test GREETING beacon type."""
-        self.assertEqual(BeaconType.GREETING, 2)
-
-    def test_emergency_value(self):
-        """Test EMERGENCY beacon type."""
-        self.assertEqual(BeaconType.EMERGENCY, 3)
-
-    def test_test_value(self):
-        """Test TEST beacon type."""
-        self.assertEqual(BeaconType.TEST, 4)
-
-    def test_unknown_value(self):
-        """Test UNKNOWN beacon type."""
-        self.assertEqual(BeaconType.UNKNOWN, 255)
-
-
-class TestAX25Address(unittest.TestCase):
-    """Test AX25Address dataclass."""
-
-    def test_creation(self):
-        """Test basic address creation."""
-        addr = AX25Address(
-            callsign="SQSO-1",
-            ssid=0,
-            command_response=False,
-            last=True
-        )
-        self.assertEqual(addr.callsign, "SQSO-1")
-        self.assertEqual(addr.ssid, 0)
-        self.assertTrue(addr.last)
-
-    def test_defaults(self):
-        """Test default values."""
-        addr = AX25Address(callsign="TEST", ssid=0)
-        self.assertFalse(addr.command_response)
-        self.assertFalse(addr.last)
-
-
-class TestAX25Frame(unittest.TestCase):
-    """Test AX25Frame dataclass."""
-
-    def test_creation(self):
-        """Test basic frame creation."""
-        dest = AX25Address("CQ", 0)
-        src = AX25Address("SQSO-1", 0, last=True)
-
-        frame = AX25Frame(
-            destination=dest,
-            source=src,
-            control=0x03,
-            pid=0xF0,
-            info=b"Hello"
-        )
-
-        self.assertEqual(frame.destination.callsign, "CQ")
-        self.assertEqual(frame.source.callsign, "SQSO-1")
-        self.assertEqual(frame.info, b"Hello")
-
-    def test_defaults(self):
-        """Test default values."""
-        dest = AX25Address("CQ", 0)
-        src = AX25Address("TEST", 0)
-
-        frame = AX25Frame(destination=dest, source=src)
-
-        self.assertEqual(frame.control, 0x03)
-        self.assertEqual(frame.pid, 0xF0)
-        self.assertEqual(frame.info, b"")
-        self.assertFalse(frame.fcs_valid)
-        self.assertEqual(frame.digipeaters, [])
-
-
-class TestDecodedBeacon(unittest.TestCase):
-    """Test DecodedBeacon dataclass."""
-
-    def test_creation(self):
-        """Test decoded beacon creation."""
-        beacon = DecodedBeacon(
-            raw_frame=b"\x7e\x00\x7e",
-            ax25_frame=None,
-            beacon_type=BeaconType.STATUS,
-            callsign="SQSO-1",
-            sequence=1234,
-            timestamp=None,
-            ai_generated=True,
-            info_text="Test beacon",
-            telemetry={"battery_soc": 85},
-            decode_time=0.001,
-            valid=True
-        )
+def test_all_fixture_frames_decode_without_errors():
+    records = decode_all(FRAMES.values())
+    assert [r["kind"] for r in records] == ["beacon"] * 4 + ["hk1"] * 3 + ["hk2"] * 3
+    assert all(not r["errors"] for r in records)
+    assert all(r.get("complete", True) for r in records)
 
-        self.assertEqual(beacon.callsign, "SQSO-1")
-        self.assertEqual(beacon.sequence, 1234)
-        self.assertTrue(beacon.ai_generated)
-        self.assertEqual(beacon.telemetry["battery_soc"], 85)
 
-    def test_error_list_default(self):
-        """Test errors list defaults to empty."""
-        beacon = DecodedBeacon(
-            raw_frame=b"",
-            ax25_frame=None,
-            beacon_type=BeaconType.UNKNOWN,
-            callsign="",
-            sequence=None,
-            timestamp=None,
-            ai_generated=False,
-            info_text="",
-            telemetry={},
-            decode_time=0,
-            valid=False
-        )
+# --- Merging the frames of one text ----------------------------------------
 
-        self.assertEqual(beacon.errors, [])
 
+def test_parts_shown_when_asked():
+    records = decode_all(hk_frames("hk1_widest"), show_parts=True)
+    assert [r["kind"] for r in records] == ["hk1_part", "hk1_part", "hk1"]
+    assert records[1]["seq"] == 65535 and "GS" in records[1]["fields"]
 
-class TestBeaconDecoder(unittest.TestCase):
-    """Test BeaconDecoder class."""
 
-    def setUp(self):
-        """Set up test fixtures."""
-        self.decoder = BeaconDecoder()
+def test_hk1_then_hk2_of_one_sequence_merge_separately():
+    frames = hk_frames("hk1_widest") + hk_frames("hk2_widest")
+    records = decode_all(frames)
+    assert [(r["kind"], r["frames"], r["complete"]) for r in records] == [("hk1", 2, True), ("hk2", 3, True)]
 
-    def test_init(self):
-        """Test decoder initialization."""
-        self.assertEqual(self.decoder._decode_count, 0)
-        self.assertEqual(self.decoder._error_count, 0)
 
-    def test_get_statistics_initial(self):
-        """Test initial statistics."""
-        stats = self.decoder.get_statistics()
-        self.assertEqual(stats["decode_count"], 0)
-        self.assertEqual(stats["error_count"], 0)
+def test_lost_last_frame_gives_an_incomplete_text_on_flush():
+    dec = bd.Decoder()
+    first = hk_frames("hk1_widest")[0]
+    assert dec.feed(first, now=0.0) == []
+    (hk,) = dec.flush()
+    assert hk["complete"] is False and "AD" in hk["missing_keys"] and hk["values"]["ants_temp_c"] is None
+    assert hk["values"]["uptime_s"] == 99999999
 
-    def test_reset_statistics(self):
-        """Test statistics reset."""
-        self.decoder._decode_count = 10
-        self.decoder._error_count = 5
 
-        self.decoder.reset_statistics()
+def test_lost_first_frame_still_gives_the_rest():
+    (hk,) = decode_all(hk_frames("hk2_widest")[1:])
+    assert hk["complete"] is False and hk["missing_keys"][:2] == ["CA", "WD"]
+    assert hk["values"]["sun_x"] == -1.0
 
-        stats = self.decoder.get_statistics()
-        self.assertEqual(stats["decode_count"], 0)
-        self.assertEqual(stats["error_count"], 0)
 
-    def test_decode_empty_frame(self):
-        """Test decoding empty frame."""
-        result = self.decoder.decode(b"")
+def test_incomplete_text_expires():
+    asm = bd.HkAssembler(max_age_s=30)
+    first = bd.decode_frame(hk_frames("hk1_widest")[0]).hk
+    assert asm.add(first, now=0.0) == []
+    assert asm.expire(now=10.0) == []
+    (hk,) = asm.expire(now=31.0)
+    assert not hk.complete and asm.flush() == []
 
-        self.assertFalse(result.valid)
-        self.assertEqual(result.beacon_type, BeaconType.UNKNOWN)
 
-    def test_decode_too_short_frame(self):
-        """Test decoding frame that's too short."""
-        result = self.decoder.decode(b"\x7e\x00\x01\x02\x7e")
+def test_new_text_with_same_head_pushes_out_the_old():
+    # The sequence restarts at 0 at every reset: a first frame of N=65535
+    # again while one is waiting gives the waiting one out
+    first = hk_frames("hk1_widest")[0]
+    records = decode_all([first, first] + hk_frames("hk1_widest")[1:])
+    assert [(r["frames"], r["complete"]) for r in records] == [(1, False), (2, True)]
 
-        self.assertFalse(result.valid)
-        self.assertIn("Failed to parse", result.errors[0])
 
+def test_conflicting_repeat_is_an_error():
+    asm = bd.HkAssembler()
+    asm.add(bd.parse_hk_frame("HK2 N=3 RT=1/2"), now=0)
+    (hk,) = asm.add(bd.parse_hk_frame("HK2 N=3 RT=1/3 SN=-"), now=0)
+    assert any("RT sent twice" in e for e in hk.errors) and not hk.complete
 
-class TestBeaconDecoderAddressParsing(unittest.TestCase):
-    """Test AX.25 address parsing."""
 
-    def setUp(self):
-        self.decoder = BeaconDecoder()
+def test_single_line_text():
+    hk = bd.parse_housekeeping(bd.decode_frame(hk_frames("hk1_typical")[0]).info.decode())
+    assert hk.complete and hk.values["soc_pct"] == 87.3
 
-    def test_parse_address_correct_length(self):
-        """Test address parsing with correct length."""
-        # Build address: "CQ    " shifted left by 1, SSID byte
-        addr_bytes = bytes([c << 1 for c in b"CQ    "]) + bytes([0x60])
 
-        addr = self.decoder._parse_address(addr_bytes)
+@pytest.mark.parametrize(
+    "text, message",
+    [("HK3 N=1", "not a housekeeping"), ("HK1 UP=1", "'N=' head"), ("HK1 N=x UP=1", "not an integer")],
+)
+def test_hk_malformed(text, message):
+    with pytest.raises(bd.DecodeError, match=message):
+        bd.parse_hk_frame(text)
 
-        self.assertIsNotNone(addr)
-        self.assertEqual(addr.callsign, "CQ")
 
-    def test_parse_address_wrong_length(self):
-        """Test address parsing with wrong length."""
-        addr = self.decoder._parse_address(b"\x00\x01\x02")
+def test_hk_wrong_part_count_is_reported():
+    hk = bd.decode_housekeeping("HK1", 1, {"W": "1/2"})
+    assert any("W=1/2" in e for e in hk.errors) and hk.values["rate_x_dps"] is None
 
-        self.assertIsNone(addr)
 
-    def test_parse_address_ssid_extraction(self):
-        """Test SSID extraction from address."""
-        # SSID = 5 -> (5 << 1) | 0x60 = 0x6A
-        addr_bytes = bytes([c << 1 for c in b"TEST  "]) + bytes([0x6A])
+# --- AX.25 forms, other frames -----------------------------------------------
 
-        addr = self.decoder._parse_address(addr_bytes)
 
-        self.assertEqual(addr.ssid, 5)
+def test_frame_forms():
+    on_air = FRAMES["beacon_typical"]
+    assert on_air[0] == 0x7E and on_air[-1] == 0x7E
+    without_flags = on_air.strip(b"\x7e")
+    for raw, fcs in ((on_air, "ok"), (without_flags, "ok"), (kiss_body(on_air), "absent")):
+        f = bd.decode_frame(raw)
+        assert (f.fcs, f.kind, f.beacon.values["soc_pct"]) == (fcs, "beacon", 83)
 
-    def test_parse_address_last_bit(self):
-        """Test last address indicator bit."""
-        # Last bit set: 0x61
-        addr_bytes = bytes([c << 1 for c in b"LAST  "]) + bytes([0x61])
 
-        addr = self.decoder._parse_address(addr_bytes)
+def test_bad_fcs_on_the_air_is_refused():
+    bad = bytearray(FRAMES["beacon_typical"])
+    bad[30] ^= 0x01
+    with pytest.raises(bd.DecodeError, match="FCS"):
+        bd.decode_frame(bytes(bad))
+    (record,) = bd.Decoder().feed(bytes(bad))
+    assert record["kind"] == "error"
 
-        self.assertTrue(addr.last)
 
+def test_not_ax25():
+    with pytest.raises(bd.DecodeError):
+        bd.decode_frame(b"\x01\x02")
 
-class TestBeaconDecoderFCS(unittest.TestCase):
-    """Test FCS calculation."""
 
-    def setUp(self):
-        self.decoder = BeaconDecoder()
+def test_other_station_and_other_frames():
+    frame = sqso_protocol.ax25_ui_frame("CQ", "N0CALL-1", b"de N0CALL-1: hi | T=1 M=SAFE SOC=- BV=- SUN=- RF=- QSO=-")
+    f = bd.decode_frame(frame)
+    assert f.kind == "beacon" and any("not KK6GDB-11" in e for e in f.errors)
+    ack = bd.decode_frame(sqso_protocol.ax25_ui_frame("CQ", "KK6GDB-11", b"ack KK6GDB-11: C=41 R=0 N=0"))
+    assert (ack.kind, ack.decoded) == ("ack", {"counter": 41, "result": 0, "days_since_contact": 0})
+    hkd = bd.decode_frame(sqso_protocol.ax25_ui_frame("CQ", "KK6GDB-11", b"HKD\x00\x01\xff"))
+    assert hkd.kind == "hkd" and hkd.to_dict()["info"] == "484B440001FF"
+    other = bd.decode_frame(sqso_protocol.ax25_ui_frame("CQ", "KK6GDB-11", b"hello"))
+    assert other.kind == "other" and not other.errors
 
-    def test_calculate_fcs_empty(self):
-        """Test FCS of empty data."""
-        fcs = self.decoder._calculate_fcs(b"")
-        self.assertIsInstance(fcs, int)
 
-    def test_calculate_fcs_known_data(self):
-        """Test FCS calculation returns consistent value."""
-        data = b"Test data for FCS calculation"
+def test_gnss_frame_through_gnss_frame_py():
+    info = (b"GNS N=17 WK=452 TOW=345600000 X=-4349115 Y=4803225 Z=2239564 VX=-4581234 VY=-1912078 "
+            b"VZ=5870431 VDT=30 Q=1 SV=8 PD=18 AGE=0")
+    f = bd.decode_frame(sqso_protocol.ax25_ui_frame("CQ", "KK6GDB-11", info))
+    assert f.kind == "gns" and f.decoded["week"] == 452 and f.decoded["seq"] == 17
+    json.dumps(f.to_dict())
 
-        fcs1 = self.decoder._calculate_fcs(data)
-        fcs2 = self.decoder._calculate_fcs(data)
 
-        self.assertEqual(fcs1, fcs2)
+# --- Input: logs, KISS --------------------------------------------------------
 
-    def test_calculate_fcs_different_data(self):
-        """Test FCS differs for different data."""
-        fcs1 = self.decoder._calculate_fcs(b"Data A")
-        fcs2 = self.decoder._calculate_fcs(b"Data B")
 
-        self.assertNotEqual(fcs1, fcs2)
+def test_read_lines_forms():
+    hexed = FRAMES["beacon_typical"].hex()
+    lines = ["# comment", "", hexed, f"2026-11-03T10:00:00Z {hexed}",
+             json.dumps({"rx_utc": "2026-11-03T10:00:05Z", "frame_hex": hexed})]
+    got = list(bd.read_lines(lines))
+    assert [rx for _, rx in got] == [None, None, "2026-11-03T10:00:05Z"]
+    with pytest.raises(bd.DecodeError, match="line 1"):
+        list(bd.read_lines(["zz"]))
 
 
-class TestBeaconDecoderKISS(unittest.TestCase):
-    """Test KISS frame extraction."""
+def test_cli_file(tmp_path, capsys):
+    out = tmp_path / "out.jsonl"
+    assert bd.main(["-f", FIXTURE, "-o", str(out)]) == 0
+    records = [json.loads(line) for line in out.read_text().splitlines()]
+    assert len(records) == 10 and records[-3]["kind"] == "hk2"
+    assert bd.main([FRAMES["beacon_idle"].hex()]) == 0
+    assert json.loads(capsys.readouterr().out)["beacon"]["values"]["power_mode"] == "IDLE"
+    assert bd.main(["nothex"]) == 2
 
-    def setUp(self):
-        self.decoder = BeaconDecoder()
 
-    def test_extract_empty_kiss(self):
-        """Test extracting frames from empty KISS data."""
-        frames = self.decoder._extract_kiss_frames(b"")
-        self.assertEqual(frames, [])
+def kiss_stream():
+    """The fixture as a KISS TNC passes it on: no flags or FCS, KISS-framed"""
+    return b"".join(sqso_protocol.kiss_frame(kiss_body(f) if f[0] == 0x7E else f[:-2]) for f in FRAMES.values())
 
-    def test_extract_single_frame(self):
-        """Test extracting single KISS frame."""
-        # FEND + cmd + data + FEND
-        kiss_data = bytes([0xC0, 0x00]) + b"A" * 20 + bytes([0xC0])
 
-        frames = self.decoder._extract_kiss_frames(kiss_data)
+def test_kiss_frames_from_a_stream():
+    frames = list(bd.kiss_frames(io.BytesIO(kiss_stream()), chunk=7))
+    assert len(frames) == len(FRAMES)
+    records = decode_all(frames)
+    assert [r["kind"] for r in records] == ["beacon"] * 4 + ["hk1"] * 3 + ["hk2"] * 3
+    assert all(not r["errors"] for r in records)
 
-        self.assertEqual(len(frames), 1)
-        self.assertEqual(frames[0], b"A" * 20)
 
-    def test_extract_multiple_frames(self):
-        """Test extracting multiple KISS frames."""
-        frame1 = bytes([0xC0, 0x00]) + b"A" * 20 + bytes([0xC0])
-        frame2 = bytes([0xC0, 0x00]) + b"B" * 20 + bytes([0xC0])
+def test_cli_kiss_file_with_log(tmp_path):
+    stream = tmp_path / "capture.kiss"
+    stream.write_bytes(kiss_stream())
+    log, out = tmp_path / "frames.jsonl", tmp_path / "out.jsonl"
+    assert bd.main(["--kiss-file", str(stream), "--log", str(log), "-o", str(out)]) == 0
+    assert len(out.read_text().splitlines()) == 10
+    logged = log.read_text().splitlines()
+    assert len(logged) == len(FRAMES) and json.loads(logged[0])["rx_utc"].endswith("Z")
+    # The log reads back with -f
+    again = tmp_path / "again.jsonl"
+    assert bd.main(["-f", str(log), "-o", str(again)]) == 0
+    strip = lambda text: [{k: v for k, v in json.loads(x).items() if k != "rx_utc"} for x in text.splitlines()]
+    assert strip(again.read_text()) == strip(out.read_text())
 
-        frames = self.decoder._extract_kiss_frames(frame1 + frame2)
 
-        self.assertEqual(len(frames), 2)
+def test_cli_kiss_tcp(tmp_path):
+    server = socket.socket()
+    server.bind(("127.0.0.1", 0))
+    server.listen(1)
+    port = server.getsockname()[1]
 
-    def test_kiss_escape_sequence(self):
-        """Test KISS escape sequence handling."""
-        # FESC TFEND -> FEND in data
-        kiss_data = bytes([0xC0, 0x00, 0x41, 0xDB, 0xDC, 0x42]) + b"A" * 14 + bytes([0xC0])
+    def serve():
+        conn, _ = server.accept()
+        conn.sendall(kiss_stream())
+        conn.close()
 
-        frames = self.decoder._extract_kiss_frames(kiss_data)
-
-        # Should contain unescaped FEND (0xC0)
-        self.assertEqual(len(frames), 1)
-        self.assertIn(0xC0, frames[0])
-
-
-class TestBeaconDecoderTelemetry(unittest.TestCase):
-    """Test telemetry extraction."""
-
-    def setUp(self):
-        self.decoder = BeaconDecoder()
-
-    def test_extract_battery_voltage(self):
-        """Test battery voltage extraction."""
-        info = "SQSO-1 V:3.85V T:25C"
-
-        telemetry = self.decoder._extract_telemetry(info)
-
-        self.assertEqual(telemetry.get("battery_voltage"), 3.85)
-
-    def test_extract_battery_soc(self):
-        """Test battery SOC extraction."""
-        info = "Status: B:78%"
-
-        telemetry = self.decoder._extract_telemetry(info)
-
-        self.assertEqual(telemetry.get("battery_soc"), 78)
-
-    def test_extract_temperature(self):
-        """Test temperature extraction."""
-        info = "Temp T:25C nominal"
-
-        telemetry = self.decoder._extract_telemetry(info)
-
-        self.assertEqual(telemetry.get("temperature"), 25)
-
-    def test_extract_negative_temperature(self):
-        """Test negative temperature extraction."""
-        info = "Eclipse T:-15C"
-
-        telemetry = self.decoder._extract_telemetry(info)
-
-        self.assertEqual(telemetry.get("temperature"), -15)
-
-    def test_extract_power_mode(self):
-        """Test power mode extraction."""
-        info = "M:ACTIVE operations"
-
-        telemetry = self.decoder._extract_telemetry(info)
-
-        self.assertEqual(telemetry.get("power_mode"), "ACTIVE")
-
-    def test_extract_orbit_number(self):
-        """Test orbit number extraction."""
-        info = "Orbit O:#1234"
-
-        telemetry = self.decoder._extract_telemetry(info)
-
-        self.assertEqual(telemetry.get("orbit_number"), 1234)
-
-    def test_extract_uptime(self):
-        """Test uptime extraction."""
-        info = "Uptime U:86400s"
-
-        telemetry = self.decoder._extract_telemetry(info)
-
-        self.assertEqual(telemetry.get("uptime"), 86400)
-
-    def test_extract_multiple_values(self):
-        """Test extracting multiple telemetry values."""
-        info = "SQSO-1 V:3.8V B:80% T:22C M:IDLE O:#100 U:3600s"
-
-        telemetry = self.decoder._extract_telemetry(info)
-
-        self.assertEqual(telemetry.get("battery_voltage"), 3.8)
-        self.assertEqual(telemetry.get("battery_soc"), 80)
-        self.assertEqual(telemetry.get("temperature"), 22)
-        self.assertEqual(telemetry.get("power_mode"), "IDLE")
-        self.assertEqual(telemetry.get("orbit_number"), 100)
-        self.assertEqual(telemetry.get("uptime"), 3600)
-
-
-class TestBeaconDecoderSequence(unittest.TestCase):
-    """Test sequence number extraction."""
-
-    def setUp(self):
-        self.decoder = BeaconDecoder()
-
-    def test_extract_sequence(self):
-        """Test sequence number extraction."""
-        seq = self.decoder._extract_sequence("Beacon #0042")
-        self.assertEqual(seq, 42)
-
-    def test_extract_sequence_not_found(self):
-        """Test when no sequence in info."""
-        seq = self.decoder._extract_sequence("No sequence here")
-        self.assertIsNone(seq)
-
-
-class TestBeaconDecoderType(unittest.TestCase):
-    """Test beacon type detection."""
-
-    def setUp(self):
-        self.decoder = BeaconDecoder()
-
-    def test_detect_emergency(self):
-        """Test EMERGENCY beacon detection."""
-        btype = self.decoder._detect_beacon_type("EMERGENCY LOW POWER")
-        self.assertEqual(btype, BeaconType.EMERGENCY)
-
-    def test_detect_test(self):
-        """Test TEST beacon detection."""
-        btype = self.decoder._detect_beacon_type("This is a TEST beacon")
-        self.assertEqual(btype, BeaconType.TEST)
-
-    def test_detect_science(self):
-        """Test SCIENCE beacon detection."""
-        btype = self.decoder._detect_beacon_type("SCIENCE data follows")
-        self.assertEqual(btype, BeaconType.SCIENCE)
-
-    def test_detect_greeting(self):
-        """Test GREETING beacon detection."""
-        btype = self.decoder._detect_beacon_type("CQ CQ de SQSO-1")
-        self.assertEqual(btype, BeaconType.GREETING)
-
-    def test_detect_status_default(self):
-        """Test STATUS is default beacon type."""
-        btype = self.decoder._detect_beacon_type("Normal status beacon")
-        self.assertEqual(btype, BeaconType.STATUS)
-
-    def test_ai_generated_detection(self):
-        """Test AI-generated beacon detection."""
-        dest = AX25Address("CQ", 0)
-        src = AX25Address("SQSO-1", 0, last=True)
-
-        # Create a minimal valid frame with [AI] marker
-        # This is a simplified test
-        self.decoder._decode_count = 0
-
-
-class TestDecodeBeaconConvenience(unittest.TestCase):
-    """Test decode_beacon convenience function."""
-
-    def test_decode_beacon_returns_decoded_beacon(self):
-        """Test convenience function returns DecodedBeacon."""
-        result = decode_beacon(b"\x7e\x00\x7e")
-
-        self.assertIsInstance(result, DecodedBeacon)
-
-    def test_decode_beacon_invalid_frame(self):
-        """Test convenience function with invalid frame."""
-        result = decode_beacon(b"")
-
-        self.assertFalse(result.valid)
-
-
-if __name__ == '__main__':
-    unittest.main()
+    t = threading.Thread(target=serve)
+    t.start()
+    out = tmp_path / "out.jsonl"
+    try:
+        assert bd.main(["--kiss-tcp", f"127.0.0.1:{port}", "-o", str(out)]) == 0
+    finally:
+        t.join()
+        server.close()
+    kinds = [json.loads(x)["kind"] for x in out.read_text().splitlines()]
+    assert kinds == ["beacon"] * 4 + ["hk1"] * 3 + ["hk2"] * 3

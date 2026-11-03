@@ -108,7 +108,7 @@ against the Rust. There are also 624 Rust `#[test]` functions in the workspace (
 | Component | Files |
 |-----------|-------|
 | Payload | `agent.py`, `content_filter.py`, `crc16.py`, `formatter.py`, `health_interface.py`, `llama_runner.py`, `obc_link.py`, `supervisor.py`; tests in `software/payload/tests/` |
-| Ground | `beacon_decoder.py`, `telemetry_display.py`, `tools/`; tests in `software/ground/tests/` |
+| Ground | `telemetry_display.py`, `tools/` (the decoder `tools/beacon_decoder.py`); tests in `software/ground/tests/` |
 
 ## 4. Build Configuration
 

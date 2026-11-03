@@ -86,7 +86,7 @@ Transfer each answer below into the corresponding numbered box of the official v
 - **8.2 Emission:** 10K4F2D
 - **8.3 Description:** 1200 bps AFSK AX.25 UI frames, plain ASCII
 - **8.4 Link budget:** `[repo]/docs/environment/LINK_BUDGET_ANALYSIS.md` v3.5 §4 (475 km; 1200 bps beacon at 0.5 W: +7.9 dB at 5° elevation for a 12 dBic station at the median spacecraft gain, +0.9 dB at the 10th percentile; analysis)
-- **8.5 Format:** AX.25 UI; field definitions and engineering-unit conversions in `docs/BEACON_SPEC.md` and `docs/operations/TELEMETRY_DICTIONARY.md` (RR 25.2A). Decoder: `software/ground/beacon_decoder.py` (open source)
+- **8.5 Format:** AX.25 UI; field definitions and engineering-unit conversions in `docs/BEACON_SPEC.md` and `docs/operations/TELEMETRY_DICTIONARY.md` (RR 25.2A). Decoder: `software/ground/tools/beacon_decoder.py` (open source)
 
 ### 9. Launch plans
 - **9.1 Launch agency:** `[integrator]` on SpaceX Transporter `[n]` **(BL)**; backup ISS/NRCSD
